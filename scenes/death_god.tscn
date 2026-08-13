@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://death_god_scene"]
+
+[node name="DeathGodScene" type="Node"]
+script = ExtResource("res://scripts/death_god.gd")

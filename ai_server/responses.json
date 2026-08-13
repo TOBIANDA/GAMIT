@@ -1,0 +1,51 @@
+{
+  "ground_truths": {
+    "mati": [
+      "aku sudah mati",
+      "aku adalah mayatnya",
+      "aku adalah korban itu sendiri",
+      "protagonis adalah orang yang mati",
+      "mayat itu adalah aku sendiri",
+      "aku yang menjadi mayat itu",
+      "aku telah meninggal dunia",
+      "aku adalah hantu yang tidak sadar sudah mati",
+      "aku tidak menyadari diriku sudah mati",
+      "ternyata aku lah yang sudah mati sejak awal",
+      "aku adalah si mati, bukan detektif"
+    ],
+    "emosional": [
+      "ada pesan yang belum terkirim",
+      "ada hubungan yang belum selesai",
+      "ada sesuatu yang kutinggalkan",
+      "aku menyesal meninggalkan seseorang",
+      "ada yang belum sempat kuselesaikan",
+      "aku punya urusan yang tertunda",
+      "ada orang yang ingin kuhubungi",
+      "aku meninggalkan sesuatu yang penting",
+      "ada hal yang belum tersampaikan",
+      "aku pergi tanpa menyelesaikan sesuatu"
+    ]
+  },
+  "responses": {
+    "sadar_mati_dan_emosional": [
+      "...Kamu sudah tahu.\n\nDan kamu juga tahu hal yang lain — sesuatu yang kamu tinggalkan di dunia itu. Bukan barang. Bukan tempat. Tapi kata-kata yang tak pernah sempat terucap.\n\nItu yang membuatmu bertahan begitu lama di sana. Bukan karena kamu belum siap mati... tapi karena kamu belum siap pergi.\n\nSekarang kamu bisa.",
+      "...Ya. Kamu mati.\n\nTapi yang lebih berat dari kematian itu sendiri adalah hal yang kamu bawa bersamamu — sesuatu yang kamu tinggalkan tanpa selesai.\n\nKamu telah melihat semuanya sekarang. Cukup.\n\nPergi dengan tenang."
+    ],
+    "sadar_mati": [
+      "...Benar.\n\nKamu adalah mayat yang mencari pembunuhnya sendiri. Ironis, bukan?\n\nDunia itu hanyalah sisa-sisa kesadaranmu. Jam yang beku, hujan yang berhenti — itu bukan kutukan. Itu caramu menolak pergi.\n\nSekarang kamu sudah tahu. Sudah cukup.",
+      "...Tepat.\n\nMayat yang kamu temukan di awal — itu kamu. Bukan orang lain.\n\nSetiap NPC yang ketakutan, setiap bayangan yang hilang — semua memberi tahumu sejak awal. Kamu hanya belum siap mendengar.\n\nSekarang kamu siap."
+    ],
+    "sebagian": [
+      "...Hampir.\n\nKamu sudah melihat semua petunjuknya. Bayangan yang hilang. Jam yang tak bergerak. Laporan yang memuat namamu sendiri.\n\nCoba pikirkan lagi — siapa sebenarnya yang kamu investigasi?",
+      "...Dekat sekali.\n\nAda satu hal yang belum kamu hubungkan. Pikirkan tentang mayat di awal cerita. Pikirkan tentang namamu di laporan otopsi.\n\nSiapa korbannya, sebenarnya?"
+    ],
+    "tidak_paham": [
+      "...Kamu belum benar-benar menjawab.\n\nBukan salahmu. Kebenaran ini memang sulit diterima.\n\nCoba lagi. Ceritakan padaku — apa yang kamu temukan selama investigasi tadi? Siapa yang mati?",
+      "...Hmm.\n\nKamu sudah jauh berjalan. Sudah melihat banyak hal. Tapi kamu masih ragu.\n\nTidak apa-apa. Ambil napas. Lalu ceritakan padaku dari awal — apa arti jam tangan yang kamu temukan?"
+    ]
+  },
+  "threshold": {
+    "mati": 0.68,
+    "emosional": 0.58
+  }
+}

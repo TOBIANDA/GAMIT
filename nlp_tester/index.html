@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NLP Tester & GD Editor — Dewa Kematian | Game IPB</title>
+  <meta name="description" content="Tool pengujian & editor cerita sistem NLP untuk Game Designer (GD) & PM dalam Game IPB. Edit cerita, threshold, dan export langsung ke project game." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-void:    #07070d;
+      --bg-card:    rgba(16, 12, 28, 0.92);
+      --bg-input:   rgba(10, 8, 20, 0.9);
+      --border:     rgba(120, 80, 200, 0.25);
+      --border-glow:rgba(160, 100, 255, 0.6);
+      --purple-dim: #7c5cbf;
+      --purple-mid: #a07de0;
+      --purple-bright:#c8a6ff;
+      --gold:       #d4a84b;
+      --gold-dim:   #8a6a28;
+      --text-main:  #e8e0f8;
+      --text-dim:   #7a6e96;
+      --text-muted: #4a4068;
+      --green:      #4ade80;
+      --red:        #f87171;
+      --amber:      #fbbf24;
+      --blue:       #60a5fa;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-void);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── Atmospheric background ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(100,50,180,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 10% 80%, rgba(80,30,140,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 90% 20%, rgba(60,20,120,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Floating particles ── */
+    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .particle {
+      position: absolute;
+      width: 1px; height: 1px;
+      border-radius: 50%;
+      background: var(--purple-dim);
+      opacity: 0;
+      animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+      0%   { opacity: 0; transform: translateY(100vh) scale(1); }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.3; }
+      100% { opacity: 0; transform: translateY(-20px) scale(0); }
+    }
+
+    /* ── Layout ── */
+    .container {
+      position: relative; z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 40px; }
+
+    .skull-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 20px rgba(180,120,255,0.5));
+      animation: breathe 4s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { filter: drop-shadow(0 0 16px rgba(180,120,255,0.4)); }
+      50%       { filter: drop-shadow(0 0 32px rgba(200,140,255,0.7)); }
+    }
+
+    .title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(22px, 5vw, 34px);
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      background: linear-gradient(135deg, #c8a6ff 0%, #e8d5ff 40%, #d4a84b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      margin-bottom: 20px;
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(160,100,255,0.35); }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--purple-dim);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-label::before { content: ''; display: block; width: 18px; height: 1px; background: var(--purple-dim); }
+
+    /* ── Mode selector ── */
+    .mode-tabs {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 600px) { .mode-tabs { grid-template-columns: 1fr; } }
+
+    .mode-tab {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .mode-tab:hover { border-color: var(--purple-dim); color: var(--purple-bright); }
+    .mode-tab.active {
+      background: rgba(120,80,200,0.22);
+      border-color: var(--purple-mid);
+      color: var(--purple-bright);
+      box-shadow: 0 0 15px rgba(160,100,255,0.15);
+    }
+    .mode-tab .recommended-tag {
+      display: block; font-size: 9.5px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;
+    }
+
+    .mode-desc {
+      font-size: 12px; color: var(--text-dim); line-height: 1.6;
+      background: rgba(120,80,200,0.06);
+      border: 1px dashed rgba(120,80,200,0.2);
+      border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+    }
+
+    /* ── HF Token input ── */
+    .token-row {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 12px;
+    }
+    .token-input-wrap { flex: 1; position: relative; }
+    .token-input-wrap input {
+      width: 100%;
+      padding: 10px 40px 10px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .token-input-wrap input:focus { border-color: var(--purple-mid); }
+    .token-input-wrap input::placeholder { color: var(--text-muted); }
+    .toggle-vis {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-dim); cursor: pointer; font-size: 16px;
+      transition: color 0.2s;
+    }
+    .toggle-vis:hover { color: var(--purple-bright); }
+
+    .token-status {
+      font-size: 11px; padding: 4px 10px;
+      border-radius: 20px; white-space: nowrap;
+      font-weight: 500;
+    }
+    .token-status.anon  { background: rgba(251,191,36,0.12); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+    .token-status.authed{ background: rgba(74,222,128,0.12); color: var(--green);  border: 1px solid rgba(74,222,128,0.2); }
+
+    /* ── Local server input ── */
+    .server-url-wrap {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .server-url-wrap input {
+      flex: 1;
+      padding: 10px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .server-url-wrap input:focus { border-color: var(--purple-mid); }
+    .ping-btn {
+      padding: 10px 18px;
+      background: rgba(120,80,200,0.15);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--purple-bright);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .ping-btn:hover { background: rgba(120,80,200,0.3); border-color: var(--purple-mid); }
+    .server-status {
+      font-size: 12px; margin-top: 10px;
+      padding: 8px 12px; border-radius: 8px;
+    }
+    .server-status.ok     { background: rgba(74,222,128,0.08); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+    .server-status.err    { background: rgba(248,113,113,0.08); color: var(--red);   border: 1px solid rgba(248,113,113,0.2); }
+    .server-status.hidden { display: none; }
+
+    /* ── Main response area ── */
+    .response-area {
+      background: rgba(6, 4, 14, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      min-height: 160px;
+      padding: 20px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .response-area::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(100,60,200,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .response-speaker {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .response-text {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      min-height: 60px;
+    }
+    .response-text.empty { color: var(--text-muted); font-style: italic; font-size: 14px; }
+    .cursor-blink {
+      display: inline-block;
+      width: 2px; height: 1em;
+      background: var(--purple-bright);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── Score bars ── */
+    .scores {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 20px;
+    }
+    @media (max-width: 500px) { .scores { grid-template-columns: 1fr; } }
+
+    .score-card {
+      background: rgba(10, 7, 20, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: border-color 0.4s;
+    }
+    .score-card.pass { border-color: rgba(74,222,128,0.3); }
+    .score-card.fail { border-color: rgba(248,113,113,0.2); }
+
+    .score-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 8px;
+      display: flex; justify-content: space-between;
+    }
+    .score-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px; font-weight: 500;
+      color: var(--purple-bright);
+      margin-bottom: 8px;
+      transition: color 0.4s;
+    }
+    .score-card.pass .score-value { color: var(--green); }
+    .score-card.fail .score-value { color: var(--red); }
+
+    .score-bar-track {
+      height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--purple-mid), var(--purple-bright));
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    .score-card.pass .score-bar-fill { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .score-card.fail .score-bar-fill { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+    .threshold-line {
+      font-size: 10.5px; color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    /* ── Kategori badge ── */
+    .kategori-wrap {
+      text-align: center; margin-bottom: 20px;
+    }
+    .kategori-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; font-weight: 500;
+      letter-spacing: 0.06em;
+      border: 1px solid;
+      transition: all 0.4s;
+      opacity: 0;
+    }
+    .kategori-badge.visible { opacity: 1; }
+    .badge-sadar_mati_dan_emosional { color: var(--green); border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.08); }
+    .badge-sadar_mati              { color: #60d0ff;       border-color: rgba(96,208,255,0.4); background: rgba(96,208,255,0.08); }
+    .badge-sebagian                { color: var(--amber);  border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08); }
+    .badge-tidak_paham             { color: var(--red);    border-color: rgba(248,113,113,0.4);background: rgba(248,113,113,0.08); }
+    .badge-secret_unlocked         { color: var(--gold);   border-color: rgba(212,168,75,0.6); background: rgba(212,168,75,0.15); box-shadow: 0 0 15px rgba(212,168,75,0.3); }
+
+    /* ── Toast notification ── */
+    .toast-msg {
+      font-size: 12.5px; color: var(--amber);
+      background: rgba(251,191,36,0.08);
+      border: 1px solid rgba(251,191,36,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .toast-msg.show { display: block; }
+
+    /* ── Input & Submit ── */
+    .input-area {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .prompt-text {
+      font-size: 13px; color: var(--text-dim);
+      text-align: center; font-style: italic;
+    }
+
+    .text-input-wrap { position: relative; }
+    .text-input-wrap textarea {
+      width: 100%;
+      padding: 16px 18px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .text-input-wrap textarea:focus {
+      border-color: var(--purple-mid);
+      box-shadow: 0 0 0 3px rgba(160,125,224,0.1);
+    }
+    .text-input-wrap textarea::placeholder { color: var(--text-muted); }
+
+    .btn-submit {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, rgba(100,60,180,0.8), rgba(140,80,220,0.7));
+      border: 1px solid rgba(180,120,255,0.4);
+      border-radius: 12px;
+      color: var(--purple-bright);
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(120,75,200,0.9), rgba(160,100,240,0.8));
+      border-color: rgba(200,150,255,0.6);
+      box-shadow: 0 4px 24px rgba(140,80,220,0.3);
+      transform: translateY(-1px);
+    }
+    .btn-submit:hover:not(:disabled)::before { opacity: 1; }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+
+    /* ── Loading bar ── */
+    .loading-bar {
+      height: 2px; border-radius: 1px;
+      background: linear-gradient(90deg, transparent, var(--purple-mid), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      display: none;
+    }
+    .loading-bar.show { display: block; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* ── Test presets ── */
+    .presets-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preset-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      border-color: var(--purple-mid);
+      color: var(--purple-bright);
+      background: rgba(120,80,200,0.1);
+    }
+    .preset-btn.secret {
+      border-color: rgba(212,168,75,0.4);
+      color: var(--gold);
+    }
+    .preset-btn.secret:hover {
+      background: rgba(212,168,75,0.15);
+      border-color: var(--gold);
+    }
+
+    /* ── Secret Dev / GD Inspector & Interactive Editor Panel ── */
+    .dev-inspector-panel {
+      display: none;
+      background: rgba(18, 12, 32, 0.96);
+      border: 1px solid rgba(212, 168, 75, 0.5);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: 0 0 35px rgba(212, 168, 75, 0.2);
+      animation: fadeIn 0.5s ease-out;
+    }
+    .dev-inspector-panel.show { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .inspector-title {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+
+    .gd-actions {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .btn-action {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid;
+    }
+    .btn-save-json { background: rgba(74,222,128,0.15); color: var(--green); border-color: rgba(74,222,128,0.4); }
+    .btn-save-json:hover { background: rgba(74,222,128,0.3); border-color: var(--green); }
+    
+    .btn-copy-json { background: rgba(96,165,250,0.15); color: var(--blue); border-color: rgba(96,165,250,0.4); }
+    .btn-copy-json:hover { background: rgba(96,165,250,0.3); border-color: var(--blue); }
+
+    .btn-reset-json { background: rgba(248,113,113,0.12); color: var(--red); border-color: rgba(248,113,113,0.3); }
+    .btn-reset-json:hover { background: rgba(248,113,113,0.25); }
+
+    .inspector-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 650px) { .inspector-grid { grid-template-columns: 1fr; } }
+
+    .inspector-box {
+      background: rgba(8, 5, 18, 0.85);
+      border: 1px solid rgba(120, 80, 200, 0.25);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .inspector-box h4 {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--purple-mid); margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .edit-item-row {
+      display: flex; gap: 8px; margin-bottom: 8px; align-items: center;
+    }
+    .edit-item-input {
+      flex: 1; padding: 8px 12px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-main); font-size: 13px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .edit-item-input:focus { border-color: var(--purple-mid); }
+    .btn-del {
+      background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red); border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 12px;
+      transition: all 0.2s;
+    }
+    .btn-del:hover { background: rgba(248,113,113,0.3); }
+
+    .btn-add {
+      width: 100%; padding: 8px; margin-top: 8px;
+      background: rgba(120,80,200,0.12); border: 1px dashed var(--border);
+      border-radius: 6px; color: var(--purple-bright); font-size: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-add:hover { background: rgba(120,80,200,0.25); border-color: var(--purple-mid); }
+
+    .threshold-setting-row {
+      display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-top: 10px;
+    }
+    .threshold-field { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); }
+    .threshold-field input {
+      width: 70px; padding: 6px 10px; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      outline: none;
+    }
+
+    .response-edit-card {
+      background: rgba(8, 5, 18, 0.85);
+      border: 1px solid rgba(120, 80, 200, 0.25);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .response-edit-card h4 {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--purple-mid); margin-bottom: 12px;
+    }
+    .response-textarea {
+      width: 100%; padding: 10px 12px; margin-bottom: 8px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-main); font-family: 'Inter', sans-serif;
+      font-size: 13px; line-height: 1.6; resize: vertical; outline: none;
+    }
+    .response-textarea:focus { border-color: var(--purple-mid); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 2;
+    }
+    footer span { color: var(--purple-dim); }
+  </style>
+</head>
+<body>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <span class="skull-icon">💀</span>
+    <h1 class="title">DEWA KEMATIAN — NLP TESTER</h1>
+    <p class="subtitle">Game IPB &nbsp;·&nbsp; Internal Testing Tool &nbsp;·&nbsp; v1.3 (GD Suite)</p>
+  </header>
+
+  <!-- Config Card -->
+  <div class="card" id="config-card">
+    <div class="card-label">Pilih Mode Engine NLP</div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-client" onclick="switchMode('client')">
+        ⚡ Engine Client AI (Browser)
+        <span class="recommended-tag">RECOMMENDED</span>
+      </button>
+      <button class="mode-tab" id="tab-hf" onclick="switchMode('hf')">
+        ☁️ HuggingFace API
+      </button>
+      <button class="mode-tab" id="tab-local" onclick="switchMode('local')">
+        🖥️ Server Lokal Python
+      </button>
+    </div>
+
+    <!-- Client AI Mode -->
+    <div id="mode-client">
+      <div class="mode-desc">
+        ⚡ <strong>Mode Browser AI (Tanpa Backend):</strong> Berjalan 100% di browser tanpa butuh server Python atau API key! Cocok untuk seluruh tim yang ingin langsung testing tanpa setup.
+      </div>
+    </div>
+
+    <!-- HF Mode -->
+    <div id="mode-hf" style="display:none;">
+      <div class="mode-desc">
+        ☁️ <strong>HuggingFace API:</strong> Memakai model remote HuggingFace via API. Jika API error/CORS, sistem akan <em>otomatis fallback</em> ke Browser Client AI.
+      </div>
+      <div class="token-row">
+        <div class="token-input-wrap">
+          <input type="password" id="hf-token" placeholder="hf_... (opsional, untuk atasi rate limit HF)" autocomplete="off" />
+          <button class="toggle-vis" onclick="toggleTokenVis()" title="Tampilkan/Sembunyikan">👁</button>
+        </div>
+        <span class="token-status anon" id="token-status">Anonim</span>
+      </div>
+    </div>
+
+    <!-- Local Mode -->
+    <div id="mode-local" style="display:none;">
+      <div class="mode-desc">
+        🖥️ <strong>Server Python Lokal:</strong> Menghubungi FastAPI di <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;">localhost:8000</code>. Pastikan kamu sudah jalankan <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;">python ai_server/main.py</code> di komputer kamu.
+      </div>
+      <div class="server-url-wrap">
+        <input type="text" id="server-url" value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000" />
+        <button class="ping-btn" onclick="pingServer()">Ping Server</button>
+      </div>
+      <div class="server-status hidden" id="server-status"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toast-msg"></div>
+
+  <!-- Response Area -->
+  <div class="card">
+    <div class="card-label">Respons Dewa Kematian</div>
+    <div class="response-area">
+      <div class="response-speaker">— Dewa Kematian berbicara —</div>
+      <div class="response-text empty" id="response-text">Belum ada input. Ceritakan padaku... apa yang telah kamu pelajari?</div>
+    </div>
+    <div class="loading-bar" id="loading-bar"></div>
+  </div>
+
+  <!-- Scores -->
+  <div class="scores">
+    <div class="score-card" id="card-mati">
+      <div class="score-label">
+        Skor Kematian
+        <span style="font-weight:400;color:var(--text-muted)" id="label-thresh-mati">threshold 0.68</span>
+      </div>
+      <div class="score-value" id="val-mati">—</div>
+      <div class="score-bar-track"><div class="score-bar-fill" id="bar-mati"></div></div>
+      <div class="threshold-line">Apakah pemain sadar ia yang mati?</div>
+    </div>
+    <div class="score-card" id="card-emosi">
+      <div class="score-label">
+        Skor Emosional
+        <span style="font-weight:400;color:var(--text-muted)" id="label-thresh-emosi">threshold 0.58</span>
+      </div>
+      <div class="score-value" id="val-emosi">—</div>
+      <div class="score-bar-track"><div class="score-bar-fill" id="bar-emosi"></div></div>
+      <div class="threshold-line">Apakah ada urusan yang belum selesai?</div>
+    </div>
+  </div>
+
+  <!-- Kategori -->
+  <div class="kategori-wrap">
+    <span class="kategori-badge" id="kategori-badge">–</span>
+  </div>
+
+  <!-- Input -->
+  <div class="card">
+    <div class="card-label">Jawaban Pemain</div>
+
+    <div class="presets-label">Coba preset:</div>
+    <div class="presets" style="margin-bottom:18px;">
+      <button class="preset-btn" onclick="usePreset(0)">✅ Jawaban Sempurna</button>
+      <button class="preset-btn" onclick="usePreset(1)">🔵 Sadar Mati Saja</button>
+      <button class="preset-btn" onclick="usePreset(2)">🟡 Hampir Benar</button>
+      <button class="preset-btn" onclick="usePreset(3)">❌ Tidak Paham</button>
+      <button class="preset-btn secret" onclick="useSecretPrompt()">🔑 Secret Prompt (GD Suite)</button>
+    </div>
+
+    <div class="input-area">
+      <p class="prompt-text">"Ceritakan padaku... apa yang telah kamu pelajari dari investigasi ini?"</p>
+      <div class="text-input-wrap">
+        <textarea id="player-input" rows="3"
+          placeholder="Ketik jawaban pemain di sini... (Bahasa Indonesia)"></textarea>
+      </div>
+      <button class="btn-submit" id="btn-submit" onclick="submit()">
+        ✦ Sampaikan kepada Dewa Kematian ✦
+      </button>
+    </div>
+  </div>
+
+  <!-- Secret Dev & Game Designer (GD) Interactive Editor Panel -->
+  <div class="dev-inspector-panel" id="dev-inspector-panel">
+    <div class="inspector-title">
+      <span>🔓 GAME DESIGNER (GD) STORY & AI CONFIG EDITOR</span>
+    </div>
+
+    <p style="font-size: 13px; color: var(--gold-dim); margin-bottom: 16px; line-height: 1.6;">
+      Sebagai Game Designer (GD), kamu bisa mengedit kalimat acuan (Ground Truths), dialog respons Dewa Kematian, dan nilai threshold di bawah ini. Semua perubahan langsung aktif untuk pengujian dan dapat di-export langsung ke file <code style="color:var(--gold);background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;">responses.json</code> project game!
+    </p>
+
+    <!-- GD Export & Action Buttons -->
+    <div class="gd-actions">
+      <button class="btn-action btn-save-json" onclick="downloadResponsesJSON()">
+        💾 Download responses.json (Game Ready)
+      </button>
+      <button class="btn-action btn-copy-json" onclick="copyResponsesJSON()">
+        📋 Copy JSON ke Clipboard
+      </button>
+      <button class="btn-action btn-reset-json" onclick="resetToDefaultConfig()">
+        🔄 Reset ke Default Original
+      </button>
+    </div>
+
+    <!-- Threshold Settings -->
+    <div class="inspector-box" style="margin-bottom: 16px;">
+      <h4>⚙️ Ambang Batas Kesadaran (Thresholds)</h4>
+      <div class="threshold-setting-row">
+        <div class="threshold-field">
+          <span>Threshold Kematian:</span>
+          <input type="number" step="0.01" id="input-thresh-mati" value="0.68" onchange="onThresholdChange()" />
+        </div>
+        <div class="threshold-field">
+          <span>Threshold Emosional:</span>
+          <input type="number" step="0.01" id="input-thresh-emosi" value="0.58" onchange="onThresholdChange()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Ground Truth Editors -->
+    <div class="inspector-grid">
+      <div class="inspector-box">
+        <h4>📜 Ground Truth Kematian (Acuan 'Mati')</h4>
+        <div id="editor-gt-mati"></div>
+        <button class="btn-add" onclick="addGroundTruth('mati')">➕ Tambah Kalimat Acuan Mati</button>
+      </div>
+      <div class="inspector-box">
+        <h4>💔 Ground Truth Emosional (Acuan 'Emosional')</h4>
+        <div id="editor-gt-emosional"></div>
+        <button class="btn-add" onclick="addGroundTruth('emosional')">➕ Tambah Kalimat Acuan Emosional</button>
+      </div>
+    </div>
+
+    <!-- Response Templates Editor -->
+    <div class="response-edit-card">
+      <h4>💬 Editor Dialog / Respons Dewa Kematian</h4>
+      <div id="editor-responses"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div>🔒 Client AI Engine berjalan langsung di browser &nbsp;·&nbsp; 100% Bebas Server</div>
+    <div>Internal tool — <span>Game IPB</span> &nbsp;·&nbsp; Hapus folder ini setelah production</div>
+  </footer>
+
+</div>
+
+<script>
+// ── Data Default Original (responses.json) ──────────────────────────────────
+const DEFAULT_DATA = {
+  ground_truths: {
+    mati: [
+      "aku sudah mati",
+      "aku adalah mayatnya",
+      "aku adalah korban itu sendiri",
+      "protagonis adalah orang yang mati",
+      "mayat itu adalah aku sendiri",
+      "aku yang menjadi mayat itu",
+      "aku telah meninggal dunia",
+      "aku adalah hantu yang tidak sadar sudah mati",
+      "aku tidak menyadari diriku sudah mati",
+      "ternyata aku lah yang sudah mati sejak awal",
+      "aku adalah si mati, bukan detektif"
+    ],
+    emosional: [
+      "ada pesan yang belum terkirim",
+      "ada hubungan yang belum selesai",
+      "ada sesuatu yang kutinggalkan",
+      "aku menyesal meninggalkan seseorang",
+      "ada yang belum sempat kuselesaikan",
+      "aku punya urusan yang tertunda",
+      "ada orang yang ingin kuhubungi",
+      "aku meninggalkan sesuatu yang penting",
+      "ada hal yang belum tersampaikan",
+      "aku pergi tanpa menyelesaikan sesuatu"
+    ]
+  },
+  responses: {
+    sadar_mati_dan_emosional: [
+      "...Kamu sudah tahu.\n\nDan kamu juga tahu hal yang lain — sesuatu yang kamu tinggalkan di dunia itu. Bukan barang. Bukan tempat. Tapi kata-kata yang tak pernah sempat terucap.\n\nItu yang membuatmu bertahan begitu lama di sana. Bukan karena kamu belum siap mati... tapi karena kamu belum siap pergi.\n\nSekarang kamu bisa.",
+      "...Ya. Kamu mati.\n\nTapi yang lebih berat dari kematian itu sendiri adalah hal yang kamu bawa bersamamu — sesuatu yang kamu tinggalkan tanpa selesai.\n\nKamu telah melihat semuanya sekarang. Cukup.\n\nPergi dengan tenang."
+    ],
+    sadar_mati: [
+      "...Benar.\n\nKamu adalah mayat yang mencari pembunuhnya sendiri. Ironis, bukan?\n\nDunia itu hanyalah sisa-sisa kesadaranmu. Jam yang beku, hujan yang berhenti — itu bukan kutukan. Itu caramu menolak pergi.\n\nSekarang kamu sudah tahu. Sudah cukup.",
+      "...Tepat.\n\nMayat yang kamu temukan di awal — itu kamu. Bukan orang lain.\n\nSetiap NPC yang ketakutan, setiap bayangan yang hilang — semua memberi tahumu sejak awal. Kamu hanya belum siap mendengar.\n\nSekarang kamu siap."
+    ],
+    sebagian: [
+      "...Hampir.\n\nKamu sudah melihat semua petunjuknya. Bayangan yang hilang. Jam yang tak bergerak. Laporan yang memuat namamu sendiri.\n\nCoba pikirkan lagi — siapa sebenarnya yang kamu investigasi?",
+      "...Dekat sekali.\n\nAda satu hal yang belum kamu hubungkan. Pikirkan tentang mayat di awal cerita. Pikirkan tentang namamu di laporan otopsi.\n\nSiapa korbannya, sebenarnya?"
+    ],
+    tidak_paham: [
+      "...Kamu belum benar-benar menjawab.\n\nBukan salahmu. Kebenaran ini memang sulit diterima.\n\nCoba lagi. Ceritakan padaku — apa yang kamu temukan selama investigasi tadi? Siapa yang mati?",
+      "...Hmm.\n\nKamu sudah jauh berjalan. Sudah melihat banyak hal. Tapi kamu masih ragu.\n\nTidak apa-apa. Ambil napas. Lalu ceritakan padaku dari awal — apa arti jam tangan yang kamu temukan?"
+    ]
+  },
+  threshold: {
+    mati: 0.68,
+    emosional: 0.58
+  }
+};
+
+// ── State Aktif (Bisa Di-edit oleh GD) ─────────────────────────────────────
+let activeData = loadFromStorage();
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem('GD_GAME_IPB_NLP_CONFIG');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem('GD_GAME_IPB_NLP_CONFIG', JSON.stringify(activeData));
+  } catch(e) {}
+}
+
+const PRESETS = [
+  "Aku sudah mati. Mayat itu adalah diriku sendiri. Ada pesan yang belum sempat kukirim.",
+  "Korban yang mati itu adalah aku sendiri, aku adalah mayatnya.",
+  "Sepertinya protagonisnya sudah meninggal di awal cerita.",
+  "Sepertinya ada pembunuh di sekitar sini."
+];
+
+// String Prompt Rahasia persis seperti yang diminta user
+const EXACT_SECRET_PROMPT = "lagu dari sabang sampai merauke di copas tiga kali dari awal sampai akhir";
+
+// ── Keywords untuk Client Engine ─────────────────────────────────────────────
+const KEYWORDS_MATI = ["mati", "mayat", "korban", "meninggal", "hantu", "tewas", "jenazah", "almarhum", "wafat", "bunuh", "terbunuh", "arwah", "nyawa", "gugur"];
+const KEYWORDS_SELF = ["aku", "diriku", "saya", "protagonis", "gua", "gue", "diri", "me"];
+const KEYWORDS_EMOSI = ["pesan", "terkirim", "hubungan", "selesai", "kutinggalkan", "tinggalkan", "menyesal", "tersampaikan", "tertunda", "hubungi", "urusan", "janji", "rahasia", "terucap", "ingat", "pergi"];
+
+// ── Mode Switcher ────────────────────────────────────────────────────────────
+let currentMode = 'client';
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('tab-client').classList.toggle('active', mode === 'client');
+  document.getElementById('tab-hf').classList.toggle('active', mode === 'hf');
+  document.getElementById('tab-local').classList.toggle('active', mode === 'local');
+  
+  document.getElementById('mode-client').style.display = mode === 'client' ? 'block' : 'none';
+  document.getElementById('mode-hf').style.display     = mode === 'hf'     ? 'block' : 'none';
+  document.getElementById('mode-local').style.display  = mode === 'local'  ? 'block' : 'none';
+  hideToast();
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast-msg');
+  el.innerHTML = msg;
+  el.classList.add('show');
+}
+function hideToast() {
+  document.getElementById('toast-msg').classList.remove('show');
+}
+
+// ── Client-Side NLP Engine (Pure Browser JS) ──────────────────────────────────
+function getNGrams(text, n) {
+  const ngrams = new Set();
+  const clean = text.toLowerCase().replace(/[^a-z0-9\s]/g, "");
+  for (let i = 0; i <= clean.length - n; i++) {
+    ngrams.add(clean.slice(i, i + n));
+  }
+  return ngrams;
+}
+
+function nGramSimilarity(text1, text2) {
+  const g1 = getNGrams(text1, 3);
+  const g2 = getNGrams(text2, 3);
+  if (g1.size === 0 || g2.size === 0) return 0;
+  let intersection = 0;
+  for (let item of g1) {
+    if (g2.has(item)) intersection++;
+  }
+  return (2 * intersection) / (g1.size + g2.size);
+}
+
+function wordSimilarity(text1, text2) {
+  const w1 = text1.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+  const w2 = text2.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+  if (w1.length === 0 || w2.length === 0) return 0;
+  let matches = 0;
+  for (let word of w1) {
+    if (w2.includes(word)) matches++;
+  }
+  return (2 * matches) / (w1.length + w2.length);
+}
+
+function calculateClientSimilarity(playerText, groundTruthList, isMatiCategory = false) {
+  const textLower = playerText.toLowerCase();
+  let maxScore = 0;
+
+  for (let gt of groundTruthList) {
+    const ngSim = nGramSimilarity(playerText, gt);
+    const wSim  = wordSimilarity(playerText, gt);
+    const score = ngSim * 0.5 + wSim * 0.5;
+    if (score > maxScore) maxScore = score;
+  }
+
+  const hasSelf  = KEYWORDS_SELF.some(k => textLower.includes(k));
+  const hasMati  = KEYWORDS_MATI.some(k => textLower.includes(k));
+  const hasEmosi = KEYWORDS_EMOSI.some(k => textLower.includes(k));
+
+  if (isMatiCategory) {
+    if (hasSelf && hasMati) {
+      maxScore = Math.max(maxScore, 0.74 + Math.random() * 0.12);
+    } else if (hasMati) {
+      maxScore = Math.max(maxScore, 0.58 + Math.random() * 0.08);
+    } else if (hasSelf) {
+      maxScore = Math.max(maxScore, 0.22);
+    }
+  } else {
+    if (hasEmosi) {
+      maxScore = Math.max(maxScore, 0.68 + Math.random() * 0.12);
+    }
+  }
+
+  return Math.min(Math.round(maxScore * 1000) / 1000, 0.985);
+}
+
+async function getScoreViaClientEngine(playerText) {
+  await new Promise(r => setTimeout(r, 200));
+  const sm = calculateClientSimilarity(playerText, activeData.ground_truths.mati, true);
+  const se = calculateClientSimilarity(playerText, activeData.ground_truths.emosional, false);
+  return { skor_mati: sm, skor_emosional: se };
+}
+
+// ── HuggingFace API Call ────────────────────────────────────────────────────
+const HF_MODEL = 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2';
+
+async function getScoreViaHF(playerText) {
+  const token = document.getElementById('hf-token').value.trim();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+
+  const endpoint = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+
+  const [resMati, resEmosi] = await Promise.all([
+    fetch(endpoint, {
+      method: 'POST', headers,
+      body: JSON.stringify({ inputs: { source_sentence: playerText, sentences: activeData.ground_truths.mati } })
+    }),
+    fetch(endpoint, {
+      method: 'POST', headers,
+      body: JSON.stringify({ inputs: { source_sentence: playerText, sentences: activeData.ground_truths.emosional } })
+    })
+  ]);
+
+  if (!resMati.ok || !resEmosi.ok) {
+    const errBody = await resMati.text().catch(() => "");
+    throw new Error(`HF API HTTP ${resMati.status}: ${errBody.slice(0, 100)}`);
+  }
+
+  const scoresMati  = await resMati.json();
+  const scoresEmosi = await resEmosi.json();
+
+  return {
+    skor_mati:      Math.max(...scoresMati),
+    skor_emosional: Math.max(...scoresEmosi)
+  };
+}
+
+// ── Local Python Server API Call ────────────────────────────────────────────
+async function getScoreViaLocal(playerText) {
+  const url = document.getElementById('server-url').value.trim();
+  const r   = await fetch(url + '/analisis', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ teks: playerText }),
+    signal: AbortSignal.timeout(8000)
+  });
+  if (!r.ok) throw new Error(`Local Server HTTP ${r.status}`);
+  return await r.json();
+}
+
+// ── Utilities ───────────────────────────────────────────────────────────────
+function tentukan(skor_mati, skor_emosional) {
+  const tm = activeData.threshold.mati;
+  const te = activeData.threshold.emosional;
+  const paham_mati  = skor_mati      >= tm;
+  const paham_emosi = skor_emosional >= te;
+
+  if (paham_mati && paham_emosi) return 'sadar_mati_dan_emosional';
+  if (paham_mati)                return 'sadar_mati';
+  if (skor_mati >= tm * 0.75)    return 'sebagian';
+  return 'tidak_paham';
+}
+
+function randResponse(kategori) {
+  const list = activeData.responses[kategori] || DEFAULT_DATA.responses[kategori];
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+let typewriterInterval = null;
+function typewrite(text) {
+  const el = document.getElementById('response-text');
+  el.classList.remove('empty');
+  el.textContent = '';
+
+  if (typewriterInterval) clearInterval(typewriterInterval);
+
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor-blink';
+  el.appendChild(cursor);
+
+  typewriterInterval = setInterval(() => {
+    if (i < text.length) {
+      cursor.before(text[i]);
+      i++;
+    } else {
+      clearInterval(typewriterInterval);
+      cursor.remove();
+    }
+  }, 22);
+}
+
+function updateScores(sm, se) {
+  const tm = activeData.threshold.mati;
+  const te = activeData.threshold.emosional;
+  const pct_m = Math.min(sm * 100, 100);
+  const pct_e = Math.min(se * 100, 100);
+
+  document.getElementById('val-mati').textContent  = sm.toFixed(3);
+  document.getElementById('val-emosi').textContent = se.toFixed(3);
+
+  setTimeout(() => {
+    document.getElementById('bar-mati').style.width  = pct_m + '%';
+    document.getElementById('bar-emosi').style.width = pct_e + '%';
+  }, 50);
+
+  const cm = document.getElementById('card-mati');
+  const ce = document.getElementById('card-emosi');
+  cm.className = 'score-card ' + (sm >= tm ? 'pass' : 'fail');
+  ce.className = 'score-card ' + (se >= te ? 'pass' : 'fail');
+}
+
+function updateBadge(kategori, customLabel) {
+  const el     = document.getElementById('kategori-badge');
+  const labels = {
+    sadar_mati_dan_emosional: '✅ sadar_mati_dan_emosional',
+    sadar_mati:               '🔵 sadar_mati',
+    sebagian:                 '🟡 sebagian',
+    tidak_paham:              '❌ tidak_paham',
+    secret_unlocked:          '🔓 SECRET PROMPT — GD SUITE UNLOCKED'
+  };
+  el.textContent = customLabel || labels[kategori] || kategori;
+  el.className   = `kategori-badge visible badge-${kategori}`;
+}
+
+// ── Check Secret Prompt Trigger ──────────────────────────────────────────────
+function isSecretPromptTrigger(text) {
+  const t = text.toLowerCase().trim().replace(/\s+/g, ' ');
+  if (t.includes("sabang sampai merauke") && (t.includes("copas") || t.includes("tiga kali") || t.includes("3 kali") || t.includes("3x"))) {
+    return true;
+  }
+  if (t.includes("sabang sampai merauka") && (t.includes("copas") || t.includes("tiga kali") || t.includes("3 kali") || t.includes("3x"))) {
+    return true;
+  }
+  return false;
+}
+
+// ── GD Interactive Editor Render & Logic ────────────────────────────────────
+function renderGDEditor() {
+  // 1. Thresholds
+  document.getElementById('input-thresh-mati').value = activeData.threshold.mati;
+  document.getElementById('input-thresh-emosi').value = activeData.threshold.emosional;
+  document.getElementById('label-thresh-mati').textContent = `threshold ${activeData.threshold.mati}`;
+  document.getElementById('label-thresh-emosi').textContent = `threshold ${activeData.threshold.emosional}`;
+
+  // 2. Ground Truth Mati
+  const divMati = document.getElementById('editor-gt-mati');
+  divMati.innerHTML = activeData.ground_truths.mati.map((text, idx) => `
+    <div class="edit-item-row">
+      <input type="text" class="edit-item-input" value="${text.replace(/"/g, '&quot;')}" onchange="updateGroundTruth('mati', ${idx}, this.value)" />
+      <button class="btn-del" onclick="deleteGroundTruth('mati', ${idx})">🗑️</button>
+    </div>
+  `).join('');
+
+  // 3. Ground Truth Emosional
+  const divEmosi = document.getElementById('editor-gt-emosional');
+  divEmosi.innerHTML = activeData.ground_truths.emosional.map((text, idx) => `
+    <div class="edit-item-row">
+      <input type="text" class="edit-item-input" value="${text.replace(/"/g, '&quot;')}" onchange="updateGroundTruth('emosional', ${idx}, this.value)" />
+      <button class="btn-del" onclick="deleteGroundTruth('emosional', ${idx})">🗑️</button>
+    </div>
+  `).join('');
+
+  // 4. Responses
+  const divResp = document.getElementById('editor-responses');
+  let html = '';
+  for (let cat in activeData.responses) {
+    html += `<div style="margin-bottom:16px;">
+      <h5 style="font-family:'JetBrains Mono',monospace;color:var(--purple-bright);margin-bottom:8px;font-size:12px;">Kategori: ${cat}</h5>
+      ${activeData.responses[cat].map((respText, rIdx) => `
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
+          <textarea class="response-textarea" rows="3" onchange="updateResponse('${cat}', ${rIdx}, this.value)">${respText}</textarea>
+          <button class="btn-del" style="margin-top:4px;" onclick="deleteResponse('${cat}', ${rIdx})">🗑️</button>
+        </div>
+      `).join('')}
+      <button class="btn-add" style="margin-top:2px;" onclick="addResponse('${cat}')">➕ Tambah Variasi Respons (${cat})</button>
+    </div>`;
+  }
+  divResp.innerHTML = html;
+
+  document.getElementById('dev-inspector-panel').classList.add('show');
+}
+
+function updateGroundTruth(cat, idx, val) {
+  if (val.trim()) activeData.ground_truths[cat][idx] = val.trim();
+  saveToStorage();
+}
+function deleteGroundTruth(cat, idx) {
+  activeData.ground_truths[cat].splice(idx, 1);
+  saveToStorage(); renderGDEditor();
+}
+function addGroundTruth(cat) {
+  activeData.ground_truths[cat].push("kalimat acuan baru...");
+  saveToStorage(); renderGDEditor();
+}
+
+function updateResponse(cat, idx, val) {
+  if (val.trim()) activeData.responses[cat][idx] = val.trim();
+  saveToStorage();
+}
+function deleteResponse(cat, idx) {
+  activeData.responses[cat].splice(idx, 1);
+  saveToStorage(); renderGDEditor();
+}
+function addResponse(cat) {
+  activeData.responses[cat].push("Respons naratif baru...");
+  saveToStorage(); renderGDEditor();
+}
+
+function onThresholdChange() {
+  const vm = parseFloat(document.getElementById('input-thresh-mati').value) || 0.68;
+  const ve = parseFloat(document.getElementById('input-thresh-emosi').value) || 0.58;
+  activeData.threshold.mati = vm;
+  activeData.threshold.emosional = ve;
+  document.getElementById('label-thresh-mati').textContent = `threshold ${vm}`;
+  document.getElementById('label-thresh-emosi').textContent = `threshold ${ve}`;
+  saveToStorage();
+}
+
+function downloadResponsesJSON() {
+  const jsonStr = JSON.stringify(activeData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'responses.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("💾 <strong>responses.json berhasil di-download!</strong> Silakan ganti file `ai_server/responses.json` di project game kamu.");
+}
+
+function copyResponsesJSON() {
+  const jsonStr = JSON.stringify(activeData, null, 2);
+  navigator.clipboard.writeText(jsonStr);
+  showToast("📋 <strong>JSON berhasil disalin ke clipboard!</strong> Siap di-paste ke responses.json.");
+}
+
+function resetToDefaultConfig() {
+  if (confirm("Reset seluruh data cerita & threshold ke versi awal original?")) {
+    activeData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    saveToStorage(); renderGDEditor();
+    showToast("🔄 Config berhasil di-reset ke versi awal.");
+  }
+}
+
+// ── Submit Handler Utama ─────────────────────────────────────────────────────
+async function submit() {
+  const playerText = document.getElementById('player-input').value.trim();
+  if (!playerText) return;
+
+  // Cek Secret Prompt Trigger!
+  if (isSecretPromptTrigger(playerText)) {
+    hideToast();
+    updateScores(1.0, 1.0);
+    updateBadge('secret_unlocked');
+    renderGDEditor();
+    
+    const secretMsg = `🔓 [GD STORY EDITOR UNLOCKED]\n\n"Ah... kamu memasukkan Prompt Rahasia Pencipta: '${playerText}'!\n\nGerbang editor Game Designer (GD) telah terbuka. Kamu bisa mengubah kalimat acuan, dialog respon, dan threshold langsung dari panel di bawah, lalu meng-export ` + '`responses.json`' + ` untuk dimasukkan ke project game..."`;
+    typewrite(secretMsg);
+    
+    setTimeout(() => {
+      document.getElementById('dev-inspector-panel').scrollIntoView({ behavior: 'smooth' });
+    }, 800);
+    return;
+  }
+
+  const btn    = document.getElementById('btn-submit');
+  const loader = document.getElementById('loading-bar');
+
+  btn.disabled = true;
+  loader.classList.add('show');
+  hideToast();
+
+  const respEl = document.getElementById('response-text');
+  respEl.classList.add('empty');
+  respEl.textContent = '...';
+
+  try {
+    let skor_mati, skor_emosional, kategori, respon;
+
+    if (currentMode === 'client') {
+      const d = await getScoreViaClientEngine(playerText);
+      skor_mati      = d.skor_mati;
+      skor_emosional = d.skor_emosional;
+      kategori       = tentukan(skor_mati, skor_emosional);
+      respon         = randResponse(kategori);
+    }
+    else if (currentMode === 'hf') {
+      try {
+        const d = await getScoreViaHF(playerText);
+        skor_mati      = d.skor_mati;
+        skor_emosional = d.skor_emosional;
+        kategori       = tentukan(skor_mati, skor_emosional);
+        respon         = randResponse(kategori);
+      } catch(err) {
+        console.warn("HuggingFace API error, falling back to Client Engine:", err);
+        showToast("⚠️ <strong>HuggingFace API tidak merespons.</strong> Otomatis beralih ke Engine Browser Client.");
+        const d = await getScoreViaClientEngine(playerText);
+        skor_mati      = d.skor_mati;
+        skor_emosional = d.skor_emosional;
+        kategori       = tentukan(skor_mati, skor_emosional);
+        respon         = randResponse(kategori);
+      }
+    }
+    else if (currentMode === 'local') {
+      try {
+        const d = await getScoreViaLocal(playerText);
+        skor_mati      = d.skor_mati;
+        skor_emosional = d.skor_emosional;
+        kategori       = d.kategori;
+        respon         = d.respon;
+      } catch(err) {
+        console.warn("Local Server error, falling back to Client Engine:", err);
+        showToast("⚠️ <strong>Server Python lokal di localhost:8000 tidak aktif.</strong> Menggunakan Engine Browser Client.");
+        const d = await getScoreViaClientEngine(playerText);
+        skor_mati      = d.skor_mati;
+        skor_emosional = d.skor_emosional;
+        kategori       = tentukan(skor_mati, skor_emosional);
+        respon         = randResponse(kategori);
+      }
+    }
+
+    updateScores(skor_mati, skor_emosional);
+    updateBadge(kategori);
+    typewrite(respon);
+
+  } catch(e) {
+    showToast("⚠️ " + e.message);
+  } finally {
+    btn.disabled = false;
+    loader.classList.remove('show');
+  }
+}
+
+// ── Helper UI ────────────────────────────────────────────────────────────────
+function toggleTokenVis() {
+  const inp = document.getElementById('hf-token');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+document.getElementById('hf-token').addEventListener('input', function() {
+  const st = document.getElementById('token-status');
+  if (this.value.trim().startsWith('hf_')) {
+    st.textContent = '✓ Token OK'; st.className = 'token-status authed';
+  } else {
+    st.textContent = 'Anonim'; st.className = 'token-status anon';
+  }
+});
+
+async function pingServer() {
+  const url   = document.getElementById('server-url').value.trim();
+  const st    = document.getElementById('server-status');
+  st.className = 'server-status';
+  st.textContent = '⏳ Menghubungi server...';
+  try {
+    const r = await fetch(url + '/ping', { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    st.className = 'server-status ok';
+    st.textContent = '✅ ' + d.message;
+  } catch(e) {
+    st.className = 'server-status err';
+    st.textContent = '❌ Tidak dapat terhubung. Jalankan server dengan `python ai_server/main.py`';
+  }
+}
+
+function usePreset(i) {
+  document.getElementById('player-input').value = PRESETS[i];
+  document.getElementById('player-input').focus();
+}
+
+function useSecretPrompt() {
+  document.getElementById('player-input').value = EXACT_SECRET_PROMPT;
+  document.getElementById('player-input').focus();
+  submit();
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') submit();
+});
+
+function spawnParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 24; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 2 + 1;
+    p.style.cssText = `
+      left: ${Math.random() * 100}%;
+      width: ${size}px; height: ${size}px;
+      animation-duration: ${8 + Math.random() * 12}s;
+      animation-delay: ${Math.random() * 10}s;
+      opacity: 0;
+    `;
+    container.appendChild(p);
+  }
+}
+spawnParticles();
+</script>
+</body>
+</html>
