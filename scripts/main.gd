@@ -7,8 +7,13 @@ extends Node2D
 @onready var hud_speed_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/SpeedLabel
 @onready var hud_pos_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/PosLabel
 
+var server_pid: int = -1
+
 func _ready() -> void:
 	print("Game IPB - Top-Down 3/4 View & Death God Shrine Siap!")
+
+	# Nyalakan AI server otomatis di background saat game dimulai
+	_start_ai_server()
 
 	# Fallback pencarian shrine jika berada di child lain
 	if not is_instance_valid(shrine):
@@ -36,6 +41,35 @@ func _process(_delta: float) -> void:
 		var spd = player.velocity.length()
 		hud_speed_label.text = "Kecepatan: %.0f px/s" % spd
 		hud_pos_label.text = "Posisi: (X: %.0f, Y: %.0f)" % [player.global_position.x, player.global_position.y]
+
+# ── Otomatis Jalankan Server AI ──────────────────────────────────────────
+func _start_ai_server() -> void:
+	# Cek apakah ai_server.exe ada di samping executable game
+	var exe_path = OS.get_executable_path().get_base_dir() + "/ai_server.exe"
+	if FileAccess.file_exists(exe_path):
+		server_pid = OS.create_process(exe_path, [])
+		print("[Main] Server AI dimulai dari .exe (PID: %d)" % server_pid)
+		return
+
+	# Mode development: jalankan python main.py dari folder ai_server
+	var dev_path = ProjectSettings.globalize_path("res://ai_server/main.py")
+	if FileAccess.file_exists(dev_path):
+		server_pid = OS.create_process("python", [dev_path])
+		if server_pid != -1:
+			print("[Main] Server AI Python development dimulai (PID: %d)" % server_pid)
+		else:
+			server_pid = OS.create_process("py", [dev_path])
+			print("[Main] Server AI 'py' dimulai (PID: %d)" % server_pid)
+	else:
+		print("[Main] Info: ai_server/main.py tidak ditemukan, mode offline aktif.")
+
+# ── Cleanup saat game ditutup ─────────────────────────────────────────────
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if server_pid != -1:
+			OS.kill(server_pid)
+			print("[Main] Server AI dihentikan.")
+		get_tree().quit()
 
 func _on_shrine_interacted() -> void:
 	print("[Main] Percakapan dengan Dewa Kematian dimulai...")
