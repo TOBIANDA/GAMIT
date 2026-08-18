@@ -6,12 +6,25 @@
       "aku adalah korban itu sendiri",
       "protagonis adalah orang yang mati",
       "mayat itu adalah aku sendiri",
+      "mayat yang kutemui di awal adalah diriku",
+      "mayat di awal adalah mayatku",
+      "jasad itu adalah tubuhku sendiri",
       "aku yang menjadi mayat itu",
       "aku telah meninggal dunia",
+      "aku sudah wafat",
       "aku adalah hantu yang tidak sadar sudah mati",
       "aku tidak menyadari diriku sudah mati",
       "ternyata aku lah yang sudah mati sejak awal",
-      "aku adalah si mati, bukan detektif"
+      "aku adalah si mati, bukan detektif",
+      "gw udah mati",
+      "gua korbannya",
+      "mayat itu gua sendiri",
+      "saya adalah korban pembunuhan itu",
+      "korban yang dicari ternyata diriku",
+      "aku arwah yang mencari pembunuhnya",
+      "tubuh yang tergeletak itu adalah aku",
+      "laporan otopsi itu tentang diriku",
+      "aku sudah tiada di dunia nyata"
     ],
     "emosional": [
       "ada pesan yang belum terkirim",
@@ -23,29 +36,67 @@
       "ada orang yang ingin kuhubungi",
       "aku meninggalkan sesuatu yang penting",
       "ada hal yang belum tersampaikan",
-      "aku pergi tanpa menyelesaikan sesuatu"
+      "aku pergi tanpa menyelesaikan sesuatu",
+      "ada janji yang belum kupenuhi",
+      "aku belum sempat meminta maaf",
+      "ada surat yang belum sempat kuberikan",
+      "aku meninggalkan keluargaku dengan rasa bersalah",
+      "ada orang tercinta yang kutinggalkan sendirian",
+      "penyesalanku adalah kata-kata yang tak terucap",
+      "ada hal penting yang belum tuntas di dunia",
+      "aku belum siap pergi karena urusan hati",
+      "aku ingin menyampaikan pesan terakhirku"
+    ],
+    "waktu": [
+      "jam tangan itu berhenti saat aku mati",
+      "waktu di dunia ini tidak berjalan",
+      "hujan membeku karena kesadaranku terhenti",
+      "alam ini membeku di detik terakhir hidupku",
+      "jam itu menunjukkan waktu kematianku",
+      "waktu berhenti sejak aku tiada"
+    ],
+    "kebingungan": [
+      "siapa yang membunuhku",
+      "kenapa semua orang takut padaku",
+      "kenapa aku ada di sini",
+      "aku tidak ingat apa-apa",
+      "apa yang sebenarnya terjadi padaku",
+      "aku hanya seorang detektif yang mencari pelaku"
     ]
   },
   "responses": {
     "sadar_mati_dan_emosional": [
-      "...Kamu sudah tahu.\n\nDan kamu juga tahu hal yang lain — sesuatu yang kamu tinggalkan di dunia itu. Bukan barang. Bukan tempat. Tapi kata-kata yang tak pernah sempat terucap.\n\nItu yang membuatmu bertahan begitu lama di sana. Bukan karena kamu belum siap mati... tapi karena kamu belum siap pergi.\n\nSekarang kamu bisa.",
-      "...Ya. Kamu mati.\n\nTapi yang lebih berat dari kematian itu sendiri adalah hal yang kamu bawa bersamamu — sesuatu yang kamu tinggalkan tanpa selesai.\n\nKamu telah melihat semuanya sekarang. Cukup.\n\nPergi dengan tenang."
+      "...Kamu telah melihat semuanya.\n\nBukan hanya fakta bahwa ragamu telah tiada di dunia fana, tetapi juga benang takdir yang mengikat jiwamu — kata-kata yang tak sempat terucap, dan janji yang tertinggal dalam keheningan.\n\nItu sebabnya alam ini menahanmu begitu lama. Bukan karena kamu menolak mati, melainkan karena cintamu pada apa yang kamu tinggalkan.\n\nLepaskanlah... Jiwamu kini utuh dan tenang.",
+      "...Ya. Kamu telah mati, dan beban terberatmu adalah perpisahan yang belum tuntas.\n\nPenyesalanmu adalah bukti bahwa hidupmu begitu berharga. Namun mereka yang kau tinggalkan telah mendengar bisikan jiwamu dalam doa.\n\nLangkahmu di alam hampa ini selesai. Beristirahatlah dalam damai abadi.",
+      "...Pencerahan yang sempurna.\n\nKematian telah kau terima, dan ikatan penyesalan di hatimu telah terurai. Tidak ada lagi misteri yang perlu kau pecahkan.\n\nPintu keabadian telah terbuka untukmu, wahai pengelana yang tercerahkan.",
+      "...Sungguh menakjubkan.\n\nBanyak jiwa yang buta berabad-abad di ruang ini, menyangkal kematian dan tenggelam dalam amarah. Namun kau merengkuh kematianmu bersama ketulusan rasa yang kau tinggalkan.\n\nPerjalananmu indah, pengelana. Sekarang, terbanglah melampaui alam fana."
     ],
     "sadar_mati": [
-      "...Benar.\n\nKamu adalah mayat yang mencari pembunuhnya sendiri. Ironis, bukan?\n\nDunia itu hanyalah sisa-sisa kesadaranmu. Jam yang beku, hujan yang berhenti — itu bukan kutukan. Itu caramu menolak pergi.\n\nSekarang kamu sudah tahu. Sudah cukup.",
-      "...Tepat.\n\nMayat yang kamu temukan di awal — itu kamu. Bukan orang lain.\n\nSetiap NPC yang ketakutan, setiap bayangan yang hilang — semua memberi tahumu sejak awal. Kamu hanya belum siap mendengar.\n\nSekarang kamu siap."
+      "...Tepat.\n\nMayat yang kamu temukan di awal penyelidikan — itu adalah cermin dari ragamu sendiri. Kamu adalah jiwa yang mencari pembunuhnya sendiri.\n\nSetiap bayangan yang menjauhimu, setiap jam yang membeku, semua memberi tahumu sejak awal: kamu bukan lagi bagian dari dunia mereka.\n\nKini kamu telah sadar. Namun renungkanlah... adakah hal yang masih menahan hatimu di sini?",
+      "...Kebenaran yang sunyi akhirnya kau dekap.\n\nKamu bukan detektif yang hidup. Kamu adalah korban yang mencari alasan mengapa waktu hidupmu terhenti.\n\nSekarang kau tahu bahwa nafasmu telah lama usai. Sudah cukup pencarianmu, terimalah takdir ini.",
+      "...Benar, wahai jiwa yang fana.\n\nLaporan otopsi itu memuat namamu. Darah di lantai itu milikmu. Ilusi dunia ini diciptakan oleh sisa kesadaranmu yang enggan pergi.\n\nKini kabut itu telah sirna. Kamu telah mengenali dirimu yang sebenarnya.",
+      "...Akhirnya kau melihat ke dalam cermin takdir.\n\nRagamu telah bersemayam di tanah, sementara jiwamu berkelana mencari jawaban. Kebenaran memang pahit, namun kesadaran inilah yang membebaskanmu dari siklus kebingungan."
     ],
     "sebagian": [
-      "...Hampir.\n\nKamu sudah melihat semua petunjuknya. Bayangan yang hilang. Jam yang tak bergerak. Laporan yang memuat namamu sendiri.\n\nCoba pikirkan lagi — siapa sebenarnya yang kamu investigasi?",
-      "...Dekat sekali.\n\nAda satu hal yang belum kamu hubungkan. Pikirkan tentang mayat di awal cerita. Pikirkan tentang namamu di laporan otopsi.\n\nSiapa korbannya, sebenarnya?"
+      "...Hampir menyentuh inti kebenaran.\n\nKamu sudah merasakan ada yang janggal — bayangan yang hilang, jam yang tak berdetik, dan jasad yang terasa begitu akrab.\n\nCoba hubungkan kembali: jika semua bukti mengarah pada satu korban... siapakah sebenarnya yang sedang kau tatap di awal perjalananmu?",
+      "...Langkahmu sudah sangat dekat, pengelana.\n\nAda satu tabir tipis yang belum kau singkap. Mengapa tidak ada orang yang berbicara padamu? Mengapa namamu ada di berkas penyelidikan itu?\n\nKatakan padaku siapa sebenarnya yang menjadi korban di ruangan itu?",
+      "...Resonansi jiwamu bergetar mendekati kenyataan.\n\nKamu mulai melihat jejaknya, namun masih ragu untuk mengakuinya. Buka matamu lebih lebar — siapa mayat yang kau temukan itu?"
     ],
     "tidak_paham": [
-      "...Kamu belum benar-benar menjawab.\n\nBukan salahmu. Kebenaran ini memang sulit diterima.\n\nCoba lagi. Ceritakan padaku — apa yang kamu temukan selama investigasi tadi? Siapa yang mati?",
-      "...Hmm.\n\nKamu sudah jauh berjalan. Sudah melihat banyak hal. Tapi kamu masih ragu.\n\nTidak apa-apa. Ambil napas. Lalu ceritakan padaku dari awal — apa arti jam tangan yang kamu temukan?"
+      "...Kata-katamu masih terperangkap dalam ilusi dunia fana.\n\nBukan salahmu. Pikiran manusia memang sering membangun benteng penyangkalan saat menghadapi akhir yang tiba-tiba.\n\nCoba telusuri kembali ingatanmu: mengapa detak jantungmu tak lagi berdegup? Apa arti mayat yang kau temukan di awal?",
+      "...Keheninganmu masih dipenuhi kebingungan.\n\nKamu masih menganggap dirimu orang asing yang mengamati tempat ini. Padahal setiap sudut ruang ini diciptakan dari sisa memorimu.\n\nRenungkanlah kembali... apa yang sebenarnya terjadi padamu sebelum kau terbangun di sini?",
+      "...Kabut keraguan masih menyelimuti penglihatan batinmu.\n\nAmbillah nafas yang dalam, wahai pengembara. Dengarkan petunjuk yang tertinggal di sekelilingmu, lalu katakan apa yang kau rasakan."
     ]
   },
+  "clue_responses": {
+    "mayat": "Tepat... jasad itu bukan milik orang asing. Itu adalah wadah fanamu yang telah tertinggal.",
+    "jam_waktu": "Jam itu berhenti di detik ketika nafas terakhirmu berhembus. Waktu tak lagi berlaku bagimu.",
+    "surat_pesan": "Kata-kata yang belum sempat kau sampaikan... getaran rindumu masih bergema menembus batas alam.",
+    "keluarga_cinta": "Cinta dan penyesalan terhadap mereka yang kau sayangi adalah cahaya yang menuntun jiwamu hingga ke altar ini."
+  },
   "threshold": {
-    "mati": 0.68,
-    "emosional": 0.58
+    "mati": 0.65,
+    "emosional": 0.55,
+    "waktu": 0.60
   }
 }
