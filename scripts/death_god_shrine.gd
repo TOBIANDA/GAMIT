@@ -34,20 +34,29 @@ func _process(delta: float) -> void:
 	if player_in_range and is_instance_valid(prompt_node):
 		prompt_node.position.y = -165.0 + sin(anim_timer * 3.0) * 4.0
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not player_in_range:
 		return
 
-	if event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_ENTER or event.keycode == KEY_SPACE)):
+	# Deteksi tombol E, Enter, atau Spasi
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_E or event.keycode == KEY_ENTER or event.keycode == KEY_SPACE:
+			print("[DeathGodShrine] Tombol interaksi ditekan!")
+			interaction_triggered.emit()
+			get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_accept"):
+		print("[DeathGodShrine] Action ui_accept diterima!")
 		interaction_triggered.emit()
 		get_viewport().set_input_as_handled()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "Player" or body is CharacterBody2D:
+		print("[DeathGodShrine] Pemain masuk area kuil!")
 		player_in_range = true
 		prompt_node.visible = true
 
 func _on_body_exited(body: Node2D) -> void:
 	if body.name == "Player" or body is CharacterBody2D:
+		print("[DeathGodShrine] Pemain keluar area kuil.")
 		player_in_range = false
 		prompt_node.visible = false

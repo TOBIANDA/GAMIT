@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/death_god_shrine.gd" id="1_shrine_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_trigger"]
-radius = 120.0
+radius = 140.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_altar_base"]
 size = Vector2(130, 26)
