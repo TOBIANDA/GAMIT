@@ -38,9 +38,9 @@ func _input(event: InputEvent) -> void:
 	if not player_in_range:
 		return
 
-	# Deteksi tombol E, Enter, atau Spasi
+	# Deteksi tombol E atau Enter
 	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.keycode == KEY_E or event.keycode == KEY_ENTER or event.keycode == KEY_SPACE:
+		if event.keycode == KEY_E or event.keycode == KEY_ENTER:
 			print("[DeathGodShrine] Tombol interaksi ditekan!")
 			interaction_triggered.emit()
 			get_viewport().set_input_as_handled()

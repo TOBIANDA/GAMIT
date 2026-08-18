@@ -25,6 +25,11 @@ var glow_timer: float = 0.0
 
 func _ready() -> void:
 	root_control.visible = false
+	
+	# Matikan focus pada tombol agar Spasi TIDAK men-trigger klik tombol (hanya Enter dan Klik Mouse)
+	submit_btn.focus_mode = Control.FOCUS_NONE
+	close_btn.focus_mode = Control.FOCUS_NONE
+	
 	submit_btn.pressed.connect(_on_submit_pressed)
 	close_btn.pressed.connect(close_dialog)
 	input_edit.text_submitted.connect(func(_t): _on_submit_pressed())
@@ -50,13 +55,14 @@ func _process(delta: float) -> void:
 			else:
 				is_typing = false
 				input_container.visible = true
-				input_edit.grab_focus()
+				# Beri fokus ke LineEdit agar pemain bisa langsung mengetik termasuk spasi
+				input_edit.call_deferred("grab_focus")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active:
 		return
 
-	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		close_dialog()
 		get_viewport().set_input_as_handled()
 
@@ -117,7 +123,6 @@ func _request_ai_analysis(player_text: String) -> void:
 	var err = http.request(SERVER_URL + "/analisis", headers, HTTPClient.METHOD_POST, payload)
 	
 	if err != OK:
-		# Fallback in-game offline jika koneksi gagal dibuka
 		_use_offline_fallback(player_text)
 
 func _handle_server_response(result: int, code: int, body: PackedByteArray, fallback_text: String) -> void:
@@ -151,6 +156,7 @@ func _handle_server_response(result: int, code: int, body: PackedByteArray, fall
 	_start_typewriter(respon)
 	input_edit.editable = true
 	submit_btn.disabled = false
+	input_edit.call_deferred("grab_focus")
 
 func _use_offline_fallback(text: String) -> void:
 	status_badge.text = "✦ RESONANSI GHAIB ✦"
@@ -168,3 +174,4 @@ func _use_offline_fallback(text: String) -> void:
 	_start_typewriter(fallback_response)
 	input_edit.editable = true
 	submit_btn.disabled = false
+	input_edit.call_deferred("grab_focus")
