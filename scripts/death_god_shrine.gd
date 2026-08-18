@@ -4,6 +4,7 @@ signal interaction_triggered
 
 # ── Status Interaksi ───────────────────────────────────────────────────────
 var player_in_range: bool = false
+var is_dialog_active: bool = false
 var anim_timer: float = 0.0
 
 # ── Node References ────────────────────────────────────────────────────────
@@ -30,29 +31,38 @@ func _process(delta: float) -> void:
 		var scale_factor = 1.0 + sin(anim_timer * 1.5) * 0.04
 		ritual_floor.scale = Vector2(scale_factor, scale_factor)
 
-	# Animasi bounce pada prompt badge
-	if player_in_range and is_instance_valid(prompt_node):
+	# Animasi bounce pada prompt badge (hanya jika dialog sedang tidak aktif)
+	if player_in_range and not is_dialog_active and is_instance_valid(prompt_node):
+		prompt_node.visible = true
 		prompt_node.position.y = -165.0 + sin(anim_timer * 3.0) * 4.0
+	else:
+		prompt_node.visible = false
 
-func _input(event: InputEvent) -> void:
-	if not player_in_range:
+# Gunakan _unhandled_input agar tombol E yang diketik di LineEdit TIDAK ditangkap di sini
+func _unhandled_input(event: InputEvent) -> void:
+	if not player_in_range or is_dialog_active:
 		return
 
-	# Hanya deteksi tombol E murni (tidak menggunakan ui_accept agar Space bebas)
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode == KEY_E:
-			print("[DeathGodShrine] Tombol E ditekan untuk bicara!")
+			print("[DeathGodShrine] Tombol E ditekan di dunia game!")
 			interaction_triggered.emit()
 			get_viewport().set_input_as_handled()
 
+func set_dialog_active(active: bool) -> void:
+	is_dialog_active = active
+	if is_dialog_active:
+		prompt_node.visible = false
+	elif player_in_range:
+		prompt_node.visible = true
+
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "Player" or body is CharacterBody2D:
-		print("[DeathGodShrine] Pemain masuk area kuil!")
 		player_in_range = true
-		prompt_node.visible = true
+		if not is_dialog_active:
+			prompt_node.visible = true
 
 func _on_body_exited(body: Node2D) -> void:
 	if body.name == "Player" or body is CharacterBody2D:
-		print("[DeathGodShrine] Pemain keluar area kuil.")
 		player_in_range = false
 		prompt_node.visible = false

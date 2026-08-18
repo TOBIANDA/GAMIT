@@ -45,10 +45,14 @@ func _on_shrine_interacted() -> void:
 func _on_dialog_opened() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
+	if is_instance_valid(shrine) and shrine.has_method("set_dialog_active"):
+		shrine.set_dialog_active(true)
 
 func _on_dialog_closed() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
+	if is_instance_valid(shrine) and shrine.has_method("set_dialog_active"):
+		shrine.set_dialog_active(false)
 
 func _on_reset_btn_pressed() -> void:
 	if is_instance_valid(player):
