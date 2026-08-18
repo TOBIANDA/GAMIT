@@ -4,6 +4,7 @@ extends CharacterBody2D
 @export var max_speed: float = 320.0
 @export var acceleration: float = 2400.0
 @export var friction: float = 2800.0
+@export var can_move: bool = true
 
 # ── Variabel Visual & Animasi ───────────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
@@ -14,10 +15,17 @@ var visual_scale: Vector2 = Vector2.ONE
 @onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
-	# Pastikan queue redraw berjalan jika menggunakan draw
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:
+	if not can_move:
+		# Jika sedang dalam dialog / cutscene, perlambat sampai diam
+		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
+		visual_scale = visual_scale.move_toward(Vector2.ONE, delta * 10.0)
+		move_and_slide()
+		queue_redraw()
+		return
+
 	# 1. Dapatkan arah input (WASD + Arrow Keys + Gamepad / UI Actions)
 	var input_vector = _get_input_vector()
 

@@ -2,11 +2,21 @@ extends Node2D
 
 # ── Referensi Node ────────────────────────────────────────────────────────
 @onready var player: CharacterBody2D = $Player
+@onready var shrine: Node2D = $Environment/DeathGodShrine
+@onready var dialog_box: CanvasLayer = $DialogBox
 @onready var hud_speed_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/SpeedLabel
 @onready var hud_pos_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/PosLabel
 
 func _ready() -> void:
-	print("Game IPB - Top-Down Movement Playground Siap!")
+	print("Game IPB - Top-Down Movement & Death God Shrine Siap!")
+
+	# Hubungkan sinyal interaksi kuil dan dialog box
+	if is_instance_valid(shrine):
+		shrine.interaction_triggered.connect(_on_shrine_interacted)
+
+	if is_instance_valid(dialog_box):
+		dialog_box.dialog_opened.connect(_on_dialog_opened)
+		dialog_box.dialog_closed.connect(_on_dialog_closed)
 
 func _process(_delta: float) -> void:
 	# Update telemetry HUD jika ada player
@@ -15,7 +25,19 @@ func _process(_delta: float) -> void:
 		hud_speed_label.text = "Kecepatan: %.0f px/s" % spd
 		hud_pos_label.text = "Posisi: (X: %.0f, Y: %.0f)" % [player.global_position.x, player.global_position.y]
 
+func _on_shrine_interacted() -> void:
+	if is_instance_valid(dialog_box):
+		dialog_box.open_dialog()
+
+func _on_dialog_opened() -> void:
+	if is_instance_valid(player):
+		player.can_move = false
+
+func _on_dialog_closed() -> void:
+	if is_instance_valid(player):
+		player.can_move = true
+
 func _on_reset_btn_pressed() -> void:
 	if is_instance_valid(player):
-		player.global_position = Vector2(640, 360)
+		player.global_position = Vector2(640, 500)
 		player.velocity = Vector2.ZERO

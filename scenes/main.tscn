@@ -1,7 +1,9 @@
-[gd_scene load_steps=10 format=3 uid="uid://main_scene_01"]
+[gd_scene load_steps=12 format=3 uid="uid://main_scene_01"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main_script"]
 [ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="2_player_scene"]
+[ext_resource type="PackedScene" uid="uid://death_god_shrine_scene_01" path="res://scenes/death_god_shrine.tscn" id="3_shrine_scene"]
+[ext_resource type="PackedScene" uid="uid://dialog_box_scene_01" path="res://scenes/dialog_box.tscn" id="4_dialog_scene"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(2500, 60)
@@ -55,14 +57,32 @@ offset_left = -300.0
 offset_top = -300.0
 offset_right = 2100.0
 offset_bottom = 1400.0
-color = Color(0.08, 0.1, 0.14, 1)
+color = Color(0.06, 0.07, 0.1, 1)
 
 [node name="InnerFloor" type="ColorRect" parent="Environment"]
 offset_left = -200.0
 offset_top = -200.0
 offset_right = 2000.0
 offset_bottom = 1300.0
-color = Color(0.12, 0.14, 0.18, 1)
+color = Color(0.1, 0.12, 0.16, 1)
+
+[node name="SanctuaryPath" type="ColorRect" parent="Environment"]
+offset_left = 540.0
+offset_top = -100.0
+offset_right = 740.0
+offset_bottom = 400.0
+color = Color(0.14, 0.1, 0.22, 1)
+
+[node name="SanctuaryCarpet" type="ColorRect" parent="Environment/SanctuaryPath"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 490.0
+color = Color(0.22, 0.12, 0.32, 1)
+
+[node name="DeathGodShrine" parent="Environment" instance=ExtResource("3_shrine_scene")]
+position = Vector2(640, -10)
 
 [node name="ArenaWalls" type="StaticBody2D" parent="Environment"]
 
@@ -113,7 +133,7 @@ color = Color(0.25, 0.3, 0.4, 1)
 [node name="Obstacles" type="StaticBody2D" parent="Environment"]
 
 [node name="Obstacle1" type="CollisionShape2D" parent="Environment/Obstacles"]
-position = Vector2(250, 200)
+position = Vector2(250, 300)
 shape = SubResource("RectangleShape2D_box_large")
 
 [node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle1"]
@@ -121,10 +141,10 @@ offset_left = -80.0
 offset_top = -80.0
 offset_right = 80.0
 offset_bottom = 80.0
-color = Color(0.3, 0.22, 0.38, 1)
+color = Color(0.22, 0.18, 0.28, 1)
 
 [node name="Obstacle2" type="CollisionShape2D" parent="Environment/Obstacles"]
-position = Vector2(1050, 220)
+position = Vector2(1050, 320)
 shape = SubResource("RectangleShape2D_box_horiz")
 
 [node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle2"]
@@ -132,10 +152,10 @@ offset_left = -150.0
 offset_top = -40.0
 offset_right = 150.0
 offset_bottom = 40.0
-color = Color(0.3, 0.22, 0.38, 1)
+color = Color(0.22, 0.18, 0.28, 1)
 
 [node name="Obstacle3" type="CollisionShape2D" parent="Environment/Obstacles"]
-position = Vector2(300, 750)
+position = Vector2(300, 800)
 shape = SubResource("RectangleShape2D_box_vert")
 
 [node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle3"]
@@ -143,10 +163,10 @@ offset_left = -40.0
 offset_top = -130.0
 offset_right = 40.0
 offset_bottom = 130.0
-color = Color(0.3, 0.22, 0.38, 1)
+color = Color(0.22, 0.18, 0.28, 1)
 
 [node name="Obstacle4" type="CollisionShape2D" parent="Environment/Obstacles"]
-position = Vector2(1200, 800)
+position = Vector2(1200, 850)
 shape = SubResource("RectangleShape2D_box_large")
 
 [node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle4"]
@@ -154,10 +174,10 @@ offset_left = -80.0
 offset_top = -80.0
 offset_right = 80.0
 offset_bottom = 80.0
-color = Color(0.3, 0.22, 0.38, 1)
+color = Color(0.22, 0.18, 0.28, 1)
 
 [node name="Obstacle5" type="CollisionShape2D" parent="Environment/Obstacles"]
-position = Vector2(1650, 480)
+position = Vector2(1650, 520)
 shape = SubResource("RectangleShape2D_box_vert")
 
 [node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle5"]
@@ -165,18 +185,19 @@ offset_left = -40.0
 offset_top = -130.0
 offset_right = 40.0
 offset_bottom = 130.0
-color = Color(0.3, 0.22, 0.38, 1)
+color = Color(0.22, 0.18, 0.28, 1)
 
 [node name="Player" parent="." instance=ExtResource("2_player_scene")]
-position = Vector2(640, 360)
+position = Vector2(640, 500)
 
 [node name="HUD" type="CanvasLayer" parent="."]
+layer = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 360.0
-offset_bottom = 220.0
+offset_right = 380.0
+offset_bottom = 230.0
 
 [node name="PanelContainer" type="PanelContainer" parent="HUD/MarginContainer"]
 layout_mode = 2
@@ -190,13 +211,13 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 17
-text = "🎮 IPB GAMEPLAY TEST"
+text = "🎮 IPB GAMEPLAY - SANCTUARY"
 
 [node name="ControlsLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
-theme_override_font_sizes/font_size = 14
-text = "Gerak: [W][A][S][D] / [Tombol Panah]"
+theme_override_font_sizes/font_size = 13
+text = "Jalan: [WASD] / Panah | Kuil: [E]"
 
 [node name="HSeparator" type="HSeparator" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
@@ -211,12 +232,14 @@ text = "Kecepatan: 0 px/s"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 13
-text = "Posisi: (X: 640, Y: 360)"
+text = "Posisi: (X: 640, Y: 500)"
 
 [node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 13
 text = "🔄 Reset Posisi Karakter"
+
+[node name="DialogBox" parent="." instance=ExtResource("4_dialog_scene")]
 
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ResetBtn" to="." method="_on_reset_btn_pressed"]
