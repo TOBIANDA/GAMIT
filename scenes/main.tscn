@@ -355,6 +355,7 @@ text = "Posisi: (X: 640, Y: 500)"
 
 [node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 13
 text = "🔄 Reset Posisi Karakter"

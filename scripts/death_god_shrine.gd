@@ -38,16 +38,12 @@ func _input(event: InputEvent) -> void:
 	if not player_in_range:
 		return
 
-	# Deteksi tombol E atau Enter
+	# Hanya deteksi tombol E murni (tidak menggunakan ui_accept agar Space bebas)
 	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.keycode == KEY_E or event.keycode == KEY_ENTER:
-			print("[DeathGodShrine] Tombol interaksi ditekan!")
+		if event.keycode == KEY_E:
+			print("[DeathGodShrine] Tombol E ditekan untuk bicara!")
 			interaction_triggered.emit()
 			get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_accept"):
-		print("[DeathGodShrine] Action ui_accept diterima!")
-		interaction_triggered.emit()
-		get_viewport().set_input_as_handled()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "Player" or body is CharacterBody2D:

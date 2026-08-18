@@ -205,6 +205,7 @@ text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 
 [node name="CloseBtn" type="Button" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
 layout_mode = 2
+focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.75, 0.9, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
 theme_override_font_sizes/font_size = 12
@@ -246,6 +247,7 @@ placeholder_text = "Sampaikan apa yang kau pahami tentang kematian..."
 
 [node name="SubmitBtn" type="Button" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer"]
 layout_mode = 2
+focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_submit_btn")
 theme_override_font_sizes/font_size = 14
