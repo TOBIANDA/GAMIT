@@ -1,4 +1,222 @@
-[gd_scene format=3 uid="uid://main"]
+[gd_scene load_steps=10 format=3 uid="uid://main_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main_script"]
+[ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="2_player_scene"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
+size = Vector2(2500, 60)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
+size = Vector2(60, 1700)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box_large"]
+size = Vector2(160, 160)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box_horiz"]
+size = Vector2(300, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box_vert"]
+size = Vector2(80, 260)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+bg_color = Color(0.06, 0.08, 0.12, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.4, 0.6, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+bg_color = Color(0.15, 0.35, 0.55, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
 
 [node name="Main" type="Node2D"]
-script = ExtResource("res://scripts/main.gd")
+script = ExtResource("1_main_script")
+
+[node name="Environment" type="Node2D" parent="."]
+
+[node name="FloorBackground" type="ColorRect" parent="Environment"]
+offset_left = -300.0
+offset_top = -300.0
+offset_right = 2100.0
+offset_bottom = 1400.0
+color = Color(0.08, 0.1, 0.14, 1)
+
+[node name="InnerFloor" type="ColorRect" parent="Environment"]
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 2000.0
+offset_bottom = 1300.0
+color = Color(0.12, 0.14, 0.18, 1)
+
+[node name="ArenaWalls" type="StaticBody2D" parent="Environment"]
+
+[node name="WallTop" type="CollisionShape2D" parent="Environment/ArenaWalls"]
+position = Vector2(900, -230)
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="WallTopVisual" type="ColorRect" parent="Environment/ArenaWalls/WallTop"]
+offset_left = -1250.0
+offset_top = -30.0
+offset_right = 1250.0
+offset_bottom = 30.0
+color = Color(0.25, 0.3, 0.4, 1)
+
+[node name="WallBottom" type="CollisionShape2D" parent="Environment/ArenaWalls"]
+position = Vector2(900, 1330)
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="WallBottomVisual" type="ColorRect" parent="Environment/ArenaWalls/WallBottom"]
+offset_left = -1250.0
+offset_top = -30.0
+offset_right = 1250.0
+offset_bottom = 30.0
+color = Color(0.25, 0.3, 0.4, 1)
+
+[node name="WallLeft" type="CollisionShape2D" parent="Environment/ArenaWalls"]
+position = Vector2(-230, 550)
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="WallLeftVisual" type="ColorRect" parent="Environment/ArenaWalls/WallLeft"]
+offset_left = -30.0
+offset_top = -850.0
+offset_right = 30.0
+offset_bottom = 850.0
+color = Color(0.25, 0.3, 0.4, 1)
+
+[node name="WallRight" type="CollisionShape2D" parent="Environment/ArenaWalls"]
+position = Vector2(2030, 550)
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="WallRightVisual" type="ColorRect" parent="Environment/ArenaWalls/WallRight"]
+offset_left = -30.0
+offset_top = -850.0
+offset_right = 30.0
+offset_bottom = 850.0
+color = Color(0.25, 0.3, 0.4, 1)
+
+[node name="Obstacles" type="StaticBody2D" parent="Environment"]
+
+[node name="Obstacle1" type="CollisionShape2D" parent="Environment/Obstacles"]
+position = Vector2(250, 200)
+shape = SubResource("RectangleShape2D_box_large")
+
+[node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle1"]
+offset_left = -80.0
+offset_top = -80.0
+offset_right = 80.0
+offset_bottom = 80.0
+color = Color(0.3, 0.22, 0.38, 1)
+
+[node name="Obstacle2" type="CollisionShape2D" parent="Environment/Obstacles"]
+position = Vector2(1050, 220)
+shape = SubResource("RectangleShape2D_box_horiz")
+
+[node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle2"]
+offset_left = -150.0
+offset_top = -40.0
+offset_right = 150.0
+offset_bottom = 40.0
+color = Color(0.3, 0.22, 0.38, 1)
+
+[node name="Obstacle3" type="CollisionShape2D" parent="Environment/Obstacles"]
+position = Vector2(300, 750)
+shape = SubResource("RectangleShape2D_box_vert")
+
+[node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle3"]
+offset_left = -40.0
+offset_top = -130.0
+offset_right = 40.0
+offset_bottom = 130.0
+color = Color(0.3, 0.22, 0.38, 1)
+
+[node name="Obstacle4" type="CollisionShape2D" parent="Environment/Obstacles"]
+position = Vector2(1200, 800)
+shape = SubResource("RectangleShape2D_box_large")
+
+[node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle4"]
+offset_left = -80.0
+offset_top = -80.0
+offset_right = 80.0
+offset_bottom = 80.0
+color = Color(0.3, 0.22, 0.38, 1)
+
+[node name="Obstacle5" type="CollisionShape2D" parent="Environment/Obstacles"]
+position = Vector2(1650, 480)
+shape = SubResource("RectangleShape2D_box_vert")
+
+[node name="Visual" type="ColorRect" parent="Environment/Obstacles/Obstacle5"]
+offset_left = -40.0
+offset_top = -130.0
+offset_right = 40.0
+offset_bottom = 130.0
+color = Color(0.3, 0.22, 0.38, 1)
+
+[node name="Player" parent="." instance=ExtResource("2_player_scene")]
+position = Vector2(640, 360)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 360.0
+offset_bottom = 220.0
+
+[node name="PanelContainer" type="PanelContainer" parent="HUD/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 17
+text = "🎮 IPB GAMEPLAY TEST"
+
+[node name="ControlsLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "Gerak: [W][A][S][D] / [Tombol Panah]"
+
+[node name="HSeparator" type="HSeparator" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SpeedLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 13
+text = "Kecepatan: 0 px/s"
+
+[node name="PosLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 13
+text = "Posisi: (X: 640, Y: 360)"
+
+[node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_font_sizes/font_size = 13
+text = "🔄 Reset Posisi Karakter"
+
+[connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ResetBtn" to="." method="_on_reset_btn_pressed"]
