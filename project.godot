@@ -28,3 +28,8 @@ window/size/viewport_height=720
 [editor_plugins]
 
 enabled=PackedStringArray()
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.web="gl_compatibility"
