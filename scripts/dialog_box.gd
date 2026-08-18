@@ -112,6 +112,7 @@ func _on_submit_pressed() -> void:
 
 func _request_ai_analysis(player_text: String) -> void:
 	var http = HTTPRequest.new()
+	http.timeout = 2.0
 	add_child(http)
 	http.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray):
 		http.queue_free()
