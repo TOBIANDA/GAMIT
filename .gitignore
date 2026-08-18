@@ -16,6 +16,9 @@ mono_crash.*.json
 build/
 *.tmp
 *.import
+*.zip
+Game IPB.*
+game_web_ready.zip
 
 # OS-specific
 .DS_Store
