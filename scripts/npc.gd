@@ -1,12 +1,15 @@
 extends CharacterBody2D
 
-# ── NPC System v5 - Wall Collision Avoidance & Dual Distance Zones ──────────
+# ── NPC System v6 - Custom NPC Girl Art Integration & Dual Distance Zones ────
 # Fitur:
-# 1. Deteksi Tabrakan Tembok (Anti-Nyangkut): NPC otomatis memantul / menggeser arah jika menabrak tembok atau pilar.
-# 2. Zona Tepat / Jarak Aman (110px - 220px): Dengar bisikan clue (box 2s), tenang & tidak merinding.
-# 3. Zona Terlalu Dekat (<110px): Merinding & 7s panic flee timer.
-# 4. Smart Avoidance: NPC memantul menjauhi pemain saat pemain diam.
+# 1. Dukungan Sprite Custom NPC Girl dari folder 'NPC_Girl' (@export var is_girl_npc: bool).
+# 2. Pengaturan Skala Proporsional (@export var sprite_scale: float = 0.14) agar ukuran serasi dengan MC.
+# 3. Tabrakan Tembok (Anti-Nyangkut): NPC otomatis memantul / menggeser arah jika menabrak tembok/pilar.
+# 4. Zona Tepat / Jarak Aman (110px - 220px): Dengar bisikan clue (box 2s), tenang & tidak merinding.
+# 5. Zona Terlalu Dekat (<110px): Merinding & 7s panic flee timer.
 
+@export var is_girl_npc: bool = false
+@export var sprite_scale: float = 0.14        # Ukuran serasi 1:1 dengan Karakter Utama (MC)
 @export var too_close_radius: float = 110.0
 @export var eavesdrop_radius: float = 220.0
 @export var panic_time_limit: float = 7.0
@@ -28,10 +31,27 @@ var msg_cooldown_timer: float = 0.0
 const MSG_DISPLAY_DURATION: float = 2.0
 const MSG_COOLDOWN_DURATION: float = 1.2
 
-# Randomization visual NPC
+# Randomization visual NPC (Untuk mode procedural)
 var hair_color: Color
 var shirt_color: Color
 var pants_color: Color
+
+# Textures untuk NPC Girl (dari folder 'NPC_Girl')
+var girl_tex_front: Texture2D
+var girl_tex_front_l: Texture2D
+var girl_tex_front_r: Texture2D
+
+var girl_tex_back: Texture2D
+var girl_tex_back_l: Texture2D
+var girl_tex_back_r: Texture2D
+
+var girl_tex_left: Texture2D
+var girl_tex_left_l: Texture2D
+var girl_tex_left_r: Texture2D
+
+var girl_tex_right: Texture2D
+var girl_tex_right_l: Texture2D
+var girl_tex_right_r: Texture2D
 
 # Node Referensi (Growtopia Textbox)
 var textbox_panel: PanelContainer
@@ -72,8 +92,26 @@ const PANIC_MESSAGES = [
 func _ready() -> void:
 	y_sort_enabled = true
 	_generate_random_appearance()
+	_load_girl_sprites()
 	_build_growtopia_textbox()
 	queue_redraw()
+
+func _load_girl_sprites() -> void:
+	girl_tex_front   = load("res://NPC_Girl/front.png")
+	girl_tex_front_l = load("res://NPC_Girl/front_left.png")
+	girl_tex_front_r = load("res://NPC_Girl/front_right.png")
+
+	girl_tex_back   = load("res://NPC_Girl/back.png")
+	girl_tex_back_l = load("res://NPC_Girl/back_left.png")
+	girl_tex_back_r = load("res://NPC_Girl/back_right.png")
+
+	girl_tex_left   = load("res://NPC_Girl/left.png")
+	girl_tex_left_l = load("res://NPC_Girl/left_left.png")
+	girl_tex_left_r = load("res://NPC_Girl/left_right.png")
+
+	girl_tex_right   = load("res://NPC_Girl/right.png")
+	girl_tex_right_l = load("res://NPC_Girl/right_left.png")
+	girl_tex_right_r = load("res://NPC_Girl/right_right.png")
 
 # ── Random Tampilan Visual NPC ──────────────────────────────────────────────
 func _generate_random_appearance() -> void:
@@ -212,13 +250,11 @@ func _handle_wall_collision() -> void:
 	var wall_normal = get_wall_normal()
 	
 	if current_state in [State.IDLE, State.WANDER]:
-		# Pantulkan arah pergerakan menjauhi tembok (Wall Bounce Vector)
 		var bounce_dir = (wall_normal + Vector2(randf_range(-0.4, 0.4), randf_range(-0.4, 0.4))).normalized()
 		wander_direction = bounce_dir
-		wander_timer = randf_range(2.0, 5.0) # Reset timer agar langsung jalan ke arah baru
+		wander_timer = randf_range(2.0, 5.0)
 		velocity = wander_direction * wander_speed
 	elif current_state == State.PANIC_RUN:
-		# Geser arah lari menyusuri tembok agar tidak tersangkut di sudut ruangan
 		var slide_dir = run_direction.slide(wall_normal).normalized()
 		if slide_dir == Vector2.ZERO or slide_dir.length() < 0.1:
 			slide_dir = wall_normal
@@ -369,6 +405,51 @@ func _animate_textbox_scale(delta: float) -> void:
 	if is_instance_valid(tb_root):
 		tb_root.scale = Vector2(textbox_scale, textbox_scale)
 
+# ── Get Texture Sprite NPC Girl ─────────────────────────────────────────────
+func _get_current_girl_sprite() -> Texture2D:
+	var move_dir = velocity.normalized()
+	if not is_moving or move_dir == Vector2.ZERO:
+		move_dir = wander_direction.normalized()
+	if move_dir == Vector2.ZERO:
+		move_dir = Vector2.DOWN
+
+	var is_horizontal = abs(move_dir.x) > abs(move_dir.y)
+	var idle_tex: Texture2D
+	var step_l_tex: Texture2D
+	var step_r_tex: Texture2D
+
+	if is_horizontal:
+		if move_dir.x < 0:
+			idle_tex   = girl_tex_left
+			step_l_tex = girl_tex_left_l
+			step_r_tex = girl_tex_left_r
+		else:
+			idle_tex   = girl_tex_right
+			step_l_tex = girl_tex_right_l
+			step_r_tex = girl_tex_right_r
+	else:
+		if move_dir.y < 0:
+			idle_tex   = girl_tex_back
+			step_l_tex = girl_tex_back_l
+			step_r_tex = girl_tex_back_r
+		else:
+			idle_tex   = girl_tex_front
+			step_l_tex = girl_tex_front_l
+			step_r_tex = girl_tex_front_r
+
+	if not is_moving:
+		return idle_tex
+
+	var anim_phase = fmod(step_cycle, 1.0)
+	if anim_phase < 0.25:
+		return idle_tex
+	elif anim_phase < 0.50:
+		return step_l_tex
+	elif anim_phase < 0.75:
+		return idle_tex
+	else:
+		return step_r_tex
+
 # ── Custom Drawing Avatar ───────────────────────────────────────────────────
 func _draw() -> void:
 	if current_state == State.DESPAWNED:
@@ -376,11 +457,24 @@ func _draw() -> void:
 
 	var draw_pos = tremble_offset
 
-	# Bayangan lantai
+	# 1. Bayangan lantai
 	draw_set_transform(draw_pos, 0.0, Vector2(1.0, 0.45))
 	draw_circle(Vector2(0, 8), 14.0, Color(0, 0, 0, 0.3))
 	draw_set_transform(draw_pos, 0.0, Vector2.ONE)
 
+	# 2. Render Sprite Custom Girl JIKA is_girl_npc = true
+	if is_girl_npc:
+		var cur_tex = _get_current_girl_sprite()
+		if is_instance_valid(cur_tex):
+			var size = cur_tex.get_size()
+			# Terapkan Skala Transform (0.14 serasi dengan MC)
+			draw_set_transform(draw_pos, 0.0, Vector2(sprite_scale, sprite_scale))
+			var draw_offset = Vector2(-size.x / 2.0, -size.y + 12.0)
+			draw_texture(cur_tex, draw_offset)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
+
+	# 3. Render Avatar Procedural Male JIKA is_girl_npc = false
 	# Kaki
 	var foot_l = draw_pos + Vector2(-6, 2)
 	var foot_r = draw_pos + Vector2(6, 2)

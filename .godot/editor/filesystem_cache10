@@ -1,5 +1,5 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1787146115
+::res://::1787150695
 export_presets.cfg::TextFile::-1::1787036322::0::1::::<><><>0<>0<><>::
 Game IPB.apple-touch-icon.png::CompressedTexture2D::998518899685378611::1787036321::1787037710::1::::<><><>0<>0<>7c4f250b9151c46d73138d05b044bbf0<>res://.godot/imported/Game IPB.apple-touch-icon.png-1795cce00afe26e63b6af05b4d53f4cc.ctex::
 Game IPB.icon.png::CompressedTexture2D::379750928347896293::1787036321::1787037710::1::::<><><>0<>0<>d7fc79bd04318722d2074e7f236845b3<>res://.godot/imported/Game IPB.icon.png-c871cbc01114f034011af7454df46f35.ctex::
@@ -11,7 +11,20 @@ responses.json::JSON::-1::1787045726::0::1::::<><><>0<>0<><>::
 ::res://ai_server/__pycache__/::1786557729
 ::res://nlp_tester/::1786629110
 vercel.json::JSON::-1::1786628918::0::1::::<><><>0<>0<><>::
-::res://posisi mc/::1787146121
+::res://NPC_Girl/::1787150695
+back.png::CompressedTexture2D::6084724659881217590::1787150677::1787150746::1::::<><><>0<>0<>68129d9cdc7219b36d91433b5334be82<>res://.godot/imported/back.png-93414ab7124e4161744c5be3b4ef3efa.ctex::
+back_left.png::CompressedTexture2D::1929994311150308255::1787150676::1787150746::1::::<><><>0<>0<>b68c209de201a38b497b98898249a5cc<>res://.godot/imported/back_left.png-c741ae9516faf6bcb81a7cc8058ec8eb.ctex::
+back_right.png::CompressedTexture2D::1484530943150569619::1787150677::1787150746::1::::<><><>0<>0<>c48f57e725a6a823d74f9b76810cdd82<>res://.godot/imported/back_right.png-11e3a8a103739f804652e37da33b3e4a.ctex::
+front.png::CompressedTexture2D::1542978649741447193::1787150677::1787150746::1::::<><><>0<>0<>f7a00650ae17cd34864438a005241062<>res://.godot/imported/front.png-0447edfa5070e0ecf1041bc05723632c.ctex::
+front_left.png::CompressedTexture2D::7977378208628656671::1787150677::1787150746::1::::<><><>0<>0<>90cc0947002188cef18285db676c4699<>res://.godot/imported/front_left.png-960ecf6e4745167da49d77bbead99a36.ctex::
+front_right.png::CompressedTexture2D::3134118251729043242::1787150677::1787150746::1::::<><><>0<>0<>b91fb27a5211a5ee4effd381b64366d4<>res://.godot/imported/front_right.png-5730f41e612fc170908d13f5abaa94c9.ctex::
+left.png::CompressedTexture2D::9106065286761001387::1787150677::1787150746::1::::<><><>0<>0<>5c422be0e243780430591a875f413bda<>res://.godot/imported/left.png-02bf2084a932947ffdbae5b0e7dc8c88.ctex::
+left_left.png::CompressedTexture2D::1519309046008833850::1787150677::1787150746::1::::<><><>0<>0<>cc73fa528f13c50f35823af0e628a5b5<>res://.godot/imported/left_left.png-1459c7adc2ce08b69a3706a61eaa2e04.ctex::
+left_right.png::CompressedTexture2D::3672892804040264244::1787150677::1787150746::1::::<><><>0<>0<>706a9e3a7161f07ceda7efea87bbfe5f<>res://.godot/imported/left_right.png-51af56a96031a7bffc25c6df5f957473.ctex::
+right.png::CompressedTexture2D::7543910735245907328::1787150677::1787150746::1::::<><><>0<>0<>cf2bac41c467bd268ccc9b5536554569<>res://.godot/imported/right.png-8274b996948ec5adede916d24bf2dd28.ctex::
+right_left.png::CompressedTexture2D::4209355171075494906::1787150677::1787150746::1::::<><><>0<>0<>b5d935833a21ec8cd759f03c04e81886<>res://.godot/imported/right_left.png-df002fef66ea998184c92c83d386805f.ctex::
+right_right.png::CompressedTexture2D::8564216645003182598::1787150677::1787150746::1::::<><><>0<>0<>230abf1439784600c651b25a90f69857<>res://.godot/imported/right_right.png-0ea90ea70f1e0840f73ffe3260311aca.ctex::
+::res://posisi mc/::1787146126
 back.png::CompressedTexture2D::82864482667817218::1787146037::1787146126::1::::<><><>0<>0<>487417f28a90e8e995a573f8fb1dd310<>res://.godot/imported/back.png-f842246f72e6c33e3a28c9e015282cea.ctex::
 back_left.png::CompressedTexture2D::9218743236261825168::1787145693::1787146126::1::::<><><>0<>0<>e4b96ad07ab2d545d63d3eda3c3c156b<>res://.godot/imported/back_left.png-72f4ce1919faa3b63e43dc8b9f45d988.ctex::
 back_right.png::CompressedTexture2D::8773909224537923423::1787145689::1787146126::1::::<><><>0<>0<>f1e18ba24015cca5f60234e0e742d39e<>res://.godot/imported/back_right.png-e4c400a22a18bc6bda9aabdb771a75fa.ctex::
@@ -38,6 +51,6 @@ death_god.gd::GDScript::3180217757218688735::1786557368::0::1::::<>Node<><>0<>0<
 death_god_shrine.gd::GDScript::1269913713562578233::1787043524::0::1::::<>Node2D<><>0<>0<><>::
 dialog_box.gd::GDScript::4664792095732826220::1787044323::0::1::::<>CanvasLayer<><>0<>0<><>::
 main.gd::GDScript::7472318780062482715::1787043992::0::1::::<>Node2D<><>0<>0<><>::
-npc.gd::GDScript::6267724638373676114::1787145240::0::1::::<>CharacterBody2D<><>0<>0<><>::
+npc.gd::GDScript::6267724638373676114::1787146798::0::1::::<>CharacterBody2D<><>0<>0<><>::
 opening_cutscene.gd::GDScript::8604353093428452129::1787144514::0::1::::<>Node2D<><>0<>0<><>::
-player.gd::GDScript::3118802539127583894::1787144680::0::1::::<>CharacterBody2D<><>0<>0<><>::
+player.gd::GDScript::3118802539127583894::1787146698::0::1::::<>CharacterBody2D<><>0<>0<><>::

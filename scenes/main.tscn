@@ -315,12 +315,14 @@ position = Vector2(350, 420)
 
 [node name="NPC2" parent="." instance=ExtResource("5_npc_scene")]
 position = Vector2(930, 420)
+is_girl_npc = true
 
 [node name="NPC3" parent="." instance=ExtResource("5_npc_scene")]
 position = Vector2(400, 820)
 
 [node name="NPC4" parent="." instance=ExtResource("5_npc_scene")]
 position = Vector2(880, 820)
+is_girl_npc = true
 
 [node name="NPC5" parent="." instance=ExtResource("5_npc_scene")]
 position = Vector2(640, 960)
