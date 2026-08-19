@@ -5,7 +5,7 @@ extends CharacterBody2D
 @export var acceleration: float = 2200.0
 @export var friction: float = 2600.0
 @export var can_move: bool = true
-@export var sprite_scale: float = 0.18  # Skala untuk memperkecil gambar resolusi tinggi
+@export var sprite_scale: float = 0.14  # Skala diperkecil 20% lagi agar lebih proporsional
 
 # ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
