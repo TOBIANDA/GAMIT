@@ -1,15 +1,13 @@
 extends CharacterBody2D
 
-# ── NPC System v6 - Custom NPC Girl Art Integration & Dual Distance Zones ────
+# ── NPC System v7 - Automatic Height Scaling for High-Res Girl Sprites ───────
 # Fitur:
-# 1. Dukungan Sprite Custom NPC Girl dari folder 'NPC_Girl' (@export var is_girl_npc: bool).
-# 2. Pengaturan Skala Proporsional (@export var sprite_scale: float = 0.14) agar ukuran serasi dengan MC.
-# 3. Tabrakan Tembok (Anti-Nyangkut): NPC otomatis memantul / menggeser arah jika menabrak tembok/pilar.
-# 4. Zona Tepat / Jarak Aman (110px - 220px): Dengar bisikan clue (box 2s), tenang & tidak merinding.
-# 5. Zona Terlalu Dekat (<110px): Merinding & 7s panic flee timer.
+# 1. Automatic Height Match: Menyamakan tinggi fisik NPC Girl dengan Karakter Utama (~50px) secara otomatis tanpa peduli resolusi gambar asli!
+# 2. Fitur Anti-Nyangkut Tembok & Smart Avoidance Tetap Aktif.
+# 3. Dual Distance Zones (Jarak Aman vs Terlalu Dekat 7s) Tetap Aktif.
 
 @export var is_girl_npc: bool = false
-@export var sprite_scale: float = 0.14        # Ukuran serasi 1:1 dengan Karakter Utama (MC)
+@export var target_height_px: float = 50.0    # Tinggi fisik target di layar (Menyamakan presisi dengan MC)
 @export var too_close_radius: float = 110.0
 @export var eavesdrop_radius: float = 220.0
 @export var panic_time_limit: float = 7.0
@@ -142,7 +140,7 @@ func _generate_random_appearance() -> void:
 func _build_growtopia_textbox() -> void:
 	var root_box = Node2D.new()
 	root_box.name = "TextboxRoot"
-	root_box.position = Vector2(0, -60)
+	root_box.position = Vector2(0, -55)
 	add_child(root_box)
 
 	# Panel Putih Growtopia
@@ -467,15 +465,16 @@ func _draw() -> void:
 		var cur_tex = _get_current_girl_sprite()
 		if is_instance_valid(cur_tex):
 			var size = cur_tex.get_size()
-			# Terapkan Skala Transform (0.14 serasi dengan MC)
-			draw_set_transform(draw_pos, 0.0, Vector2(sprite_scale, sprite_scale))
+			# Hitung Skala Otomatis agar tinggi fisik NPC Girl presisi ~50px menyamai Karakter Utama
+			var calculated_scale = target_height_px / max(size.y, 1.0)
+			
+			draw_set_transform(draw_pos, 0.0, Vector2(calculated_scale, calculated_scale))
 			var draw_offset = Vector2(-size.x / 2.0, -size.y + 12.0)
 			draw_texture(cur_tex, draw_offset)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
 
 	# 3. Render Avatar Procedural Male JIKA is_girl_npc = false
-	# Kaki
 	var foot_l = draw_pos + Vector2(-6, 2)
 	var foot_r = draw_pos + Vector2(6, 2)
 	if is_moving:
@@ -486,17 +485,14 @@ func _draw() -> void:
 	draw_circle(foot_l, 3.5, pants_color)
 	draw_circle(foot_r, 3.5, pants_color)
 
-	# Badan
 	var torso_pos = draw_pos + Vector2(0, -11 + body_bob_y)
 	draw_rect(Rect2(torso_pos.x - 10, torso_pos.y - 6, 20, 15), shirt_color, true, 4.0)
 
-	# Kepala & Rambut
 	var head_pos = draw_pos + Vector2(0, -26 + body_bob_y)
 	var skin_color = Color(0.96, 0.82, 0.72)
 	draw_circle(head_pos, 11.0, skin_color)
 	draw_circle(head_pos + Vector2(0, -4), 11.0, hair_color)
 
-	# Mata Ketakutan (HANYA saat AFRAID / PANIC_RUN)
 	if current_state in [State.AFRAID, State.PANIC_RUN]:
 		draw_circle(head_pos + Vector2(-4, 1), 3.2, Color.WHITE)
 		draw_circle(head_pos + Vector2(-4, 1), 1.2, Color.BLACK)
