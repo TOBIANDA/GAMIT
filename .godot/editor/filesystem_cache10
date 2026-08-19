@@ -1,5 +1,5 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1787140920
+::res://::1787144195
 export_presets.cfg::TextFile::-1::1787036322::0::1::::<><><>0<>0<><>::
 Game IPB.apple-touch-icon.png::CompressedTexture2D::998518899685378611::1787036321::1787037710::1::::<><><>0<>0<>7c4f250b9151c46d73138d05b044bbf0<>res://.godot/imported/Game IPB.apple-touch-icon.png-1795cce00afe26e63b6af05b4d53f4cc.ctex::
 Game IPB.icon.png::CompressedTexture2D::379750928347896293::1787036321::1787037710::1::::<><><>0<>0<>d7fc79bd04318722d2074e7f236845b3<>res://.godot/imported/Game IPB.icon.png-c871cbc01114f034011af7454df46f35.ctex::
@@ -12,15 +12,17 @@ responses.json::JSON::-1::1787045726::0::1::::<><><>0<>0<><>::
 ::res://nlp_tester/::1786629110
 vercel.json::JSON::-1::1786628918::0::1::::<><><>0<>0<><>::
 ::res://project/::1786555226
-::res://scenes/::1787030935
+::res://scenes/::1787144117
 death_god.tscn::PackedScene::-1::1786557375::0::1::::<><><>0<>0<><>::
 death_god_shrine.tscn::PackedScene::-1::1787038288::0::1::::<><><>0<>0<><>::res://scripts/death_god_shrine.gd
 dialog_box.tscn::PackedScene::-1::1787043255::0::1::::<><><>0<>0<><>::res://scripts/dialog_box.gd
 main.tscn::PackedScene::-1::1787043229::0::1::::<><><>0<>0<><>::res://scripts/main.gd<>res://scenes/player.tscn<>res://scenes/death_god_shrine.tscn<>res://scenes/dialog_box.tscn
+opening_cutscene.tscn::PackedScene::7117527770993168129::1787144117::0::1::::<><><>0<>0<><>::res://scripts/opening_cutscene.gd
 player.tscn::PackedScene::-1::1787037922::0::1::::<><><>0<>0<><>::res://scripts/player.gd
-::res://scripts/::1787042235
+::res://scripts/::1787144111
 death_god.gd::GDScript::3180217757218688735::1786557368::0::1::::<>Node<><>0<>0<><>::
 death_god_shrine.gd::GDScript::1269913713562578233::1787043524::0::1::::<>Node2D<><>0<>0<><>::
 dialog_box.gd::GDScript::4664792095732826220::1787044323::0::1::::<>CanvasLayer<><>0<>0<><>::
 main.gd::GDScript::7472318780062482715::1787043992::0::1::::<>Node2D<><>0<>0<><>::
+opening_cutscene.gd::GDScript::8604353093428452129::1787144111::0::1::::<>Node2D<><>0<>0<><>::
 player.gd::GDScript::3118802539127583894::1787037915::0::1::::<>CharacterBody2D<><>0<>0<><>::
