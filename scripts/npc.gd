@@ -1,11 +1,12 @@
 extends CharacterBody2D
 
-# ── NPC System v2 - Clue Whispers, 7s Panic Timer & 2s Textbox Display ───────
+# ── NPC System v3 - Subtle Eerie Mystery Dialogues & Flee Logic ─────────────
 # Fitur:
-# 1. Dekat player (<140px) -> Bisikkan petunjuk misteri cerita game
+# 1. Dekat player (<140px) -> Bisikkan petunjuk misteri secara halus (tidak merusak plot twist)
 # 2. Textbox Growtopia HANYA MUNCUL 2 DETIK per percakapan (lalu hilang/cycle)
 # 3. Durasi berhenti ketakutan sebelum lari = 7 DETIK!
 # 4. Jauh dari player (>140px) -> Textbox langsung hilang & timer reset
+# 5. Teriakan lari berupa ekspresi cemas/panik psikologis (tanpa sebut "setan" agar plot twist terjaga)
 
 @export var detect_radius: float = 140.0
 @export var panic_time_limit: float = 7.0  # 7 Detik ketakutan sebelum lari
@@ -48,15 +49,24 @@ var body_bob_y: float = 0.0
 var wander_timer: float = 0.0
 var wander_direction: Vector2 = Vector2.ZERO
 
-# Pool Percakapan & Petunjuk Cerita (Clues)
+# Pool Percakapan Misteri Halus (Menjaga Plot Twist / Tidak Obvious)
 const CLUE_MESSAGES = [
-	"Aku merinding... Hawa di sini dingin sekali...",
-	"Jam dinding di aula itu... berhenti berdetak jam 12 malam.",
-	"Keluarganya bilang... ada surat penting yang belum sempat terkirim.",
-	"Aku lihat mayat itu... pakaiannya mirip sekali denganmu.",
-	"Aneh... kenapa kamu tidak punya bayangan di lantai?",
-	"Laporan otopsi itu... namamu yang tertulis di sana!",
-	"Semua orang di sini ketakutan... kamu ini sebenarnya siapa?"
+	"Perasaanku tidak enak... hawa di sini dingin sekali...",
+	"Jam dinding di ruangan itu... berhenti tepat jam dua.",
+	"Mereka bilang... ada satu laporan investigasi yang belum selesai.",
+	"Pakaianmu... rasanya aku pernah melihatnya di suatu tempat...",
+	"Aneh... kenapa angin tidak menggerakkan pakaianmu sama sekali?",
+	"Orang-orang di kota ini... tidak ada yang mau menjawabmu.",
+	"Ada sesuatu tentang dirimu... yang membuatku merinding..."
+]
+
+# Pool Teriakan Panik (Gaya Psikologis Thriller, Tanpa Sebut "Setan")
+const PANIC_MESSAGES = [
+	"PERGI!! JANGAN MENDEKATIKU!! 🏃‍♂️",
+	"Tolong! Rasanya tempat ini membuatku tercekik!! 🏃‍♂️",
+	"Tidak... aku harus pergi dari sini sekarang!! 🏃‍♂️",
+	"Aku tidak tahan lagi... hawa ini terlalu pekat!! 🏃‍♂️",
+	"Jangan sentuh aku!! 🏃‍♂️"
 ]
 
 func _ready() -> void:
@@ -147,7 +157,6 @@ func _build_growtopia_textbox() -> void:
 	root_box.scale = Vector2.ZERO
 
 func _trigger_new_clue_dialogue() -> void:
-	# Pilih petunjuk acak yang belum baru saja dipakai
 	var next_idx = randi() % CLUE_MESSAGES.size()
 	if next_idx == last_clue_index:
 		next_idx = (next_idx + 1) % CLUE_MESSAGES.size()
@@ -243,25 +252,23 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 		msg_display_timer -= delta
 		is_textbox_visible = true
 		if msg_display_timer <= 0.0:
-			# Setelah 2 detik, textbox hilang!
 			is_textbox_visible = false
 			msg_cooldown_timer = MSG_COOLDOWN_DURATION
 	elif msg_cooldown_timer > 0.0:
 		msg_cooldown_timer -= delta
 		is_textbox_visible = false
 		if msg_cooldown_timer <= 0.0 and panic_timer < panic_time_limit - 0.5:
-			# Setelah cooldown 1 detik, bisikkan petunjuk berikutnya!
 			_trigger_new_clue_dialogue()
 
 	# 4. Jika SUDAH 7 DETIK BERHENTI KETAKUTAN -> PANIC FLEE (LARI MENJAUH!)
 	if panic_timer >= panic_time_limit:
 		current_state = State.PANIC_RUN
 		run_timer = 3.0
-		current_text_msg = "AAAAAA!! SETAN!! 🏃‍♂️"
+		current_text_msg = PANIC_MESSAGES[randi() % PANIC_MESSAGES.size()]
 		if is_instance_valid(textbox_label):
 			textbox_label.text = current_text_msg
 		is_textbox_visible = true
-		msg_display_timer = 3.0 # Tetap tampil saat lari
+		msg_display_timer = 3.0
 
 		if is_instance_valid(player_ref):
 			run_direction = (global_position - player_ref.global_position).normalized()
