@@ -1,6 +1,6 @@
 """
-NLP Server - Dewa Kematian (Enhanced Hybrid Engine)
-Game IPB - Semantic Similarity + Intent & Clue Recognition
+NLP Server - Dewa Kematian (Enhanced Hybrid Smart Engine)
+Game IPB - Semantic Similarity + Intent, Clue & Gibberish Filtering
 """
 
 import json
@@ -60,6 +60,33 @@ last_used_responses = set()
 class PlayerInput(BaseModel):
     teks: str
 
+# ── Gibberish / Nonsense Filter ──────────────────────────────────────────────
+def is_word_gibberish(word: str) -> bool:
+    clean = re.sub(r'[^a-z]', '', word.lower())
+    if len(clean) < 4:
+        return False
+    vowels = len(re.findall(r'[aeiou]', clean))
+    if vowels == 0:
+        return True
+    vowel_ratio = vowels / len(clean)
+    if vowel_ratio < 0.15 or vowel_ratio > 0.85:
+        return True
+    if re.search(r'[bcdfghjklmnpqrstvwxyz]{4,}', clean):
+        return True
+    kbd_rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm", "poiuytrewq", "lkjhgfdsa", "mnbvcxz"]
+    for row in kbd_rows:
+        for i in range(len(row) - 4):
+            if row[i:i+5] in clean:
+                return True
+    return False
+
+def is_text_gibberish(teks: str) -> bool:
+    words = [w for w in teks.lower().split() if w]
+    if not words:
+        return True
+    gibberish_count = sum(1 for w in words if is_word_gibberish(w))
+    return (gibberish_count / len(words)) >= 0.4
+
 # ── Helper Analisis Semantik & Kata Kunci ──────────────────────────────────
 def hitung_similarity(embedding_pemain, kategori: str) -> float:
     if kategori not in gt_embeddings:
@@ -96,7 +123,6 @@ def get_varied_response(category: str) -> str:
     available = [r for r in options if r not in last_used_responses]
     
     if not available:
-        # Jika semua sudah terpakai, reset memory
         last_used_responses.clear()
         available = options
         
@@ -109,13 +135,13 @@ def get_varied_response(category: str) -> str:
 def analisis(input: PlayerInput):
     teks = input.teks.strip()
 
-    if not teks:
+    if not teks or is_text_gibberish(teks):
         return {
             "kategori": "tidak_paham",
             "respon": get_varied_response("tidak_paham"),
-            "skor_mati": 0.0,
-            "skor_emosional": 0.0,
-            "insights": []
+            "skor_mati": 0.005 if teks else 0.0,
+            "skor_emosional": 0.005 if teks else 0.0,
+            "insights": ["gibberish_detected"] if teks else []
         }
 
     # 1. Encode embedding kalimat pemain
@@ -124,7 +150,6 @@ def analisis(input: PlayerInput):
     # 2. Hitung kemiripan terhadap semua kategori
     skor_mati = hitung_similarity(embedding_pemain, "mati")
     skor_emosional = hitung_similarity(embedding_pemain, "emosional")
-    skor_waktu = hitung_similarity(embedding_pemain, "waktu")
     detected_clues = detect_clues(teks)
 
     print(f"[NLP] Input: '{teks}'")
@@ -151,13 +176,12 @@ def analisis(input: PlayerInput):
     # 5. Dapatkan variasi respon utama
     base_response = get_varied_response(kategori)
 
-    # 6. Jika ada petunjuk spesifik yang menarik dan belum sadar penuh, berikan komentar tambahan
+    # 6. Komentar tambahan jika petunjuk ditemukan
     final_response = base_response
     if kategori in ["sadar_mati", "sebagian"] and detected_clues:
         clue_key = random.choice(detected_clues)
         if clue_key in clue_responses:
             clue_text = clue_responses[clue_key]
-            # Sisipkan jika belum ada di teks dasar
             if clue_text not in final_response:
                 final_response = f"{final_response}\n\n✦ {clue_text}"
 

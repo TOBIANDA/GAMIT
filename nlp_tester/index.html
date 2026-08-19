@@ -487,7 +487,7 @@
       border-color: var(--gold);
     }
 
-    /* ── Secret Dev / GD Inspector & Interactive Editor Panel ── */
+    /* ── Secret Dev & Game Designer (GD) Interactive Editor Panel ── */
     .dev-inspector-panel {
       display: none;
       background: rgba(18, 12, 32, 0.96);
@@ -627,7 +627,7 @@
   <header>
     <span class="skull-icon">💀</span>
     <h1 class="title">DEWA KEMATIAN — NLP TESTER</h1>
-    <p class="subtitle">Game IPB &nbsp;·&nbsp; Internal Testing Tool &nbsp;·&nbsp; v1.3 (GD Suite)</p>
+    <p class="subtitle">Game IPB &nbsp;·&nbsp; Internal Testing Tool &nbsp;·&nbsp; v1.4 (Smart Engine)</p>
   </header>
 
   <!-- Config Card -->
@@ -650,7 +650,7 @@
     <!-- Client AI Mode -->
     <div id="mode-client">
       <div class="mode-desc">
-        ⚡ <strong>Mode Browser AI (Tanpa Backend):</strong> Berjalan 100% di browser tanpa butuh server Python atau API key! Cocok untuk seluruh tim yang ingin langsung testing tanpa setup.
+        ⚡ <strong>Mode Browser AI (Smart Engine):</strong> Dilengkapi Gibberish & Keyword Filter agar kalimat acak / asal ketik tidak dapat skor tinggi. Berjalan 100% di browser tanpa backend!
       </div>
     </div>
 
@@ -922,7 +922,42 @@ function hideToast() {
   document.getElementById('toast-msg').classList.remove('show');
 }
 
-// ── Client-Side NLP Engine (Pure Browser JS) ──────────────────────────────────
+// ── Gibberish / Nonsense Filter ──────────────────────────────────────────────
+function isWordGibberish(word) {
+  const clean = word.toLowerCase().replace(/[^a-z]/g, "");
+  if (clean.length < 4) return false;
+
+  const vowels = (clean.match(/[aeiou]/g) || []).length;
+  if (vowels === 0) return true;
+
+  const vowelRatio = vowels / clean.length;
+  if (vowelRatio < 0.15 || vowelRatio > 0.85) return true;
+
+  if (/[bcdfghjklmnpqrstvwxyz]{4,}/.test(clean)) return true;
+
+  const kbdRows = ["qwertyuiop", "asdfghjkl", "zxcvbnm", "poiuytrewq", "lkjhgfdsa", "mnbvcxz"];
+  for (let row of kbdRows) {
+    for (let i = 0; i <= row.length - 5; i++) {
+      if (clean.includes(row.slice(i, i + 5))) return true;
+    }
+  }
+
+  return false;
+}
+
+function isTextGibberish(text) {
+  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+  if (words.length === 0) return true;
+
+  let gibberishCount = 0;
+  for (let w of words) {
+    if (isWordGibberish(w)) gibberishCount++;
+  }
+
+  return (gibberishCount / words.length) >= 0.4;
+}
+
+// ── Client-Side NLP Engine (Smart Pure Browser JS) ───────────────────────────
 function getNGrams(text, n) {
   const ngrams = new Set();
   const clean = text.toLowerCase().replace(/[^a-z0-9\s]/g, "");
@@ -955,13 +990,20 @@ function wordSimilarity(text1, text2) {
 }
 
 function calculateClientSimilarity(playerText, groundTruthList, isMatiCategory = false) {
+  // 1. Cek jika kalimat adalah asal ketik / gibberish (e.g. asalasdkfdfhjas, asdfghjkl)
+  if (isTextGibberish(playerText)) {
+    return 0.005;
+  }
+
   const textLower = playerText.toLowerCase();
   let maxScore = 0;
 
   for (let gt of groundTruthList) {
     const ngSim = nGramSimilarity(playerText, gt);
     const wSim  = wordSimilarity(playerText, gt);
-    const score = ngSim * 0.5 + wSim * 0.5;
+    
+    // Jika tidak ada kata yang cocok sama sekali, batasi noise n-gram karakter maks 0.04
+    let score = (wSim > 0) ? (ngSim * 0.4 + wSim * 0.6) : Math.min(ngSim * 0.2, 0.04);
     if (score > maxScore) maxScore = score;
   }
 
@@ -975,7 +1017,7 @@ function calculateClientSimilarity(playerText, groundTruthList, isMatiCategory =
     } else if (hasMati) {
       maxScore = Math.max(maxScore, 0.58 + Math.random() * 0.08);
     } else if (hasSelf) {
-      maxScore = Math.max(maxScore, 0.22);
+      maxScore = Math.max(maxScore, 0.15);
     }
   } else {
     if (hasEmosi) {
@@ -997,6 +1039,10 @@ async function getScoreViaClientEngine(playerText) {
 const HF_MODEL = 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2';
 
 async function getScoreViaHF(playerText) {
+  if (isTextGibberish(playerText)) {
+    return { skor_mati: 0.005, skor_emosional: 0.005 };
+  }
+
   const token = document.getElementById('hf-token').value.trim();
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = 'Bearer ' + token;
