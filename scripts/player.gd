@@ -5,6 +5,7 @@ extends CharacterBody2D
 @export var acceleration: float = 2200.0
 @export var friction: float = 2600.0
 @export var can_move: bool = true
+@export var sprite_scale: float = 0.18  # Skala untuk memperkecil gambar resolusi tinggi
 
 # ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
@@ -142,13 +143,19 @@ func _get_current_sprite() -> Texture2D:
 func _draw() -> void:
 	# 1. Bayangan di lantai (Ground Shadow Oval)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 6), 16.0, Color(0, 0, 0, 0.35))
+	draw_circle(Vector2(0, 6), 14.0, Color(0, 0, 0, 0.35))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	# 2. Gambar Sprite Art MC dari 'posisi mc'
+	# 2. Gambar Sprite Art MC dari 'posisi mc' dengan Skala Teratur
 	var cur_tex = _get_current_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
-		# Tentukan offset agar posisi kaki tepat di origin (Vector2.ZERO)
-		var draw_offset = Vector2(-size.x / 2.0, -size.y + 6.0)
+		# Terapkan skala transform agar gambar resolusi tinggi pas dengan ukuran karakter game
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(sprite_scale, sprite_scale))
+		
+		# Offset agar posisi kaki tepat berada di origin
+		var draw_offset = Vector2(-size.x / 2.0, -size.y + 12.0)
 		draw_texture(cur_tex, draw_offset)
+		
+		# Reset transform kembali ke normal
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
