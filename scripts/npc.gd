@@ -1,19 +1,21 @@
 extends CharacterBody2D
 
-# ── NPC System v3 - Subtle Eerie Mystery Dialogues & Flee Logic ─────────────
+# ── NPC System v4 - Dual Interaction Zones & Smart Avoidance ───────────────
 # Fitur:
-# 1. Dekat player (<140px) -> Bisikkan petunjuk misteri secara halus (tidak merusak plot twist)
-# 2. Textbox Growtopia HANYA MUNCUL 2 DETIK per percakapan (lalu hilang/cycle)
-# 3. Durasi berhenti ketakutan sebelum lari = 7 DETIK!
-# 4. Jauh dari player (>140px) -> Textbox langsung hilang & timer reset
-# 5. Teriakan lari berupa ekspresi cemas/panik psikologis (tanpa sebut "setan" agar plot twist terjaga)
+# 1. Zona Tepat / Jarak Aman (110px - 220px):
+#    - Dengar bisikan clue (box 2 detik), NPC TIDAK MERINDING & TIDAK GEMETAR & TIDAK PANIK LARI.
+# 2. Zona Terlalu Dekat (<110px):
+#    - NPC BARU merinding ketakutan, mata terbelalak, gemetar, & timer 7 detik panik lari diaktifkan!
+# 3. Smart Avoidance (NPC Pintar):
+#    - NPC saat jalan santai (wander) otomatis menghindari arah ke pemain agar tidak menubruk/memicu tulisan saat pemain diam.
 
-@export var detect_radius: float = 140.0
-@export var panic_time_limit: float = 7.0  # 7 Detik ketakutan sebelum lari
+@export var too_close_radius: float = 110.0  # Zona Terlalu Dekat (Merinding & 7s Panic Flee)
+@export var eavesdrop_radius: float = 220.0  # Zona Tepat/Aman (Mendengar Clue, Tenang)
+@export var panic_time_limit: float = 7.0    # 7 Detik ketakutan jika menempel <110px
 @export var run_speed: float = 430.0
-@export var wander_speed: float = 50.0
+@export var wander_speed: float = 45.0
 
-enum State { IDLE, WANDER, AFRAID, PANIC_RUN, DESPAWNED }
+enum State { IDLE, WANDER, EAVESDROP, AFRAID, PANIC_RUN, DESPAWNED }
 var current_state: State = State.IDLE
 
 var player_ref: CharacterBody2D = null
@@ -26,7 +28,7 @@ var tremble_offset: Vector2 = Vector2.ZERO
 var msg_display_timer: float = 0.0
 var msg_cooldown_timer: float = 0.0
 const MSG_DISPLAY_DURATION: float = 2.0  # Box hanya tampil 2 detik!
-const MSG_COOLDOWN_DURATION: float = 1.0 # Pause 1 detik sebelum percakapan berikutnya
+const MSG_COOLDOWN_DURATION: float = 1.2 # Pause 1.2 detik sebelum bisikan berikutnya
 
 # Randomization visual NPC
 var hair_color: Color
@@ -49,7 +51,7 @@ var body_bob_y: float = 0.0
 var wander_timer: float = 0.0
 var wander_direction: Vector2 = Vector2.ZERO
 
-# Pool Percakapan Misteri Halus (Menjaga Plot Twist / Tidak Obvious)
+# Pool Percakapan Misteri Halus (Zona Aman / Clue)
 const CLUE_MESSAGES = [
 	"Perasaanku tidak enak... hawa di sini dingin sekali...",
 	"Jam dinding di ruangan itu... berhenti tepat jam dua.",
@@ -57,10 +59,10 @@ const CLUE_MESSAGES = [
 	"Pakaianmu... rasanya aku pernah melihatnya di suatu tempat...",
 	"Aneh... kenapa angin tidak menggerakkan pakaianmu sama sekali?",
 	"Orang-orang di kota ini... tidak ada yang mau menjawabmu.",
-	"Ada sesuatu tentang dirimu... yang membuatku merinding..."
+	"Ada sesuatu tentang tempat ini... yang membuat bulu kuduk berdiri..."
 ]
 
-# Pool Teriakan Panik (Gaya Psikologis Thriller, Tanpa Sebut "Setan")
+# Pool Teriakan Panik (Terlalu Dekat > 7s)
 const PANIC_MESSAGES = [
 	"PERGI!! JANGAN MENDEKATIKU!! 🏃‍♂️",
 	"Tolong! Rasanya tempat ini membuatku tercekik!! 🏃‍♂️",
@@ -187,6 +189,9 @@ func _physics_process(delta: float) -> void:
 		State.IDLE, State.WANDER:
 			_handle_idle_wander(delta, dist_to_player)
 
+		State.EAVESDROP:
+			_handle_eavesdrop_state(delta, dist_to_player)
+
 		State.AFRAID:
 			_handle_afraid_state(delta, dist_to_player)
 
@@ -197,21 +202,40 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	queue_redraw()
 
-# ── Logika State ────────────────────────────────────────────────────────────
+# ── Smart Navigation: Memilih arah jalan yang menghindari menubruk player ──
+func _pick_smart_wander_direction() -> Vector2:
+	if is_instance_valid(player_ref):
+		var to_player = (player_ref.global_position - global_position).normalized()
+		# Pilih sudut yang berlawanan atau tegak lurus dari posisi pemain
+		var away_angle = to_player.angle() + PI + randf_range(-PI * 0.35, PI * 0.35)
+		return Vector2(cos(away_angle), sin(away_angle)).normalized()
+	
+	var angle = randf() * TAU
+	return Vector2(cos(angle), sin(angle)).normalized()
+
+# ── Handlers Logika ──────────────────────────────────────────────────────────
 func _handle_idle_wander(delta: float, dist: float) -> void:
-	if dist <= detect_radius:
+	# Cek zona keberadaan pemain
+	if dist <= too_close_radius:
+		# Terlalu Dekat (<110px) -> Masuk AFRAID (Merinding & 7s Panic Timer)
 		current_state = State.AFRAID
 		panic_timer = 0.0
 		msg_cooldown_timer = 0.0
 		_trigger_new_clue_dialogue()
 		return
+	elif dist <= eavesdrop_radius:
+		# Zona Aman (110px - 220px) -> Masuk EAVESDROP (Dengar Clue, Tenang, Tidak Merinding)
+		current_state = State.EAVESDROP
+		msg_cooldown_timer = 0.0
+		_trigger_new_clue_dialogue()
+		return
 
+	# Logika Jalan Santai Smart Wander (Menjauhi arah pemain agar tidak menubruk saat pemain diam)
 	wander_timer -= delta
 	if wander_timer <= 0.0:
-		wander_timer = randf_range(2.5, 6.0)
-		if randf() > 0.4:
-			var angle = randf() * TAU
-			wander_direction = Vector2(cos(angle), sin(angle))
+		wander_timer = randf_range(3.0, 7.0)
+		if randf() > 0.45:
+			wander_direction = _pick_smart_wander_direction()
 			is_moving = true
 		else:
 			wander_direction = Vector2.ZERO
@@ -219,7 +243,7 @@ func _handle_idle_wander(delta: float, dist: float) -> void:
 
 	if is_moving:
 		velocity = wander_direction * wander_speed
-		step_cycle += delta * 8.0
+		step_cycle += delta * 7.0
 		body_bob_y = abs(sin(step_cycle)) * -2.0
 	else:
 		velocity = Vector2.ZERO
@@ -227,27 +251,65 @@ func _handle_idle_wander(delta: float, dist: float) -> void:
 
 	tremble_offset = Vector2.ZERO
 
-func _handle_afraid_state(delta: float, dist: float) -> void:
-	# 1. Jika player MENJAUH (> detect_radius) -> Textbox LANGSUNG HILANG & Timer Reset
-	if dist > detect_radius + 20.0:
+# ── Zona Tepat / Jarak Aman (EAVESDROP: 110px - 220px) ──────────────────────
+func _handle_eavesdrop_state(delta: float, dist: float) -> void:
+	# Jika pemain menjauh (> 220px) -> Kembali IDLE/WANDER & Textbox HILANG
+	if dist > eavesdrop_radius + 10.0:
 		current_state = State.IDLE
 		is_textbox_visible = false
-		panic_timer = 0.0
 		msg_display_timer = 0.0
 		msg_cooldown_timer = 0.0
 		velocity = Vector2.ZERO
 		tremble_offset = Vector2.ZERO
 		return
+	# Jika pemain maju TERLALU DEKAT (< 110px) -> Masuk AFRAID (Merinding!)
+	elif dist <= too_close_radius:
+		current_state = State.AFRAID
+		panic_timer = 0.0
+		return
 
-	# 2. Tambah Timer Ketakutan (Target: 7 DETIK berhenti ketakutan sebelum lari)
-	panic_timer += delta
+	# Di zona aman ini: NPC TENANG, TIDAK GEMETAR, TIDAK MERINDING, TIDAK PANIK LARI
+	panic_timer = 0.0
+	tremble_offset = Vector2.ZERO
 	velocity = Vector2.ZERO
 	is_moving = false
 
-	# Efek gemetar ketakutan
+	# Kelola Durasi Textbox Tampil PERSIS 2 DETIK
+	if msg_display_timer > 0.0:
+		msg_display_timer -= delta
+		is_textbox_visible = true
+		if msg_display_timer <= 0.0:
+			is_textbox_visible = false
+			msg_cooldown_timer = MSG_COOLDOWN_DURATION
+	elif msg_cooldown_timer > 0.0:
+		msg_cooldown_timer -= delta
+		is_textbox_visible = false
+		if msg_cooldown_timer <= 0.0:
+			_trigger_new_clue_dialogue()
+
+# ── Zona Terlalu Dekat (AFRAID: < 110px) ────────────────────────────────────
+func _handle_afraid_state(delta: float, dist: float) -> void:
+	# Jika pemain mundur ke Zona Aman (110px - 220px) -> Kembali EAVESDROP (Tenang lagi!)
+	if dist > too_close_radius and dist <= eavesdrop_radius:
+		current_state = State.EAVESDROP
+		tremble_offset = Vector2.ZERO
+		return
+	# Jika pemain mundur sangat jauh (> 220px) -> Kembali IDLE/WANDER
+	elif dist > eavesdrop_radius:
+		current_state = State.IDLE
+		is_textbox_visible = false
+		panic_timer = 0.0
+		velocity = Vector2.ZERO
+		tremble_offset = Vector2.ZERO
+		return
+
+	# Di zona terlalu dekat ini: BARU MULAI MERINDING & GEMETAR!
+	panic_timer += delta
+	velocity = Vector2.ZERO
+	is_moving = false
 	tremble_offset = Vector2(randf_range(-1.8, 1.8), randf_range(-1.8, 1.8))
 
-	# 3. Kelola Durasi Textbox Tampil PERSIS 2 DETIK
+	# Kelola Tampilan Textbox 2 Detik
 	if msg_display_timer > 0.0:
 		msg_display_timer -= delta
 		is_textbox_visible = true
@@ -260,7 +322,7 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 		if msg_cooldown_timer <= 0.0 and panic_timer < panic_time_limit - 0.5:
 			_trigger_new_clue_dialogue()
 
-	# 4. Jika SUDAH 7 DETIK BERHENTI KETAKUTAN -> PANIC FLEE (LARI MENJAUH!)
+	# Jika SUDAH 7 DETIK MENEMPEL TERLALU DEKAT -> PANIC FLEE (LARI MENJAUH!)
 	if panic_timer >= panic_time_limit:
 		current_state = State.PANIC_RUN
 		run_timer = 3.0
@@ -333,12 +395,13 @@ func _draw() -> void:
 	draw_circle(head_pos, 11.0, skin_color)
 	draw_circle(head_pos + Vector2(0, -4), 11.0, hair_color)
 
-	# Mata Ketakutan
+	# Mata Ketakutan (HANYA saat AFRAID / PANIC_RUN)
 	if current_state in [State.AFRAID, State.PANIC_RUN]:
 		draw_circle(head_pos + Vector2(-4, 1), 3.2, Color.WHITE)
 		draw_circle(head_pos + Vector2(-4, 1), 1.2, Color.BLACK)
 		draw_circle(head_pos + Vector2(4, 1), 3.2, Color.WHITE)
 		draw_circle(head_pos + Vector2(4, 1), 1.2, Color.BLACK)
 	else:
+		# Mata Normal Tenang (termasuk saat EAVESDROP di Zona Aman)
 		draw_circle(head_pos + Vector2(-4, 1), 2.0, Color(0.1, 0.1, 0.15))
 		draw_circle(head_pos + Vector2(4, 1), 2.0, Color(0.1, 0.1, 0.15))
