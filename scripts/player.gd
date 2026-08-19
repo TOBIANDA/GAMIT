@@ -1,9 +1,9 @@
 extends CharacterBody2D
 
 # ── Konfigurasi Pergerakan 3/4 Top-Down ─────────────────────────────────────
-@export var max_speed: float = 300.0
-@export var acceleration: float = 2200.0
-@export var friction: float = 2600.0
+@export var max_speed: float = 195.0       # Kecepatan jalan diperlambat agar pas dengan suasana investigasi
+@export var acceleration: float = 1600.0   # Akselerasi yang lebih halus
+@export var friction: float = 1800.0       # Gesekan menghentikan pergerakan
 @export var can_move: bool = true
 @export var sprite_scale: float = 0.14  # Skala diperkecil 20% lagi agar lebih proporsional
 
@@ -73,7 +73,7 @@ func _physics_process(delta: float) -> void:
 		is_moving = true
 		facing_direction = input_vector.normalized()
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
-		step_cycle += delta * 7.5 # Kecepatan animasi langkah kaki
+		step_cycle += delta * 5.0 # Kecepatan animasi langkah kaki disesuaikan dengan kecepatan jalan
 	else:
 		is_moving = false
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
