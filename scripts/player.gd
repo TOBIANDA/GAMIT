@@ -16,6 +16,7 @@ var body_bob_y: float = 0.0
 @onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
+	add_to_group("player")
 	# Y-Sorting aktif agar urutan rendering diatur oleh posisi sumbu Y
 	y_sort_enabled = true
 	queue_redraw()

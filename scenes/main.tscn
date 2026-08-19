@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="2_player_scene"]
 [ext_resource type="PackedScene" uid="uid://death_god_shrine_scene_01" path="res://scenes/death_god_shrine.tscn" id="3_shrine_scene"]
 [ext_resource type="PackedScene" uid="uid://dialog_box_scene_01" path="res://scenes/dialog_box.tscn" id="4_dialog_scene"]
+[ext_resource type="PackedScene" uid="uid://npc_scene_01" path="res://scenes/npc.tscn" id="5_npc_scene"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_n"]
 size = Vector2(2500, 30)
@@ -308,6 +309,21 @@ position = Vector2(640, -40)
 
 [node name="Player" parent="." instance=ExtResource("2_player_scene")]
 position = Vector2(640, 500)
+
+[node name="NPC1" parent="." instance=ExtResource("5_npc_scene")]
+position = Vector2(350, 420)
+
+[node name="NPC2" parent="." instance=ExtResource("5_npc_scene")]
+position = Vector2(930, 420)
+
+[node name="NPC3" parent="." instance=ExtResource("5_npc_scene")]
+position = Vector2(400, 820)
+
+[node name="NPC4" parent="." instance=ExtResource("5_npc_scene")]
+position = Vector2(880, 820)
+
+[node name="NPC5" parent="." instance=ExtResource("5_npc_scene")]
+position = Vector2(640, 960)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 2
