@@ -90,5 +90,5 @@ func _on_dialog_closed() -> void:
 
 func _on_reset_btn_pressed() -> void:
 	if is_instance_valid(player):
-		player.global_position = Vector2(790, 150)
+		player.global_position = Vector2(1050, 175)
 		player.velocity = Vector2.ZERO
