@@ -1,28 +1,14 @@
-[gd_scene load_steps=12 format=3 uid="uid://main_scene_01"]
+[gd_scene load_steps=9 format=3 uid="uid://main_scene_01"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main_script"]
-[ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="2_player_scene"]
-[ext_resource type="PackedScene" uid="uid://death_god_shrine_scene_01" path="res://scenes/death_god_shrine.tscn" id="3_shrine_scene"]
-[ext_resource type="PackedScene" uid="uid://dialog_box_scene_01" path="res://scenes/dialog_box.tscn" id="4_dialog_scene"]
-[ext_resource type="PackedScene" uid="uid://npc_scene_01" path="res://scenes/npc.tscn" id="5_npc_scene"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_n"]
-size = Vector2(2500, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_s"]
-size = Vector2(2500, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
-size = Vector2(40, 1600)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_pillar_col"]
-size = Vector2(100, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_block_wide_col"]
-size = Vector2(220, 30)
+[ext_resource type="Script" path="res://scripts/blueprint_map.gd" id="2_map_script"]
+[ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="3_player_scene"]
+[ext_resource type="PackedScene" uid="uid://death_god_shrine_scene_01" path="res://scenes/death_god_shrine.tscn" id="4_shrine_scene"]
+[ext_resource type="PackedScene" uid="uid://dialog_box_scene_01" path="res://scenes/dialog_box.tscn" id="5_dialog_scene"]
+[ext_resource type="PackedScene" uid="uid://npc_scene_01" path="res://scenes/npc.tscn" id="6_npc_scene"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
-bg_color = Color(0.06, 0.08, 0.12, 0.85)
+bg_color = Color(0.06, 0.08, 0.12, 0.88)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -52,280 +38,32 @@ content_margin_bottom = 6.0
 y_sort_enabled = true
 script = ExtResource("1_main_script")
 
-[node name="FloorLayer" type="Node2D" parent="."]
+[node name="BlueprintMap" type="Node2D" parent="."]
 z_index = -1
+script = ExtResource("2_map_script")
 
-[node name="VoidBackground" type="ColorRect" parent="FloorLayer"]
-offset_left = -400.0
-offset_top = -400.0
-offset_right = 2200.0
-offset_bottom = 1500.0
-color = Color(0.04, 0.05, 0.07, 1)
+[node name="DeathGodShrine" parent="." instance=ExtResource("4_shrine_scene")]
+position = Vector2(1045, 690)
 
-[node name="ArenaGround" type="ColorRect" parent="FloorLayer"]
-offset_left = -200.0
-offset_top = -150.0
-offset_right = 2000.0
-offset_bottom = 1350.0
-color = Color(0.09, 0.11, 0.15, 1)
+[node name="Player" parent="." instance=ExtResource("3_player_scene")]
+position = Vector2(790, 150)
 
-[node name="SanctuaryPathway" type="ColorRect" parent="FloorLayer"]
-offset_left = 520.0
-offset_top = -150.0
-offset_right = 760.0
-offset_bottom = 500.0
-color = Color(0.13, 0.1, 0.18, 1)
+[node name="NPC1" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(350, 260)
 
-[node name="SanctuaryCarpet" type="ColorRect" parent="FloorLayer/SanctuaryPathway"]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 10.0
-offset_right = 220.0
-offset_bottom = 640.0
-color = Color(0.2, 0.12, 0.28, 1)
-
-[node name="NorthWall3D" type="StaticBody2D" parent="."]
-position = Vector2(900, -150)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="NorthWall3D"]
-position = Vector2(0, 5)
-shape = SubResource("RectangleShape2D_wall_n")
-
-[node name="RoofTop" type="ColorRect" parent="NorthWall3D"]
-offset_left = -1250.0
-offset_top = -90.0
-offset_right = 1250.0
-offset_bottom = -60.0
-color = Color(0.28, 0.32, 0.42, 1)
-
-[node name="WallFront" type="ColorRect" parent="NorthWall3D"]
-offset_left = -1250.0
-offset_top = -60.0
-offset_right = 1250.0
-offset_bottom = 0.0
-color = Color(0.16, 0.19, 0.26, 1)
-
-[node name="WallBottomShadow" type="ColorRect" parent="NorthWall3D"]
-offset_left = -1250.0
-offset_top = 0.0
-offset_right = 1250.0
-offset_bottom = 8.0
-color = Color(0, 0, 0, 0.35)
-
-[node name="SouthWall3D" type="StaticBody2D" parent="."]
-position = Vector2(900, 1350)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="SouthWall3D"]
-position = Vector2(0, 5)
-shape = SubResource("RectangleShape2D_wall_s")
-
-[node name="RailingFront" type="ColorRect" parent="SouthWall3D"]
-offset_left = -1250.0
-offset_top = -25.0
-offset_right = 1250.0
-offset_bottom = 5.0
-color = Color(0.18, 0.22, 0.3, 1)
-
-[node name="RailingTop" type="ColorRect" parent="SouthWall3D"]
-offset_left = -1250.0
-offset_top = -35.0
-offset_right = 1250.0
-offset_bottom = -25.0
-color = Color(0.26, 0.3, 0.4, 1)
-
-[node name="WestWall" type="StaticBody2D" parent="."]
-position = Vector2(-220, 600)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WestWall"]
-shape = SubResource("RectangleShape2D_wall_v")
-
-[node name="Visual" type="ColorRect" parent="WestWall"]
-offset_left = -20.0
-offset_top = -800.0
-offset_right = 20.0
-offset_bottom = 800.0
-color = Color(0.16, 0.19, 0.26, 1)
-
-[node name="EastWall" type="StaticBody2D" parent="."]
-position = Vector2(2020, 600)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="EastWall"]
-shape = SubResource("RectangleShape2D_wall_v")
-
-[node name="Visual" type="ColorRect" parent="EastWall"]
-offset_left = -20.0
-offset_top = -800.0
-offset_right = 20.0
-offset_bottom = 800.0
-color = Color(0.16, 0.19, 0.26, 1)
-
-[node name="PillarObstacle1" type="StaticBody2D" parent="."]
-y_sort_enabled = true
-position = Vector2(250, 300)
-
-[node name="Shadow" type="ColorRect" parent="PillarObstacle1"]
-offset_left = -55.0
-offset_top = -6.0
-offset_right = 55.0
-offset_bottom = 8.0
-color = Color(0, 0, 0, 0.35)
-
-[node name="FrontFace" type="ColorRect" parent="PillarObstacle1"]
-offset_left = -50.0
-offset_top = -50.0
-offset_right = 50.0
-offset_bottom = 0.0
-color = Color(0.16, 0.14, 0.22, 1)
-
-[node name="TopRoof" type="ColorRect" parent="PillarObstacle1"]
-offset_left = -50.0
-offset_top = -85.0
-offset_right = 50.0
-offset_bottom = -50.0
-color = Color(0.28, 0.24, 0.36, 1)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PillarObstacle1"]
-position = Vector2(0, -10)
-shape = SubResource("RectangleShape2D_pillar_col")
-
-[node name="PillarObstacle2" type="StaticBody2D" parent="."]
-y_sort_enabled = true
-position = Vector2(1050, 320)
-
-[node name="Shadow" type="ColorRect" parent="PillarObstacle2"]
-offset_left = -115.0
-offset_top = -6.0
-offset_right = 115.0
-offset_bottom = 8.0
-color = Color(0, 0, 0, 0.35)
-
-[node name="FrontFace" type="ColorRect" parent="PillarObstacle2"]
-offset_left = -110.0
-offset_top = -45.0
-offset_right = 110.0
-offset_bottom = 0.0
-color = Color(0.16, 0.14, 0.22, 1)
-
-[node name="TopRoof" type="ColorRect" parent="PillarObstacle2"]
-offset_left = -110.0
-offset_top = -75.0
-offset_right = 110.0
-offset_bottom = -45.0
-color = Color(0.28, 0.24, 0.36, 1)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PillarObstacle2"]
-position = Vector2(0, -10)
-shape = SubResource("RectangleShape2D_block_wide_col")
-
-[node name="PillarObstacle3" type="StaticBody2D" parent="."]
-y_sort_enabled = true
-position = Vector2(300, 800)
-
-[node name="Shadow" type="ColorRect" parent="PillarObstacle3"]
-offset_left = -55.0
-offset_top = -6.0
-offset_right = 55.0
-offset_bottom = 8.0
-color = Color(0, 0, 0, 0.35)
-
-[node name="FrontFace" type="ColorRect" parent="PillarObstacle3"]
-offset_left = -50.0
-offset_top = -60.0
-offset_right = 50.0
-offset_bottom = 0.0
-color = Color(0.16, 0.14, 0.22, 1)
-
-[node name="TopRoof" type="ColorRect" parent="PillarObstacle3"]
-offset_left = -50.0
-offset_top = -95.0
-offset_right = 50.0
-offset_bottom = -60.0
-color = Color(0.28, 0.24, 0.36, 1)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PillarObstacle3"]
-position = Vector2(0, -10)
-shape = SubResource("RectangleShape2D_pillar_col")
-
-[node name="PillarObstacle4" type="StaticBody2D" parent="."]
-y_sort_enabled = true
-position = Vector2(1200, 850)
-
-[node name="Shadow" type="ColorRect" parent="PillarObstacle4"]
-offset_left = -55.0
-offset_top = -6.0
-offset_right = 55.0
-offset_bottom = 8.0
-color = Color(0, 0, 0, 0.35)
-
-[node name="FrontFace" type="ColorRect" parent="PillarObstacle4"]
-offset_left = -50.0
-offset_top = -50.0
-offset_right = 50.0
-offset_bottom = 0.0
-color = Color(0.16, 0.14, 0.22, 1)
-
-[node name="TopRoof" type="ColorRect" parent="PillarObstacle4"]
-offset_left = -50.0
-offset_top = -85.0
-offset_right = 50.0
-offset_bottom = -50.0
-color = Color(0.28, 0.24, 0.36, 1)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PillarObstacle4"]
-position = Vector2(0, -10)
-shape = SubResource("RectangleShape2D_pillar_col")
-
-[node name="PillarObstacle5" type="StaticBody2D" parent="."]
-y_sort_enabled = true
-position = Vector2(1650, 520)
-
-[node name="Shadow" type="ColorRect" parent="PillarObstacle5"]
-offset_left = -55.0
-offset_top = -6.0
-offset_right = 55.0
-offset_bottom = 8.0
-color = Color(0, 0, 0, 0.35)
-
-[node name="FrontFace" type="ColorRect" parent="PillarObstacle5"]
-offset_left = -50.0
-offset_top = -60.0
-offset_right = 50.0
-offset_bottom = 0.0
-color = Color(0.16, 0.14, 0.22, 1)
-
-[node name="TopRoof" type="ColorRect" parent="PillarObstacle5"]
-offset_left = -50.0
-offset_top = -95.0
-offset_right = 50.0
-offset_bottom = -60.0
-color = Color(0.28, 0.24, 0.36, 1)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PillarObstacle5"]
-position = Vector2(0, -10)
-shape = SubResource("RectangleShape2D_pillar_col")
-
-[node name="DeathGodShrine" parent="." instance=ExtResource("3_shrine_scene")]
-position = Vector2(640, -40)
-
-[node name="Player" parent="." instance=ExtResource("2_player_scene")]
-position = Vector2(640, 500)
-
-[node name="NPC1" parent="." instance=ExtResource("5_npc_scene")]
-position = Vector2(350, 420)
-
-[node name="NPC2" parent="." instance=ExtResource("5_npc_scene")]
-position = Vector2(930, 420)
+[node name="NPC2" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(1250, 260)
 is_girl_npc = true
 
-[node name="NPC3" parent="." instance=ExtResource("5_npc_scene")]
-position = Vector2(400, 820)
+[node name="NPC3" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(230, 720)
 
-[node name="NPC4" parent="." instance=ExtResource("5_npc_scene")]
-position = Vector2(880, 820)
+[node name="NPC4" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(880, 460)
 is_girl_npc = true
 
-[node name="NPC5" parent="." instance=ExtResource("5_npc_scene")]
-position = Vector2(640, 960)
+[node name="NPC5" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(740, 750)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 2
@@ -348,7 +86,7 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 17
-text = "🎮 IPB GAMEPLAY - 3/4 VIEW"
+text = "🎮 IPB GAMEPLAY - BLUEPRINT MAP"
 
 [node name="ControlsLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
@@ -369,7 +107,7 @@ text = "Kecepatan: 0 px/s"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 13
-text = "Posisi: (X: 640, Y: 500)"
+text = "Posisi: (X: 790, Y: 150)"
 
 [node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
@@ -378,6 +116,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 13
 text = "🔄 Reset Posisi Karakter"
 
-[node name="DialogBox" parent="." instance=ExtResource("4_dialog_scene")]
+[node name="DialogBox" parent="." instance=ExtResource("5_dialog_scene")]
 
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ResetBtn" to="." method="_on_reset_btn_pressed"]
