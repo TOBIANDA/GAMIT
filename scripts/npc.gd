@@ -7,7 +7,7 @@ extends CharacterBody2D
 # 3. Dual Distance Zones (Jarak Aman vs Terlalu Dekat 7s) Tetap Aktif.
 
 @export var is_girl_npc: bool = false
-@export var target_height_px: float = 50.0    # Tinggi fisik target di layar (Menyamakan presisi dengan MC)
+@export var target_height_px: float = 30.0    # Tinggi fisik target di layar (disesuaikan proporsional dengan MC di dunia luas)
 @export var too_close_radius: float = 110.0
 @export var eavesdrop_radius: float = 220.0
 @export var panic_time_limit: float = 7.0
@@ -455,9 +455,9 @@ func _draw() -> void:
 
 	var draw_pos = tremble_offset
 
-	# 1. Bayangan lantai
+	# 1. Bayangan lantai (dikecilkan)
 	draw_set_transform(draw_pos, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 8), 14.0, Color(0, 0, 0, 0.3))
+	draw_circle(Vector2(0, 8), 8.0, Color(0, 0, 0, 0.3))
 	draw_set_transform(draw_pos, 0.0, Vector2.ONE)
 
 	# 2. Render Sprite Custom Girl JIKA is_girl_npc = true
@@ -474,30 +474,30 @@ func _draw() -> void:
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
 
-	# 3. Render Avatar Procedural Male JIKA is_girl_npc = false
-	var foot_l = draw_pos + Vector2(-6, 2)
-	var foot_r = draw_pos + Vector2(6, 2)
+	# 3. Render Avatar Procedural Male JIKA is_girl_npc = false (ukuran kecil)
+	var foot_l = draw_pos + Vector2(-4, 2)
+	var foot_r = draw_pos + Vector2(4, 2)
 	if is_moving:
-		var swing = sin(step_cycle) * 4.0
+		var swing = sin(step_cycle) * 2.5
 		foot_l.y += swing
 		foot_r.y -= swing
 
-	draw_circle(foot_l, 3.5, pants_color)
-	draw_circle(foot_r, 3.5, pants_color)
+	draw_circle(foot_l, 2.2, pants_color)
+	draw_circle(foot_r, 2.2, pants_color)
 
-	var torso_pos = draw_pos + Vector2(0, -11 + body_bob_y)
-	draw_rect(Rect2(torso_pos.x - 10, torso_pos.y - 6, 20, 15), shirt_color, true, 4.0)
+	var torso_pos = draw_pos + Vector2(0, -7 + body_bob_y)
+	draw_rect(Rect2(torso_pos.x - 6, torso_pos.y - 4, 12, 9), shirt_color, true, 4.0)
 
-	var head_pos = draw_pos + Vector2(0, -26 + body_bob_y)
+	var head_pos = draw_pos + Vector2(0, -16 + body_bob_y)
 	var skin_color = Color(0.96, 0.82, 0.72)
-	draw_circle(head_pos, 11.0, skin_color)
-	draw_circle(head_pos + Vector2(0, -4), 11.0, hair_color)
+	draw_circle(head_pos, 7.0, skin_color)
+	draw_circle(head_pos + Vector2(0, -3), 7.0, hair_color)
 
 	if current_state in [State.AFRAID, State.PANIC_RUN]:
-		draw_circle(head_pos + Vector2(-4, 1), 3.2, Color.WHITE)
-		draw_circle(head_pos + Vector2(-4, 1), 1.2, Color.BLACK)
-		draw_circle(head_pos + Vector2(4, 1), 3.2, Color.WHITE)
-		draw_circle(head_pos + Vector2(4, 1), 1.2, Color.BLACK)
+		draw_circle(head_pos + Vector2(-2.5, 0.5), 2.0, Color.WHITE)
+		draw_circle(head_pos + Vector2(-2.5, 0.5), 0.8, Color.BLACK)
+		draw_circle(head_pos + Vector2(2.5, 0.5), 2.0, Color.WHITE)
+		draw_circle(head_pos + Vector2(2.5, 0.5), 0.8, Color.BLACK)
 	else:
-		draw_circle(head_pos + Vector2(-4, 1), 2.0, Color(0.1, 0.1, 0.15))
-		draw_circle(head_pos + Vector2(4, 1), 2.0, Color(0.1, 0.1, 0.15))
+		draw_circle(head_pos + Vector2(-2.5, 0.5), 1.2, Color(0.1, 0.1, 0.15))
+		draw_circle(head_pos + Vector2(2.5, 0.5), 1.2, Color(0.1, 0.1, 0.15))

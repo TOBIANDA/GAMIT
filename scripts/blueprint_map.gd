@@ -61,8 +61,8 @@ func _draw() -> void:
 	# 0. Background Area Luar / Void
 	draw_rect(Rect2(-100, -100, 2400, 1550), COLOR_VOID_BG, true)
 
-	# 1. Base Floor Lorong (Dark Slate)
-	draw_rect(Rect2(20, 15, 2100, 1315), COLOR_CORRIDOR_BASE, true)
+	# 1. Base seluruh area bermain (Dark Slate Corridor Base)
+	draw_rect(Rect2(20, 15, 2080, 1315), COLOR_CORRIDOR_BASE, true)
 
 	# Grid Lantai Arsitektur Halus
 	for x in range(40, 2120, 40):
@@ -70,83 +70,85 @@ func _draw() -> void:
 	for y in range(20, 1330, 40):
 		draw_line(Vector2(20, y), Vector2(2120, y), COLOR_GRID_LINE, 1.0)
 
-	# ── A. PEWARNAAN JALUR & JALAN UTAMA (COLORED HIGHWAYS & RUNNERS) ──────────
-	
-	# 1. Jalan Utama Atas (Upper Highway Runner: y=120-220)
-	# Warna Burgundy dengan lis Emas
-	draw_rect(Rect2(30, 125, 1960, 95), COLOR_PATH_TOP, true)
-	draw_line(Vector2(30, 128), Vector2(1990, 128), COLOR_PATH_TOP_TRIM, 2.5)
-	draw_line(Vector2(30, 217), Vector2(1990, 217), COLOR_PATH_TOP_TRIM, 2.5)
+	# ── A. LANTAI BERWARNA TIAP RUANGAN (DIGAMBAR PERTAMA) ───────────────────
+	# 7. Bilik-Bilik Kecil Atas (16 Stalls)
+	for i in range(16):
+		var bx = 50.0 + i * 115.0
+		draw_rect(Rect2(bx, 30, 85, 80), COLOR_ROOM_POD, true)
 
-	# 2. Jalan Tengah (Central Crossway Highway: y=590-670)
-	# Warna Royal Blue dengan lis Neon Blue
-	draw_rect(Rect2(30, 590, 1960, 80), COLOR_PATH_HIGHWAY, true)
-	draw_line(Vector2(30, 593), Vector2(1990, 593), COLOR_PATH_HW_TRIM, 2.5)
-	draw_line(Vector2(30, 667), Vector2(1990, 667), COLOR_PATH_HW_TRIM, 2.5)
+	# 1. Blok Kiri Atas (L-Shaped Area: 50-450, 230-580)
+	draw_rect(Rect2(50, 230, 400, 350), COLOR_ROOM_ARCHIVE, true)
 
-	# 3. Jalan Lingkar Bawah (Grand Bottom Loop Highway: y=1160-1310)
-	draw_rect(Rect2(30, 1160, 1960, 150), COLOR_PATH_HIGHWAY, true)
-	draw_line(Vector2(30, 1165), Vector2(1990, 1165), COLOR_PATH_HW_TRIM, 3.0)
-	draw_line(Vector2(30, 1305), Vector2(1990, 1305), COLOR_PATH_HW_TRIM, 3.0)
+	# 2. Blok Tengah Atas (Kantor Utama: 550-1250, 230-580)
+	draw_rect(Rect2(550, 230, 700, 350), COLOR_ROOM_OFFICE, true)
 
-	# Garis tengah putus-putus pada jalan lingkar bawah
-	for x in range(50, 1980, 50):
-		draw_line(Vector2(x, 1235), Vector2(x + 30, 1235), Color(0.8, 0.9, 1.0, 0.4), 2.0)
+	# 3. Blok Kanan Atas (Workstation Pod: 1350-1850, 230-580)
+	draw_rect(Rect2(1350, 230, 500, 350), COLOR_ROOM_OFFICE, true)
 
-	# 4. Jalan Vertikal Penghubung (Vertical Aisles)
-	# Aisle Kiri-Tengah (x=460-540)
-	draw_rect(Rect2(460, 125, 80, 1180), COLOR_PATH_AISLE, true)
-	# Aisle Tengah-Kanan (x=1260-1340)
-	draw_rect(Rect2(1260, 125, 80, 1180), COLOR_PATH_AISLE, true)
-	# Aisle Sisi Rel Kanan (x=1860-1990)
-	draw_rect(Rect2(1860, 125, 130, 1180), COLOR_PATH_AISLE, true)
-	# Aisle Bawah antara Pod & Sanctuary (x=1190-1290)
-	draw_rect(Rect2(1190, 670, 100, 490), COLOR_PATH_AISLE, true)
-	# Aisle Bawah antara Arsip & Pod (x=660-770)
-	draw_rect(Rect2(660, 670, 110, 490), COLOR_PATH_AISLE, true)
+	# 4. Ruang Kiri Bawah (Arsip & Vault: 50-650, 680-1150)
+	draw_rect(Rect2(50, 680, 600, 470), COLOR_ROOM_ARCHIVE, true)
 
-	# 5. Plaza Persimpangan Jalan (Crossroad Plazas)
-	_draw_crossroad_plaza(Vector2(500, 172), 55.0)
-	_draw_crossroad_plaza(Vector2(1300, 172), 55.0)
-	_draw_crossroad_plaza(Vector2(1925, 172), 55.0)
-	_draw_crossroad_plaza(Vector2(500, 630), 55.0)
-	_draw_crossroad_plaza(Vector2(1300, 630), 55.0)
-	_draw_crossroad_plaza(Vector2(1925, 630), 55.0)
-	_draw_crossroad_plaza(Vector2(500, 1235), 65.0)
-	_draw_crossroad_plaza(Vector2(1300, 1235), 65.0)
-	_draw_crossroad_plaza(Vector2(1925, 1235), 65.0)
+	# 5. Bilik Tengah Bawah (Pod Interogasi: 780-1180, 680-1150)
+	draw_rect(Rect2(780, 680, 400, 470), COLOR_ROOM_POD, true)
 
-	# ── B. LANTAI BERWARNA TIAP RUANGAN ─────────────────────────────────────
-	# 1. Ruangan Dewa Kematian (Kanan Bawah: 1300-1950, 680-1150)
+	# 6. Ruangan Dewa Kematian (Kanan Bawah: 1300-1950, 680-1150)
 	draw_rect(Rect2(1300, 680, 650, 470), COLOR_ROOM_SANCTUARY, true)
 	draw_rect(Rect2(1400, 750, 450, 330), COLOR_SANCTUARY_RUG, true)
 	draw_circle(Vector2(1625, 915), 120.0, COLOR_RUNE_GLOW)
 	draw_circle(Vector2(1625, 915), 75.0, Color(0.8, 0.35, 1.0, 0.25))
 
-	# Karpet Jalan Masuk Pintu Dewa Kematian
-	draw_rect(Rect2(1270, 870, 140, 140), COLOR_SANCTUARY_RUG, true) # Pintu Barat
-	draw_rect(Rect2(1560, 650, 130, 110), COLOR_SANCTUARY_RUG, true) # Pintu Utara
-	draw_rect(Rect2(1560, 1070, 130, 110), COLOR_SANCTUARY_RUG, true)# Pintu Selatan
+	# ── B. PEWARNAAN JALUR & JALAN UTAMA (DI ATAS RUANGAN) ───────────────────
 
-	# 2. Ruang Kiri Bawah (Arsip & Vault: 50-650, 680-1150)
-	draw_rect(Rect2(50, 680, 600, 470), COLOR_ROOM_ARCHIVE, true)
+	# 1. Jalan Utama Atas (Upper Highway Runner: y=110-230)
+	draw_rect(Rect2(20, 110, 1980, 120), COLOR_PATH_TOP, true)
+	draw_line(Vector2(20, 114), Vector2(2000, 114), COLOR_PATH_TOP_TRIM, 2.5)
+	draw_line(Vector2(20, 226), Vector2(2000, 226), COLOR_PATH_TOP_TRIM, 2.5)
 
-	# 3. Bilik Tengah Bawah (Pod Interogasi: 780-1180, 680-1150)
-	draw_rect(Rect2(780, 680, 400, 470), COLOR_ROOM_POD, true)
+	# 2. Jalan Tengah (Central Crossway Highway: y=580-680)
+	draw_rect(Rect2(20, 580, 1980, 100), COLOR_PATH_HIGHWAY, true)
+	draw_line(Vector2(20, 584), Vector2(2000, 584), COLOR_PATH_HW_TRIM, 2.5)
+	draw_line(Vector2(20, 676), Vector2(2000, 676), COLOR_PATH_HW_TRIM, 2.5)
 
-	# 4. Blok Tengah Atas (Kantor Utama: 550-1250, 230-580)
-	draw_rect(Rect2(550, 230, 700, 350), COLOR_ROOM_OFFICE, true)
+	# 3. Jalan Lingkar Bawah (Grand Bottom Loop Highway: y=1150-1320)
+	draw_rect(Rect2(20, 1150, 1980, 170), COLOR_PATH_HIGHWAY, true)
+	draw_line(Vector2(20, 1155), Vector2(2000, 1155), COLOR_PATH_HW_TRIM, 3.0)
+	draw_line(Vector2(20, 1316), Vector2(2000, 1316), COLOR_PATH_HW_TRIM, 3.0)
+	# Garis marka tengah jalan lingkar bawah
+	for x in range(50, 1980, 50):
+		draw_line(Vector2(x, 1235), Vector2(x + 30, 1235), Color(0.8, 0.9, 1.0, 0.4), 2.0)
 
-	# 5. Blok Kanan Atas (Workstation Pod: 1350-1850, 230-580)
-	draw_rect(Rect2(1350, 230, 500, 350), COLOR_ROOM_OFFICE, true)
+	# 4. Jalan Vertikal Penghubung (hanya di area ANTAR-ruangan / gap saja)
+	# Aisle Kiri: gap antara ruang kiri atas & tengah atas (x=450-550)
+	draw_rect(Rect2(450, 110, 100, 1040), COLOR_PATH_AISLE, true)
+	# Aisle Tengah: gap antara ruang tengah atas & kanan atas (x=1250-1350)
+	draw_rect(Rect2(1250, 110, 100, 1040), COLOR_PATH_AISLE, true)
+	# Aisle Kanan: gap antara ruang kanan atas & rel (x=1850-2000)
+	draw_rect(Rect2(1850, 110, 150, 1040), COLOR_PATH_AISLE, true)
+	# Aisle Bawah antara Arsip & Pod (x=650-780)
+	draw_rect(Rect2(650, 680, 130, 470), COLOR_PATH_AISLE, true)
+	# Aisle Bawah antara Pod & Sanctuary (x=1180-1300)
+	draw_rect(Rect2(1180, 680, 120, 470), COLOR_PATH_AISLE, true)
 
-	# 6. Blok Kiri Atas (L-Shaped Area: 50-450, 230-580)
-	draw_rect(Rect2(50, 230, 400, 350), COLOR_ROOM_ARCHIVE, true)
+	# Namun jalur vertikal TIDAK menutupi area ruangan (lukis ulang room di atasnya tidak diperlukan
+	# karena aisle hanya menimpa area void antar ruangan)
 
-	# 7. Bilik-Bilik Kecil Atas (16 Stalls)
-	for i in range(16):
-		var bx = 50.0 + i * 115.0
-		draw_rect(Rect2(bx, 30, 85, 80), COLOR_ROOM_POD, true)
+	# 5. Plaza Persimpangan Jalan (di setiap titik temu)
+	_draw_crossroad_plaza(Vector2(500, 170), 48.0)   # Kiri-Atas
+	_draw_crossroad_plaza(Vector2(1300, 170), 48.0)  # Tengah-Atas
+	_draw_crossroad_plaza(Vector2(1925, 170), 48.0)  # Kanan-Atas
+	_draw_crossroad_plaza(Vector2(500, 630), 48.0)   # Kiri-Tengah
+	_draw_crossroad_plaza(Vector2(1300, 630), 48.0)  # Tengah
+	_draw_crossroad_plaza(Vector2(1925, 630), 48.0)  # Kanan-Tengah
+	_draw_crossroad_plaza(Vector2(500, 1235), 58.0)  # Kiri-Bawah
+	_draw_crossroad_plaza(Vector2(1300, 1235), 58.0) # Tengah-Bawah
+	_draw_crossroad_plaza(Vector2(1925, 1235), 58.0) # Kanan-Bawah
+
+	# Karpet Ambang Pintu Dewa Kematian
+	draw_rect(Rect2(1270, 870, 130, 130), COLOR_SANCTUARY_RUG, true) # Pintu Barat
+	draw_rect(Rect2(1560, 648, 130, 100), COLOR_SANCTUARY_RUG, true) # Pintu Utara
+	draw_rect(Rect2(1560, 1080, 130, 80), COLOR_SANCTUARY_RUG, true) # Pintu Selatan
+
+	# (Ruangan sudah digambar di bagian A sebelum jalur, tidak perlu diulang)
 
 	# ── C. TANGGA / REL VERTIKAL DI SISI KANAN ──────────────────────────────
 	var track_x = 2030.0
