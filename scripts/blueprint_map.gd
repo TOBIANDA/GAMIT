@@ -1,82 +1,82 @@
 extends Node2D
 
-# ── Blueprint Map v5 – Layout Sesuai Sketsa Tangan ────────────────────────────
-# Layout (dari sketsa):
-# ATAS  : Deretan bilik kecil (Rumah MC + Tetangga Gemetar)
-# KIRI  : Lahan kosong/taman berarsir
-# TENGAH: 5 Gedung bertumpuk vertikal
-# GK    : "Gana Kecil" – gang/lorong vertikal sempit membelah tengah peta
-# KANAN : Blok bangunan dengan jendela-jendela kecil
-# BAWAH-KIRI : Kantor Polisi
-# BAWAH-TENGAH: Rumah Sakit
-# BAWAH-TENGAH-KANAN: Pod "P" (Penjara / Ruang Interogasi)
-# BAWAH-KANAN : Rumah Eksplorasi + Sanctuary Dewa Kematian
+# ── Blueprint Map v6 – Presisi 100% Sesuai Sketsa Tangan Buku Catatan ─────────
+# Struktur Kolom & Baris (Berdasarkan Sketsa):
+# 
+# 1. BARIS ATAS (y=20..110):
+#    - Deretan rumah/bilik: [][][][] [Tetangga yg gemeter] [Rumah MC] [][][][][][][]
+# 
+# 2. JALAN UTAMA ATAS (y=110..220)
+# 
+# 3. AREA KIRI (x=25..380):
+#    - Atas: LAHAN KOSONG (Diarsir diagonal miring tebal)
+#    - Bawah: KANTOR POLISI (dengan meja dan ruang sel)
+# 
+# 4. JALAN VERTIKAL UTAMA (x=380..470, y=110..1330):
+#    - Jalan vertikal bergaris marka membelah kiri dan tengah
+# 
+# 5. KOLOM 2 (x=470..830):
+#    - Atas: 5 GEDUNG BERTUMPUK VERTIKAL (Gedung 1 s/d 5)
+#    - Bawah: RUMAH SAKIT (di bawah Gedung, dengan ranjang medis)
+# 
+# 6. KOLOM 3 (x=850..1330):
+#    - Atas: BLOK TENGAH BESAR
+#    - Bawah: BLOK EKSPLORASI & RUMAH EKSPLORASI (dengan deretan bilik D)
+# 
+# 7. GANG KECIL (x=1330..1410, y=110..1330):
+#    - Lorong vertikal sempit misterius "GANG KECIL"
+# 
+# 8. KOLOM 4 - KANAN (x=1410..1990):
+#    - Atas: 4 RUANGAN GRID (2x2)
+#    - Bawah: STASIUN & SANCTUARY DEWA KEMATIAN
+# 
+# 9. REL KERETA (x=2020..2100, y=20..1330)
+# 10. JALAN LINGKAR BAWAH (y=1210..1330)
 
 # ── Palet Warna ───────────────────────────────────────────────────────────────
-const COLOR_VOID_BG        = Color(0.07, 0.09, 0.13, 1.0)
-const COLOR_FLOOR_BASE     = Color(0.21, 0.24, 0.31, 1.0)
-const COLOR_GRID           = Color(0.28, 0.33, 0.43, 0.35)
+const COLOR_VOID           = Color(0.06, 0.08, 0.11, 1.0)
+const COLOR_BASE_GROUND    = Color(0.18, 0.21, 0.27, 1.0)
+const COLOR_GRID           = Color(0.25, 0.30, 0.38, 0.3)
 
-# Jalur Berwarna
-const COLOR_PATH_TOP       = Color(0.36, 0.17, 0.23, 1.0)  # Koridor atas – Velvet Burgundy
-const COLOR_PATH_TOP_TRIM  = Color(0.85, 0.66, 0.30, 0.85) # Lis emas
-const COLOR_PATH_MID       = Color(0.20, 0.30, 0.44, 1.0)  # Koridor tengah – Royal Blue
-const COLOR_PATH_MID_TRIM  = Color(0.42, 0.66, 0.86, 0.85) # Lis neon biru
-const COLOR_PATH_BOT       = Color(0.20, 0.30, 0.44, 1.0)  # Jalan lingkar bawah
-const COLOR_PATH_AISLE     = Color(0.24, 0.28, 0.36, 1.0)  # Aisle/gang samping
-const COLOR_GANG_KECIL     = Color(0.12, 0.14, 0.18, 1.0)  # Gang Kecil – gelap misterius
-const COLOR_GANG_TRIM      = Color(0.55, 0.45, 0.90, 0.7)  # Lis ungu gang kecil
-const COLOR_PLAZA          = Color(0.26, 0.37, 0.52, 1.0)
-const COLOR_PLAZA_RUNE     = Color(0.55, 0.78, 1.00, 0.30)
+# Jalur & Jalan
+const COLOR_ROAD_TOP       = Color(0.35, 0.16, 0.22, 1.0) # Velvet Burgundy
+const COLOR_ROAD_TOP_TRIM  = Color(0.85, 0.65, 0.30, 0.85)# Lis Emas
+const COLOR_ROAD_MAIN      = Color(0.20, 0.29, 0.42, 1.0) # Royal Blue Highway
+const COLOR_ROAD_TRIM      = Color(0.40, 0.65, 0.88, 0.8) # Lis Biru Neon
+const COLOR_ROAD_VERT      = Color(0.23, 0.27, 0.35, 1.0) # Jalan Vertikal Barat
+const COLOR_GANG_KECIL     = Color(0.11, 0.13, 0.17, 1.0) # Gang Kecil Gelap
+const COLOR_GANG_TRIM      = Color(0.60, 0.45, 0.85, 0.7) # Lis Ungu Gang
+const COLOR_PLAZA          = Color(0.26, 0.37, 0.50, 1.0) # Simpang Jalan
 
 # Ruangan Tematik
-const COLOR_STALL          = Color(0.88, 0.93, 0.88, 1.0)  # Bilik atas – sage green
-const COLOR_STALL_MC       = Color(0.95, 0.90, 0.82, 1.0)  # Rumah MC – warm ivory
-const COLOR_LAHAN_KOSONG   = Color(0.17, 0.20, 0.26, 1.0)  # Lahan kosong – gelap
-const COLOR_LAHAN_HATCH    = Color(0.26, 0.30, 0.40, 0.6)  # Arsiran lahan
-const COLOR_GEDUNG         = Color(0.82, 0.88, 0.95, 1.0)  # Gedung – biru kantor
-const COLOR_GEDUNG_WINDOW  = Color(0.55, 0.72, 0.90, 0.9)  # Jendela gedung
-const COLOR_BLOK_KANAN     = Color(0.94, 0.92, 0.86, 1.0)  # Blok kanan – gading
-const COLOR_KANTOR_POLISI  = Color(0.16, 0.20, 0.40, 1.0)  # Kantor polisi – biru tua
-const COLOR_KANTOR_TRIM    = Color(0.40, 0.60, 1.00, 0.7)
-const COLOR_RUMAH_SAKIT    = Color(0.94, 0.97, 0.97, 1.0)  # Rumah sakit – putih klinis
-const COLOR_RS_TRIM        = Color(0.70, 0.90, 0.90, 0.9)
-const COLOR_POD            = Color(0.86, 0.89, 0.86, 1.0)  # Pod interogasi – sage
-const COLOR_EKSPLORASI     = Color(0.14, 0.08, 0.20, 1.0)  # Rumah eksplorasi – ungu gelap
-const COLOR_EKSPLORASI_RUG = Color(0.24, 0.11, 0.36, 1.0)
-const COLOR_RUNE_GLOW      = Color(0.68, 0.30, 0.96, 0.38)
+const COLOR_STALL_NORMAL   = Color(0.88, 0.92, 0.88, 1.0)
+const COLOR_STALL_TETANGGA = Color(0.80, 0.86, 0.92, 1.0) # Rumah Tetangga Gemetar
+const COLOR_STALL_MC       = Color(0.96, 0.90, 0.80, 1.0) # Rumah MC
+const COLOR_LAHAN_BG       = Color(0.13, 0.16, 0.20, 1.0) # Lahan Kosong Hitam Arsir
+const COLOR_LAHAN_HATCH    = Color(0.32, 0.38, 0.48, 0.8) # Garis Arsir Diagonal Tebal
+const COLOR_GEDUNG_BG      = Color(0.84, 0.89, 0.95, 1.0) # 5 Gedung
+const COLOR_GEDUNG_WINDOW  = Color(0.45, 0.68, 0.88, 0.9)
+const COLOR_POLISI_BG      = Color(0.16, 0.22, 0.38, 1.0) # Kantor Polisi Navy
+const COLOR_POLISI_TRIM    = Color(0.45, 0.65, 0.95, 0.8)
+const COLOR_RS_BG          = Color(0.94, 0.97, 0.97, 1.0) # RS Putih Medis
+const COLOR_RS_CROSS       = Color(0.85, 0.25, 0.25, 0.9) # Palang Merah
+const COLOR_BLOK_TENGAH    = Color(0.92, 0.94, 0.90, 1.0)
+const COLOR_EKSPLORASI_BG  = Color(0.88, 0.85, 0.92, 1.0) # Rumah Eksplorasi
+const COLOR_STASIUN_BG     = Color(0.14, 0.08, 0.20, 1.0) # Stasiun / Sanctuary Ungu
+const COLOR_SANCTUARY_RUG  = Color(0.25, 0.12, 0.36, 1.0)
+const COLOR_RUNE_GLOW      = Color(0.70, 0.30, 0.98, 0.40)
 
-# Furniture
-const COLOR_DESK_FILL      = Color(0.74, 0.79, 0.86, 1.0)
-const COLOR_DESK_LINE      = Color(0.18, 0.22, 0.28, 1.0)
-
-# Dinding
+# Dinding & Detail
 const COLOR_WALL           = Color(0.08, 0.10, 0.14, 1.0)
+const COLOR_DESK           = Color(0.75, 0.80, 0.86, 1.0)
+const COLOR_DESK_LINE      = Color(0.20, 0.24, 0.30, 1.0)
 
-# Rel kanan
-const COLOR_TRACK_BG       = Color(0.72, 0.76, 0.80, 1.0)
-const COLOR_TRACK_RAIL     = Color(0.22, 0.25, 0.32, 1.0)
-const COLOR_TRACK_TIE      = Color(0.44, 0.37, 0.30, 1.0)
+# Rel Kereta
+const COLOR_TRACK_BG       = Color(0.72, 0.75, 0.80, 1.0)
+const COLOR_TRACK_RAIL     = Color(0.20, 0.23, 0.30, 1.0)
+const COLOR_TRACK_TIE      = Color(0.42, 0.35, 0.28, 1.0)
 
-const WT = 6.0  # Wall Thickness
-
-# ── Koordinat Layout (Sesuai Sketsa) ─────────────────────────────────────────
-# Baris bilik atas:       y =  20 .. 120
-# Koridor Utama Atas:     y = 120 .. 230
-# Blok Tengah Atas:       y = 230 .. 680
-# Koridor Tengah:         y = 680 .. 780
-# Blok Tengah Bawah:      y = 780 .. 1200
-# Jalan Lingkar Bawah:    y = 1200 .. 1330
-#
-# Lahan Kosong (kiri):    x =  20 .. 360
-# 5 Gedung (tengah-kiri): x = 360 .. 720
-# Gang Kecil:             x = 720 .. 820
-# Blok Jendela:           x = 820 .. 1240
-# Gang Tengah:            x = 1240 .. 1330
-# Blok Kanan Atas:        x = 1330 .. 1940
-# Aisle Kanan:            x = 1940 .. 2010
-# Rel:                    x = 2010 .. 2100
-
+const WT = 6.0 # Wall Thickness
 var collision_bodies: Array[StaticBody2D] = []
 
 func _ready() -> void:
@@ -86,321 +86,301 @@ func _ready() -> void:
 
 # ─────────────────────────────────────────────────────────────────────────────
 func _draw() -> void:
+	# 0. Void luar peta
+	draw_rect(Rect2(-200, -200, 2600, 1800), COLOR_VOID, true)
 
-	# 0. Void luar
-	draw_rect(Rect2(-200, -200, 2600, 1800), COLOR_VOID_BG, true)
+	# 1. Base lantai area bermain
+	draw_rect(Rect2(20, 15, 2090, 1315), COLOR_BASE_GROUND, true)
 
-	# 1. Base lantai seluruh area bermain
-	draw_rect(Rect2(20, 20, 2090, 1310), COLOR_FLOOR_BASE, true)
-
-	# Grid
+	# Grid Arsitektur
 	for gx in range(40, 2120, 40):
-		draw_line(Vector2(gx, 20), Vector2(gx, 1330), COLOR_GRID, 1.0)
+		draw_line(Vector2(gx, 15), Vector2(gx, 1330), COLOR_GRID, 1.0)
 	for gy in range(20, 1330, 40):
 		draw_line(Vector2(20, gy), Vector2(2110, gy), COLOR_GRID, 1.0)
 
-	# ── A. LANTAI RUANGAN (digambar dulu sebagai base) ──────────────────────
+	# ── A. GAMBAR LANTAI RUANGAN-RUANGAN (BASE) ──────────────────────────────
 
-	# Bilik atas kiri (x=20-420, 14 bilik) – Tetangga Gemetar
-	for i in range(7):
-		var bx = 20.0 + i * 58.0
-		draw_rect(Rect2(bx + 2, 22, 50, 94), COLOR_STALL, true)
+	# 1. DERETAN BILIK / RUMAH ATAS (y=20..110)
+	# Sisi Kiri (x=25..380): 6 Bilik
+	for i in range(6):
+		var bx = 25.0 + i * 58.0
+		draw_rect(Rect2(bx, 20, 52, 90), COLOR_STALL_NORMAL, true)
 
-	# Bilik atas tengah-kiri area (x=420-720)
-	for i in range(5):
-		var bx = 420.0 + i * 60.0
-		draw_rect(Rect2(bx + 2, 22, 52, 94), COLOR_STALL, true)
+	# Sisi Tengah Atas (x=380..520): Rumah Tetangga yg gemeter
+	draw_rect(Rect2(385, 20, 75, 90), COLOR_STALL_TETANGGA, true)
+	draw_rect(Rect2(385, 20, 75, 6), Color(0.4, 0.7, 1.0, 0.9), true)
 
-	# Rumah MC (bilik khusus di tengah, x=720-820 Gang Kecil atasnya, x=820-1000)
-	draw_rect(Rect2(822, 22, 170, 94), COLOR_STALL_MC, true)
-	# Label "MC" tulis manual di ruangan (via garis atap warna beda)
-	draw_rect(Rect2(822, 22, 170, 6), Color(0.85, 0.65, 0.30, 0.9), true)
+	# Rumah MC (x=465..550): Pas di atas pintu masuk Jalan Vertikal
+	draw_rect(Rect2(465, 20, 80, 90), COLOR_STALL_MC, true)
+	draw_rect(Rect2(465, 20, 80, 6), Color(0.9, 0.7, 0.3, 0.9), true)
 
-	# Bilik atas kanan (x=1000-1940)
-	for i in range(16):
-		var bx = 1000.0 + i * 58.5
-		if bx + 50 > 1940:
-			break
-		draw_rect(Rect2(bx + 2, 22, 50, 94), COLOR_STALL, true)
+	# Sisi Kanan Atas (x=550..1990): 23 Bilik berjejer sampai kanan
+	for i in range(24):
+		var bx = 555.0 + i * 60.0
+		if bx + 52 > 1990: break
+		draw_rect(Rect2(bx, 20, 52, 90), COLOR_STALL_NORMAL, true)
 
-	# LAHAN KOSONG / TAMAN (Kiri Atas, diarsir)
-	draw_rect(Rect2(20, 230, 340, 450), COLOR_LAHAN_KOSONG, true)
-	# Arsiran diagonal
-	var hatch_step = 22
-	for k in range(-20, 40):
-		var x0 = 20.0 + k * hatch_step
-		var y0 = 230.0
-		var x1 = x0 + 450.0
-		var y1 = y0 + 450.0
-		var xa = clampf(x0, 20, 360)
-		var ya = 230.0 + (xa - x0)
-		var xb = clampf(x1, 20, 360)
-		var yb = 230.0 + (xb - x0)
-		ya = clampf(ya, 230, 680)
-		yb = clampf(yb, 230, 680)
-		if xa != xb:
-			draw_line(Vector2(xa, ya), Vector2(xb, yb), COLOR_LAHAN_HATCH, 1.5)
+	# 2. KOLOM 1 KIRI (x=25..380)
+	# Atas: LAHAN KOSONG BERARSIR (x=25..380, y=220..680)
+	draw_rect(Rect2(25, 220, 355, 460), COLOR_LAHAN_BG, true)
+	# Arsiran miring tebal sesuai sketsa tangan
+	for k in range(-15, 30):
+		var p1 = Vector2(25.0 + k * 28.0, 220.0)
+		var p2 = Vector2(25.0 + k * 28.0 + 350.0, 570.0)
+		_draw_clipped_line(p1, p2, Rect2(25, 220, 355, 460), COLOR_LAHAN_HATCH, 2.0)
 
-	# 5 GEDUNG bertumpuk (x=360-720, y=230-680)
-	var gedung_colors = [
-		Color(0.82, 0.88, 0.95, 1.0),
-		Color(0.80, 0.86, 0.93, 1.0),
-		Color(0.84, 0.89, 0.96, 1.0),
-		Color(0.78, 0.85, 0.92, 1.0),
-		Color(0.83, 0.90, 0.95, 1.0),
-	]
-	var gedung_h = 87.0
-	var gedung_gap = 3.0
+	# Kotak kecil diarsir di bawah lahan (seperti di sketsa)
+	draw_rect(Rect2(35, 540, 120, 120), Color(0.18, 0.22, 0.28, 1.0), true)
+	draw_rect(Rect2(35, 540, 120, 120), COLOR_LAHAN_HATCH, false, 2.0)
+
+	# Bawah: KANTOR POLISI (x=25..380, y=770..1210)
+	draw_rect(Rect2(25, 770, 355, 440), COLOR_POLISI_BG, true)
+	draw_rect(Rect2(25, 770, 355, 8), COLOR_POLISI_TRIM, true)
+	draw_rect(Rect2(25, 770, 8, 440), COLOR_POLISI_TRIM, true)
+	_draw_desk(Rect2(50, 820, 240, 100))
+	_draw_desk(Rect2(50, 990, 240, 120))
+	# Sel tahanan kecil di sudut
+	draw_rect(Rect2(270, 1070, 100, 130), Color(0.10, 0.12, 0.18), true)
+	for bar_x in range(275, 370, 15):
+		draw_line(Vector2(bar_x, 1070), Vector2(bar_x, 1200), Color(0.6, 0.65, 0.75), 2.0)
+
+	# 3. KOLOM 2 (x=470..830)
+	# Atas: 5 GEDUNG BERTUMPUK VERTIKAL (y=220..680)
+	var g_h = 88.0
+	var g_gap = 4.0
 	for gi in range(5):
-		var gy = 230.0 + gi * (gedung_h + gedung_gap)
-		draw_rect(Rect2(362, gy, 354, gedung_h), gedung_colors[gi], true)
-		# Jendela-jendela kecil di kanan gedung
-		for wi in range(3):
-			var wx = 510.0 + wi * 65.0
-			draw_rect(Rect2(wx, gy + 18, 28, 24), COLOR_GEDUNG_WINDOW, true)
-			draw_rect(Rect2(wx, gy + 18, 28, 24), Color(0.22, 0.30, 0.45), false, 1.5)
-		# Pintu kecil di sisi kanan gedung
-		draw_rect(Rect2(712, gy + 30, 14, 40), COLOR_PATH_AISLE, true)
+		var gy = 220.0 + gi * (g_h + g_gap)
+		draw_rect(Rect2(470, gy, 360, g_h), COLOR_GEDUNG_BG, true)
+		draw_rect(Rect2(470, gy, 360, g_h), COLOR_WALL, false, 2.0)
+		# Jendela gedung & pintu kecil di sisi kiri jalan vertikal
+		for w in range(3):
+			draw_rect(Rect2(580 + w * 70, gy + 20, 36, 26), COLOR_GEDUNG_WINDOW, true)
+			draw_rect(Rect2(580 + w * 70, gy + 20, 36, 26), Color(0.2, 0.3, 0.4), false, 1.5)
+		# Pintu gedung menghadap Jalan Vertikal (kiri)
+		draw_rect(Rect2(470, gy + 25, 12, 38), COLOR_ROAD_VERT, true)
 
-	# Blok jendela-kecil TENGAH KANAN atas (x=820-1240, y=230-680)
-	draw_rect(Rect2(820, 230, 420, 450), COLOR_BLOK_KANAN, true)
-	# Jendela-jendela kecil
+	# Bawah: RUMAH SAKIT (x=470..830, y=770..1210)
+	draw_rect(Rect2(470, 770, 360, 440), COLOR_RS_BG, true)
+	# Simbol Palang Merah Medis
+	draw_rect(Rect2(635, 790, 30, 90), COLOR_RS_CROSS, true)
+	draw_rect(Rect2(605, 820, 90, 30), COLOR_RS_CROSS, true)
+	# Ranjang Pasien RS
+	for row in range(3):
+		for col in range(2):
+			var bx2 = 500.0 + col * 170.0
+			var by2 = 910.0 + row * 95.0
+			draw_rect(Rect2(bx2, by2, 130, 65), Color(0.90, 0.96, 0.98), true)
+			draw_rect(Rect2(bx2, by2, 130, 65), Color(0.60, 0.80, 0.85), false, 1.5)
+			draw_rect(Rect2(bx2, by2, 28, 65), Color(0.70, 0.88, 0.92), true) # Bantal
+
+	# 4. KOLOM 3 - TENGAH (x=850..1330)
+	# Atas: BLOK TENGAH BESAR (y=220..680)
+	draw_rect(Rect2(850, 220, 480, 460), COLOR_BLOK_TENGAH, true)
+	# Grid meja/jendela blok tengah
 	for row in range(4):
-		for col in range(5):
-			var wx = 850.0 + col * 72.0
-			var wy = 260.0 + row * 95.0
-			draw_rect(Rect2(wx, wy, 38, 32), COLOR_GEDUNG_WINDOW, true)
-			draw_rect(Rect2(wx, wy, 38, 32), Color(0.22, 0.30, 0.45), false, 1.5)
+		for col in range(4):
+			var wx2 = 885.0 + col * 110.0
+			var wy2 = 255.0 + row * 105.0
+			draw_rect(Rect2(wx2, wy2, 60, 45), COLOR_GEDUNG_WINDOW, true)
+			draw_rect(Rect2(wx2, wy2, 60, 45), Color(0.2, 0.3, 0.4), false, 1.5)
 
-	# Blok Kanan Atas (x=1330-1940, y=230-680)
-	draw_rect(Rect2(1330, 230, 610, 450), COLOR_BLOK_KANAN, true)
-	_draw_desk(Rect2(1380, 280, 220, 130))
-	_draw_desk(Rect2(1640, 280, 200, 130))
-	_draw_desk(Rect2(1380, 480, 220, 130))
-	_draw_desk(Rect2(1640, 480, 200, 130))
+	# Bawah: BLOK EKSPLORASI & RUMAH EKSPLORASI (x=850..1330, y=770..1210)
+	draw_rect(Rect2(850, 770, 480, 440), COLOR_EKSPLORASI_BG, true)
+	# Deretan Bilik D di sisi kiri dan kanan (sesuai sketsa: D D D D)
+	for d in range(5):
+		var dy = 785.0 + d * 82.0
+		# D sisi kiri
+		draw_rect(Rect2(860, dy, 55, 55), Color(0.80, 0.84, 0.90), true)
+		draw_arc(Vector2(887, dy + 27), 24.0, -PI/2, PI/2, 16, Color(0.3, 0.35, 0.45), 2.0)
+		# D sisi kanan
+		draw_rect(Rect2(1260, dy, 55, 55), Color(0.80, 0.84, 0.90), true)
+		draw_arc(Vector2(1287, dy + 27), 24.0, -PI/2, PI/2, 16, Color(0.3, 0.35, 0.45), 2.0)
 
-	# KANTOR POLISI (kiri bawah: x=20-420, y=780-1200)
-	draw_rect(Rect2(20, 780, 400, 420), COLOR_KANTOR_POLISI, true)
-	# Badge/stripe biru di kiri
-	draw_rect(Rect2(20, 780, 8, 420), COLOR_KANTOR_TRIM, true)
-	draw_rect(Rect2(20, 780, 400, 8), COLOR_KANTOR_TRIM, true)
-	# Meja polisi
-	_draw_desk(Rect2(60, 830, 300, 110))
-	_draw_desk(Rect2(60, 1010, 300, 130))
-	# Counter / bar
-	draw_rect(Rect2(60, 990, 310, 12), Color(0.50, 0.60, 0.80, 0.8), true)
+	# Ruang-ruang tengah & RUMAH EKSPLORASI di bawah
+	draw_rect(Rect2(935, 785, 305, 110), Color(0.92, 0.94, 0.96), true)
+	draw_rect(Rect2(935, 915, 305, 110), Color(0.92, 0.94, 0.96), true)
+	# RUMAH EKSPLORASI (Bawah)
+	draw_rect(Rect2(935, 1045, 305, 150), Color(0.82, 0.78, 0.88), true)
+	draw_rect(Rect2(935, 1045, 305, 150), Color(0.5, 0.4, 0.6), false, 2.0)
 
-	# RUMAH SAKIT (x=420-870, y=780-1200)
-	draw_rect(Rect2(420, 780, 450, 420), COLOR_RUMAH_SAKIT, true)
-	draw_rect(Rect2(420, 780, 450, 7), COLOR_RS_TRIM, true)
-	draw_rect(Rect2(420, 780, 7, 420), COLOR_RS_TRIM, true)
-	# Tempat tidur RS
-	for bed_row in range(3):
-		for bed_col in range(2):
-			var bx2 = 460.0 + bed_col * 190.0
-			var by2 = 820.0 + bed_row * 120.0
-			draw_rect(Rect2(bx2, by2, 150, 80), Color(0.88, 0.96, 0.96, 1.0), true)
-			draw_rect(Rect2(bx2, by2, 150, 80), COLOR_RS_TRIM, false, 1.5)
-			draw_rect(Rect2(bx2, by2, 30, 80), Color(0.72, 0.88, 0.90, 1.0), true) # Bantal
+	# 5. KOLOM 4 - KANAN (x=1410..1990)
+	# Atas: 4 RUANGAN GRID 2x2 (y=220..680)
+	draw_rect(Rect2(1410, 220, 580, 460), COLOR_BLOK_TENGAH, true)
+	# Koridor salib membagi 4 ruangan
+	draw_line(Vector2(1700, 220), Vector2(1700, 680), COLOR_ROAD_MAIN, 18.0)
+	draw_line(Vector2(1410, 450), Vector2(1990, 450), COLOR_ROAD_MAIN, 18.0)
+	_draw_desk(Rect2(1450, 260, 200, 120))
+	_draw_desk(Rect2(1740, 260, 200, 120))
+	_draw_desk(Rect2(1450, 490, 200, 120))
+	_draw_desk(Rect2(1740, 490, 200, 120))
 
-	# POD "P" / Ruang Interogasi (x=870-1300, y=780-1200)
-	draw_rect(Rect2(870, 780, 430, 420), COLOR_POD, true)
-	_draw_desk(Rect2(920, 840, 320, 110))
-	_draw_desk(Rect2(950, 1020, 280, 120))
-	# Label "P" besar
-	draw_rect(Rect2(870, 780, 6, 420), Color(0.45, 0.55, 0.50, 0.9), true)
+	# Bawah: STASIUN / SANCTUARY DEWA KEMATIAN (x=1410..1990, y=770..1210)
+	draw_rect(Rect2(1410, 770, 580, 440), COLOR_STASIUN_BG, true)
+	draw_rect(Rect2(1480, 830, 440, 310), COLOR_SANCTUARY_RUG, true)
+	draw_circle(Vector2(1700, 985), 115.0, COLOR_RUNE_GLOW)
+	draw_circle(Vector2(1700, 985), 70.0, Color(0.85, 0.35, 1.0, 0.25))
+	# Karpet jalan masuk
+	draw_rect(Rect2(1380, 930, 90, 110), COLOR_SANCTUARY_RUG, true) # Pintu Barat
+	draw_rect(Rect2(1630, 735, 140, 80), COLOR_SANCTUARY_RUG, true) # Pintu Utara
 
-	# RUMAH EKSPLORASI + SANCTUARY (x=1300-1940, y=780-1200)
-	draw_rect(Rect2(1300, 780, 640, 420), COLOR_EKSPLORASI, true)
-	draw_rect(Rect2(1380, 840, 490, 290), COLOR_EKSPLORASI_RUG, true)
-	draw_circle(Vector2(1620, 985), 115.0, COLOR_RUNE_GLOW)
-	draw_circle(Vector2(1620, 985), 72.0, Color(0.80, 0.32, 1.0, 0.22))
+	# ── B. GAMBAR JALUR & JALAN RAYA (DI ATAS RUANGAN) ────────────────────────
 
-	# ── B. JALUR BERWARNA (di atas ruangan) ───────────────────────────────────
+	# 1. JALAN UTAMA ATAS (y=110..220) – Velvet Burgundy
+	draw_rect(Rect2(20, 110, 2080, 110), COLOR_ROAD_TOP, true)
+	draw_line(Vector2(20, 114), Vector2(2100, 114), COLOR_ROAD_TOP_TRIM, 2.5)
+	draw_line(Vector2(20, 216), Vector2(2100, 216), COLOR_ROAD_TOP_TRIM, 2.5)
 
-	# 1. Koridor Utama Atas (y=120-230) – Burgundy
-	draw_rect(Rect2(20, 120, 2080, 110), COLOR_PATH_TOP, true)
-	draw_line(Vector2(20, 124), Vector2(2100, 124), COLOR_PATH_TOP_TRIM, 2.5)
-	draw_line(Vector2(20, 226), Vector2(2100, 226), COLOR_PATH_TOP_TRIM, 2.5)
+	# 2. JALAN VERTIKAL UTAMA (x=380..470, y=110..1330)
+	draw_rect(Rect2(380, 110, 90, 1100), COLOR_ROAD_VERT, true)
+	draw_line(Vector2(382, 110), Vector2(382, 1210), COLOR_ROAD_TRIM, 2.0)
+	draw_line(Vector2(468, 110), Vector2(468, 1210), COLOR_ROAD_TRIM, 2.0)
+	# Marka jalan vertikal (deretan kotak putus-putus seperti di sketsa)
+	for my in range(130, 1200, 45):
+		draw_rect(Rect2(420, my, 12, 22), Color(0.9, 0.95, 1.0, 0.45), true)
 
-	# 2. Gang Kecil "Gana Kecil" (x=720-820) – gelap misterius, vertikal
-	draw_rect(Rect2(720, 120, 100, 1080), COLOR_GANG_KECIL, true)
-	draw_line(Vector2(723, 120), Vector2(723, 1200), COLOR_GANG_TRIM, 2.0)
-	draw_line(Vector2(817, 120), Vector2(817, 1200), COLOR_GANG_TRIM, 2.0)
-	# Pola lantai gang
-	for gy2 in range(130, 1200, 25):
-		draw_line(Vector2(728, gy2), Vector2(815, gy2), Color(0.18, 0.20, 0.28, 0.5), 1.0)
+	# 3. GANG KECIL (x=1330..1410, y=110..1330)
+	draw_rect(Rect2(1330, 110, 80, 1100), COLOR_GANG_KECIL, true)
+	draw_line(Vector2(1333, 110), Vector2(1333, 1210), COLOR_GANG_TRIM, 2.0)
+	draw_line(Vector2(1407, 110), Vector2(1407, 1210), COLOR_GANG_TRIM, 2.0)
+	for gy3 in range(125, 1200, 24):
+		draw_line(Vector2(1338, gy3), Vector2(1402, gy3), Color(0.3, 0.25, 0.45, 0.5), 1.5)
 
-	# 3. Aisle Kiri (x=360-420 antara lahan & gedung - di atas + bawah koridor)
-	draw_rect(Rect2(360, 120, 60, 1080), COLOR_PATH_AISLE, true)
+	# 4. JALAN TENGAH (y=680..770) – Royal Blue Highway
+	draw_rect(Rect2(20, 680, 2080, 90), COLOR_ROAD_MAIN, true)
+	draw_line(Vector2(20, 684), Vector2(2100, 684), COLOR_ROAD_TRIM, 2.5)
+	draw_line(Vector2(20, 766), Vector2(2100, 766), COLOR_ROAD_TRIM, 2.5)
+	# Deretan booth D kecil di sepanjang jalan tengah (seperti di sketsa)
+	for bd in range(6):
+		var bdx = 870.0 + bd * 70.0
+		draw_rect(Rect2(bdx, 695, 45, 35), Color(0.85, 0.88, 0.94), true)
+		draw_arc(Vector2(bdx + 22, 712), 16.0, -PI/2, PI/2, 12, Color(0.3, 0.4, 0.5), 1.5)
 
-	# 4. Aisle Tengah antara blok jendela & blok kanan (x=1240-1330)
-	draw_rect(Rect2(1240, 120, 90, 1080), COLOR_PATH_AISLE, true)
+	# 5. JALAN LINGKAR BAWAH (y=1210..1330) – Royal Blue Highway
+	draw_rect(Rect2(20, 1210, 2080, 120), COLOR_ROAD_MAIN, true)
+	draw_line(Vector2(20, 1214), Vector2(2100, 1214), COLOR_ROAD_TRIM, 3.0)
+	draw_line(Vector2(20, 1326), Vector2(2100, 1326), COLOR_ROAD_TRIM, 3.0)
+	for mx in range(50, 2080, 60):
+		draw_line(Vector2(mx, 1270), Vector2(mx + 35, 1270), Color(0.85, 0.95, 1.0, 0.45), 2.5)
 
-	# 5. Aisle Kanan (x=1940-2010)
-	draw_rect(Rect2(1940, 120, 70, 1080), COLOR_PATH_AISLE, true)
+	# 6. SIMPANG PLAZA
+	_draw_plaza(Vector2(425, 165), 45.0)
+	_draw_plaza(Vector2(1370, 165), 45.0)
+	_draw_plaza(Vector2(425, 725), 45.0)
+	_draw_plaza(Vector2(1370, 725), 45.0)
+	_draw_plaza(Vector2(425, 1270), 55.0)
+	_draw_plaza(Vector2(1370, 1270), 55.0)
 
-	# 6. Koridor Tengah (y=680-780) – Royal Blue
-	draw_rect(Rect2(20, 680, 2080, 100), COLOR_PATH_MID, true)
-	draw_line(Vector2(20, 684), Vector2(2100, 684), COLOR_PATH_MID_TRIM, 2.5)
-	draw_line(Vector2(20, 776), Vector2(2100, 776), COLOR_PATH_MID_TRIM, 2.5)
+	# ── C. REL KERETA SISI KANAN (x=2020..2100) ──────────────────────────────
+	draw_rect(Rect2(2020, 15, 80, 1315), COLOR_TRACK_BG, true)
+	draw_line(Vector2(2035, 15), Vector2(2035, 1330), COLOR_TRACK_RAIL, 3.5)
+	draw_line(Vector2(2085, 15), Vector2(2085, 1330), COLOR_TRACK_RAIL, 3.5)
+	for ty in range(25, 1325, 15):
+		draw_line(Vector2(2026, ty), Vector2(2094, ty), COLOR_TRACK_TIE, 3.0)
 
-	# 7. Jalan Lingkar Bawah (y=1200-1330) – Royal Blue
-	draw_rect(Rect2(20, 1200, 2080, 130), COLOR_PATH_BOT, true)
-	draw_line(Vector2(20, 1205), Vector2(2100, 1205), COLOR_PATH_MID_TRIM, 3.0)
-	draw_line(Vector2(20, 1326), Vector2(2100, 1326), COLOR_PATH_MID_TRIM, 3.0)
-	# Marka tengah putus-putus
-	for mx in range(50, 2080, 55):
-		draw_line(Vector2(mx, 1263), Vector2(mx + 32, 1263), Color(0.8, 0.9, 1.0, 0.4), 2.0)
+	# ── D. GARIS DINDING & PINTU ──────────────────────────────────────────────
+	# Batas Luar
+	draw_line(Vector2(20, 15), Vector2(2100, 15), COLOR_WALL, WT)
+	draw_line(Vector2(20, 1330), Vector2(2100, 1330), COLOR_WALL, WT)
+	draw_line(Vector2(20, 15), Vector2(20, 1330), COLOR_WALL, WT)
+	draw_line(Vector2(2000, 110), Vector2(2000, 1330), COLOR_WALL, WT)
 
-	# 8. Plaza Persimpangan
-	_draw_plaza(Vector2(390, 175), 42.0)
-	_draw_plaza(Vector2(770, 175), 42.0)
-	_draw_plaza(Vector2(1285, 175), 42.0)
-	_draw_plaza(Vector2(1965, 175), 42.0)
-	_draw_plaza(Vector2(390, 730), 42.0)
-	_draw_plaza(Vector2(770, 730), 42.0)
-	_draw_plaza(Vector2(1285, 730), 42.0)
-	_draw_plaza(Vector2(1965, 730), 42.0)
-	_draw_plaza(Vector2(390, 1263), 52.0)
-	_draw_plaza(Vector2(770, 1263), 52.0)
-	_draw_plaza(Vector2(1285, 1263), 52.0)
-	_draw_plaza(Vector2(1965, 1263), 52.0)
+	# Dinding bilik atas
+	draw_line(Vector2(20, 110), Vector2(380, 110), COLOR_WALL, WT)
+	draw_line(Vector2(470, 110), Vector2(1330, 110), COLOR_WALL, WT)
+	draw_line(Vector2(1410, 110), Vector2(2000, 110), COLOR_WALL, WT)
 
-	# Karpet Pintu Sanctuary
-	draw_rect(Rect2(1265, 920, 100, 120), COLOR_EKSPLORASI_RUG, true)  # Pintu Barat
-	draw_rect(Rect2(1545, 645, 130, 90), COLOR_EKSPLORASI_RUG, true)   # Pintu Utara
-	draw_rect(Rect2(1545, 1130, 130, 80), COLOR_EKSPLORASI_RUG, true)  # Pintu Selatan
+	# Dinding Lahan Kosong (x=25..380, y=220..680)
+	draw_line(Vector2(25, 220), Vector2(380, 220), COLOR_WALL, WT)
+	draw_line(Vector2(380, 220), Vector2(380, 680), COLOR_WALL, WT)
+	draw_line(Vector2(380, 680), Vector2(25, 680), COLOR_WALL, WT)
 
-	# ── C. REL VERTIKAL KANAN ─────────────────────────────────────────────────
-	draw_rect(Rect2(2010, 20, 90, 1310), COLOR_TRACK_BG, true)
-	draw_line(Vector2(2025, 20), Vector2(2025, 1330), COLOR_TRACK_RAIL, 3.5)
-	draw_line(Vector2(2085, 20), Vector2(2085, 1330), COLOR_TRACK_RAIL, 3.5)
-	for ty in range(30, 1325, 16):
-		draw_line(Vector2(2016, ty), Vector2(2094, ty), COLOR_TRACK_TIE, 3.0)
+	# Dinding Kantor Polisi (x=25..380, y=770..1210)
+	draw_line(Vector2(25, 770), Vector2(180, 770), COLOR_WALL, WT)
+	draw_line(Vector2(280, 770), Vector2(380, 770), COLOR_WALL, WT) # Pintu Atas (x=180..280)
+	draw_line(Vector2(380, 770), Vector2(380, 930), COLOR_WALL, WT)
+	draw_line(Vector2(380, 1030), Vector2(380, 1210), COLOR_WALL, WT)# Pintu Timur (y=930..1030)
+	draw_line(Vector2(380, 1210), Vector2(280, 1210), COLOR_WALL, WT)
+	draw_line(Vector2(180, 1210), Vector2(25, 1210), COLOR_WALL, WT) # Pintu Selatan (x=180..280)
 
-	# ── D. GARIS DINDING ──────────────────────────────────────────────────────
+	# Dinding 5 Gedung (x=470..830, y=220..680)
+	draw_line(Vector2(470, 220), Vector2(830, 220), COLOR_WALL, WT)
+	draw_line(Vector2(830, 220), Vector2(830, 680), COLOR_WALL, WT)
+	draw_line(Vector2(830, 680), Vector2(470, 680), COLOR_WALL, WT)
+	draw_line(Vector2(470, 680), Vector2(470, 220), COLOR_WALL, WT)
 
-	# Batas luar
-	draw_line(Vector2(20, 20), Vector2(2105, 20), COLOR_WALL, WT)
-	draw_line(Vector2(20, 1330), Vector2(2105, 1330), COLOR_WALL, WT)
-	draw_line(Vector2(20, 20), Vector2(20, 1330), COLOR_WALL, WT)
-	draw_line(Vector2(2000, 120), Vector2(2000, 1330), COLOR_WALL, WT)
+	# Dinding Rumah Sakit (x=470..830, y=770..1210)
+	draw_line(Vector2(470, 770), Vector2(600, 770), COLOR_WALL, WT)
+	draw_line(Vector2(700, 770), Vector2(830, 770), COLOR_WALL, WT) # Pintu Atas (x=600..700)
+	draw_line(Vector2(830, 770), Vector2(830, 930), COLOR_WALL, WT)
+	draw_line(Vector2(830, 1030), Vector2(830, 1210), COLOR_WALL, WT)# Pintu Timur (y=930..1030)
+	draw_line(Vector2(830, 1210), Vector2(700, 1210), COLOR_WALL, WT)
+	draw_line(Vector2(600, 1210), Vector2(470, 1210), COLOR_WALL, WT)# Pintu Selatan (x=600..700)
+	draw_line(Vector2(470, 1210), Vector2(470, 1030), COLOR_WALL, WT)
+	draw_line(Vector2(470, 930), Vector2(470, 770), COLOR_WALL, WT) # Pintu Barat (y=930..1030)
 
-	# Dinding bilik atas kiri (7 bilik, x=20-426)
-	for i in range(7):
-		var bx = 20.0 + i * 58.0
-		draw_line(Vector2(bx, 116), Vector2(bx, 22), COLOR_WALL, WT)
-		draw_line(Vector2(bx, 22), Vector2(bx + 52, 22), COLOR_WALL, WT)
-		draw_line(Vector2(bx + 52, 22), Vector2(bx + 52, 116), COLOR_WALL, WT)
+	# Dinding Blok Tengah Atas (x=850..1330, y=220..680)
+	draw_line(Vector2(850, 220), Vector2(1040, 220), COLOR_WALL, WT)
+	draw_line(Vector2(1140, 220), Vector2(1330, 220), COLOR_WALL, WT)
+	draw_line(Vector2(1330, 220), Vector2(1330, 400), COLOR_WALL, WT)
+	draw_line(Vector2(1330, 500), Vector2(1330, 680), COLOR_WALL, WT)
+	draw_line(Vector2(1330, 680), Vector2(1140, 680), COLOR_WALL, WT)
+	draw_line(Vector2(1040, 680), Vector2(850, 680), COLOR_WALL, WT)
+	draw_line(Vector2(850, 680), Vector2(850, 500), COLOR_WALL, WT)
+	draw_line(Vector2(850, 400), Vector2(850, 220), COLOR_WALL, WT)
 
-	# Bilik tengah kiri (5 bilik, x=426-720)
-	for i in range(5):
-		var bx = 426.0 + i * 60.0
-		draw_line(Vector2(bx, 116), Vector2(bx, 22), COLOR_WALL, WT)
-		draw_line(Vector2(bx, 22), Vector2(bx + 54, 22), COLOR_WALL, WT)
-		draw_line(Vector2(bx + 54, 22), Vector2(bx + 54, 116), COLOR_WALL, WT)
+	# Dinding Blok Bawah Tengah & Rumah Eksplorasi (x=850..1330, y=770..1210)
+	draw_line(Vector2(850, 770), Vector2(1040, 770), COLOR_WALL, WT)
+	draw_line(Vector2(1140, 770), Vector2(1330, 770), COLOR_WALL, WT)
+	draw_line(Vector2(1330, 770), Vector2(1330, 930), COLOR_WALL, WT)
+	draw_line(Vector2(1330, 1030), Vector2(1330, 1210), COLOR_WALL, WT)
+	draw_line(Vector2(1330, 1210), Vector2(1140, 1210), COLOR_WALL, WT)
+	draw_line(Vector2(1040, 1210), Vector2(850, 1210), COLOR_WALL, WT)
+	draw_line(Vector2(850, 1210), Vector2(850, 1030), COLOR_WALL, WT)
+	draw_line(Vector2(850, 930), Vector2(850, 770), COLOR_WALL, WT)
 
-	# Rumah MC (x=820-992)
-	draw_line(Vector2(820, 116), Vector2(820, 22), COLOR_WALL, WT)
-	draw_line(Vector2(820, 22), Vector2(992, 22), COLOR_WALL, WT)
-	draw_line(Vector2(992, 22), Vector2(992, 116), COLOR_WALL, WT)
+	# Dinding Blok Kanan Atas (x=1410..1990, y=220..680)
+	draw_line(Vector2(1410, 220), Vector2(1650, 220), COLOR_WALL, WT)
+	draw_line(Vector2(1750, 220), Vector2(1990, 220), COLOR_WALL, WT)
+	draw_line(Vector2(1990, 220), Vector2(1990, 400), COLOR_WALL, WT)
+	draw_line(Vector2(1990, 500), Vector2(1990, 680), COLOR_WALL, WT)
+	draw_line(Vector2(1990, 680), Vector2(1750, 680), COLOR_WALL, WT)
+	draw_line(Vector2(1650, 680), Vector2(1410, 680), COLOR_WALL, WT)
+	draw_line(Vector2(1410, 680), Vector2(1410, 500), COLOR_WALL, WT)
+	draw_line(Vector2(1410, 400), Vector2(1410, 220), COLOR_WALL, WT)
 
-	# Bilik atas kanan
-	for i in range(16):
-		var bx = 1000.0 + i * 58.5
-		if bx + 50 > 1945:
-			break
-		draw_line(Vector2(bx, 116), Vector2(bx, 22), COLOR_WALL, WT)
-		draw_line(Vector2(bx, 22), Vector2(bx + 52, 22), COLOR_WALL, WT)
-		draw_line(Vector2(bx + 52, 22), Vector2(bx + 52, 116), COLOR_WALL, WT)
+	# Dinding Stasiun & Sanctuary Dewa Kematian (x=1410..1990, y=770..1210)
+	draw_line(Vector2(1410, 770), Vector2(1630, 770), COLOR_WALL, WT)
+	draw_line(Vector2(1770, 770), Vector2(1990, 770), COLOR_WALL, WT) # Pintu Utara
+	draw_line(Vector2(1990, 770), Vector2(1990, 930), COLOR_WALL, WT)
+	draw_line(Vector2(1990, 1050), Vector2(1990, 1210), COLOR_WALL, WT)# Pintu Timur
+	draw_line(Vector2(1990, 1210), Vector2(1770, 1210), COLOR_WALL, WT)
+	draw_line(Vector2(1630, 1210), Vector2(1410, 1210), COLOR_WALL, WT)# Pintu Selatan
+	draw_line(Vector2(1410, 1210), Vector2(1410, 1050), COLOR_WALL, WT)
+	draw_line(Vector2(1410, 930), Vector2(1410, 770), COLOR_WALL, WT)  # PINTU BARAT LEBAR
 
-	# Garis atas lorong (bawah bilik)
-	draw_line(Vector2(20, 118), Vector2(718, 118), COLOR_WALL, WT)
-	draw_line(Vector2(820, 118), Vector2(2000, 118), COLOR_WALL, WT)
+# ── Helper Gambar Garis Terpotong (Clip) ──────────────────────────────────────
+func _draw_clipped_line(from: Vector2, to: Vector2, rect: Rect2, color: Color, width: float) -> void:
+	var dir = (to - from).normalized()
+	var length = from.distance_to(to)
+	var steps = int(length / 8.0)
+	for s in range(steps):
+		var p = from + dir * (s * 8.0)
+		var np = from + dir * ((s + 1) * 8.0)
+		if rect.has_point(p) and rect.has_point(np):
+			draw_line(p, np, color, width)
 
-	# LAHAN KOSONG (dinding kotak, x=20-360, y=230-680)
-	draw_line(Vector2(20, 230), Vector2(360, 230), COLOR_WALL, WT)
-	draw_line(Vector2(360, 230), Vector2(360, 680), COLOR_WALL, WT)
-	draw_line(Vector2(360, 680), Vector2(20, 680), COLOR_WALL, WT)
-	# Kiri lahan = batas peta
-
-	# 5 GEDUNG (dinding, x=362-716, y=230-680)
-	for gi in range(6):
-		var gy = 230.0 + gi * 90.0
-		draw_line(Vector2(362, gy), Vector2(716, gy), COLOR_WALL, WT)
-	draw_line(Vector2(362, 230), Vector2(362, 680), COLOR_WALL, WT)
-	draw_line(Vector2(716, 230), Vector2(716, 680), COLOR_WALL, WT)
-
-	# Blok Jendela Tengah Kanan (x=820-1240, y=230-680, pintu di aisle)
-	draw_line(Vector2(820, 230), Vector2(1240, 230), COLOR_WALL, WT)  # Atas (pintu di koridor y=120 atas)
-	draw_line(Vector2(1240, 230), Vector2(1240, 530), COLOR_WALL, WT) # Kanan atas (pintu y=530-620)
-	draw_line(Vector2(1240, 620), Vector2(1240, 680), COLOR_WALL, WT) # Kanan bawah
-	draw_line(Vector2(820, 680), Vector2(1240, 680), COLOR_WALL, WT)  # Bawah
-	draw_line(Vector2(820, 230), Vector2(820, 430), COLOR_WALL, WT)   # Kiri atas (pintu y=430-540)
-	draw_line(Vector2(820, 540), Vector2(820, 680), COLOR_WALL, WT)   # Kiri bawah
-
-	# Blok Kanan Atas (x=1330-1940, y=230-680)
-	draw_line(Vector2(1330, 230), Vector2(1680, 230), COLOR_WALL, WT) # Atas kiri (pintu x=1680-1790)
-	draw_line(Vector2(1790, 230), Vector2(1940, 230), COLOR_WALL, WT) # Atas kanan
-	draw_line(Vector2(1940, 230), Vector2(1940, 380), COLOR_WALL, WT) # Kanan atas (pintu y=380-480)
-	draw_line(Vector2(1940, 480), Vector2(1940, 680), COLOR_WALL, WT) # Kanan bawah
-	draw_line(Vector2(1940, 680), Vector2(1790, 680), COLOR_WALL, WT) # Bawah kanan
-	draw_line(Vector2(1680, 680), Vector2(1330, 680), COLOR_WALL, WT) # Bawah kiri (pintu x=1680-1790)
-	draw_line(Vector2(1330, 680), Vector2(1330, 480), COLOR_WALL, WT) # Kiri bawah (pintu y=380-480)
-	draw_line(Vector2(1330, 380), Vector2(1330, 230), COLOR_WALL, WT) # Kiri atas
-
-	# KANTOR POLISI (x=20-420, y=780-1200)
-	draw_line(Vector2(20, 780), Vector2(200, 780), COLOR_WALL, WT)    # Atas kiri (pintu x=200-320)
-	draw_line(Vector2(320, 780), Vector2(420, 780), COLOR_WALL, WT)   # Atas kanan
-	draw_line(Vector2(420, 780), Vector2(420, 960), COLOR_WALL, WT)   # Kanan atas (pintu y=960-1060)
-	draw_line(Vector2(420, 1060), Vector2(420, 1200), COLOR_WALL, WT) # Kanan bawah
-	draw_line(Vector2(420, 1200), Vector2(200, 1200), COLOR_WALL, WT) # Bawah kanan (pintu x=200-320 ke loop)
-	draw_line(Vector2(120, 1200), Vector2(20, 1200), COLOR_WALL, WT)  # Bawah kiri
-	draw_line(Vector2(20, 1200), Vector2(20, 780), COLOR_WALL, WT)    # Kiri
-
-	# RUMAH SAKIT (x=420-870, y=780-1200)
-	draw_line(Vector2(420, 780), Vector2(630, 780), COLOR_WALL, WT)   # Atas kiri (pintu x=630-730)
-	draw_line(Vector2(730, 780), Vector2(870, 780), COLOR_WALL, WT)   # Atas kanan
-	draw_line(Vector2(870, 780), Vector2(870, 960), COLOR_WALL, WT)   # Kanan atas (pintu y=960-1060)
-	draw_line(Vector2(870, 1060), Vector2(870, 1200), COLOR_WALL, WT) # Kanan bawah
-	draw_line(Vector2(870, 1200), Vector2(730, 1200), COLOR_WALL, WT) # Bawah kanan (pintu ke loop)
-	draw_line(Vector2(630, 1200), Vector2(420, 1200), COLOR_WALL, WT) # Bawah kiri
-
-	# POD "P" (x=870-1300, y=780-1200)
-	draw_line(Vector2(870, 780), Vector2(1060, 780), COLOR_WALL, WT)  # Atas kiri (pintu x=1060-1160)
-	draw_line(Vector2(1160, 780), Vector2(1300, 780), COLOR_WALL, WT) # Atas kanan
-	draw_line(Vector2(1300, 780), Vector2(1300, 960), COLOR_WALL, WT) # Kanan atas (pintu y=960-1060)
-	draw_line(Vector2(1300, 1060), Vector2(1300, 1200), COLOR_WALL, WT)# Kanan bawah
-	draw_line(Vector2(1300, 1200), Vector2(1160, 1200), COLOR_WALL, WT)# Bawah kanan
-	draw_line(Vector2(1060, 1200), Vector2(870, 1200), COLOR_WALL, WT) # Bawah kiri (pintu loop)
-	draw_line(Vector2(870, 1200), Vector2(870, 1060), COLOR_WALL, WT)  # Kiri bawah
-	draw_line(Vector2(870, 960), Vector2(870, 780), COLOR_WALL, WT)    # Kiri atas (pintu y=960-1060)
-
-	# RUMAH EKSPLORASI + SANCTUARY (x=1300-1940, y=780-1200)
-	draw_line(Vector2(1300, 780), Vector2(1560, 780), COLOR_WALL, WT)  # Utara kiri (pintu x=1560-1680)
-	draw_line(Vector2(1680, 780), Vector2(1940, 780), COLOR_WALL, WT)  # Utara kanan
-	draw_line(Vector2(1940, 780), Vector2(1940, 960), COLOR_WALL, WT)  # Timur atas (pintu y=960-1060)
-	draw_line(Vector2(1940, 1060), Vector2(1940, 1200), COLOR_WALL, WT)# Timur bawah
-	draw_line(Vector2(1940, 1200), Vector2(1680, 1200), COLOR_WALL, WT)# Selatan kanan (pintu loop)
-	draw_line(Vector2(1560, 1200), Vector2(1300, 1200), COLOR_WALL, WT)# Selatan kiri
-	draw_line(Vector2(1300, 1200), Vector2(1300, 1060), COLOR_WALL, WT)# Barat bawah
-	draw_line(Vector2(1300, 900), Vector2(1300, 780), COLOR_WALL, WT)  # Barat atas (PINTU UTAMA y=900-1060)
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
 func _draw_plaza(center: Vector2, radius: float) -> void:
 	draw_circle(center, radius, COLOR_PLAZA)
-	draw_circle(center, radius * 0.62, COLOR_PLAZA_RUNE)
-	draw_arc(center, radius, 0.0, TAU, 24, COLOR_PATH_MID_TRIM, 1.5)
+	draw_circle(center, radius * 0.60, Color(0.6, 0.8, 1.0, 0.3))
+	draw_arc(center, radius, 0.0, TAU, 24, COLOR_ROAD_TRIM, 1.5)
 
 func _draw_desk(rect: Rect2) -> void:
-	draw_rect(Rect2(rect.position + Vector2(2, 3), rect.size), Color(0, 0, 0, 0.14), true)
-	draw_rect(rect, COLOR_DESK_FILL, true)
+	draw_rect(Rect2(rect.position + Vector2(2, 3), rect.size), Color(0, 0, 0, 0.15), true)
+	draw_rect(rect, COLOR_DESK, true)
 	draw_rect(rect, COLOR_DESK_LINE, false, 1.8)
-	if rect.size.x >= 55.0 and rect.size.y >= 45.0:
+	if rect.size.x >= 50.0 and rect.size.y >= 40.0:
 		var c = rect.position + rect.size / 2.0
-		draw_rect(Rect2(c.x - 14, c.y - 14, 28, 10), Color(0.2, 0.25, 0.32), true)
-		draw_rect(Rect2(c.x - 12, c.y + 2, 24, 7), Color(0.35, 0.40, 0.48), true)
+		draw_rect(Rect2(c.x - 14, c.y - 12, 28, 10), Color(0.2, 0.25, 0.32), true)
 
 # ── Collision Builder ──────────────────────────────────────────────────────────
 func _build_all_colliders() -> void:
@@ -408,120 +388,92 @@ func _build_all_colliders() -> void:
 		if is_instance_valid(b): b.queue_free()
 	collision_bodies.clear()
 
-	# Batas luar
-	_add_wall_box(Rect2(0, 0, 2110, 22))        # North
-	_add_wall_box(Rect2(0, 1326, 2110, 24))     # South
-	_add_wall_box(Rect2(0, 0, 22, 1350))        # West
-	_add_wall_box(Rect2(1996, 120, 14, 1210))   # East inner
+	# Batas Luar Peta
+	_add_wall_box(Rect2(0, 0, 2110, 20))
+	_add_wall_box(Rect2(0, 1326, 2110, 24))
+	_add_wall_box(Rect2(0, 0, 22, 1350))
+	_add_wall_box(Rect2(1996, 110, 14, 1220))
 
-	# Bilik atas kiri (7 bilik)
-	for i in range(7):
-		var bx = 20.0 + i * 58.0
-		_add_wall_box(Rect2(bx - 3, 22, 6, 96))
-		_add_wall_box(Rect2(bx, 19, 54, 6))
-		_add_wall_box(Rect2(bx + 49, 22, 6, 96))
+	# Pembatas bawah bilik atas
+	_add_wall_box(Rect2(20, 107, 360, 6))
+	_add_wall_box(Rect2(470, 107, 860, 6))
+	_add_wall_box(Rect2(1410, 107, 590, 6))
 
-	# Bilik tengah kiri (5 bilik)
-	for i in range(5):
-		var bx = 426.0 + i * 60.0
-		_add_wall_box(Rect2(bx - 3, 22, 6, 96))
-		_add_wall_box(Rect2(bx, 19, 56, 6))
-		_add_wall_box(Rect2(bx + 52, 22, 6, 96))
-
-	# Rumah MC
-	_add_wall_box(Rect2(817, 22, 6, 96))
-	_add_wall_box(Rect2(820, 19, 174, 6))
-	_add_wall_box(Rect2(989, 22, 6, 96))
-
-	# Bilik atas kanan
-	for i in range(16):
-		var bx = 1000.0 + i * 58.5
-		if bx + 50 > 1945: break
-		_add_wall_box(Rect2(bx - 3, 22, 6, 96))
-		_add_wall_box(Rect2(bx, 19, 54, 6))
-		_add_wall_box(Rect2(bx + 50, 22, 6, 96))
-
-	# Garis bawah bilik atas
-	_add_wall_box(Rect2(20, 115, 700, 6))
-	_add_wall_box(Rect2(820, 115, 1180, 6))
-
-	# Lahan kosong (dinding)
-	_add_wall_box(Rect2(20, 227, 340, 6))    # Atas
-	_add_wall_box(Rect2(357, 230, 6, 450))   # Kanan
-	_add_wall_box(Rect2(20, 677, 340, 6))    # Bawah
-
-	# 5 Gedung (horizontal dividers)
-	for gi in range(6):
-		var gy = 230.0 + gi * 90.0
-		_add_wall_box(Rect2(362, gy - 3, 356, 6))
-	_add_wall_box(Rect2(359, 230, 6, 450))  # Kiri gedung
-	_add_wall_box(Rect2(713, 230, 6, 450))  # Kanan gedung
-
-	# Blok jendela tengah kanan atas
-	_add_wall_box(Rect2(820, 227, 420, 6))   # Atas
-	_add_wall_box(Rect2(1237, 230, 6, 300))  # Kanan atas (pintu y=530-620)
-	_add_wall_box(Rect2(1237, 617, 6, 66))   # Kanan bawah
-	_add_wall_box(Rect2(820, 677, 420, 6))   # Bawah
-	_add_wall_box(Rect2(817, 230, 6, 200))   # Kiri atas (pintu y=430-540)
-	_add_wall_box(Rect2(817, 537, 6, 146))   # Kiri bawah
-
-	# Blok kanan atas
-	_add_wall_box(Rect2(1330, 227, 350, 6))  # Atas kiri (pintu x=1680-1790)
-	_add_wall_box(Rect2(1787, 227, 156, 6))  # Atas kanan
-	_add_wall_box(Rect2(1937, 230, 6, 150))  # Kanan atas (pintu y=380-480)
-	_add_wall_box(Rect2(1937, 477, 6, 206))  # Kanan bawah
-	_add_wall_box(Rect2(1787, 677, 153, 6))  # Bawah kanan (pintu x=1680-1790)
-	_add_wall_box(Rect2(1330, 677, 350, 6))  # Bawah kiri
-	_add_wall_box(Rect2(1327, 477, 6, 206))  # Kiri bawah (pintu y=380-480)
-	_add_wall_box(Rect2(1327, 230, 6, 150))  # Kiri atas
-
-	# Meja blok kanan atas
-	_add_wall_box(Rect2(1380, 280, 220, 130))
-	_add_wall_box(Rect2(1640, 280, 200, 130))
-	_add_wall_box(Rect2(1380, 480, 220, 130))
-	_add_wall_box(Rect2(1640, 480, 200, 130))
+	# Lahan Kosong
+	_add_wall_box(Rect2(25, 217, 355, 6))
+	_add_wall_box(Rect2(377, 220, 6, 460))
+	_add_wall_box(Rect2(25, 677, 355, 6))
 
 	# Kantor Polisi
-	_add_wall_box(Rect2(20, 777, 180, 6))    # Atas kiri (pintu x=200-320)
-	_add_wall_box(Rect2(317, 777, 106, 6))   # Atas kanan
-	_add_wall_box(Rect2(417, 780, 6, 180))   # Kanan atas (pintu y=960-1060)
-	_add_wall_box(Rect2(417, 1057, 6, 146))  # Kanan bawah
-	_add_wall_box(Rect2(317, 1197, 103, 6))  # Bawah kanan
-	_add_wall_box(Rect2(20, 1197, 100, 6))   # Bawah kiri
-	_add_wall_box(Rect2(17, 780, 6, 420))    # Kiri wall (batas peta)
-	_add_wall_box(Rect2(60, 830, 300, 110))
-	_add_wall_box(Rect2(60, 1010, 300, 130))
+	_add_wall_box(Rect2(25, 767, 155, 6))
+	_add_wall_box(Rect2(280, 767, 100, 6))
+	_add_wall_box(Rect2(377, 770, 6, 160))
+	_add_wall_box(Rect2(377, 1030, 6, 180))
+	_add_wall_box(Rect2(280, 1207, 100, 6))
+	_add_wall_box(Rect2(25, 1207, 155, 6))
+	_add_wall_box(Rect2(22, 770, 6, 440))
+	_add_wall_box(Rect2(50, 820, 240, 100))
+	_add_wall_box(Rect2(50, 990, 240, 120))
+
+	# 5 Gedung
+	_add_wall_box(Rect2(470, 217, 360, 6))
+	_add_wall_box(Rect2(827, 220, 6, 460))
+	_add_wall_box(Rect2(470, 677, 360, 6))
+	_add_wall_box(Rect2(467, 220, 6, 460))
 
 	# Rumah Sakit
-	_add_wall_box(Rect2(420, 777, 210, 6))   # Atas kiri (pintu x=630-730)
-	_add_wall_box(Rect2(727, 777, 146, 6))   # Atas kanan
-	_add_wall_box(Rect2(867, 780, 6, 180))   # Kanan atas (pintu y=960-1060)
-	_add_wall_box(Rect2(867, 1057, 6, 146))  # Kanan bawah
-	_add_wall_box(Rect2(727, 1197, 146, 6))  # Bawah kanan
-	_add_wall_box(Rect2(420, 1197, 210, 6))  # Bawah kiri
+	_add_wall_box(Rect2(470, 767, 130, 6))
+	_add_wall_box(Rect2(700, 767, 130, 6))
+	_add_wall_box(Rect2(827, 770, 6, 160))
+	_add_wall_box(Rect2(827, 1030, 6, 180))
+	_add_wall_box(Rect2(700, 1207, 130, 6))
+	_add_wall_box(Rect2(470, 1207, 130, 6))
+	_add_wall_box(Rect2(467, 1030, 6, 180))
+	_add_wall_box(Rect2(467, 770, 6, 160))
 
-	# Pod "P"
-	_add_wall_box(Rect2(870, 777, 190, 6))   # Atas kiri (pintu x=1060-1160)
-	_add_wall_box(Rect2(1157, 777, 146, 6))  # Atas kanan
-	_add_wall_box(Rect2(1297, 780, 6, 180))  # Kanan atas (pintu y=960-1060)
-	_add_wall_box(Rect2(1297, 1057, 6, 146)) # Kanan bawah
-	_add_wall_box(Rect2(1157, 1197, 146, 6)) # Bawah kanan
-	_add_wall_box(Rect2(1060, 1197, 97, 6))  # Bawah tengah (pintu loop)
-	_add_wall_box(Rect2(870, 1197, 190, 6))  # Bawah kiri
-	_add_wall_box(Rect2(867, 1057, 6, 143))  # Kiri bawah (pintu y=960-1060)
-	_add_wall_box(Rect2(867, 780, 6, 180))   # Kiri atas
-	_add_wall_box(Rect2(920, 840, 320, 110))
-	_add_wall_box(Rect2(950, 1020, 280, 120))
+	# Blok Tengah Atas
+	_add_wall_box(Rect2(850, 217, 190, 6))
+	_add_wall_box(Rect2(1140, 217, 190, 6))
+	_add_wall_box(Rect2(1327, 220, 6, 180))
+	_add_wall_box(Rect2(1327, 500, 6, 180))
+	_add_wall_box(Rect2(1140, 677, 190, 6))
+	_add_wall_box(Rect2(850, 677, 190, 6))
+	_add_wall_box(Rect2(847, 500, 6, 180))
+	_add_wall_box(Rect2(847, 220, 6, 180))
 
-	# Rumah Eksplorasi + Sanctuary
-	_add_wall_box(Rect2(1300, 777, 260, 6))  # Utara kiri (pintu x=1560-1680)
-	_add_wall_box(Rect2(1677, 777, 266, 6))  # Utara kanan
-	_add_wall_box(Rect2(1937, 780, 6, 180))  # Timur atas (pintu y=960-1060)
-	_add_wall_box(Rect2(1937, 1057, 6, 146)) # Timur bawah
-	_add_wall_box(Rect2(1677, 1197, 266, 6)) # Selatan kanan
-	_add_wall_box(Rect2(1300, 1197, 260, 6)) # Selatan kiri (pintu loop)
-	_add_wall_box(Rect2(1297, 1057, 6, 146)) # Barat bawah
-	_add_wall_box(Rect2(1297, 780, 6, 120))  # Barat atas (PINTU UTAMA y=900-1060 →160px lebar)
+	# Blok Bawah Tengah & Rumah Eksplorasi
+	_add_wall_box(Rect2(850, 767, 190, 6))
+	_add_wall_box(Rect2(1140, 767, 190, 6))
+	_add_wall_box(Rect2(1327, 770, 6, 160))
+	_add_wall_box(Rect2(1327, 1030, 6, 180))
+	_add_wall_box(Rect2(1140, 1207, 190, 6))
+	_add_wall_box(Rect2(850, 1207, 190, 6))
+	_add_wall_box(Rect2(847, 1030, 6, 180))
+	_add_wall_box(Rect2(847, 770, 6, 160))
+
+	# Blok Kanan Atas (4 Ruangan)
+	_add_wall_box(Rect2(1410, 217, 240, 6))
+	_add_wall_box(Rect2(1750, 217, 240, 6))
+	_add_wall_box(Rect2(1987, 220, 6, 180))
+	_add_wall_box(Rect2(1987, 500, 6, 180))
+	_add_wall_box(Rect2(1750, 677, 240, 6))
+	_add_wall_box(Rect2(1410, 677, 240, 6))
+	_add_wall_box(Rect2(1407, 500, 6, 180))
+	_add_wall_box(Rect2(1407, 220, 6, 180))
+	_add_wall_box(Rect2(1450, 260, 200, 120))
+	_add_wall_box(Rect2(1740, 260, 200, 120))
+	_add_wall_box(Rect2(1450, 490, 200, 120))
+	_add_wall_box(Rect2(1740, 490, 200, 120))
+
+	# Stasiun & Sanctuary Dewa Kematian
+	_add_wall_box(Rect2(1410, 767, 220, 6))
+	_add_wall_box(Rect2(1770, 767, 220, 6))
+	_add_wall_box(Rect2(1987, 770, 6, 160))
+	_add_wall_box(Rect2(1987, 1050, 6, 160))
+	_add_wall_box(Rect2(1770, 1207, 220, 6))
+	_add_wall_box(Rect2(1410, 1207, 220, 6))
+	_add_wall_box(Rect2(1407, 1050, 6, 160))
+	_add_wall_box(Rect2(1407, 770, 6, 160))
 
 func _add_wall_box(rect: Rect2) -> void:
 	var body = StaticBody2D.new()
