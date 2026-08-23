@@ -90,5 +90,5 @@ func _on_dialog_closed() -> void:
 
 func _on_reset_btn_pressed() -> void:
 	if is_instance_valid(player):
-		player.global_position = Vector2(500, 165)  # Depan Rumah MC di koridor atas
+		player.global_position = Vector2(1170, 270)  # Sesuai marker player di JSON (390*3, 90*3)
 		player.velocity = Vector2.ZERO
