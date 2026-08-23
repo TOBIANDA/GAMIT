@@ -6,6 +6,7 @@ extends Node2D
 @onready var dialog_box: CanvasLayer = $DialogBox
 @onready var hud_speed_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/SpeedLabel
 @onready var hud_pos_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/PosLabel
+@onready var hud_zoom_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomLabel
 
 var server_pid: int = -1
 
@@ -37,10 +38,14 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	# Update telemetry HUD jika ada player
-	if is_instance_valid(player) and is_instance_valid(hud_speed_label) and is_instance_valid(hud_pos_label):
-		var spd = player.velocity.length()
-		hud_speed_label.text = "Kecepatan: %.0f px/s" % spd
-		hud_pos_label.text = "Posisi: (X: %.0f, Y: %.0f)" % [player.global_position.x, player.global_position.y]
+	if is_instance_valid(player):
+		if is_instance_valid(hud_speed_label):
+			var spd = player.velocity.length()
+			hud_speed_label.text = "Kecepatan: %.0f px/s" % spd
+		if is_instance_valid(hud_pos_label):
+			hud_pos_label.text = "Posisi: (X: %.0f, Y: %.0f)" % [player.global_position.x, player.global_position.y]
+		if is_instance_valid(hud_zoom_label) and player.has_method("get_zoom_level"):
+			hud_zoom_label.text = "Penglihatan (Zoom): %.1fx" % player.get_zoom_level()
 
 # ── Otomatis Jalankan Server AI ──────────────────────────────────────────
 func _start_ai_server() -> void:
@@ -92,3 +97,15 @@ func _on_reset_btn_pressed() -> void:
 	if is_instance_valid(player):
 		player.global_position = Vector2(1170, 270)  # Sesuai marker player di JSON (390*3, 90*3)
 		player.velocity = Vector2.ZERO
+
+func _on_zoom_in_btn_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("zoom_in"):
+		player.zoom_in()
+
+func _on_zoom_out_btn_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("zoom_out"):
+		player.zoom_out()
+
+func _on_zoom_reset_btn_pressed() -> void:
+	if is_instance_valid(player) and player.has_method("reset_zoom"):
+		player.reset_zoom()

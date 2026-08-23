@@ -29,16 +29,52 @@ var tex_right: Texture2D
 var tex_right_l: Texture2D
 var tex_right_r: Texture2D
 
-# ── Node References ────────────────────────────────────────────────────────
+# ── Node References & Zoom Kontrol ─────────────────────────────────────────
 @onready var camera: Camera2D = $Camera2D
+
+@export var target_zoom_val: float = 1.8   # Nilai zoom aktif default
+@export var min_zoom_val: float = 0.35     # Penglihatan paling luas (lihat hampir seluruh map)
+@export var max_zoom_val: float = 3.5      # Penglihatan paling dekat (close up detail)
+@export var zoom_step: float = 0.20        # Langkah per scroll / klik
 
 func _ready() -> void:
 	add_to_group("player")
 	y_sort_enabled = true
+	if is_instance_valid(camera):
+		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
 	# Load 12 sprite textures dari folder 'posisi mc'
 	_load_mc_sprites()
 	queue_redraw()
+
+func _unhandled_input(event: InputEvent) -> void:
+	# 1. Mouse Scroll Wheel untuk Zoom
+	if event is InputEventMouseButton and event.is_pressed():
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_in()
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_out()
+
+	# 2. Keyboard Hotkeys Zoom: [ + / = / I ] untuk Zoom In, [ - / _ / O ] untuk Zoom Out
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_I or event.keycode == KEY_BRACKETRIGHT:
+			zoom_in()
+		elif event.keycode == KEY_MINUS or event.keycode == KEY_O or event.keycode == KEY_BRACKETLEFT:
+			zoom_out()
+		elif event.keycode == KEY_0:
+			reset_zoom()
+
+func zoom_in() -> void:
+	target_zoom_val = clampf(target_zoom_val + zoom_step, min_zoom_val, max_zoom_val)
+
+func zoom_out() -> void:
+	target_zoom_val = clampf(target_zoom_val - zoom_step, min_zoom_val, max_zoom_val)
+
+func reset_zoom() -> void:
+	target_zoom_val = 1.8
+
+func get_zoom_level() -> float:
+	return target_zoom_val
 
 func _load_mc_sprites() -> void:
 	tex_front   = load("res://posisi mc/front.png")
@@ -82,7 +118,12 @@ func _physics_process(delta: float) -> void:
 	# 3. Fisika pergerakan dan tabrakan
 	move_and_slide()
 
-	# 4. Trigger redraw untuk rendering sprite MC
+	# 4. Smooth Camera Zoom Lerp
+	if is_instance_valid(camera):
+		var target_vec = Vector2(target_zoom_val, target_zoom_val)
+		camera.zoom = camera.zoom.lerp(target_vec, delta * 12.0)
+
+	# 5. Trigger redraw untuk rendering sprite MC
 	queue_redraw()
 
 func _get_input_vector() -> Vector2:

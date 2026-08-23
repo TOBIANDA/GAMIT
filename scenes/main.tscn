@@ -92,7 +92,7 @@ text = "🎮 IPB GAMEPLAY - EXPANDED MAP"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
 theme_override_font_sizes/font_size = 13
-text = "Jalan: [WASD] / Panah | Kuil: [E]"
+text = "Jalan: [WASD] | Zoom: [Scroll / I / O]"
 
 [node name="HSeparator" type="HSeparator" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
@@ -107,15 +107,52 @@ text = "Kecepatan: 0 px/s"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 13
-text = "Posisi: (X: 1050, Y: 175)"
+text = "Posisi: (X: 1170, Y: 270)"
+
+[node name="ZoomLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Penglihatan (Zoom): 1.8x"
+
+[node name="ZoomBtnContainer" type="HBoxContainer" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ZoomInBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_font_sizes/font_size = 12
+text = "🔍 Zoom In"
+
+[node name="ZoomOutBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_font_sizes/font_size = 12
+text = "🔭 Zoom Out"
+
+[node name="ZoomResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_font_sizes/font_size = 12
+text = "🔄 Reset"
 
 [node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 13
-text = "🔄 Reset Posisi Karakter"
+text = "📍 Reset Posisi Karakter"
 
 [node name="DialogBox" parent="." instance=ExtResource("5_dialog_scene")]
 
+[connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer/ZoomInBtn" to="." method="_on_zoom_in_btn_pressed"]
+[connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer/ZoomOutBtn" to="." method="_on_zoom_out_btn_pressed"]
+[connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer/ZoomResetBtn" to="." method="_on_zoom_reset_btn_pressed"]
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ResetBtn" to="." method="_on_reset_btn_pressed"]
