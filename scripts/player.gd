@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 # ── Konfigurasi Pergerakan 3/4 Top-Down ─────────────────────────────────────
-@export var max_speed: float = 195.0       # Kecepatan jalan diperlambat agar pas dengan suasana investigasi
+@export var max_speed: float = 120.0       # Diperlambat agar terasa nuansa investigasi & map lebih terasa luas
 @export var acceleration: float = 1600.0   # Akselerasi yang lebih halus
 @export var friction: float = 1800.0       # Gesekan menghentikan pergerakan
 @export var can_move: bool = true
