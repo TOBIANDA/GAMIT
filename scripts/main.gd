@@ -234,7 +234,8 @@ func _check_poi_proximity() -> void:
 		if is_instance_valid(interact_prompt):
 			var poi_info = POI_LOCATIONS[active_poi_id]
 			interact_prompt.text = "👉 [ F / E / Spasi ] Interaksi: " + poi_info["name"]
-			interact_prompt.position = Vector2(get_viewport_rect().size.x * 0.5 - 180, get_viewport_rect().size.y - 75)
+			var vp = get_viewport().get_visible_rect().size
+			interact_prompt.position = Vector2(vp.x * 0.5 - 180, vp.y - 75)
 			interact_prompt.visible = true
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -178,7 +178,7 @@ func _start() -> void:
 
 func _process(delta: float) -> void:
 	anim_time += delta
-	var vp_size = get_viewport_rect().size
+	var vp_size = get_viewport().get_visible_rect().size
 
 	# 1. Update Awan Kabut
 	for item in fog_items:

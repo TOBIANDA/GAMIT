@@ -23,7 +23,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_on_viewport_resized)
 
 func _build_snow_layers() -> void:
-	var vp = get_viewport_rect().size
+	var vp = get_viewport().get_visible_rect().size
 	if vp.x < 100 or vp.y < 100:
 		vp = Vector2(1600, 900)
 
@@ -82,7 +82,7 @@ func _build_snow_layers() -> void:
 	add_child(snow_particles_fg)
 
 func _on_viewport_resized() -> void:
-	var vp = get_viewport_rect().size
+	var vp = get_viewport().get_visible_rect().size
 	if is_instance_valid(snow_particles_bg):
 		snow_particles_bg.position = Vector2(vp.x * 0.5, -20)
 		snow_particles_bg.emission_rect_extents = Vector2(vp.x * 0.7, 10)
