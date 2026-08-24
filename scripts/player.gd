@@ -112,7 +112,7 @@ func _physics_process(delta: float) -> void:
 	var input_vector = _get_input_vector()
 
 	# 2. Cek apakah tombol Shift ditekan untuk Sprint (Lari)
-	is_sprinting = Input.is_key_pressed(KEY_SHIFT) or Input.is_action_pressed("sprint")
+	is_sprinting = Input.is_key_pressed(KEY_SHIFT)
 	max_speed = sprint_speed if is_sprinting else walk_speed
 	step_anim_speed = sprint_step_anim_speed if is_sprinting else base_step_anim_speed
 

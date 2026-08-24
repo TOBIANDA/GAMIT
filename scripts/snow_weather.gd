@@ -122,7 +122,7 @@ func _synthesize_winter_breeze(_delta: float) -> void:
 	if playback_wind == null:
 		return
 
-	var frames = playback_wind.get_frames_available()
+	var frames = min(playback_wind.get_frames_available(), int(22050 * _delta * 1.5))
 	if frames <= 0:
 		return
 
