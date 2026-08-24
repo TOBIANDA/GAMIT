@@ -52,7 +52,7 @@ func _setup_smoke_particles() -> void:
 	smoke_particles.position = Vector2(0, 80) # Cerobong lokomotif
 	smoke_particles.amount = 40
 	smoke_particles.lifetime = 1.6
-	smoke_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	smoke_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	smoke_particles.emission_sphere_radius = 8.0
 	smoke_particles.gravity = Vector2(0, -60)
 	smoke_particles.direction = Vector2(0, -1)
