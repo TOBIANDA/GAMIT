@@ -1,21 +1,26 @@
 extends CharacterBody2D
 
-# ── Konfigurasi Pergerakan 3/4 Top-Down ─────────────────────────────────────
-@export var max_speed: float = 120.0       # Kecepatan investigasi santai
-@export var acceleration: float = 1600.0   # Akselerasi halus
-@export var friction: float = 1800.0       # Gesekan
+# ── Konfigurasi Pergerakan 3/4 Top-Down Sesuai GDD ────────────────────────────
+@export var walk_speed: float = 90.0        # 0.75x dari kecepatan semula (120 * 0.75)
+@export var sprint_speed: float = 144.0     # 1.20x dari kecepatan semula (120 * 1.20)
+@export var max_speed: float = 90.0         # Kecepatan aktif saat ini
+@export var acceleration: float = 1600.0    # Akselerasi halus
+@export var friction: float = 1800.0        # Gesekan
 @export var can_move: bool = true
 
 # ── Pilihan Karakter MC (Default: MC Detektif Asli 'posisi mc') ────────────
 enum MCType { DETECTIVE_BOY, CASUAL_BOY, GIRL }
-@export var current_mc_type: MCType = MCType.DETECTIVE_BOY # MC Detektif Asli
+@export var current_mc_type: MCType = MCType.DETECTIVE_BOY # MC Detektif Asli (Benedict)
 @export var target_height_px: float = 28.0                 # Ukuran badan MC kecil & proporsional
-@export var step_anim_speed: float = 2.0                   # Jumlah langkah per detik tenang
+@export var base_step_anim_speed: float = 2.0              # Langkah jalan santai
+@export var sprint_step_anim_speed: float = 3.2            # Langkah saat lari
+var step_anim_speed: float = 2.0
 
 # ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
 var step_cycle: float = 0.0
 var is_moving: bool = false
+var is_sprinting: bool = false
 
 # Dictionary untuk menyimpan 12 texture per karakter
 var sprite_sets: Dictionary = {}
@@ -126,6 +131,7 @@ func _physics_process(delta: float) -> void:
 	if not can_move:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		is_moving = false
+		is_sprinting = false
 		move_and_slide()
 		queue_redraw()
 		return
@@ -133,27 +139,33 @@ func _physics_process(delta: float) -> void:
 	# 1. Dapatkan arah input 8-arah
 	var input_vector = _get_input_vector()
 
-	# 2. Update kecepatan & pergerakan
+	# 2. Cek apakah tombol Shift ditekan untuk Sprint (Lari)
+	is_sprinting = Input.is_key_pressed(KEY_SHIFT) or Input.is_action_pressed("sprint")
+	max_speed = sprint_speed if is_sprinting else walk_speed
+	step_anim_speed = sprint_step_anim_speed if is_sprinting else base_step_anim_speed
+
+	# 3. Update kecepatan & pergerakan
 	if input_vector != Vector2.ZERO:
 		is_moving = true
 		facing_direction = input_vector.normalized()
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
-		# Step cycle diperlambat agar langkah kaki tidak terlalu cepat
+		# Step cycle disesuaikan saat lari vs jalan
 		step_cycle += delta * step_anim_speed
 	else:
 		is_moving = false
+		is_sprinting = false
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		step_cycle = 0.0
 
-	# 3. Fisika pergerakan dan tabrakan
+	# 4. Fisika pergerakan dan tabrakan
 	move_and_slide()
 
-	# 4. Smooth Camera Zoom Lerp
+	# 5. Smooth Camera Zoom Lerp
 	if is_instance_valid(camera):
 		var target_vec = Vector2(target_zoom_val, target_zoom_val)
 		camera.zoom = camera.zoom.lerp(target_vec, delta * 12.0)
 
-	# 5. Trigger redraw untuk rendering sprite MC
+	# 6. Trigger redraw untuk rendering sprite MC
 	queue_redraw()
 
 func _get_input_vector() -> Vector2:

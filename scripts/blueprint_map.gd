@@ -339,6 +339,30 @@ func _draw() -> void:
 	draw_line(Vector2(0, 0), Vector2(0, 1311), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(2160, 0), Vector2(2160, 1311), COLOR_WALL_LINE, WT)
 
+	# ── E. LANDMARK PENANDA AREA PENYELIDIKAN (SESUAI GDD) ────────────────────
+	# 1. Rumah Detektif Benedict & Kamar Gelap (1170, 270)
+	draw_circle(Vector2(1170, 270), 28.0, Color(0.3, 0.7, 1.0, 0.35))
+	draw_arc(Vector2(1170, 270), 28.0, 0.0, TAU, 18, Color(0.4, 0.8, 1.0, 0.8), 2.0)
+
+	# 2. Kantor Polisi & Marcus (350, 430)
+	draw_circle(Vector2(350, 430), 32.0, Color(0.2, 0.4, 0.9, 0.35))
+	draw_arc(Vector2(350, 430), 32.0, 0.0, TAU, 20, Color(0.3, 0.6, 1.0, 0.8), 2.0)
+
+	# 3. Peron Stasiun Kereta Api Timur (2080, 520)
+	draw_circle(Vector2(2080, 520), 32.0, Color(1.0, 0.6, 0.2, 0.35))
+	draw_arc(Vector2(2080, 520), 32.0, 0.0, TAU, 20, Color(1.0, 0.7, 0.3, 0.8), 2.0)
+
+	# 4. Kamar Mayat Rumah Sakit (850, 1000)
+	draw_circle(Vector2(850, 1000), 30.0, Color(0.2, 0.8, 0.4, 0.35))
+	draw_arc(Vector2(850, 1000), 30.0, 0.0, TAU, 18, Color(0.3, 0.9, 0.5, 0.8), 2.0)
+	# Palang medis
+	draw_rect(Rect2(846, 990, 8, 20), Color(0.9, 1.0, 0.9, 0.9), true)
+	draw_rect(Rect2(840, 996, 20, 8), Color(0.9, 1.0, 0.9, 0.9), true)
+
+	# 5. Brankas Rumah Ibu Medeline (180, 1050)
+	draw_circle(Vector2(180, 1050), 26.0, Color(0.9, 0.7, 0.2, 0.35))
+	draw_arc(Vector2(180, 1050), 26.0, 0.0, TAU, 16, Color(1.0, 0.8, 0.3, 0.8), 2.0)
+
 # ── Helper Gambar Plaza & Meja ────────────────────────────────────────────────
 func _draw_plaza(center: Vector2, radius: float) -> void:
 	draw_circle(center, radius, COLOR_PATH_PLAZA)
