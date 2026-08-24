@@ -75,7 +75,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom_out()
 
-	# 2. Keyboard Hotkeys Zoom & Ganti Model Karakter
+	# 2. Keyboard Hotkeys Zoom
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_I or event.keycode == KEY_BRACKETRIGHT:
 			zoom_in()
@@ -83,8 +83,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			zoom_out()
 		elif event.keycode == KEY_0:
 			reset_zoom()
-		elif event.keycode == KEY_C or event.keycode == KEY_TAB:
-			toggle_character_model()
 
 func zoom_in() -> void:
 	target_zoom_val = clampf(target_zoom_val + zoom_step, min_zoom_val, max_zoom_val)
@@ -98,34 +96,8 @@ func reset_zoom() -> void:
 func get_zoom_level() -> float:
 	return target_zoom_val
 
-# ── Ganti Model Karakter MC (Cowo / Cewe) ──────────────────────────────────
-func toggle_character_model() -> void:
-	if current_mc_type == MCType.DETECTIVE_BOY:
-		current_mc_type = MCType.GIRL
-	elif current_mc_type == MCType.GIRL:
-		current_mc_type = MCType.CASUAL_BOY
-	else:
-		current_mc_type = MCType.DETECTIVE_BOY
-	queue_redraw()
-
-func set_mc_gender(gender_name: String) -> void:
-	if gender_name.to_lower() == "cewe" or gender_name.to_lower() == "girl":
-		current_mc_type = MCType.GIRL
-	elif gender_name.to_lower() == "boy" or gender_name.to_lower() == "cowo":
-		current_mc_type = MCType.CASUAL_BOY
-	else:
-		current_mc_type = MCType.DETECTIVE_BOY
-	queue_redraw()
-
 func get_mc_model_name() -> String:
-	match current_mc_type:
-		MCType.DETECTIVE_BOY:
-			return "MC Detektif (Cowo)"
-		MCType.CASUAL_BOY:
-			return "MC Kasual (Cowo)"
-		MCType.GIRL:
-			return "MC Cewe (Girl)"
-	return "MC"
+	return "Detektif Benedict (MC)"
 
 func _physics_process(delta: float) -> void:
 	if not can_move:

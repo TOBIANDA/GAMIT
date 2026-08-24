@@ -103,7 +103,7 @@ func _draw() -> void:
 	_draw_desk(Rect2(411, 324, 105, 156))  # sq_left_3
 	_draw_desk(Rect2(411, 495, 105, 156))  # sq_left_4
 	_draw_desk(Rect2(411, 666, 105, 120))  # sq_left_5
-	_draw_desk(Rect2(192, 831, 99, 102))   # sq_left_small
+	_draw_desk(Rect2(25, 800, 140, 100))   # sq_left_small (Tepat di dalam room_left_L)
 
 	# 3. ROOM BOTTOM LEFT (0, 951, 357, 360)
 	draw_rect(Rect2(0, 951, 357, 360), COLOR_ROOM_OFFICE, true)
@@ -178,10 +178,10 @@ func _draw() -> void:
 	draw_line(Vector2(0, 320), Vector2(2160, 320), COLOR_PATH_TOP_TRIM, 2.5)
 
 	# 2. JALAN MENYIKU BARAT (L-Shaped Alley mengitari L-room & Gedung Tengah)
-	# Segmen Vertikal Atas (x=516..639, y=192..690)
-	draw_rect(Rect2(516, 192, 123, 498), COLOR_PATH_AISLE, true)
-	# Segmen Belokan Menyiku Tengah (x=192..639, y=690..945)
-	draw_rect(Rect2(192, 690, 447, 255), COLOR_PATH_AISLE, true)
+	# Segmen Vertikal Atas (x=516..639, y=192..786)
+	draw_rect(Rect2(516, 192, 123, 594), COLOR_PATH_AISLE, true)
+	# Segmen Belokan Menyiku Tengah (x=192..639, y=786..945)
+	draw_rect(Rect2(192, 786, 447, 159), COLOR_PATH_AISLE, true)
 	# Segmen Vertikal Bawah (x=357..465, y=945..1311)
 	draw_rect(Rect2(357, 945, 108, 366), COLOR_PATH_AISLE, true)
 
@@ -201,10 +201,10 @@ func _draw() -> void:
 	draw_line(Vector2(2020, 192), Vector2(2020, 1311), COLOR_PATH_HW_TRIM, 2.5)
 	draw_line(Vector2(2156, 192), Vector2(2156, 1311), COLOR_PATH_HW_TRIM, 2.5)
 
-	# 6. JALAN LINGKAR BAWAH (y=1245..1311)
-	draw_rect(Rect2(0, 1245, 2160, 66), COLOR_PATH_HIGHWAY, true)
-	draw_line(Vector2(0, 1248), Vector2(2160, 1248), COLOR_PATH_HW_TRIM, 2.5)
-	for mx in range(50, 2160, 60):
+	# 6. JALAN LINGKAR BAWAH (x=357..2160, y=1245..1311 - Tidak menutupi gedung kiri bawah)
+	draw_rect(Rect2(357, 1245, 1803, 66), COLOR_PATH_HIGHWAY, true)
+	draw_line(Vector2(357, 1248), Vector2(2160, 1248), COLOR_PATH_HW_TRIM, 2.5)
+	for mx in range(370, 2160, 60):
 		draw_line(Vector2(mx, 1278), Vector2(mx + 35, 1278), Color(0.85, 0.95, 1.0, 0.45), 2.0)
 
 	# 7. PLAZA PERSIMPANGAN
@@ -416,7 +416,7 @@ func _build_all_colliders() -> void:
 	_W(Rect2(411, 324, 105, 156))
 	_W(Rect2(411, 495, 105, 156))
 	_W(Rect2(411, 666, 105, 120))
-	_W(Rect2(192, 831, 99, 102))
+	_W(Rect2(25, 800, 140, 100))
 
 	# room_bottom_left
 	_W(Rect2(0, 948, 180, 6))
