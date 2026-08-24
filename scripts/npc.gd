@@ -1,19 +1,23 @@
 extends CharacterBody2D
 
-# ── NPC System v8 - Multi-Character Custom Sprites (Boy, Girl, Police) ───────
+# ── NPC System v8 - Multi-Sprite Support (NPC Cowo, NPC Polisi, NPC Cewe) ─────
 # Fitur:
-# 1. Tipe Karakter Dinamis: "Boy", "Girl", "Police", atau "Random" (menggunakan sprite PNG asli).
-# 2. Skala Tinggi Otomatis: Disesuaikan dengan MC baru (~22px) secara proporsional.
-# 3. Step Cycle Santai: Langkah kaki lebih natural dan tidak terburu-buru (3.2).
-# 4. Anti-Nyangkut & Textbox Dialog Growtopia tetap aktif.
+# 1. Tiga Tipe NPC Resmi:
+#    - NPCType.BOY: Karakter Cowo dari folder 'NPC_Boy' / 'posisi mc'
+#    - NPCType.POLICE: Karakter Polisi dari folder 'NPC_Police'
+#    - NPCType.GIRL: Karakter Cewe dari folder 'NPC_Girl'
+# 2. Skala Fisik Otomatis (~28px) presisi menyamai MC
+# 3. Fitur Anti-Nyangkut Tembok & Smart Avoidance Tetap Aktif
+# 4. Textbox Dialog Misteri Halus (Growtopia Style)
 
-@export_enum("Boy", "Girl", "Police", "Random") var npc_type: String = "Random"
-@export var target_height_px: float = 22.0    # Tinggi fisik target di layar (Menyamakan presisi dengan MC baru)
+enum NPCType { BOY, POLICE, GIRL }
+@export var npc_type: NPCType = NPCType.BOY # Default NPC Cowo
+@export var target_height_px: float = 28.0  # Menyamai ukuran MC
 @export var too_close_radius: float = 110.0
 @export var eavesdrop_radius: float = 220.0
 @export var panic_time_limit: float = 7.0
-@export var run_speed: float = 300.0
-@export var wander_speed: float = 35.0
+@export var run_speed: float = 380.0
+@export var wander_speed: float = 42.0
 
 enum State { IDLE, WANDER, EAVESDROP, AFRAID, PANIC_RUN, DESPAWNED }
 var current_state: State = State.IDLE
@@ -30,24 +34,10 @@ var msg_cooldown_timer: float = 0.0
 const MSG_DISPLAY_DURATION: float = 2.0
 const MSG_COOLDOWN_DURATION: float = 1.2
 
-# Textures untuk NPC (dari folder 'NPC_Boy', 'NPC_Girl', atau 'NPC_Police')
-var tex_front: Texture2D
-var tex_front_l: Texture2D
-var tex_front_r: Texture2D
+# Cache Sprite Textures untuk ketiga tipe NPC
+var sprite_sets: Dictionary = {}
 
-var tex_back: Texture2D
-var tex_back_l: Texture2D
-var tex_back_r: Texture2D
-
-var tex_left: Texture2D
-var tex_left_l: Texture2D
-var tex_left_r: Texture2D
-
-var tex_right: Texture2D
-var tex_right_l: Texture2D
-var tex_right_r: Texture2D
-
-# Node Referensi (Growtopia Textbox)
+# Node Referensi Textbox
 var textbox_panel: PanelContainer
 var textbox_label: Label
 var textbox_pointer: Polygon2D
@@ -64,7 +54,7 @@ var wander_timer: float = 0.0
 var wander_direction: Vector2 = Vector2.ZERO
 
 # Pool Percakapan Misteri Halus (Zona Aman / Clue)
-const CLUE_MESSAGES = [
+const CLUE_MESSAGES_CIVILIAN = [
 	"Perasaanku tidak enak... hawa di sini dingin sekali...",
 	"Jam dinding di ruangan itu... berhenti tepat jam dua.",
 	"Mereka bilang... ada satu laporan investigasi yang belum selesai.",
@@ -72,6 +62,14 @@ const CLUE_MESSAGES = [
 	"Aneh... kenapa angin tidak menggerakkan pakaianmu sama sekali?",
 	"Orang-orang di kota ini... tidak ada yang mau menjawabmu.",
 	"Ada sesuatu tentang tempat ini... yang membuat bulu kuduk berdiri..."
+]
+
+const CLUE_MESSAGES_POLICE = [
+	"Laporan TKP nomor 404... korbannya belum dapat diidentifikasi.",
+	"Semua pintu keluar kota diperintahkan ditutup rapat.",
+	"Detektif... berkas kasus itu terkunci di ruang arsip.",
+	"Jangan mendekati stasiun terlarang di ujung timur...",
+	"Ada jejak aneh yang berhenti tepat di depan kuil itu."
 ]
 
 # Pool Teriakan Panik (Terlalu Dekat > 7s)
@@ -85,66 +83,57 @@ const PANIC_MESSAGES = [
 
 func _ready() -> void:
 	y_sort_enabled = true
-	_determine_type_and_load_sprites()
+	_load_all_npc_sprite_sets()
 	_build_growtopia_textbox()
 	queue_redraw()
 
-func _determine_type_and_load_sprites() -> void:
-	var chosen_type = npc_type
-	if chosen_type == "Random":
-		var types = ["Boy", "Girl"]
-		chosen_type = types[randi() % types.size()]
+func _load_all_npc_sprite_sets() -> void:
+	sprite_sets[NPCType.BOY]    = _load_sprites_from_folder("res://NPC_Boy/")
+	sprite_sets[NPCType.POLICE] = _load_sprites_from_folder("res://NPC_Police/")
+	sprite_sets[NPCType.GIRL]   = _load_sprites_from_folder("res://NPC_Girl/")
 
-	var folder = "res://NPC_Boy/"
-	match chosen_type:
-		"Boy":
-			folder = "res://NPC_Boy/"
-		"Girl":
-			folder = "res://NPC_Girl/"
-		"Police":
-			folder = "res://NPC_Police/"
-		_:
-			folder = "res://NPC_Boy/"
-
-	tex_front   = load(folder + "front.png")
-	tex_front_l = load(folder + "front_left.png")
-	tex_front_r = load(folder + "front_right.png")
-
-	tex_back   = load(folder + "back.png")
-	tex_back_l = load(folder + "back_left.png")
-	tex_back_r = load(folder + "back_right.png")
-
-	tex_left   = load(folder + "left.png")
-	tex_left_l = load(folder + "left_left.png")
-	tex_left_r = load(folder + "left_right.png")
-
-	tex_right   = load(folder + "right.png")
-	tex_right_l = load(folder + "right_left.png")
-	tex_right_r = load(folder + "right_right.png")
+func _load_sprites_from_folder(folder_path: String) -> Dictionary:
+	var set_dict: Dictionary = {}
+	set_dict["front"]       = load(folder_path + "front.png")
+	set_dict["front_left"]  = load(folder_path + "front_left.png")
+	set_dict["front_right"] = load(folder_path + "front_right.png")
+	
+	set_dict["back"]        = load(folder_path + "back.png")
+	set_dict["back_left"]   = load(folder_path + "back_left.png")
+	set_dict["back_right"]  = load(folder_path + "back_right.png")
+	
+	set_dict["left"]        = load(folder_path + "left.png")
+	set_dict["left_left"]   = load(folder_path + "left_left.png")
+	set_dict["left_right"]  = load(folder_path + "left_right.png")
+	
+	set_dict["right"]       = load(folder_path + "right.png")
+	set_dict["right_left"]  = load(folder_path + "right_left.png")
+	set_dict["right_right"] = load(folder_path + "right_right.png")
+	return set_dict
 
 # ── Membuat UI Textbox Gaya Growtopia ───────────────────────────────────────
 func _build_growtopia_textbox() -> void:
 	var root_box = Node2D.new()
 	root_box.name = "TextboxRoot"
-	root_box.position = Vector2(0, -32)
+	root_box.position = Vector2(0, -42)
 	add_child(root_box)
 
 	# Panel Putih Growtopia
 	textbox_panel = PanelContainer.new()
-	textbox_panel.position = Vector2(-80, -36)
-	textbox_panel.size = Vector2(160, 32)
+	textbox_panel.position = Vector2(-90, -40)
+	textbox_panel.size = Vector2(180, 36)
 
 	var style_box = StyleBoxFlat.new()
 	style_box.bg_color = Color(0.98, 0.98, 0.98, 0.96)
 	style_box.border_color = Color(0.08, 0.08, 0.12, 1.0)
 	style_box.set_border_width_all(2)
-	style_box.set_corner_radius_all(6)
+	style_box.set_corner_radius_all(7)
 	style_box.content_margin_left = 8.0
 	style_box.content_margin_right = 8.0
 	style_box.content_margin_top = 4.0
 	style_box.content_margin_bottom = 4.0
 	style_box.shadow_color = Color(0, 0, 0, 0.25)
-	style_box.shadow_size = 2
+	style_box.shadow_size = 3
 	style_box.shadow_offset = Vector2(0, 2)
 
 	textbox_panel.add_theme_stylebox_override("panel", style_box)
@@ -157,34 +146,35 @@ func _build_growtopia_textbox() -> void:
 	textbox_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	textbox_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	textbox_label.add_theme_color_override("font_color", Color(0.08, 0.08, 0.12))
-	textbox_label.add_theme_font_size_override("font_size", 10)
+	textbox_label.add_theme_font_size_override("font_size", 11)
 	textbox_panel.add_child(textbox_label)
 
 	# Segitiga Ekor Textbox Growtopia
 	textbox_pointer = Polygon2D.new()
 	textbox_pointer.polygon = PackedVector2Array([
-		Vector2(-5, -2), Vector2(5, -2), Vector2(0, 5)
+		Vector2(-6, -2), Vector2(6, -2), Vector2(0, 6)
 	])
 	textbox_pointer.color = Color(0.98, 0.98, 0.98, 0.96)
 	root_box.add_child(textbox_pointer)
 
 	var pointer_outline = Line2D.new()
 	pointer_outline.points = PackedVector2Array([
-		Vector2(-5, -2), Vector2(0, 5), Vector2(5, -2)
+		Vector2(-6, -2), Vector2(0, 6), Vector2(6, -2)
 	])
-	pointer_outline.width = 1.8
+	pointer_outline.width = 2.0
 	pointer_outline.default_color = Color(0.08, 0.08, 0.12, 1.0)
 	root_box.add_child(pointer_outline)
 
 	root_box.scale = Vector2.ZERO
 
 func _trigger_new_clue_dialogue() -> void:
-	var next_idx = randi() % CLUE_MESSAGES.size()
+	var msg_pool = CLUE_MESSAGES_POLICE if npc_type == NPCType.POLICE else CLUE_MESSAGES_CIVILIAN
+	var next_idx = randi() % msg_pool.size()
 	if next_idx == last_clue_index:
-		next_idx = (next_idx + 1) % CLUE_MESSAGES.size()
+		next_idx = (next_idx + 1) % msg_pool.size()
 	last_clue_index = next_idx
 
-	current_text_msg = CLUE_MESSAGES[next_idx]
+	current_text_msg = msg_pool[next_idx]
 	if is_instance_valid(textbox_label):
 		textbox_label.text = current_text_msg
 
@@ -223,7 +213,7 @@ func _physics_process(delta: float) -> void:
 	# Eksekusi pergerakan fisika
 	move_and_slide()
 
-	# Cek jika menabrak tembok -> Lakukan pantulan otomatis
+	# Cek tabrakan tembok/pilar -> auto-slide & bounce
 	if is_on_wall():
 		_handle_wall_collision()
 
@@ -281,7 +271,7 @@ func _handle_idle_wander(delta: float, dist: float) -> void:
 
 	if is_moving:
 		velocity = wander_direction * wander_speed
-		step_cycle += delta * 3.2 # Langkah lebih santai
+		step_cycle += delta * 4.5
 		body_bob_y = abs(sin(step_cycle)) * -1.5
 	else:
 		velocity = Vector2.ZERO
@@ -336,7 +326,7 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 	panic_timer += delta
 	velocity = Vector2.ZERO
 	is_moving = false
-	tremble_offset = Vector2(randf_range(-1.2, 1.2), randf_range(-1.2, 1.2))
+	tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
 
 	if msg_display_timer > 0.0:
 		msg_display_timer -= delta
@@ -371,8 +361,8 @@ func _handle_panic_run(delta: float) -> void:
 	is_moving = true
 
 	velocity = run_direction * run_speed
-	step_cycle += delta * 10.0
-	body_bob_y = abs(sin(step_cycle)) * -3.0
+	step_cycle += delta * 18.0
+	body_bob_y = abs(sin(step_cycle)) * -3.5
 	tremble_offset = Vector2.ZERO
 
 	if run_timer <= 0.0:
@@ -389,8 +379,12 @@ func _animate_textbox_scale(delta: float) -> void:
 	if is_instance_valid(tb_root):
 		tb_root.scale = Vector2(textbox_scale, textbox_scale)
 
-# ── Get Texture Sprite NPC ──────────────────────────────────────────────────
-func _get_current_sprite() -> Texture2D:
+# ── Get Texture Sprite Berdasarkan NPCType ──────────────────────────────────
+func _get_current_npc_sprite() -> Texture2D:
+	var cur_set = sprite_sets.get(npc_type)
+	if cur_set == null or cur_set.is_empty():
+		return null
+
 	var move_dir = velocity.normalized()
 	if not is_moving or move_dir == Vector2.ZERO:
 		move_dir = wander_direction.normalized()
@@ -398,62 +392,62 @@ func _get_current_sprite() -> Texture2D:
 		move_dir = Vector2.DOWN
 
 	var is_horizontal = abs(move_dir.x) > abs(move_dir.y)
-	var idle_tex: Texture2D
-	var step_l_tex: Texture2D
-	var step_r_tex: Texture2D
+	var idle_key: String
+	var step_l_key: String
+	var step_r_key: String
 
 	if is_horizontal:
 		if move_dir.x < 0:
-			idle_tex   = tex_left
-			step_l_tex = tex_left_l
-			step_r_tex = tex_left_r
+			idle_key   = "left"
+			step_l_key = "left_left"
+			step_r_key = "left_right"
 		else:
-			idle_tex   = tex_right
-			step_l_tex = tex_right_l
-			step_r_tex = tex_right_r
+			idle_key   = "right"
+			step_l_key = "right_left"
+			step_r_key = "right_right"
 	else:
 		if move_dir.y < 0:
-			idle_tex   = tex_back
-			step_l_tex = tex_back_l
-			step_r_tex = tex_back_r
+			idle_key   = "back"
+			step_l_key = "back_left"
+			step_r_key = "back_right"
 		else:
-			idle_tex   = tex_front
-			step_l_tex = tex_front_l
-			step_r_tex = tex_front_r
+			idle_key   = "front"
+			step_l_key = "front_left"
+			step_r_key = "front_right"
 
 	if not is_moving:
-		return idle_tex
+		return cur_set.get(idle_key)
 
 	var anim_phase = fmod(step_cycle, 1.0)
 	if anim_phase < 0.25:
-		return idle_tex
+		return cur_set.get(idle_key)
 	elif anim_phase < 0.50:
-		return step_l_tex
+		return cur_set.get(step_l_key)
 	elif anim_phase < 0.75:
-		return idle_tex
+		return cur_set.get(idle_key)
 	else:
-		return step_r_tex
+		return cur_set.get(step_r_key)
 
-# ── Custom Drawing Avatar ───────────────────────────────────────────────────
+# ── Custom Drawing Avatar NPC ───────────────────────────────────────────────
 func _draw() -> void:
 	if current_state == State.DESPAWNED:
 		return
 
 	var draw_pos = tremble_offset
 
-	# 1. Bayangan lantai
+	# 1. Bayangan lantai kecil & rapi
 	draw_set_transform(draw_pos, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 4), 6.0, Color(0, 0, 0, 0.3))
+	draw_circle(Vector2(0, 6), 6.5, Color(0, 0, 0, 0.3))
 	draw_set_transform(draw_pos, 0.0, Vector2.ONE)
 
-	# 2. Render Sprite Custom (Boy / Girl / Police)
-	var cur_tex = _get_current_sprite()
+	# 2. Render Sprite Custom Texture Sesuai NPCType
+	var cur_tex = _get_current_npc_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
-		# Hitung Skala Otomatis agar tinggi fisik NPC presisi ~22px menyamai MC baru
+		# Skala Otomatis agar tinggi fisik NPC tepat ~28px menyamai MC
 		var calculated_scale = target_height_px / max(size.y, 1.0)
 		
 		draw_set_transform(draw_pos, 0.0, Vector2(calculated_scale, calculated_scale))
-		var draw_offset = Vector2(-size.x / 2.0, -size.y + 6.0)
+		var draw_offset = Vector2(-size.x / 2.0, -size.y + 8.0)
 		draw_texture(cur_tex, draw_offset)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

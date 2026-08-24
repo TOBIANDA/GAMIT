@@ -1,36 +1,24 @@
 extends CharacterBody2D
 
 # ── Konfigurasi Pergerakan 3/4 Top-Down ─────────────────────────────────────
-@export var max_speed: float = 120.0       # Diperlambat agar terasa nuansa investigasi
-@export var acceleration: float = 1600.0   # Akselerasi yang halus
-@export var friction: float = 1800.0       # Gesekan menghentikan pergerakan
+@export var max_speed: float = 120.0       # Kecepatan investigasi santai
+@export var acceleration: float = 1600.0   # Akselerasi halus
+@export var friction: float = 1800.0       # Gesekan
 @export var can_move: bool = true
-@export var sprite_scale: float = 0.055    # Skala diperkecil lagi agar lebih proporsional dengan map luas
-@export var step_animation_speed: float = 3.2 # Jumlah step perdetik dikurangi agar langkah santai & natural
 
-@export_enum("MC", "Boy", "Girl", "Police") var character_skin: String = "MC"
+# ── Pilihan Karakter MC (Default: Cewe) ─────────────────────────────────────
+enum MCType { DETECTIVE_BOY, CASUAL_BOY, GIRL }
+@export var current_mc_type: MCType = MCType.GIRL # Default MC Cewe
+@export var target_height_px: float = 28.0        # Ukuran badan MC lebih kecil & proporsional
+@export var step_anim_speed: float = 2.0          # Jumlah langkah per detik lebih sedikit & santai
 
 # ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
 var step_cycle: float = 0.0
 var is_moving: bool = false
 
-# ── Textures Sprite Karakter (4 Arah x 3 Frame Langkah) ─────────────────────
-var tex_front: Texture2D
-var tex_front_l: Texture2D
-var tex_front_r: Texture2D
-
-var tex_back: Texture2D
-var tex_back_l: Texture2D
-var tex_back_r: Texture2D
-
-var tex_left: Texture2D
-var tex_left_l: Texture2D
-var tex_left_r: Texture2D
-
-var tex_right: Texture2D
-var tex_right_l: Texture2D
-var tex_right_r: Texture2D
+# Dictionary untuk menyimpan 12 texture per karakter
+var sprite_sets: Dictionary = {}
 
 # ── Node References & Zoom Kontrol ─────────────────────────────────────────
 @onready var camera: Camera2D = $Camera2D
@@ -46,52 +34,33 @@ func _ready() -> void:
 	if is_instance_valid(camera):
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
-	_load_current_skin()
+	# Load semua set sprite MC (posisi mc, NPC_Boy, NPC_Girl)
+	_load_all_mc_sprite_sets()
 	queue_redraw()
 
-func _load_current_skin() -> void:
-	var base_folder = "res://posisi mc/"
-	match character_skin:
-		"Boy":
-			base_folder = "res://NPC_Boy/"
-		"Girl":
-			base_folder = "res://NPC_Girl/"
-		"Police":
-			base_folder = "res://NPC_Police/"
-		_:
-			base_folder = "res://posisi mc/"
+func _load_all_mc_sprite_sets() -> void:
+	sprite_sets[MCType.DETECTIVE_BOY] = _load_sprites_from_folder("res://posisi mc/")
+	sprite_sets[MCType.CASUAL_BOY]    = _load_sprites_from_folder("res://NPC_Boy/")
+	sprite_sets[MCType.GIRL]          = _load_sprites_from_folder("res://NPC_Girl/")
 
-	tex_front   = load(base_folder + "front.png")
-	tex_front_l = load(base_folder + "front_left.png")
-	tex_front_r = load(base_folder + "front_right.png")
-
-	tex_back   = load(base_folder + "back.png")
-	tex_back_l = load(base_folder + "back_left.png")
-	tex_back_r = load(base_folder + "back_right.png")
-
-	tex_left   = load(base_folder + "left.png")
-	tex_left_l = load(base_folder + "left_left.png")
-	tex_left_r = load(base_folder + "left_right.png")
-
-	tex_right   = load(base_folder + "right.png")
-	tex_right_l = load(base_folder + "right_left.png")
-	tex_right_r = load(base_folder + "right_right.png")
-
-func set_character_skin(skin_name: String) -> void:
-	character_skin = skin_name
-	_load_current_skin()
-	queue_redraw()
-
-func switch_to_next_skin() -> void:
-	match character_skin:
-		"MC":
-			set_character_skin("Boy")
-		"Boy":
-			set_character_skin("Girl")
-		"Girl":
-			set_character_skin("Police")
-		"Police":
-			set_character_skin("MC")
+func _load_sprites_from_folder(folder_path: String) -> Dictionary:
+	var set_dict: Dictionary = {}
+	set_dict["front"]       = load(folder_path + "front.png")
+	set_dict["front_left"]  = load(folder_path + "front_left.png")
+	set_dict["front_right"] = load(folder_path + "front_right.png")
+	
+	set_dict["back"]        = load(folder_path + "back.png")
+	set_dict["back_left"]   = load(folder_path + "back_left.png")
+	set_dict["back_right"]  = load(folder_path + "back_right.png")
+	
+	set_dict["left"]        = load(folder_path + "left.png")
+	set_dict["left_left"]   = load(folder_path + "left_left.png")
+	set_dict["left_right"]  = load(folder_path + "left_right.png")
+	
+	set_dict["right"]       = load(folder_path + "right.png")
+	set_dict["right_left"]  = load(folder_path + "right_left.png")
+	set_dict["right_right"] = load(folder_path + "right_right.png")
+	return set_dict
 
 func _unhandled_input(event: InputEvent) -> void:
 	# 1. Mouse Scroll Wheel untuk Zoom
@@ -101,7 +70,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom_out()
 
-	# 2. Keyboard Hotkeys Zoom & Skin
+	# 2. Keyboard Hotkeys Zoom & Ganti Model Karakter
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_I or event.keycode == KEY_BRACKETRIGHT:
 			zoom_in()
@@ -109,8 +78,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			zoom_out()
 		elif event.keycode == KEY_0:
 			reset_zoom()
-		elif event.keycode == KEY_G:
-			switch_to_next_skin()
+		elif event.keycode == KEY_C or event.keycode == KEY_TAB:
+			toggle_character_model()
 
 func zoom_in() -> void:
 	target_zoom_val = clampf(target_zoom_val + zoom_step, min_zoom_val, max_zoom_val)
@@ -123,6 +92,35 @@ func reset_zoom() -> void:
 
 func get_zoom_level() -> float:
 	return target_zoom_val
+
+# ── Ganti Model Karakter MC (Cowo / Cewe) ──────────────────────────────────
+func toggle_character_model() -> void:
+	if current_mc_type == MCType.DETECTIVE_BOY:
+		current_mc_type = MCType.GIRL
+	elif current_mc_type == MCType.GIRL:
+		current_mc_type = MCType.CASUAL_BOY
+	else:
+		current_mc_type = MCType.DETECTIVE_BOY
+	queue_redraw()
+
+func set_mc_gender(gender_name: String) -> void:
+	if gender_name.to_lower() == "cewe" or gender_name.to_lower() == "girl":
+		current_mc_type = MCType.GIRL
+	elif gender_name.to_lower() == "boy" or gender_name.to_lower() == "cowo":
+		current_mc_type = MCType.CASUAL_BOY
+	else:
+		current_mc_type = MCType.DETECTIVE_BOY
+	queue_redraw()
+
+func get_mc_model_name() -> String:
+	match current_mc_type:
+		MCType.DETECTIVE_BOY:
+			return "MC Detektif (Cowo)"
+		MCType.CASUAL_BOY:
+			return "MC Kasual (Cowo)"
+		MCType.GIRL:
+			return "MC Cewe (Girl)"
+	return "MC"
 
 func _physics_process(delta: float) -> void:
 	if not can_move:
@@ -140,8 +138,8 @@ func _physics_process(delta: float) -> void:
 		is_moving = true
 		facing_direction = input_vector.normalized()
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
-		# Step perdetik lebih santai
-		step_cycle += delta * step_animation_speed
+		# Step cycle diperlambat agar langkah kaki tidak terlalu cepat
+		step_cycle += delta * step_anim_speed
 	else:
 		is_moving = false
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
@@ -174,60 +172,66 @@ func _get_input_vector() -> Vector2:
 
 # ── Dapatkan Texture Sprite yang Sesuai dengan Arah & Animasi Langkah ───────
 func _get_current_sprite() -> Texture2D:
+	var cur_set = sprite_sets.get(current_mc_type)
+	if cur_set == null or cur_set.is_empty():
+		return null
+
 	var is_horizontal = abs(facing_direction.x) > abs(facing_direction.y)
 
-	var idle_tex: Texture2D
-	var step_l_tex: Texture2D
-	var step_r_tex: Texture2D
+	var idle_key: String
+	var step_l_key: String
+	var step_r_key: String
 
 	if is_horizontal:
 		if facing_direction.x < 0:
-			idle_tex   = tex_left
-			step_l_tex = tex_left_l
-			step_r_tex = tex_left_r
+			idle_key   = "left"
+			step_l_key = "left_left"
+			step_r_key = "left_right"
 		else:
-			idle_tex   = tex_right
-			step_l_tex = tex_right_l
-			step_r_tex = tex_right_r
+			idle_key   = "right"
+			step_l_key = "right_left"
+			step_r_key = "right_right"
 	else:
 		if facing_direction.y < 0:
-			idle_tex   = tex_back
-			step_l_tex = tex_back_l
-			step_r_tex = tex_back_r
+			idle_key   = "back"
+			step_l_key = "back_left"
+			step_r_key = "back_right"
 		else:
-			idle_tex   = tex_front
-			step_l_tex = tex_front_l
-			step_r_tex = tex_front_r
+			idle_key   = "front"
+			step_l_key = "front_left"
+			step_r_key = "front_right"
 
 	if not is_moving:
-		return idle_tex
+		return cur_set.get(idle_key)
 
 	# Animasi 4-frame walk cycle (Idle -> Step Left -> Idle -> Step Right)
 	var anim_phase = fmod(step_cycle, 1.0)
 	if anim_phase < 0.25:
-		return idle_tex
+		return cur_set.get(idle_key)
 	elif anim_phase < 0.50:
-		return step_l_tex
+		return cur_set.get(step_l_key)
 	elif anim_phase < 0.75:
-		return idle_tex
+		return cur_set.get(idle_key)
 	else:
-		return step_r_tex
+		return cur_set.get(step_r_key)
 
 func _draw() -> void:
-	# 1. Bayangan di lantai (Ground Shadow Oval)
+	# 1. Bayangan di lantai (Ground Shadow Oval) - proporsional kecil
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 4), 6.0, Color(0, 0, 0, 0.35))
+	draw_circle(Vector2(0, 5), 6.5, Color(0, 0, 0, 0.35))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	# 2. Gambar Sprite Art MC dari texture aktif dengan Skala Proporsional
+	# 2. Gambar Sprite Art MC dengan Ukuran Badan Proporsional Kecil
 	var cur_tex = _get_current_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(sprite_scale, sprite_scale))
+		# Skala dinamis agar tinggi fisik MC tepat target_height_px (~36px)
+		var calculated_scale = target_height_px / max(size.y, 1.0)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(calculated_scale, calculated_scale))
 		
 		# Offset agar posisi kaki tepat berada di origin
-		var draw_offset = Vector2(-size.x / 2.0, -size.y + 6.0)
+		var draw_offset = Vector2(-size.x / 2.0, -size.y + 8.0)
 		draw_texture(cur_tex, draw_offset)
 		
-		# Reset transform kembali ke normal
+		# Reset transform
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

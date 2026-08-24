@@ -50,27 +50,23 @@ position = Vector2(1170, 270)
 
 [node name="NPC1" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(350, 258)
-npc_type = "Boy"
+npc_type = 0
 
 [node name="NPC2" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(594, 550)
-npc_type = "Girl"
+npc_type = 0
 
 [node name="NPC3" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(1104, 780)
-npc_type = "Boy"
+npc_type = 0
 
 [node name="NPC4" parent="." instance=ExtResource("6_npc_scene")]
-position = Vector2(1581, 780)
-npc_type = "Girl"
+position = Vector2(180, 1050)
+npc_type = 1
 
 [node name="NPC5" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(2088, 550)
-npc_type = "Boy"
-
-[node name="NPC_Police" parent="." instance=ExtResource("6_npc_scene")]
-position = Vector2(180, 1100)
-npc_type = "Police"
+npc_type = 0
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 2
