@@ -12,7 +12,7 @@ extends CharacterBody2D
 
 enum NPCType { BOY, POLICE, GIRL }
 @export var npc_type: NPCType = NPCType.BOY # Default NPC Cowo
-@export var target_height_px: float = 28.0  # Menyamai ukuran MC
+@export var target_height_px: float = 38.0  # Menyamai ukuran MC (diperbesar sedikit)
 @export var too_close_radius: float = 110.0
 @export var eavesdrop_radius: float = 220.0
 @export var panic_time_limit: float = 7.0
@@ -435,12 +435,7 @@ func _draw() -> void:
 
 	var draw_pos = tremble_offset
 
-	# 1. Bayangan lantai kecil & rapi
-	draw_set_transform(draw_pos, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 6), 6.5, Color(0, 0, 0, 0.3))
-	draw_set_transform(draw_pos, 0.0, Vector2.ONE)
-
-	# 2. Render Sprite Custom Texture Sesuai NPCType
+	# Render Sprite Custom Texture Sesuai NPCType
 	var cur_tex = _get_current_npc_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()

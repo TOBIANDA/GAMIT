@@ -11,7 +11,7 @@ extends CharacterBody2D
 # ── Pilihan Karakter MC (Default: MC Detektif Asli 'posisi mc') ────────────
 enum MCType { DETECTIVE_BOY, CASUAL_BOY, GIRL }
 @export var current_mc_type: MCType = MCType.DETECTIVE_BOY # MC Detektif Asli (Benedict)
-@export var target_height_px: float = 28.0                 # Ukuran badan MC kecil & proporsional
+@export var target_height_px: float = 38.0                 # Ukuran badan MC diperbesar sedikit & proporsional
 @export var base_step_anim_speed: float = 2.0              # Langkah jalan santai
 @export var sprint_step_anim_speed: float = 3.2            # Langkah saat lari
 var step_anim_speed: float = 2.0
@@ -200,12 +200,7 @@ func _get_current_sprite() -> Texture2D:
 		return cur_set.get(step_r_key)
 
 func _draw() -> void:
-	# 1. Bayangan di lantai (Ground Shadow Oval) - proporsional kecil
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 5), 6.5, Color(0, 0, 0, 0.35))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-	# 2. Gambar Sprite Art MC dengan Ukuran Badan Proporsional Kecil
+	# Gambar Sprite Art MC dengan Ukuran Badan Proporsional
 	var cur_tex = _get_current_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
