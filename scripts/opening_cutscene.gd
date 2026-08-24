@@ -1,26 +1,27 @@
 extends Node2D
 
-# ── Opening Cutscene v3 - Pixel Art Style & Sharper Fade ────────────────────
+# ── Opening Cutscene v4 - Full Responsive Ratio & Pixel Art Styling ─────────
 # Quote: "Death is not the opposite of life, but a part of it." — Haruki Murakami
-# Fitur: Pixel Art Font Styling + Outline, Durasi Lebih Cepat, Kejelasan Tinggi
+# Fitur: Menggunakan CanvasLayer & Anchor UI dinamis sehingga 100% responsif di semua resolusi / rasio layar
 
 const NEXT_SCENE_PATH = "res://scenes/main.tscn"
 
 const QUOTE_TEXT  = '"Death is not the opposite of life, but a part of it."'
 const AUTHOR_TEXT = "— Haruki Murakami"
 
-# Durasi Lebih Singkat & Responsif
-const FADE_IN_DURATION  = 1.8  # Transisi masuk lebih cepat
-const HOLD_DURATION     = 1.6  # Tahan di puncak kejelasan
-const FADE_OUT_DURATION = 1.8  # Transisi keluar menghitam
+# Durasi
+const FADE_IN_DURATION  = 1.8
+const HOLD_DURATION     = 1.6
+const FADE_OUT_DURATION = 1.8
 
-# Referensi Node
+# Referensi Node UI
+var canvas_layer: CanvasLayer
+var root_control: Control
 var bg_rect: ColorRect
 var center_glow: ColorRect
 var fog_particles1: CPUParticles2D
 var fog_particles2: CPUParticles2D
 var fog_particles3: CPUParticles2D
-var main_container: VBoxContainer
 var quote_label: Label
 var author_label: Label
 var skip_hint_label: Label
@@ -36,98 +37,106 @@ func _ready() -> void:
 	_build_scene_nodes()
 	_start_intro()
 
-# ── Membangun UI & Pixel Art Styling ─────────────────────────────────────────
+# ── Membangun UI Responsif di CanvasLayer ────────────────────────────────────
 func _build_scene_nodes() -> void:
-	# 1. Background Void Hitam Pezat
+	canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 1
+	add_child(canvas_layer)
+
+	# Root Control memenuhi seluruh layar
+	root_control = Control.new()
+	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root_control.anchor_right = 1.0
+	root_control.anchor_bottom = 1.0
+	canvas_layer.add_child(root_control)
+
+	# 1. Background Void Hitam Pekat (Full Rect)
 	bg_rect = ColorRect.new()
 	bg_rect.color = Color(0.015, 0.01, 0.03, 1.0)
-	bg_rect.size = Vector2(1280, 720)
-	add_child(bg_rect)
+	bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg_rect.anchor_right = 1.0
+	bg_rect.anchor_bottom = 1.0
+	root_control.add_child(bg_rect)
 
-	# 2. Glow Center Aura (Pusat Cahaya Ungu-Pixel)
+	# 2. Glow Center Aura (Pusat Cahaya Ungu-Pixel di tengah layar)
 	center_glow = ColorRect.new()
-	center_glow.color = Color(0.2, 0.1, 0.35, 0.18)
-	center_glow.position = Vector2(240, 160)
-	center_glow.size = Vector2(800, 400)
-	add_child(center_glow)
+	center_glow.color = Color(0.2, 0.1, 0.35, 0.22)
+	center_glow.set_anchors_preset(Control.PRESET_CENTER)
+	center_glow.anchor_left = 0.5
+	center_glow.anchor_top = 0.5
+	center_glow.anchor_right = 0.5
+	center_glow.anchor_bottom = 0.5
+	center_glow.offset_left = -450.0
+	center_glow.offset_top = -220.0
+	center_glow.offset_right = 450.0
+	center_glow.offset_bottom = 220.0
+	root_control.add_child(center_glow)
 
-	# 3. Layer Kabut 1 (CPUParticles2D - Tebal & Jelas)
+	# 3. Layer Kabut Mengambang (Diatur responsif terhadap ukuran layar)
+	var vp_size = get_viewport_rect().size
+	if vp_size.x <= 0: vp_size = Vector2(1600, 900)
+
 	fog_particles1 = CPUParticles2D.new()
-	fog_particles1.position = Vector2(-150, 360)
-	fog_particles1.amount = 90
-	fog_particles1.lifetime = 10.0
-	fog_particles1.preprocess = 5.0
+	fog_particles1.position = Vector2(0, vp_size.y * 0.5)
+	fog_particles1.amount = 80
+	fog_particles1.lifetime = 9.0
+	fog_particles1.preprocess = 4.0
 	fog_particles1.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	fog_particles1.emission_rect_extents = Vector2(60, 450)
+	fog_particles1.emission_rect_extents = Vector2(60, vp_size.y * 0.6)
 	fog_particles1.gravity = Vector2(0, 0)
-	fog_particles1.direction = Vector2(1, 0.1)
+	fog_particles1.direction = Vector2(1, 0.05)
 	fog_particles1.spread = 20.0
 	fog_particles1.initial_velocity_min = 40.0
 	fog_particles1.initial_velocity_max = 80.0
-	fog_particles1.scale_amount_min = 120.0
-	fog_particles1.scale_amount_max = 260.0
-	fog_particles1.color = Color(0.45, 0.35, 0.65, 0.18)
+	fog_particles1.scale_amount_min = 140.0
+	fog_particles1.scale_amount_max = 300.0
+	fog_particles1.color = Color(0.45, 0.35, 0.65, 0.16)
 	add_child(fog_particles1)
 
-	# 4. Layer Kabut 2 (Melayang Berlawanan Arah)
 	fog_particles2 = CPUParticles2D.new()
-	fog_particles2.position = Vector2(1430, 400)
-	fog_particles2.amount = 75
+	fog_particles2.position = Vector2(vp_size.x, vp_size.y * 0.5)
+	fog_particles2.amount = 70
 	fog_particles2.lifetime = 8.0
-	fog_particles2.preprocess = 4.0
+	fog_particles2.preprocess = 3.0
 	fog_particles2.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	fog_particles2.emission_rect_extents = Vector2(60, 380)
+	fog_particles2.emission_rect_extents = Vector2(60, vp_size.y * 0.5)
 	fog_particles2.gravity = Vector2(0, 0)
-	fog_particles2.direction = Vector2(-1, -0.1)
+	fog_particles2.direction = Vector2(-1, -0.05)
 	fog_particles2.spread = 25.0
 	fog_particles2.initial_velocity_min = 45.0
 	fog_particles2.initial_velocity_max = 90.0
-	fog_particles2.scale_amount_min = 130.0
-	fog_particles2.scale_amount_max = 300.0
-	fog_particles2.color = Color(0.3, 0.22, 0.45, 0.15)
+	fog_particles2.scale_amount_min = 140.0
+	fog_particles2.scale_amount_max = 320.0
+	fog_particles2.color = Color(0.3, 0.22, 0.45, 0.14)
 	add_child(fog_particles2)
 
-	# 5. Layer Kabut 3 (Foreground Low Floating Fog)
-	fog_particles3 = CPUParticles2D.new()
-	fog_particles3.position = Vector2(640, 750)
-	fog_particles3.amount = 50
-	fog_particles3.lifetime = 7.0
-	fog_particles3.preprocess = 3.0
-	fog_particles3.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	fog_particles3.emission_rect_extents = Vector2(700, 40)
-	fog_particles3.gravity = Vector2(0, -12)
-	fog_particles3.direction = Vector2(0, -1)
-	fog_particles3.spread = 35.0
-	fog_particles3.initial_velocity_min = 20.0
-	fog_particles3.initial_velocity_max = 45.0
-	fog_particles3.scale_amount_min = 160.0
-	fog_particles3.scale_amount_max = 340.0
-	fog_particles3.color = Color(0.35, 0.28, 0.52, 0.14)
-	add_child(fog_particles3)
+	# 4. Center Container Teks Quote (Tepat di Tengah Layar pada Semua Resolusi)
+	var center_container = CenterContainer.new()
+	center_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center_container.anchor_right = 1.0
+	center_container.anchor_bottom = 1.0
+	root_control.add_child(center_container)
 
-	# 6. Container UI Utama Teks Quote
-	main_container = VBoxContainer.new()
-	main_container.position = Vector2(140, 230)
-	main_container.size = Vector2(1000, 300)
-	main_container.add_theme_constant_override("separation", 32)
-	add_child(main_container)
+	var text_vbox = VBoxContainer.new()
+	text_vbox.custom_minimum_size = Vector2(900, 0)
+	text_vbox.add_theme_constant_override("separation", 24)
+	center_container.add_child(text_vbox)
 
-	# 7. Label Quote - Pixel Art Styling (Besar & Kontras Tajam)
+	# 5. Label Quote
 	quote_label = Label.new()
 	quote_label.text = QUOTE_TEXT
 	quote_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quote_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	# Warna putih tajam berbayang gelap gaya retro/pixel
 	quote_label.add_theme_color_override("font_color", Color(1.0, 0.98, 1.0))
 	quote_label.add_theme_color_override("font_shadow_color", Color(0.1, 0.05, 0.2, 0.9))
 	quote_label.add_theme_constant_override("shadow_offset_x", 3)
 	quote_label.add_theme_constant_override("shadow_offset_y", 3)
 	quote_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
 	quote_label.add_theme_constant_override("outline_size", 6)
-	quote_label.add_theme_font_size_override("font_size", 34) # Diperbesar agar jelas
-	main_container.add_child(quote_label)
+	quote_label.add_theme_font_size_override("font_size", 30)
+	text_vbox.add_child(quote_label)
 
-	# 8. Label Penulis (Haruki Murakami) - Pixel Style Accent
+	# 6. Label Penulis (Haruki Murakami)
 	author_label = Label.new()
 	author_label.text = AUTHOR_TEXT
 	author_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -137,26 +146,33 @@ func _build_scene_nodes() -> void:
 	author_label.add_theme_constant_override("shadow_offset_y", 2)
 	author_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
 	author_label.add_theme_constant_override("outline_size", 5)
-	author_label.add_theme_font_size_override("font_size", 24) # Diperbesar & Tajam
-	main_container.add_child(author_label)
+	author_label.add_theme_font_size_override("font_size", 20)
+	text_vbox.add_child(author_label)
 
-	# 9. Petunjuk Skip / Lanjut
+	# 7. Petunjuk Skip di Bawah Tengah
 	skip_hint_label = Label.new()
 	skip_hint_label.text = "[ SPACE / Klik untuk skip ]"
-	skip_hint_label.position = Vector2(440, 665)
-	skip_hint_label.size = Vector2(400, 30)
+	skip_hint_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	skip_hint_label.anchor_left = 0.0
+	skip_hint_label.anchor_top = 1.0
+	skip_hint_label.anchor_right = 1.0
+	skip_hint_label.anchor_bottom = 1.0
+	skip_hint_label.offset_top = -55.0
+	skip_hint_label.offset_bottom = -25.0
 	skip_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	skip_hint_label.add_theme_color_override("font_color", Color(0.5, 0.45, 0.65, 0.7))
+	skip_hint_label.add_theme_color_override("font_color", Color(0.55, 0.50, 0.70, 0.75))
 	skip_hint_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
 	skip_hint_label.add_theme_constant_override("outline_size", 3)
 	skip_hint_label.add_theme_font_size_override("font_size", 13)
-	add_child(skip_hint_label)
+	root_control.add_child(skip_hint_label)
 
-	# 10. Overlay Transition Fade (Hitam)
+	# 8. Overlay Transition Fade (Full Rect)
 	fade_overlay = ColorRect.new()
 	fade_overlay.color = Color(0, 0, 0, 1.0)
-	fade_overlay.size = Vector2(1280, 720)
-	add_child(fade_overlay)
+	fade_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade_overlay.anchor_right = 1.0
+	fade_overlay.anchor_bottom = 1.0
+	root_control.add_child(fade_overlay)
 
 # ── Logika Animasi ───────────────────────────────────────────────────────────
 func _start_intro() -> void:

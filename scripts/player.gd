@@ -1,18 +1,21 @@
 extends CharacterBody2D
 
 # ── Konfigurasi Pergerakan 3/4 Top-Down ─────────────────────────────────────
-@export var max_speed: float = 120.0       # Diperlambat agar terasa nuansa investigasi & map lebih terasa luas
-@export var acceleration: float = 1600.0   # Akselerasi yang lebih halus
+@export var max_speed: float = 120.0       # Diperlambat agar terasa nuansa investigasi
+@export var acceleration: float = 1600.0   # Akselerasi yang halus
 @export var friction: float = 1800.0       # Gesekan menghentikan pergerakan
 @export var can_move: bool = true
-@export var sprite_scale: float = 0.08  # Skala kecil agar proporsional dengan dunia 2200x1350
+@export var sprite_scale: float = 0.055    # Skala diperkecil lagi agar lebih proporsional dengan map luas
+@export var step_animation_speed: float = 3.2 # Jumlah step perdetik dikurangi agar langkah santai & natural
+
+@export_enum("MC", "Boy", "Girl", "Police") var character_skin: String = "MC"
 
 # ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
 var step_cycle: float = 0.0
 var is_moving: bool = false
 
-# ── Textures Sprite MC (dari folder 'posisi mc') ────────────────────────────
+# ── Textures Sprite Karakter (4 Arah x 3 Frame Langkah) ─────────────────────
 var tex_front: Texture2D
 var tex_front_l: Texture2D
 var tex_front_r: Texture2D
@@ -33,8 +36,8 @@ var tex_right_r: Texture2D
 @onready var camera: Camera2D = $Camera2D
 
 @export var target_zoom_val: float = 1.8   # Nilai zoom aktif default
-@export var min_zoom_val: float = 0.35     # Penglihatan paling luas (lihat hampir seluruh map)
-@export var max_zoom_val: float = 3.5      # Penglihatan paling dekat (close up detail)
+@export var min_zoom_val: float = 0.35     # Penglihatan paling luas
+@export var max_zoom_val: float = 3.5      # Penglihatan paling dekat
 @export var zoom_step: float = 0.20        # Langkah per scroll / klik
 
 func _ready() -> void:
@@ -43,9 +46,52 @@ func _ready() -> void:
 	if is_instance_valid(camera):
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
-	# Load 12 sprite textures dari folder 'posisi mc'
-	_load_mc_sprites()
+	_load_current_skin()
 	queue_redraw()
+
+func _load_current_skin() -> void:
+	var base_folder = "res://posisi mc/"
+	match character_skin:
+		"Boy":
+			base_folder = "res://NPC_Boy/"
+		"Girl":
+			base_folder = "res://NPC_Girl/"
+		"Police":
+			base_folder = "res://NPC_Police/"
+		_:
+			base_folder = "res://posisi mc/"
+
+	tex_front   = load(base_folder + "front.png")
+	tex_front_l = load(base_folder + "front_left.png")
+	tex_front_r = load(base_folder + "front_right.png")
+
+	tex_back   = load(base_folder + "back.png")
+	tex_back_l = load(base_folder + "back_left.png")
+	tex_back_r = load(base_folder + "back_right.png")
+
+	tex_left   = load(base_folder + "left.png")
+	tex_left_l = load(base_folder + "left_left.png")
+	tex_left_r = load(base_folder + "left_right.png")
+
+	tex_right   = load(base_folder + "right.png")
+	tex_right_l = load(base_folder + "right_left.png")
+	tex_right_r = load(base_folder + "right_right.png")
+
+func set_character_skin(skin_name: String) -> void:
+	character_skin = skin_name
+	_load_current_skin()
+	queue_redraw()
+
+func switch_to_next_skin() -> void:
+	match character_skin:
+		"MC":
+			set_character_skin("Boy")
+		"Boy":
+			set_character_skin("Girl")
+		"Girl":
+			set_character_skin("Police")
+		"Police":
+			set_character_skin("MC")
 
 func _unhandled_input(event: InputEvent) -> void:
 	# 1. Mouse Scroll Wheel untuk Zoom
@@ -55,7 +101,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom_out()
 
-	# 2. Keyboard Hotkeys Zoom: [ + / = / I ] untuk Zoom In, [ - / _ / O ] untuk Zoom Out
+	# 2. Keyboard Hotkeys Zoom & Skin
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_I or event.keycode == KEY_BRACKETRIGHT:
 			zoom_in()
@@ -63,6 +109,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			zoom_out()
 		elif event.keycode == KEY_0:
 			reset_zoom()
+		elif event.keycode == KEY_G:
+			switch_to_next_skin()
 
 func zoom_in() -> void:
 	target_zoom_val = clampf(target_zoom_val + zoom_step, min_zoom_val, max_zoom_val)
@@ -75,23 +123,6 @@ func reset_zoom() -> void:
 
 func get_zoom_level() -> float:
 	return target_zoom_val
-
-func _load_mc_sprites() -> void:
-	tex_front   = load("res://posisi mc/front.png")
-	tex_front_l = load("res://posisi mc/front_left.png")
-	tex_front_r = load("res://posisi mc/front_right.png")
-
-	tex_back   = load("res://posisi mc/back.png")
-	tex_back_l = load("res://posisi mc/back_left.png")
-	tex_back_r = load("res://posisi mc/back_right.png")
-
-	tex_left   = load("res://posisi mc/left.png")
-	tex_left_l = load("res://posisi mc/left_left.png")
-	tex_left_r = load("res://posisi mc/left_right.png")
-
-	tex_right   = load("res://posisi mc/right.png")
-	tex_right_l = load("res://posisi mc/right_left.png")
-	tex_right_r = load("res://posisi mc/right_right.png")
 
 func _physics_process(delta: float) -> void:
 	if not can_move:
@@ -109,7 +140,8 @@ func _physics_process(delta: float) -> void:
 		is_moving = true
 		facing_direction = input_vector.normalized()
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
-		step_cycle += delta * 5.0 # Kecepatan animasi langkah kaki disesuaikan dengan kecepatan jalan
+		# Step perdetik lebih santai
+		step_cycle += delta * step_animation_speed
 	else:
 		is_moving = false
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
@@ -182,20 +214,19 @@ func _get_current_sprite() -> Texture2D:
 		return step_r_tex
 
 func _draw() -> void:
-	# 1. Bayangan di lantai (Ground Shadow Oval) - dikecilkan sesuai skala
+	# 1. Bayangan di lantai (Ground Shadow Oval)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.45))
-	draw_circle(Vector2(0, 6), 8.0, Color(0, 0, 0, 0.35))
+	draw_circle(Vector2(0, 4), 6.0, Color(0, 0, 0, 0.35))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	# 2. Gambar Sprite Art MC dari 'posisi mc' dengan Skala Proporsional
+	# 2. Gambar Sprite Art MC dari texture aktif dengan Skala Proporsional
 	var cur_tex = _get_current_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
-		# Skala kecil agar karakter tampak pas di dunia luas
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2(sprite_scale, sprite_scale))
 		
 		# Offset agar posisi kaki tepat berada di origin
-		var draw_offset = Vector2(-size.x / 2.0, -size.y + 8.0)
+		var draw_offset = Vector2(-size.x / 2.0, -size.y + 6.0)
 		draw_texture(cur_tex, draw_offset)
 		
 		# Reset transform kembali ke normal

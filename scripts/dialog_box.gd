@@ -8,7 +8,7 @@ const TYPING_SPEED = 0.025
 
 # ── Referensi Node UI ─────────────────────────────────────────────────────
 @onready var root_control: Control = $RootControl
-@onready var text_label: Label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/TextLabel
+@onready var text_label: Label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/ScrollContainer/Margin/TextLabel
 @onready var input_container: HBoxContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer
 @onready var input_edit: LineEdit = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer/InputEdit
 @onready var submit_btn: Button = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer/SubmitBtn

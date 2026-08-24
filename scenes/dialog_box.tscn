@@ -3,18 +3,18 @@
 [ext_resource type="Script" path="res://scripts/dialog_box.gd" id="1_dialog_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg_dialog"]
-bg_color = Color(0.05, 0.04, 0.08, 0.94)
+bg_color = Color(0.05, 0.04, 0.08, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.55, 0.35, 0.85, 0.8)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 shadow_color = Color(0.2, 0.05, 0.35, 0.4)
-shadow_size = 16
+shadow_size = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait_frame"]
 bg_color = Color(0.08, 0.05, 0.12, 1)
@@ -23,10 +23,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.65, 0.45, 0.95, 0.7)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_text_panel"]
 bg_color = Color(0.02, 0.02, 0.04, 0.5)
@@ -35,10 +35,10 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.3, 0.2, 0.45, 0.4)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
 bg_color = Color(0.1, 0.08, 0.16, 0.9)
@@ -51,10 +51,10 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_submit_btn"]
 bg_color = Color(0.45, 0.2, 0.75, 1)
@@ -67,10 +67,10 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 8.0
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn"]
 bg_color = Color(0.2, 0.15, 0.25, 0.8)
@@ -107,39 +107,40 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.35)
+color = Color(0, 0, 0, 0.4)
 
 [node name="BottomPanel" type="PanelContainer" parent="RootControl"]
 layout_mode = 1
-anchors_preset = 12
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 60.0
-offset_top = -250.0
-offset_right = -60.0
-offset_bottom = -25.0
+offset_left = -480.0
+offset_top = -225.0
+offset_right = 480.0
+offset_bottom = -15.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg_dialog")
 
 [node name="MarginContainer" type="MarginContainer" parent="RootControl/BottomPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
 
 [node name="HBoxContainer" type="HBoxContainer" parent="RootControl/BottomPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 22
+theme_override_constants/separation = 16
 
 [node name="PortraitBox" type="VBoxContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 
 [node name="PortraitPanel" type="PanelContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox"]
-custom_minimum_size = Vector2(140, 140)
+custom_minimum_size = Vector2(110, 110)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_portrait_frame")
@@ -152,37 +153,37 @@ color = Color(0.55, 0.2, 0.85, 0.35)
 layout_mode = 2
 
 [node name="AvatarVisual" type="Control" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 
 [node name="SkullHood" type="ColorRect" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer/AvatarVisual"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 70.0
-offset_bottom = 75.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 62.0
+offset_bottom = 65.0
 color = Color(0.12, 0.08, 0.2, 1)
 
 [node name="EyeLeft" type="ColorRect" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer/AvatarVisual"]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 34.0
-offset_right = 34.0
-offset_bottom = 40.0
+offset_left = 20.0
+offset_top = 28.0
+offset_right = 29.0
+offset_bottom = 34.0
 color = Color(0.85, 0.3, 1, 1)
 
 [node name="EyeRight" type="ColorRect" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer/AvatarVisual"]
 layout_mode = 0
-offset_left = 46.0
-offset_top = 34.0
-offset_right = 56.0
-offset_bottom = 40.0
+offset_left = 41.0
+offset_top = 28.0
+offset_right = 50.0
+offset_bottom = 34.0
 color = Color(0.85, 0.3, 1, 1)
 
 [node name="ContentVBox" type="VBoxContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="TopRow" type="HBoxContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox"]
 layout_mode = 2
@@ -190,7 +191,7 @@ layout_mode = 2
 [node name="NameTag" type="Label" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.75, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 15
 text = "❖ DEWA KEMATIAN ❖"
 
 [node name="VSeparator" type="VSeparator" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
@@ -200,7 +201,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.55, 0.9, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 
 [node name="CloseBtn" type="Button" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
@@ -208,7 +209,7 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.75, 0.9, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "✕ Tutup [ESC]"
 
 [node name="TextPanel" type="PanelContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox"]
@@ -216,24 +217,32 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_text_panel")
 
-[node name="Margin" type="MarginContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
 
-[node name="TextLabel" type="Label" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin"]
+[node name="Margin" type="MarginContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/ScrollContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="TextLabel" type="Label" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/ScrollContainer/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 1
 theme_override_colors/font_color = Color(0.9, 0.88, 0.98, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "..."
 autowrap_mode = 3
 
 [node name="InputContainer" type="HBoxContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="InputEdit" type="LineEdit" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer"]
 layout_mode = 2
@@ -242,7 +251,7 @@ theme_override_colors/font_color = Color(0.95, 0.92, 1, 1)
 theme_override_colors/font_placeholder_color = Color(0.5, 0.45, 0.65, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 placeholder_text = "Sampaikan apa yang kau pahami tentang kematian..."
 
 [node name="SubmitBtn" type="Button" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer"]
@@ -250,5 +259,5 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_submit_btn")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "✦ Sampaikan"
