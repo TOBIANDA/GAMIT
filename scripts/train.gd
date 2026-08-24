@@ -15,8 +15,8 @@ const TRAIN_SPEED: float = 620.0     # Kecepatan melaju (px/s)
 const TRAIN_START_Y: float = -950.0
 const TRAIN_END_Y: float = 2200.0
 
-@export var spawn_interval: float = 28.0 # Kereta lewat setiap ~28 detik
-var spawn_timer: float = 8.0             # Kereta pertama lewat 8 detik setelah main
+@export var spawn_interval: float = 15.0 # Kereta lewat setiap 15 detik
+var spawn_timer: float = 4.0             # Kereta pertama lewat 4 detik setelah main
 var is_train_running: bool = false
 var train_y: float = TRAIN_START_Y
 
