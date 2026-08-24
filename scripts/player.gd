@@ -6,11 +6,11 @@ extends CharacterBody2D
 @export var friction: float = 1800.0       # Gesekan
 @export var can_move: bool = true
 
-# ── Pilihan Karakter MC (Default: Cewe) ─────────────────────────────────────
+# ── Pilihan Karakter MC (Default: MC Detektif Asli 'posisi mc') ────────────
 enum MCType { DETECTIVE_BOY, CASUAL_BOY, GIRL }
-@export var current_mc_type: MCType = MCType.GIRL # Default MC Cewe
-@export var target_height_px: float = 28.0        # Ukuran badan MC lebih kecil & proporsional
-@export var step_anim_speed: float = 2.0          # Jumlah langkah per detik lebih sedikit & santai
+@export var current_mc_type: MCType = MCType.DETECTIVE_BOY # MC Detektif Asli
+@export var target_height_px: float = 28.0                 # Ukuran badan MC kecil & proporsional
+@export var step_anim_speed: float = 2.0                   # Jumlah langkah per detik tenang
 
 # ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
