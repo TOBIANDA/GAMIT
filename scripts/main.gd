@@ -72,14 +72,19 @@ func _ready() -> void:
 
 # ── Setup Manager & Sub-Sistem ──────────────────────────────────────────────
 func _setup_investigation_manager() -> void:
-	var mgr_script = load("res://scripts/investigation_manager.gd")
-	if mgr_script:
-		inv_mgr = Node.new()
-		inv_mgr.name = "InvestigationManager"
-		inv_mgr.set_script(mgr_script)
-		add_child(inv_mgr)
-		inv_mgr.phase_changed.connect(_on_phase_changed)
-		inv_mgr.notification_displayed.connect(_show_toast)
+	inv_mgr = get_node_or_null("/root/InvestigationManager")
+	if not is_instance_valid(inv_mgr):
+		var mgr_script = load("res://scripts/investigation_manager.gd")
+		if mgr_script:
+			inv_mgr = Node.new()
+			inv_mgr.name = "InvestigationManager"
+			inv_mgr.set_script(mgr_script)
+			add_child(inv_mgr)
+	if is_instance_valid(inv_mgr):
+		if not inv_mgr.phase_changed.is_connected(_on_phase_changed):
+			inv_mgr.phase_changed.connect(_on_phase_changed)
+		if not inv_mgr.notification_displayed.is_connected(_show_toast):
+			inv_mgr.notification_displayed.connect(_show_toast)
 
 func _setup_world_shader() -> void:
 	var ws_script = load("res://scripts/world_shader.gd")
