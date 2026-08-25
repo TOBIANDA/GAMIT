@@ -84,7 +84,7 @@ var tex_lemari: Texture2D
 
 var tex_baskom: Texture2D
 var tex_surat: Texture2D
-
+var collision_bodies: Array[StaticBody2D] = []
 var nav_region: NavigationRegion2D
 
 func _ready() -> void:
