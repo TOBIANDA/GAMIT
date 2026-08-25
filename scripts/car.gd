@@ -40,9 +40,12 @@ func _ready() -> void:
 	_setup_procedural_audio()
 	queue_redraw()
 
-func initialize_route(route_points: Array[Vector2], type: CarType, with_passenger: bool = false, drop_idx: int = -1) -> void:
-	waypoints = route_points
-	car_type = type
+func initialize_route(route_points: Array, type: int, with_passenger: bool = false, drop_idx: int = -1) -> void:
+	waypoints.clear()
+	for pt in route_points:
+		if pt is Vector2:
+			waypoints.append(pt)
+	car_type = type as CarType
 	has_passenger = with_passenger
 	dropoff_waypoint_idx = drop_idx
 	current_waypoint_idx = 0

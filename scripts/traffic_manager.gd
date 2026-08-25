@@ -57,10 +57,12 @@ func _attempt_spawn_car() -> void:
 	if not is_instance_valid(car_scene):
 		return
 
-	car_counter += 1
 	var route_dict = routes[randi() % routes.size()]
-	var route_points: Array[Vector2] = route_dict["points"]
-	var drop_idx: int = route_dict["drop_idx"]
+	var raw_points = route_dict["points"]
+	var route_points: Array[Vector2] = []
+	for pt in raw_points:
+		route_points.append(pt)
+	var drop_idx: int = int(route_dict["drop_idx"])
 
 	# Tipe Mobil: Taksi (0), Polisi (1), Sedan Hitam (2), Sedan Merah (3)
 	var car_type_int = randi() % 4
