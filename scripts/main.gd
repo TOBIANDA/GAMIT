@@ -131,6 +131,7 @@ func _on_minigame_ended() -> void:
 	_update_hud_objective()
 
 var letter_layer: CanvasLayer
+var letter_root_control: Control
 var letter_rect: TextureRect
 var letter_close_btn: Button
 
@@ -140,14 +141,18 @@ func _setup_letter_viewer() -> void:
 	letter_layer.layer = 15
 	add_child(letter_layer)
 
+	letter_root_control = Control.new()
+	letter_root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	letter_layer.add_child(letter_root_control)
+
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.color = Color(0.04, 0.05, 0.08, 0.85)
-	letter_layer.add_child(bg)
+	letter_root_control.add_child(bg)
 
 	var center = CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	letter_layer.add_child(center)
+	letter_root_control.add_child(center)
 
 	var vb = VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 14)
@@ -169,17 +174,17 @@ func _setup_letter_viewer() -> void:
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
-	letter_layer.visible = false
+	letter_root_control.visible = false
 
 func _open_letter_closeup() -> void:
-	if is_instance_valid(letter_layer):
-		letter_layer.visible = true
+	if is_instance_valid(letter_root_control):
+		letter_root_control.visible = true
 		if is_instance_valid(player):
 			player.can_move = false
 
 func _close_letter_viewer() -> void:
-	if is_instance_valid(letter_layer):
-		letter_layer.visible = false
+	if is_instance_valid(letter_root_control):
+		letter_root_control.visible = false
 	if is_instance_valid(player):
 		player.can_move = true
 	if is_instance_valid(inv_mgr):
@@ -275,6 +280,12 @@ func _check_poi_proximity() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
+		if is_instance_valid(letter_root_control) and letter_root_control.visible:
+			if event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER, KEY_F, KEY_E]:
+				_close_letter_viewer()
+				get_viewport().set_input_as_handled()
+				return
+
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE]:
 			if not active_poi_id.is_empty():
 				_trigger_poi_interaction(active_poi_id)
