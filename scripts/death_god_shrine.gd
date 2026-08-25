@@ -2,12 +2,10 @@ extends Node2D
 
 signal interaction_triggered
 
-# ── Status Interaksi ───────────────────────────────────────────────────────
 var player_in_range: bool = false
 var is_dialog_active: bool = false
 var anim_timer: float = 0.0
 
-# ── Node References ────────────────────────────────────────────────────────
 @onready var prompt_node: Node2D = $PromptBadge
 @onready var prompt_label: Label = $PromptBadge/Panel/PromptLabel
 @onready var god_figure: Node2D = $Visuals/GodFigure
@@ -22,23 +20,19 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	anim_timer += delta * 2.5
 	
-	# Animasi melayang (hovering) Dewa Kematian
 	if is_instance_valid(god_figure):
 		god_figure.position.y = -90.0 + sin(anim_timer) * 6.0
 	
-	# Animasi berdenyut ritual floor
 	if is_instance_valid(ritual_floor):
 		var scale_factor = 1.0 + sin(anim_timer * 1.5) * 0.04
 		ritual_floor.scale = Vector2(scale_factor, scale_factor)
 
-	# Animasi bounce pada prompt badge (hanya jika dialog sedang tidak aktif)
 	if player_in_range and not is_dialog_active and is_instance_valid(prompt_node):
 		prompt_node.visible = true
 		prompt_node.position.y = -165.0 + sin(anim_timer * 3.0) * 4.0
 	else:
 		prompt_node.visible = false
 
-# Gunakan _unhandled_input agar tombol E yang diketik di LineEdit TIDAK ditangkap di sini
 func _unhandled_input(event: InputEvent) -> void:
 	if not player_in_range or is_dialog_active:
 		return

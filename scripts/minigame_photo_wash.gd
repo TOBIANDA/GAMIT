@@ -1,14 +1,9 @@
 extends CanvasLayer
 
-# ── Mini Game 3: Forensic Cleaning & Cuci Foto Kamar Gelap (Sesuai GDD) ─────
-# Kontrol:
-# - Merendam foto: Klik dan TAHAN tombol kiri mouse (Hold Left Click)
-# - Membilas foto: QTE (Tekan tombol keyboard yang muncul dalam batas waktu singkat)
-
 signal minigame_completed(success: bool)
 
 var is_active: bool = false
-var current_step: int = 0 # 0: Rendam Foto, 1: Bilas QTE Foto, 2: Hasil Foto Terungkap
+var current_step: int = 0
 
 var soak_progress: float = 0.0
 var is_mouse_holding: bool = false
@@ -76,14 +71,13 @@ func _pick_next_qte_key() -> void:
 	var idx = randi() % keys.size()
 	qte_target_key = keys[idx]
 	qte_key_name = names[idx]
-	qte_timer = 2.0 # 2 detik per tombol
+	qte_timer = 2.0
 	qte_label.text = "[ " + qte_key_name + " ]"
 
 func _process(delta: float) -> void:
 	if not is_active:
 		return
 
-	# Step 0: Merendam Foto
 	if current_step == 0:
 		if is_mouse_holding:
 			soak_progress += delta * 35.0
@@ -94,14 +88,12 @@ func _process(delta: float) -> void:
 			soak_progress = move_toward(soak_progress, 0.0, delta * 20.0)
 			soak_progress_bar.value = soak_progress
 
-	# Step 1: Bilas QTE
 	elif current_step == 1:
 		qte_timer -= delta
 		if is_instance_valid(qte_timer_bar):
 			qte_timer_bar.value = (qte_timer / 2.0) * 100.0
 
 		if qte_timer <= 0.0:
-			# Gagal QTE
 			action_hint.text = "⚠️ Terlalu lambat membilas! Mengulang bilasan..."
 			action_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 			qte_success_count = max(0, qte_success_count - 1)
@@ -111,13 +103,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_active:
 		return
 
-	# Deteksi Tahan Klik Kiri
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if current_step == 0:
 			is_mouse_holding = event.pressed
 			get_viewport().set_input_as_handled()
 
-	# Deteksi Tekan Key QTE
 	if event is InputEventKey and event.pressed and not event.is_echo() and current_step == 1:
 		if event.keycode == qte_target_key:
 			qte_success_count += 1
@@ -133,7 +123,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			action_hint.text = "❌ Salah tombol! Tekan tombol yang sesuai!"
 			action_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
-# ── Penyingkapan Hasil Foto Forensik (Plot Twist) ───────────────────────────
 func _show_photo_revelation() -> void:
 	current_step = 2
 	qte_box.visible = false
@@ -154,11 +143,10 @@ func _finish_and_close() -> void:
 	visible = false
 	minigame_completed.emit(true)
 
-# ── Membangun UI Kamar Gelap Cuci Foto ──────────────────────────────────────
 func _build_scene_ui() -> void:
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.08, 0.01, 0.02, 0.95) # Nuansa Red Darkroom
+	bg.color = Color(0.08, 0.01, 0.02, 0.95)
 	add_child(bg)
 
 	var margin = MarginContainer.new()
@@ -173,7 +161,6 @@ func _build_scene_ui() -> void:
 	main_vbox.add_theme_constant_override("separation", 14)
 	margin.add_child(main_vbox)
 
-	# Header
 	var header = HBoxContainer.new()
 	main_vbox.add_child(header)
 
@@ -202,7 +189,6 @@ func _build_scene_ui() -> void:
 	action_hint.add_theme_font_size_override("font_size", 14)
 	main_vbox.add_child(action_hint)
 
-	# Basin Texture (Baskom Cetak Foto) & Soak Container
 	soak_container = VBoxContainer.new()
 	soak_container.add_theme_constant_override("separation", 10)
 	main_vbox.add_child(soak_container)
@@ -217,14 +203,12 @@ func _build_scene_ui() -> void:
 	baskom_texture_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	soak_container.add_child(baskom_texture_rect)
 
-	# Progress Bar Rendam
 	soak_progress_bar = ProgressBar.new()
 	soak_progress_bar.custom_minimum_size = Vector2(400, 24)
 	soak_progress_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	soak_progress_bar.max_value = 100
 	soak_container.add_child(soak_progress_bar)
 
-	# Box QTE
 	qte_box = PanelContainer.new()
 	var qte_style = StyleBoxFlat.new()
 	qte_style.bg_color = Color(0.18, 0.05, 0.08, 0.95)
@@ -253,7 +237,6 @@ func _build_scene_ui() -> void:
 	qte_timer_bar.max_value = 100
 	qte_vb.add_child(qte_timer_bar)
 
-	# Result Panel (Foto Terungkap)
 	result_panel = PanelContainer.new()
 	var res_style = StyleBoxFlat.new()
 	res_style.bg_color = Color(0.12, 0.03, 0.05, 0.95)

@@ -1,9 +1,5 @@
 extends CanvasLayer
 
-# ── Mini Game 2: Hidden Objects di Stasiun Kereta (Sesuai GDD) ──────────────
-# Benedict harus mencari 3 barang bukti di stasiun sebelum kereta tiba
-# Kontrol: Klik kiri pada objek yang dicari.
-
 signal minigame_completed(success: bool)
 
 var is_active: bool = false
@@ -81,7 +77,6 @@ func _on_item_clicked(item_key: String) -> void:
 	status_banner.text = "✨ Ditemukan: " + items_to_find[item_key]["name"]
 	status_banner.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
-	# Cek apakah semua item sudah ditemukan
 	var all_found = true
 	for k in items_to_find.keys():
 		if not items_to_find[k]["found"]:
@@ -113,14 +108,12 @@ func _fail_timeout() -> void:
 	status_banner.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 
 	await get_tree().create_timer(1.5).timeout
-	# Reset
 	time_left = 45.0
 	for k in items_to_find.keys():
 		items_to_find[k]["found"] = false
 	_refresh_checklist()
 	is_active = true
 
-# ── Membangun Visual Scene Stasiun & Objek Interaktif ──────────────────────
 func _build_scene_ui() -> void:
 	root_control = Control.new()
 	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -131,7 +124,6 @@ func _build_scene_ui() -> void:
 	bg_overlay.color = Color(0.04, 0.05, 0.08, 0.94)
 	root_control.add_child(bg_overlay)
 
-	# Frame Stasiun
 	var station_panel = PanelContainer.new()
 	station_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	var margin = MarginContainer.new()
@@ -146,7 +138,6 @@ func _build_scene_ui() -> void:
 	main_box.add_theme_constant_override("separation", 12)
 	margin.add_child(main_box)
 
-	# Header Stasiun
 	var header = HBoxContainer.new()
 	main_box.add_child(header)
 
@@ -174,26 +165,22 @@ func _build_scene_ui() -> void:
 	status_banner.add_theme_font_size_override("font_size", 14)
 	main_box.add_child(status_banner)
 
-	# Area Gambar Peron Interaktif
 	var canvas_area = Control.new()
 	canvas_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	canvas_area.custom_minimum_size = Vector2(0, 420)
 	main_box.add_child(canvas_area)
 
-	# Dekorasi Latar Stasiun Retro
 	var decor_rect = ColorRect.new()
 	decor_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	decor_rect.color = Color(0.12, 0.14, 0.18, 1.0)
 	canvas_area.add_child(decor_rect)
 
-	# Rel Kereta & Bangku Peron
 	var rail = ColorRect.new()
 	rail.position = Vector2(0, 360)
 	rail.size = Vector2(1200, 50)
 	rail.color = Color(0.24, 0.20, 0.16)
 	canvas_area.add_child(rail)
 
-	# Objek 1: Amplop Foto (Klik Area)
 	var btn_env = Button.new()
 	btn_env.text = "📁 [Amplop TKP]"
 	btn_env.position = Vector2(480, 290)
@@ -202,7 +189,6 @@ func _build_scene_ui() -> void:
 	btn_env.pressed.connect(func(): _on_item_clicked("envelope"))
 	canvas_area.add_child(btn_env)
 
-	# Objek 2: Tiket Kereta (Klik Area)
 	var btn_tkt = Button.new()
 	btn_tkt.text = "🎫 [Tiket Kereta]"
 	btn_tkt.position = Vector2(760, 360)
@@ -211,7 +197,6 @@ func _build_scene_ui() -> void:
 	btn_tkt.pressed.connect(func(): _on_item_clicked("ticket"))
 	canvas_area.add_child(btn_tkt)
 
-	# Objek 3: Jam Saku Rusak (Klik Area)
 	var btn_wch = Button.new()
 	btn_wch.text = "⏱️ [Jam Saku 16:04]"
 	btn_wch.position = Vector2(280, 180)
@@ -220,7 +205,6 @@ func _build_scene_ui() -> void:
 	btn_wch.pressed.connect(func(): _on_item_clicked("watch"))
 	canvas_area.add_child(btn_wch)
 
-	# Checklist Bukti di Bawah
 	var bottom_panel = PanelContainer.new()
 	var bot_style = StyleBoxFlat.new()
 	bot_style.bg_color = Color(0.08, 0.10, 0.14, 0.95)

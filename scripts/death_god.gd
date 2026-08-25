@@ -1,11 +1,7 @@
 extends Node
 
-# ── Death God NLP Scene ────────────────────────────────────────────────────
-# Dibuat secara programatik (tanpa editor) untuk kemudahan setup awal.
-# Scene ini bisa diganti dengan .tscn buatan game artist nanti.
-
 const SERVER_URL    = "http://127.0.0.1:8000"
-const TYPING_SPEED  = 0.03   # detik per karakter (efek typewriter)
+const TYPING_SPEED  = 0.03
 
 var server_pid      : int    = -1
 var is_typing       : bool   = false
@@ -13,7 +9,6 @@ var full_response   : String = ""
 var char_index      : int    = 0
 var typing_timer    : float  = 0.0
 
-# ── Node References (dibuat di _ready) ────────────────────────────────────
 var bg              : ColorRect
 var title_label     : Label
 var response_label  : Label
@@ -22,22 +17,18 @@ var submit_btn      : Button
 var score_label     : Label
 var loading_label   : Label
 
-# ── _ready: Bangun UI dan nyalakan server ──────────────────────────────────
 func _ready() -> void:
 	_build_ui()
 	_start_server()
 	_ping_server_until_ready()
 
-# ── Bangun seluruh UI secara programatik ──────────────────────────────────
 func _build_ui() -> void:
-	# Background hitam void
 	bg = ColorRect.new()
 	bg.color         = Color(0.04, 0.04, 0.06)
 	bg.anchor_right  = 1.0
 	bg.anchor_bottom = 1.0
 	add_child(bg)
 
-	# Container utama (tengah layar)
 	var container      = VBoxContainer.new()
 	container.set_anchors_preset(Control.PRESET_CENTER)
 	container.position = Vector2(-420, -280)
@@ -45,7 +36,6 @@ func _build_ui() -> void:
 	container.add_theme_constant_override("separation", 20)
 	add_child(container)
 
-	# Judul / nama Dewa Kematian
 	title_label                   = Label.new()
 	title_label.text              = "— DEWA KEMATIAN —"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -53,12 +43,10 @@ func _build_ui() -> void:
 	title_label.add_theme_font_size_override("font_size", 22)
 	container.add_child(title_label)
 
-	# Separator
 	var sep       = HSeparator.new()
 	sep.add_theme_color_override("color", Color(0.3, 0.2, 0.5, 0.8))
 	container.add_child(sep)
 
-	# Area respon Dewa Kematian
 	var response_container = PanelContainer.new()
 	response_container.custom_minimum_size = Vector2(840, 240)
 	container.add_child(response_container)
@@ -80,7 +68,6 @@ func _build_ui() -> void:
 	response_label.add_theme_font_size_override("font_size", 16)
 	response_container.add_child(response_label)
 
-	# Label prompt untuk pemain
 	var prompt_label                         = Label.new()
 	prompt_label.text                        = "Ceritakan padaku... apa yang telah kamu pelajari?"
 	prompt_label.horizontal_alignment        = HORIZONTAL_ALIGNMENT_CENTER
@@ -88,7 +75,6 @@ func _build_ui() -> void:
 	prompt_label.add_theme_font_size_override("font_size",  14)
 	container.add_child(prompt_label)
 
-	# Input field
 	input_field                              = LineEdit.new()
 	input_field.placeholder_text            = "Ketik kesimpulanmu di sini..."
 	input_field.custom_minimum_size         = Vector2(840, 50)
@@ -105,7 +91,6 @@ func _build_ui() -> void:
 	input_field.add_theme_stylebox_override("focus",  input_style)
 	container.add_child(input_field)
 
-	# Tombol submit
 	submit_btn                               = Button.new()
 	submit_btn.text                          = "Sampaikan"
 	submit_btn.custom_minimum_size          = Vector2(200, 45)
@@ -120,7 +105,6 @@ func _build_ui() -> void:
 	submit_btn.pressed.connect(_on_submit)
 	container.add_child(submit_btn)
 
-	# Skor debug (bisa disembunyikan di versi final)
 	score_label                              = Label.new()
 	score_label.text                         = ""
 	score_label.horizontal_alignment         = HORIZONTAL_ALIGNMENT_CENTER
@@ -128,7 +112,6 @@ func _build_ui() -> void:
 	score_label.add_theme_font_size_override("font_size",  12)
 	container.add_child(score_label)
 
-	# Loading indicator
 	loading_label                            = Label.new()
 	loading_label.text                       = ""
 	loading_label.horizontal_alignment       = HORIZONTAL_ALIGNMENT_CENTER
@@ -136,7 +119,6 @@ func _build_ui() -> void:
 	loading_label.add_theme_font_size_override("font_size", 13)
 	container.add_child(loading_label)
 
-	# Enter untuk submit
 	input_field.text_submitted.connect(func(_t): _on_submit())
 
 func _make_btn_hover_style() -> StyleBoxFlat:
@@ -146,15 +128,12 @@ func _make_btn_hover_style() -> StyleBoxFlat:
 	s.set_content_margin_all(10)
 	return s
 
-# ── Server management ─────────────────────────────────────────────────────
 func _start_server() -> void:
-	# Cek apakah ai_server.exe ada di samping game
 	var exe_path = OS.get_executable_path().get_base_dir() + "/ai_server.exe"
 	if FileAccess.file_exists(exe_path):
 		server_pid = OS.create_process(exe_path, [])
 		print("[DeathGod] Server dimulai (PID: %d)" % server_pid)
 	else:
-		# Mode development: jalankan python langsung
 		var dev_path = ProjectSettings.globalize_path("res://ai_server/main.py")
 		if FileAccess.file_exists(dev_path):
 			server_pid = OS.create_process("python", [dev_path])
@@ -177,13 +156,11 @@ func _do_ping() -> void:
 			submit_btn.disabled = false
 			response_label.text = "..."
 		else:
-			# Coba lagi 1 detik kemudian
 			await get_tree().create_timer(1.0).timeout
 			_do_ping()
 	)
 	http.request(SERVER_URL + "/ping")
 
-# ── Submit handler ─────────────────────────────────────────────────────────
 func _on_submit() -> void:
 	var teks = input_field.text.strip_edges()
 	if teks.is_empty() or is_typing:
@@ -223,15 +200,12 @@ func _on_response_received(result: int, _code: int, body: PackedByteArray) -> vo
 	var skor_emosional = parsed.get("skor_emosional", 0.0)
 	var kategori      = parsed.get("kategori", "?")
 
-	# Update skor debug
 	score_label.text = "[ skor_mati: %.2f | skor_emosional: %.2f | kategori: %s ]" % [
 		skor_mati, skor_emosional, kategori
 	]
 
-	# Tampilkan respon dengan efek typewriter
 	_start_typewriter(respon)
 
-# ── Typewriter effect ─────────────────────────────────────────────────────
 func _start_typewriter(text: String) -> void:
 	full_response      = text
 	char_index         = 0
@@ -251,7 +225,6 @@ func _process(delta: float) -> void:
 		else:
 			is_typing = false
 
-# ── Cleanup: matikan server saat game ditutup ─────────────────────────────
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		if server_pid != -1:

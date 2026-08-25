@@ -1,9 +1,5 @@
 extends CanvasLayer
 
-# ── Mini Game 1: Tailgating Marcus (Sesuai GDD) ─────────────────────────────
-# Benedict harus menguntit Inspektur Marcus tanpa terlalu dekat (<80px)
-# dan tidak boleh terlalu jauh (>320px) sembari menghindari kerumunan warga.
-
 signal minigame_completed(success: bool)
 
 var is_active: bool = false
@@ -18,7 +14,6 @@ var suspicion_progress: ProgressBar
 var follow_progress_bar: ProgressBar
 var status_hint: Label
 
-# Target distance
 const MIN_SAFE_DIST = 90.0
 const MAX_SAFE_DIST = 260.0
 const MAX_TRAIL_DIST = 380.0
@@ -46,21 +41,17 @@ func _process(delta: float) -> void:
 
 	var dist = player_ref.global_position.distance_to(marcus_ref.global_position)
 	
-	# Update Distance Meter UI
 	if is_instance_valid(dist_progress):
 		dist_progress.value = clampf(dist, 0.0, MAX_TRAIL_DIST)
 	
 	if dist < MIN_SAFE_DIST:
-		# Terlalu Dekat! Marcus curiga
 		suspicion_meter += delta * 35.0
 		status_hint.text = "⚠️ TERLALU DEKAT! Marcus mulai curiga!"
 		status_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	elif dist > MAX_SAFE_DIST and dist <= MAX_TRAIL_DIST:
-		# Agak Jauh
 		status_hint.text = "⚡ Jarak mulai merenggang... Dekati Marcus!"
 		status_hint.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2))
 	elif dist > MAX_TRAIL_DIST:
-		# Terlalu Jauh! Jejak hilang
 		lost_trail_timer += delta
 		status_hint.text = "🚨 TERLALU JAUH! Kehilangan jejak dalam %.1fs!" % (5.0 - lost_trail_timer)
 		status_hint.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
@@ -68,10 +59,9 @@ func _process(delta: float) -> void:
 			_fail_minigame("Kehilangan jejak Inspektur Marcus!")
 			return
 	else:
-		# Zona Aman! Progress naik
 		lost_trail_timer = move_toward(lost_trail_timer, 0.0, delta * 2.0)
 		suspicion_meter = move_toward(suspicion_meter, 0.0, delta * 15.0)
-		follow_progress += delta * 6.5 # ~15 detik untuk selesai
+		follow_progress += delta * 6.5
 		status_hint.text = "✔ JARAK AMAN — Menguping rute Marcus..."
 		status_hint.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
@@ -82,7 +72,6 @@ func _process(delta: float) -> void:
 	if is_instance_valid(follow_progress_bar):
 		follow_progress_bar.value = follow_progress
 
-	# Cek Kalah / Menang
 	if suspicion_meter >= 100.0:
 		_fail_minigame("Marcus memergokimu! Kepanikan terjadi!")
 	elif follow_progress >= 100.0:

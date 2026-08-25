@@ -6,7 +6,6 @@ signal dialog_closed
 const SERVER_URL = "http://127.0.0.1:8000"
 const TYPING_SPEED = 0.025
 
-# ── Referensi Node UI ─────────────────────────────────────────────────────
 @onready var root_control: Control = $RootControl
 @onready var text_label: Label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/TextLabel
 @onready var input_container: HBoxContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer
@@ -26,7 +25,6 @@ var glow_timer: float = 0.0
 func _ready() -> void:
 	root_control.visible = false
 	
-	# Matikan focus pada tombol agar Spasi TIDAK men-trigger klik tombol (hanya Enter dan Klik Mouse)
 	submit_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.focus_mode = Control.FOCUS_NONE
 	
@@ -38,13 +36,11 @@ func _process(delta: float) -> void:
 	if not is_active:
 		return
 
-	# Animasi aura portrait bernapas (pulsing)
 	glow_timer += delta * 3.0
 	if is_instance_valid(portrait_glow):
 		var alpha = 0.35 + sin(glow_timer) * 0.2
 		portrait_glow.color = Color(0.6, 0.2, 0.9, alpha)
 
-	# Typewriter effect
 	if is_typing:
 		typing_timer += delta
 		if typing_timer >= TYPING_SPEED:
@@ -55,7 +51,6 @@ func _process(delta: float) -> void:
 			else:
 				is_typing = false
 				input_container.visible = true
-				# Beri fokus ke LineEdit agar pemain bisa langsung mengetik termasuk spasi
 				input_edit.call_deferred("grab_focus")
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -107,7 +102,6 @@ func _on_submit_pressed() -> void:
 	
 	_start_typewriter("Dewa Kematian terdiam sejenak menimbang ucapanmu...")
 
-	# Panggil AI Server
 	_request_ai_analysis(message)
 
 func _request_ai_analysis(player_text: String) -> void:
@@ -140,7 +134,6 @@ func _handle_server_response(result: int, code: int, body: PackedByteArray, fall
 	var kategori = parsed.get("kategori", "")
 	var skor_mati = parsed.get("skor_mati", 0.0)
 
-	# Update status badge
 	if kategori == "sadar_mati_dan_emosional":
 		status_badge.text = "★ PENCERAHAN MUTLAK (Skor: %.2f) ★" % skor_mati
 		status_badge.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))

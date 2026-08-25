@@ -1,23 +1,15 @@
 extends CanvasLayer
 
-# ── Winter Snow Weather System (Efek Musim Salju & Angin Dingin) ───────────
-# Fitur:
-# 1. 3 Layer Butiran Salju Melayang (Salju Depan, Salju Tengah, & Debu Salju)
-# 2. Angin Berhembus Sinusoidal (Snow Drift & Wind Swaying Physics)
-# 3. Efek Suara Angin Musim Dingin Prosedural (Ambient Winter Wind Chime)
-# 4. Modulasi Warna Dingin Salju (Crisp Winter Chill Atmosphere)
-
 var snow_particles_fg: CPUParticles2D
 var snow_particles_mg: CPUParticles2D
 var snow_particles_bg: CPUParticles2D
 
-# Audio Angin Dingin Prosedural
 var audio_player_wind: AudioStreamPlayer
 var playback_wind: AudioStreamGeneratorPlayback
 var wind_time: float = 0.0
 
 func _ready() -> void:
-	layer = 8 # Di atas gameplay Node2D, di bawah dialog & HUD (layer 10+)
+	layer = 8
 	_build_snow_layers()
 	_setup_winter_wind_audio()
 	get_viewport().size_changed.connect(_on_viewport_resized)
@@ -27,7 +19,6 @@ func _build_snow_layers() -> void:
 	if vp.x < 100 or vp.y < 100:
 		vp = Vector2(1600, 900)
 
-	# 1. Salju Latar Belakang (Debu Salju Halus & Banyak)
 	snow_particles_bg = CPUParticles2D.new()
 	snow_particles_bg.position = Vector2(vp.x * 0.5, -20)
 	snow_particles_bg.amount = 120
@@ -45,7 +36,6 @@ func _build_snow_layers() -> void:
 	snow_particles_bg.color = Color(0.85, 0.92, 1.0, 0.45)
 	add_child(snow_particles_bg)
 
-	# 2. Salju Tengah (Butiran Salju Sedang dengan Gerakan Melayang)
 	snow_particles_mg = CPUParticles2D.new()
 	snow_particles_mg.position = Vector2(vp.x * 0.5, -30)
 	snow_particles_mg.amount = 90
@@ -63,7 +53,6 @@ func _build_snow_layers() -> void:
 	snow_particles_mg.color = Color(0.92, 0.96, 1.0, 0.75)
 	add_child(snow_particles_mg)
 
-	# 3. Salju Depan (Kepingan Salju Besar Lembut di Dekat Kamera)
 	snow_particles_fg = CPUParticles2D.new()
 	snow_particles_fg.position = Vector2(vp.x * 0.5, -40)
 	snow_particles_fg.amount = 35
@@ -93,21 +82,19 @@ func _on_viewport_resized() -> void:
 		snow_particles_fg.position = Vector2(vp.x * 0.5, -40)
 		snow_particles_fg.emission_rect_extents = Vector2(vp.x * 0.8, 10)
 
-# ── Suara Angin Musim Dingin Prosedural ──────────────────────────────────────
 func _setup_winter_wind_audio() -> void:
 	audio_player_wind = AudioStreamPlayer.new()
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 22050
 	generator.buffer_length = 0.2
 	audio_player_wind.stream = generator
-	audio_player_wind.volume_db = -12.0 # Latar belakang lembut
+	audio_player_wind.volume_db = -12.0
 	add_child(audio_player_wind)
 	audio_player_wind.play()
 	playback_wind = audio_player_wind.get_stream_playback()
 
 func _process(delta: float) -> void:
 	wind_time += delta
-	# Dinamika hembusan angin sinusoidal
 	var wind_gust = sin(wind_time * 0.4) * 15.0
 
 	if is_instance_valid(snow_particles_mg):
@@ -115,7 +102,6 @@ func _process(delta: float) -> void:
 	if is_instance_valid(snow_particles_fg):
 		snow_particles_fg.gravity.x = -22.0 + wind_gust * 1.5
 
-	# Sintesis desir angin dingin lembut
 	_synthesize_winter_breeze(delta)
 
 func _synthesize_winter_breeze(_delta: float) -> void:
@@ -128,7 +114,6 @@ func _synthesize_winter_breeze(_delta: float) -> void:
 
 	for i in range(frames):
 		wind_time += 1.0 / 22050.0
-		# Modulasi desir angin musim dingin (Low bandpass noise)
 		var gust = (0.5 + 0.5 * sin(wind_time * 0.35)) * (0.6 + 0.4 * sin(wind_time * 0.8))
 		var noise = (randf() * 2.0 - 1.0)
 		var whistle = sin(wind_time * (220.0 + 40.0 * sin(wind_time * 0.2)) * TAU) * 0.08

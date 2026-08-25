@@ -1,8 +1,5 @@
 extends Control
 
-# ── Cinematic Opening Cutscene v8 - Bright, Crystal Clear & Responsive ──────
-# Quote: "Death is not the opposite of life, but a part of it." — Haruki Murakami
-
 const NEXT_SCENE_PATH = "res://scenes/main.tscn"
 
 const QUOTE_TEXT   = '"Death is not the opposite of life, but a part of it."'
@@ -10,7 +7,6 @@ const AUTHOR_TEXT  = "— Haruki Murakami"
 const TYPING_SPEED = 0.040
 const AUTHOR_SPEED = 0.045
 
-# State Machine
 enum State { TYPING_QUOTE, WAIT_AUTHOR, TYPING_AUTHOR, HOLD, FADE_OUT, DONE }
 var current_state: State = State.TYPING_QUOTE
 
@@ -20,7 +16,6 @@ var typing_timer: float = 0.0
 var anim_time: float = 0.0
 var is_transitioning: bool = false
 
-# UI Nodes
 var bg_rect: ColorRect
 var nebula_center: Panel
 var fog_container: Control
@@ -30,11 +25,9 @@ var quote_label: Label
 var author_label: Label
 var skip_hint_label: Label
 
-# Audio
 var audio_player: AudioStreamPlayer
 var audio_generator: AudioStreamGeneratorPlayback
 
-# Fog items
 var fog_items: Array[Dictionary] = []
 
 func _ready() -> void:
@@ -46,14 +39,12 @@ func _ready() -> void:
 	_start()
 
 func _build_scene() -> void:
-	# 1. Background Void Deep Indigo Luminous
 	bg_rect = ColorRect.new()
 	bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_rect.color = Color(0.06, 0.04, 0.10, 1.0)
 	bg_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg_rect)
 
-	# 2. Glowing Nebula Center Aura
 	nebula_center = Panel.new()
 	nebula_center.set_anchors_preset(Control.PRESET_CENTER)
 	nebula_center.custom_minimum_size = Vector2(900, 550)
@@ -67,7 +58,6 @@ func _build_scene() -> void:
 	nebula_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(nebula_center)
 
-	# 3. Layer Awan Kabut Melayang
 	fog_container = Control.new()
 	fog_container.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fog_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -93,7 +83,6 @@ func _build_scene() -> void:
 			"phase": randf() * TAU
 		})
 
-	# 4. Container Teks Tengah
 	ui_center = CenterContainer.new()
 	ui_center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ui_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -104,7 +93,6 @@ func _build_scene() -> void:
 	text_container.add_theme_constant_override("separation", 28)
 	ui_center.add_child(text_container)
 
-	# Label Quote: Putih Terang Menyala
 	quote_label = Label.new()
 	quote_label.text = ""
 	quote_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -118,7 +106,6 @@ func _build_scene() -> void:
 	quote_label.add_theme_font_size_override("font_size", 36)
 	text_container.add_child(quote_label)
 
-	# Label Penulis: Ungu Muda Terang
 	author_label = Label.new()
 	author_label.text = ""
 	author_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -131,7 +118,6 @@ func _build_scene() -> void:
 	author_label.add_theme_font_size_override("font_size", 24)
 	text_container.add_child(author_label)
 
-	# 5. Tombol Skip / Petunjuk di Bawah
 	skip_hint_label = Label.new()
 	skip_hint_label.text = "✦ [ SPACE / ENTER / KLIK MOUSE ] UNTUK MEMULAI ✦"
 	skip_hint_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
@@ -144,7 +130,6 @@ func _build_scene() -> void:
 	skip_hint_label.add_theme_font_size_override("font_size", 15)
 	add_child(skip_hint_label)
 
-# ── Suara Ketikan ───────────────────────────────────────────────────────────
 func _setup_audio() -> void:
 	audio_player = AudioStreamPlayer.new()
 	var generator = AudioStreamGenerator.new()
@@ -167,7 +152,6 @@ func _play_typewriter_click() -> void:
 		if audio_generator.can_push_buffer(1):
 			audio_generator.push_frame(Vector2(sample, sample))
 
-# ── Proses Animasi ──────────────────────────────────────────────────────────
 func _start() -> void:
 	current_state = State.TYPING_QUOTE
 	char_index = 0
@@ -180,7 +164,6 @@ func _process(delta: float) -> void:
 	anim_time += delta
 	var vp_size = get_viewport().get_visible_rect().size
 
-	# 1. Update Awan Kabut
 	for item in fog_items:
 		var n: Panel = item["node"]
 		item["pos"].x += item["speed"] * delta
@@ -191,20 +174,16 @@ func _process(delta: float) -> void:
 		if is_instance_valid(n):
 			n.position = item["pos"]
 
-	# 2. Denyut Nebula Center Aura
 	if is_instance_valid(nebula_center):
 		nebula_center.position = Vector2(vp_size.x * 0.5 - 450, vp_size.y * 0.5 - 275)
 		var s = 1.0 + 0.08 * sin(anim_time * 2.0)
 		nebula_center.scale = Vector2(s, s)
 
-	# 3. Kedip Tombol Skip
 	if is_instance_valid(skip_hint_label):
 		skip_hint_label.modulate.a = 0.5 + 0.45 * abs(sin(anim_time * 3.2))
 
-	# 4. Kursor Ketik
 	var cursor = " |" if int(anim_time * 4.0) % 2 == 0 else ""
 
-	# 5. State Machine Ketikan
 	match current_state:
 		State.TYPING_QUOTE:
 			typing_timer += delta
@@ -244,7 +223,6 @@ func _process(delta: float) -> void:
 			if state_timer <= 0.0:
 				_change_to_main_scene()
 
-# ── User Input Skip ─────────────────────────────────────────────────────────
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		_handle_user_skip()

@@ -1,16 +1,5 @@
 extends CharacterBody2D
 
-# ── NPC System v11 - Native NavigationAgent2D + Anti-Stuck Watchdog ──────────
-# Fitur:
-# 1. 🧭 NavigationAgent2D (Godot 4 Native Pathfinding):
-#    - Navigasi otomatis mengikuti NavMesh koridor jalan & trotoar kota.
-#    - get_next_path_position() memandu belokan sudut siku tanpa menabrak tembok.
-# 2. ⚡ Server-Side Avoidance (RVO Avoidance):
-#    - Menghindari tabrakan antar NPC secara dinamis lewat signal velocity_computed.
-# 3. 🐕 Watchdog Stuck Detector:
-#    - Jika NPC terdeteksi diam <4px selama >0.7 detik saat moving, otomatis re-path.
-# 4. 💬 Sapaan Berpapasan Dinamis & Siklus Hidup Landmark Alami.
-
 enum NPCType { BOY, POLICE, GIRL }
 @export var npc_type: NPCType = NPCType.BOY
 @export var target_height_px: float = 38.0
@@ -29,38 +18,34 @@ var run_timer: float = 0.0
 var run_direction: Vector2 = Vector2.ZERO
 var tremble_offset: Vector2 = Vector2.ZERO
 
-# 📍 Destinasi Terpadu Khusus Area Pejalan Kaki
 const SHARED_DESTINATIONS = [
-	Vector2(2088, 520), # Peron Stasiun Kereta Timur
-	Vector2(1090, 435), # Taman Courtyard Atas
-	Vector2(780, 830),  # Taman Courtyard Bawah
-	Vector2(720, 480),  # Lobi Depan Rumah Sakit
-	Vector2(260, 250),  # Trotoar Bilik Kantor Barat
-	Vector2(1280, 920), # Area Bilik Pod Kerja
-	Vector2(1750, 480)  # Lobi Gedung Kanan
+	Vector2(2088, 520),
+	Vector2(1090, 435),
+	Vector2(780, 830),
+	Vector2(720, 480),
+	Vector2(260, 250),
+	Vector2(1280, 920),
+	Vector2(1750, 480)
 ]
 
-# 👮 Rute Patroli Polisi
 const POLICE_PATROL_WAYPOINTS = [
-	Vector2(350, 258),   # Pos Polisi Barat
-	Vector2(577, 258),   # Simpang Atas
-	Vector2(1104, 780),  # Simpang Tengah
-	Vector2(2088, 520),  # Stasiun Kereta
-	Vector2(1581, 780),  # Koridor Kanan
-	Vector2(411, 1278)   # Jalan Bawah
+	Vector2(350, 258),
+	Vector2(577, 258),
+	Vector2(1104, 780),
+	Vector2(2088, 520),
+	Vector2(1581, 780),
+	Vector2(411, 1278)
 ]
 
 var target_destination: Vector2 = Vector2.ZERO
 var current_patrol_idx: int = 0
 var idle_hangout_timer: float = 0.0
 
-# 🐕 Watchdog Stuck Detector
 var stuck_timer: float = 0.0
 var last_check_pos: Vector2 = Vector2.ZERO
 const STUCK_THRESHOLD: float = 0.7
 const STUCK_DIST_MIN: float = 4.0
 
-# Interaksi Sosial Sambil Berjalan
 var social_cooldown: float = 0.0
 
 const SOCIAL_CHATS_CIVILIAN = [
@@ -80,16 +65,13 @@ const SOCIAL_CHATS_POLICE = [
 	"Lanjutkan perjalananmu dengan tertib ya."
 ]
 
-# Timer Tampil Textbox & Cooldown
 var msg_display_timer: float = 0.0
 var msg_cooldown_timer: float = 0.0
 const MSG_DISPLAY_DURATION: float = 2.4
 const MSG_COOLDOWN_DURATION: float = 1.2
 
-# Cache Sprite Textures
 var sprite_sets: Dictionary = {}
 
-# Node Referensi
 @onready var nav_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D")
 var textbox_panel: PanelContainer
 var textbox_label: Label
@@ -99,13 +81,11 @@ var is_textbox_visible: bool = false
 var current_text_msg: String = ""
 var last_clue_index: int = -1
 
-# Animasi pergerakan
 var step_cycle: float = 0.0
 var is_moving: bool = false
 var body_bob_y: float = 0.0
 var move_dir_facing: Vector2 = Vector2.DOWN
 
-# Pool Percakapan Misteri saat Dekat Benedict
 const CLUE_MESSAGES_CIVILIAN = [
 	"Perasaanku tidak enak... hawa di sini dingin sekali...",
 	"Jam dinding di ruangan itu... berhenti tepat jam dua.",
@@ -150,7 +130,6 @@ func _ready() -> void:
 
 	social_cooldown = randf_range(2.0, 6.0)
 	
-	# Delay 1 frame sebelum set destinasi agar NavigationServer selesai init
 	call_deferred("_pick_next_destination")
 	queue_redraw()
 
@@ -175,7 +154,6 @@ func _load_sprites_from_folder(folder_path: String) -> Dictionary:
 	set_dict["right_right"] = load(folder_path + "right_right.png")
 	return set_dict
 
-# ── Textbox Growtopia ───────────────────────────────────────────────────────
 func _build_growtopia_textbox() -> void:
 	var root_box = Node2D.new()
 	root_box.name = "TextboxRoot"
@@ -244,7 +222,6 @@ func _trigger_new_clue_dialogue() -> void:
 
 	show_chat_bubble(msg_pool[next_idx], MSG_DISPLAY_DURATION)
 
-# ── Sistem Tujuan Terpadu ───────────────────────────────────────────────────
 func _pick_next_destination() -> void:
 	if npc_type == NPCType.POLICE:
 		current_patrol_idx = (current_patrol_idx + 1) % POLICE_PATROL_WAYPOINTS.size()
@@ -266,7 +243,6 @@ func _pick_next_destination() -> void:
 	if is_instance_valid(nav_agent):
 		nav_agent.target_position = target_destination
 
-# ── Physics Process & AI Lifecycle ──────────────────────────────────────────
 func _physics_process(delta: float) -> void:
 	if current_state == State.DESPAWNED:
 		return
@@ -307,7 +283,6 @@ func _physics_process(delta: float) -> void:
 	_animate_textbox_scale(delta)
 	queue_redraw()
 
-# ── Handlers Logika State ───────────────────────────────────────────────────
 func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	if dist_to_player <= too_close_radius:
 		current_state = State.AFRAID
@@ -321,7 +296,6 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		_trigger_new_clue_dialogue()
 		return
 
-	# Sapaan saat berpapasan
 	if social_cooldown <= 0.0:
 		_check_for_walking_greeting()
 
@@ -337,7 +311,6 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		is_moving = false
 		return
 
-	# Ambil waypoint navigasi berikutnya dari NavigationAgent2D
 	var next_pos = target_destination
 	if is_instance_valid(nav_agent):
 		next_pos = nav_agent.get_next_path_position()
@@ -355,7 +328,6 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 
 	_check_stuck_watchdog(delta)
 
-# ── 🐕 Watchdog Anti-Stuck ──────────────────────────────────────────────────
 func _check_stuck_watchdog(delta: float) -> void:
 	if is_moving and current_state == State.GO_TO_DESTINATION:
 		var moved_dist = global_position.distance_to(last_check_pos)
@@ -369,7 +341,6 @@ func _check_stuck_watchdog(delta: float) -> void:
 
 func _handle_stuck_recovery() -> void:
 	stuck_timer = 0.0
-	# Jika macet, segera ganti ke destinasi baru yang lain & beri dorongan keluar
 	_pick_next_destination()
 	global_position += Vector2(randf_range(-10, 10), randf_range(-10, 10))
 
@@ -395,7 +366,6 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if idle_hangout_timer <= 0.0:
 		_pick_next_destination()
 
-# ── Sapaan Berjalan Antar-NPC ────────────────────────────────────────────────
 func _check_for_walking_greeting() -> void:
 	var npcs = get_tree().get_nodes_in_group("npcs")
 	for other in npcs:
@@ -410,7 +380,6 @@ func _check_for_walking_greeting() -> void:
 					other.social_cooldown = 16.0
 					break
 
-# ── Interaksi dengan Pemain (Benedict) ───────────────────────────────────────
 func _handle_eavesdrop_state(delta: float, dist: float) -> void:
 	if dist > eavesdrop_radius + 10.0:
 		current_state = State.GO_TO_DESTINATION
@@ -487,7 +456,6 @@ func _handle_panic_run(delta: float) -> void:
 		is_textbox_visible = false
 		queue_free()
 
-# ── Smooth Scale Textbox Growtopia ──────────────────────────────────────────
 func _animate_textbox_scale(delta: float) -> void:
 	var target_scale = 1.0 if is_textbox_visible else 0.0
 	textbox_scale = move_toward(textbox_scale, target_scale, delta * 9.0)
@@ -496,7 +464,6 @@ func _animate_textbox_scale(delta: float) -> void:
 	if is_instance_valid(tb_root):
 		tb_root.scale = Vector2(textbox_scale, textbox_scale)
 
-# ── Get Texture Sprite Berdasarkan NPCType ──────────────────────────────────
 func _get_current_npc_sprite() -> Texture2D:
 	var cur_set = sprite_sets.get(npc_type)
 	if cur_set == null or cur_set.is_empty():
@@ -545,19 +512,16 @@ func _get_current_npc_sprite() -> Texture2D:
 	else:
 		return cur_set.get(step_r_key)
 
-# ── Custom Drawing Avatar NPC ───────────────────────────────────────────────
 func _draw() -> void:
 	if current_state == State.DESPAWNED:
 		return
 
 	var draw_pos = tremble_offset
 
-	# 1. Bayangan lantai oval untuk NPC
 	draw_set_transform(draw_pos, 0.0, Vector2(1.0, 0.45))
 	draw_circle(Vector2(0, 6), 7.5, Color(0, 0, 0, 0.32))
 	draw_set_transform(draw_pos, 0.0, Vector2.ONE)
 
-	# 2. Render Sprite Custom Texture Sesuai NPCType
 	var cur_tex = _get_current_npc_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()

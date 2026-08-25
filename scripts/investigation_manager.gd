@@ -1,27 +1,22 @@
 extends Node
 
-# ── Investigation Manager (Sistem Alur Cerita & Kasus Sesuai GDD) ───────────
-# Mengatur tahapan cerita dari awal sampai akhir, inventaris bukti, desaturasi dunia,
-# dan trigger 3 Minigame + Side Quest Brankas Ibu Medeline.
-
 signal phase_changed(new_phase: int, phase_title: String)
 signal clue_collected(clue_id: String, clue_title: String)
 signal desaturation_updated(amount: float)
 signal notification_displayed(message: String)
 
 enum Phase {
-	PROLOGUE_HOME = 0,         # Di rumah Benedict: baca surat tugas & foto ibu
-	INVESTIGATION_1_POLICE = 1, # Kantor Polisi & Minigame 1: Tailgating Marcus
-	INVESTIGATION_2_STATION = 2,# Stasiun Kereta & Minigame 2: Hidden Objects
-	INVESTIGATION_3_PHOTO = 3,  # Rumah Benedict & Minigame 3: Cuci Foto Forensik
-	INVESTIGATION_4_HOSPITAL = 4,# RS & Kamar Mayat: Menemukan mayat diri sendiri
-	FINAL_DEATH_GOD = 5         # Kuil Dewa Kematian: Evaluasi Jiwa & True Ending
+	PROLOGUE_HOME = 0,
+	INVESTIGATION_1_POLICE = 1,
+	INVESTIGATION_2_STATION = 2,
+	INVESTIGATION_3_PHOTO = 3,
+	INVESTIGATION_4_HOSPITAL = 4,
+	FINAL_DEATH_GOD = 5
 }
 
 var current_phase: Phase = Phase.PROLOGUE_HOME
-var desaturation_level: float = 0.0 # 0.0 (Warna Normal) s.d 1.0 (Monokrom Pucat)
+var desaturation_level: float = 0.0
 
-# ── Status Barang Bukti & Clue Log ──────────────────────────────────────────
 var clues: Dictionary = {
 	"anonymous_letter": {
 		"unlocked": false,
@@ -79,7 +74,6 @@ var clues: Dictionary = {
 	}
 }
 
-# ── Progress Tracker ────────────────────────────────────────────────────────
 var safe_unlocked: bool = false
 var has_tailgated_marcus: bool = false
 var has_cleared_station: bool = false
@@ -87,12 +81,10 @@ var has_developed_photos: bool = false
 var has_inspected_morgue: bool = false
 
 func _ready() -> void:
-	# Unlock clue awal saat game dimulai
 	unlock_clue("anonymous_letter")
 	unlock_clue("mother_photo_riddle")
 	_update_desaturation()
 
-# ── Fungsi Pengelolaan Fase Cerita ──────────────────────────────────────────
 func set_phase(new_phase: Phase) -> void:
 	current_phase = new_phase
 	_update_desaturation()
@@ -133,7 +125,6 @@ func get_current_objective_desc() -> String:
 			return "Kebenaran telah terungkap: kamu sedang menyelidiki kematian dirimu sendiri. Bicaralah kepada Dewa Kematian di Altar Suci."
 	return ""
 
-# ── Pengelolaan Clue ────────────────────────────────────────────────────────
 func unlock_clue(clue_id: String) -> void:
 	if clues.has(clue_id):
 		if not clues[clue_id]["unlocked"]:
@@ -150,15 +141,12 @@ func is_clue_unlocked(clue_id: String) -> bool:
 func has_emotional_item() -> bool:
 	return is_clue_unlocked("mother_emotional_locket")
 
-# ── Update Desaturasi Dunia Bertahap Sesuai GDD ──────────────────────────────
 func _update_desaturation() -> void:
-	# Menghitung desaturasi berdasarkan progres fase dan clue
 	var count = 0
 	for k in clues.keys():
 		if clues[k]["unlocked"]:
 			count += 1
 	
-	# Desaturasi bertahap dari 0.0 (Normal) sampai 0.88 (Monokrom Dingin)
 	var target = float(current_phase) * 0.16 + (float(count) / float(clues.size())) * 0.20
 	desaturation_level = clampf(target, 0.0, 0.90)
 	desaturation_updated.emit(desaturation_level)

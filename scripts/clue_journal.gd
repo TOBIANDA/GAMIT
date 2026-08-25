@@ -1,15 +1,10 @@
 extends CanvasLayer
 
-# ── Clue Log / Jurnal Investigasi Detektif Benedict (Sesuai GDD) ─────────────
-# Menampilkan buku catatan investigasi, status bukti, teka-teki ibu, dan progres kasus.
-# Dapat dibuka dengan tombol 'J' atau tombol HUD kapan saja.
-
 signal journal_opened
 signal journal_closed
 
 var is_open: bool = false
 
-# UI References
 var root_panel: PanelContainer
 var tab_container: TabContainer
 var objective_label: Label
@@ -21,7 +16,7 @@ var safe_hint_label: Label
 var close_btn: Button
 
 func _ready() -> void:
-	layer = 15 # Di atas HUD
+	layer = 15
 	_build_journal_ui()
 	visible = false
 
@@ -51,14 +46,12 @@ func close_journal() -> void:
 	visible = false
 	journal_closed.emit()
 
-# ── Membangun UI Jurnal Detektif ────────────────────────────────────────────
 func _build_journal_ui() -> void:
 	var bg_overlay = ColorRect.new()
 	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_overlay.color = Color(0.02, 0.02, 0.04, 0.82)
 	add_child(bg_overlay)
 
-	# Container Tengah
 	var center_margin = MarginContainer.new()
 	center_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center_margin.add_theme_constant_override("margin_left", 80)
@@ -67,7 +60,6 @@ func _build_journal_ui() -> void:
 	center_margin.add_theme_constant_override("margin_bottom", 50)
 	add_child(center_margin)
 
-	# Panel Utama Buku Catatan
 	root_panel = PanelContainer.new()
 	var box_style = StyleBoxFlat.new()
 	box_style.bg_color = Color(0.08, 0.10, 0.15, 0.96)
@@ -89,7 +81,6 @@ func _build_journal_ui() -> void:
 	margin_inner.add_child(main_vbox)
 	root_panel.add_child(margin_inner)
 
-	# Header Bar
 	var header_hbox = HBoxContainer.new()
 	main_vbox.add_child(header_hbox)
 
@@ -109,19 +100,16 @@ func _build_journal_ui() -> void:
 	var sep = HSeparator.new()
 	main_vbox.add_child(sep)
 
-	# Tab Container
 	tab_container = TabContainer.new()
 	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_vbox.add_child(tab_container)
 
-	# Tab 1: Kasus & Lead Aktif
 	var tab1 = VBoxContainer.new()
 	tab1.name = "📋 Lead Aktif & Status"
 	tab1.add_theme_constant_override("separation", 12)
 	tab_container.add_child(tab1)
 	_build_tab1_content(tab1)
 
-	# Tab 2: Barang Bukti (Clue List)
 	var tab2 = ScrollContainer.new()
 	tab2.name = "🔍 Berkas Barang Bukti"
 	tab2.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -131,7 +119,6 @@ func _build_journal_ui() -> void:
 	clues_container.add_theme_constant_override("separation", 10)
 	tab2.add_child(clues_container)
 
-	# Tab 3: Side Quest & Pesan Ibu Medeline
 	var tab3 = VBoxContainer.new()
 	tab3.name = "🗝️ Pesan Ibu & Brankas (Side Quest)"
 	tab3.add_theme_constant_override("separation", 12)
@@ -171,7 +158,6 @@ func _build_tab1_content(parent: VBoxContainer) -> void:
 
 	vb.add_child(HSeparator.new())
 
-	# Progress Bar
 	var prog_head = Label.new()
 	prog_head.text = "📊 KEMAJUAN PENGUNGKAPAN KEBENARAN KASUS:"
 	prog_head.add_theme_color_override("font_color", Color(0.9, 0.7, 0.4))
@@ -224,13 +210,11 @@ func _build_tab3_content(parent: VBoxContainer) -> void:
 	reward_info.add_theme_font_size_override("font_size", 13)
 	vb.add_child(reward_info)
 
-# ── Update & Refresh Tampilan Data ──────────────────────────────────────────
 func _refresh_journal_data() -> void:
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
 	if not is_instance_valid(inv_mgr):
 		return
 
-	# Update Tab 1
 	if is_instance_valid(objective_label):
 		objective_label.text = inv_mgr.get_current_objective_title()
 	if is_instance_valid(objective_desc):
@@ -240,7 +224,6 @@ func _refresh_journal_data() -> void:
 		progress_bar.value = pct
 		progress_percent_label.text = " %d%%" % pct
 
-	# Update Tab 2 (Clues)
 	if is_instance_valid(clues_container):
 		for child in clues_container.get_children():
 			child.queue_free()

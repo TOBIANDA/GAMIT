@@ -1,23 +1,15 @@
 extends CanvasLayer
 
-# ── Autumn Weather System (Efek Musim Gugur & Daun Berguguran) ──────────────
-# Fitur:
-# 1. 3 Layer Daun Musim Gugur (Merah Maple, Oranye Amber, & Emas Keemasan)
-# 2. Fisika Daun Melayang & Berputar Mengikuti Hembusan Angin (Swirling Leaves)
-# 3. Audio Desir Angin Musim Gugur & Gemerisik Daun Lembut (Autumn Breeze)
-# 4. Atmosfer Hangat & Nostalgia Sesuai Tema Musim Gugur
-
 var leaf_particles_fg: CPUParticles2D
 var leaf_particles_mg: CPUParticles2D
 var leaf_particles_bg: CPUParticles2D
 
-# Audio Angin Musim Gugur
 var audio_player_breeze: AudioStreamPlayer
 var playback_breeze: AudioStreamGeneratorPlayback
 var breeze_time: float = 0.0
 
 func _ready() -> void:
-	layer = 8 # Di atas map, di bawah HUD
+	layer = 8
 	_build_autumn_leaves()
 	_setup_autumn_breeze_audio()
 	get_viewport().size_changed.connect(_on_viewport_resized)
@@ -27,7 +19,6 @@ func _build_autumn_leaves() -> void:
 	if vp.x < 100 or vp.y < 100:
 		vp = Vector2(1600, 900)
 
-	# 1. Daun Latar Belakang (Daun Halus Berterbangan di Angin)
 	leaf_particles_bg = CPUParticles2D.new()
 	leaf_particles_bg.position = Vector2(vp.x * 0.5, -30)
 	leaf_particles_bg.amount = 85
@@ -35,7 +26,7 @@ func _build_autumn_leaves() -> void:
 	leaf_particles_bg.preprocess = 4.5
 	leaf_particles_bg.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
 	leaf_particles_bg.emission_rect_extents = Vector2(vp.x * 0.7, 15)
-	leaf_particles_bg.gravity = Vector2(25, 45) # Melayang ke kanan bawah
+	leaf_particles_bg.gravity = Vector2(25, 45)
 	leaf_particles_bg.direction = Vector2(0.8, 1.0)
 	leaf_particles_bg.spread = 25.0
 	leaf_particles_bg.initial_velocity_min = 30.0
@@ -46,10 +37,9 @@ func _build_autumn_leaves() -> void:
 	leaf_particles_bg.angle_max = 180.0
 	leaf_particles_bg.scale_amount_min = 2.5
 	leaf_particles_bg.scale_amount_max = 4.5
-	leaf_particles_bg.color = Color(0.88, 0.48, 0.22, 0.65) # Oranye tembaga
+	leaf_particles_bg.color = Color(0.88, 0.48, 0.22, 0.65)
 	add_child(leaf_particles_bg)
 
-	# 2. Daun Tengah (Daun Maple Merah & Kuning Emas)
 	leaf_particles_mg = CPUParticles2D.new()
 	leaf_particles_mg.position = Vector2(vp.x * 0.5, -40)
 	leaf_particles_mg.amount = 60
@@ -68,10 +58,9 @@ func _build_autumn_leaves() -> void:
 	leaf_particles_mg.angle_max = 180.0
 	leaf_particles_mg.scale_amount_min = 5.0
 	leaf_particles_mg.scale_amount_max = 8.5
-	leaf_particles_mg.color = Color(0.85, 0.28, 0.18, 0.85) # Merah maple gugur
+	leaf_particles_mg.color = Color(0.85, 0.28, 0.18, 0.85)
 	add_child(leaf_particles_mg)
 
-	# 3. Daun Depan (Daun Besar Mengapung Dekat Kamera)
 	leaf_particles_fg = CPUParticles2D.new()
 	leaf_particles_fg.position = Vector2(vp.x * 0.5, -50)
 	leaf_particles_fg.amount = 25
@@ -90,7 +79,7 @@ func _build_autumn_leaves() -> void:
 	leaf_particles_fg.angle_max = 180.0
 	leaf_particles_fg.scale_amount_min = 9.0
 	leaf_particles_fg.scale_amount_max = 14.0
-	leaf_particles_fg.color = Color(0.95, 0.65, 0.20, 0.90) # Emas amber keemasan
+	leaf_particles_fg.color = Color(0.95, 0.65, 0.20, 0.90)
 	add_child(leaf_particles_fg)
 
 func _on_viewport_resized() -> void:
@@ -105,7 +94,6 @@ func _on_viewport_resized() -> void:
 		leaf_particles_fg.position = Vector2(vp.x * 0.5, -50)
 		leaf_particles_fg.emission_rect_extents = Vector2(vp.x * 0.8, 15)
 
-# ── Suara Angin Musim Gugur Prosedural ──────────────────────────────────────
 func _setup_autumn_breeze_audio() -> void:
 	audio_player_breeze = AudioStreamPlayer.new()
 	var generator = AudioStreamGenerator.new()
@@ -119,7 +107,6 @@ func _setup_autumn_breeze_audio() -> void:
 
 func _process(delta: float) -> void:
 	breeze_time += delta
-	# Variasi hembusan angin musim gugur
 	var wind_gust = sin(breeze_time * 0.5) * 22.0
 
 	if is_instance_valid(leaf_particles_mg):
@@ -141,7 +128,6 @@ func _synthesize_autumn_breeze(delta: float) -> void:
 		breeze_time += 1.0 / 22050.0
 		var gust = (0.5 + 0.5 * sin(breeze_time * 0.4)) * (0.7 + 0.3 * sin(breeze_time * 0.9))
 		var noise = (randf() * 2.0 - 1.0)
-		# Suara desau daun kering bergesek lembut
 		var rustle = sin(breeze_time * 440.0 * TAU) * (randf() * 0.06)
 		
 		var sample = (noise * 0.10 + rustle) * gust * 0.12

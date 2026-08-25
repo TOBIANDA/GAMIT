@@ -1,10 +1,5 @@
 extends Node2D
 
-# ── Main Game Controller - Full GDD Feature Integration ────────────────────
-# Mengintegrasikan seluruh alur investigasi kasus, minigame 1, 2, 3,
-# side quest brankas ibu, desaturasi bertahap, jurnal bukti (J), dan Dewa Kematian.
-
-# ── Referensi Node Inti ───────────────────────────────────────────────────
 @onready var player: CharacterBody2D = $Player
 @onready var shrine: Node2D = $DeathGodShrine
 @onready var dialog_box: CanvasLayer = $DialogBox
@@ -15,7 +10,6 @@ extends Node2D
 
 var server_pid: int = -1
 
-# Manager & Sub-Sistem
 var inv_mgr: Node
 var world_shader: CanvasLayer
 var clue_journal: CanvasLayer
@@ -24,16 +18,13 @@ var minigame_hidden_objects: CanvasLayer
 var minigame_photo_wash: CanvasLayer
 var minigame_safe: CanvasLayer
 
-# UI Prompts
 var interact_prompt: Label
 var toast_banner: PanelContainer
 var toast_label: Label
 var toast_timer: float = 0.0
 
-# POI (Points of Interest) Interaktif
 var active_poi_id: String = ""
 
-# Koordinat Lokasi Utama
 const POI_LOCATIONS = {
 	"desk": {"name": "Meja Kerja & Foto Ibu", "pos": Vector2(1170, 270), "radius": 75.0},
 	"police": {"name": "Kantor Polisi & Marcus", "pos": Vector2(350, 430), "radius": 90.0},
@@ -54,24 +45,20 @@ func _ready() -> void:
 	_setup_hud_prompts()
 	_start_ai_server()
 
-	# Hubungkan shrine
 	if not is_instance_valid(shrine):
 		shrine = find_child("DeathGodShrine", true, false)
 	if is_instance_valid(shrine):
 		if not shrine.interaction_triggered.is_connected(_on_shrine_interacted):
 			shrine.interaction_triggered.connect(_on_shrine_interacted)
 
-	# Hubungkan dialog box
 	if is_instance_valid(dialog_box):
 		if not dialog_box.dialog_opened.is_connected(_on_dialog_opened):
 			dialog_box.dialog_opened.connect(_on_dialog_opened)
 		if not dialog_box.dialog_closed.is_connected(_on_dialog_closed):
 			dialog_box.dialog_closed.connect(_on_dialog_closed)
 
-	# Update display awal
 	_update_hud_objective()
 
-# ── Setup Manager & Sub-Sistem ──────────────────────────────────────────────
 func _setup_investigation_manager() -> void:
 	inv_mgr = get_node_or_null("/root/InvestigationManager")
 	if not is_instance_valid(inv_mgr):
@@ -106,7 +93,6 @@ func _setup_clue_journal() -> void:
 		clue_journal.journal_closed.connect(func(): if is_instance_valid(player): player.can_move = true)
 
 func _setup_minigames() -> void:
-	# Minigame 1: Tailgating Marcus
 	var mg1_script = load("res://scripts/minigame_tailgate.gd")
 	if mg1_script:
 		minigame_tailgate = CanvasLayer.new()
@@ -115,7 +101,6 @@ func _setup_minigames() -> void:
 		add_child(minigame_tailgate)
 		minigame_tailgate.minigame_completed.connect(func(_ok): _on_minigame_ended())
 
-	# Minigame 2: Hidden Objects
 	var mg2_script = load("res://scripts/minigame_hidden_objects.gd")
 	if mg2_script:
 		minigame_hidden_objects = CanvasLayer.new()
@@ -124,7 +109,6 @@ func _setup_minigames() -> void:
 		add_child(minigame_hidden_objects)
 		minigame_hidden_objects.minigame_completed.connect(func(_ok): _on_minigame_ended())
 
-	# Minigame 3: Forensic Cleaning
 	var mg3_script = load("res://scripts/minigame_photo_wash.gd")
 	if mg3_script:
 		minigame_photo_wash = CanvasLayer.new()
@@ -133,7 +117,6 @@ func _setup_minigames() -> void:
 		add_child(minigame_photo_wash)
 		minigame_photo_wash.minigame_completed.connect(func(_ok): _on_minigame_ended())
 
-	# Side Quest: Safe Puzzle
 	var safe_script = load("res://scripts/minigame_safe.gd")
 	if safe_script:
 		minigame_safe = CanvasLayer.new()
@@ -147,7 +130,6 @@ func _on_minigame_ended() -> void:
 		player.can_move = true
 	_update_hud_objective()
 
-# ── ✉️ Viewer Surat Petunjuk Kasus (Close-Up UI) ─────────────────────────────
 var letter_layer: CanvasLayer
 var letter_rect: TextureRect
 var letter_close_btn: Button
@@ -205,13 +187,11 @@ func _close_letter_viewer() -> void:
 			_show_toast("✉️ Surat Tugas: Temui Inspektur Marcus di Kantor Polisi!")
 			inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
 
-# ── HUD & Interaksi POI ─────────────────────────────────────────────────────
 func _setup_hud_prompts() -> void:
 	var hud_layer = $HUD
 	if not is_instance_valid(hud_layer):
 		return
 
-	# Floating Interaction Prompt
 	interact_prompt = Label.new()
 	interact_prompt.text = "[ F / E ] Interaksi"
 	interact_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -222,7 +202,6 @@ func _setup_hud_prompts() -> void:
 	interact_prompt.visible = false
 	hud_layer.add_child(interact_prompt)
 
-	# Toast Banner
 	toast_banner = PanelContainer.new()
 	toast_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	toast_banner.position = Vector2(0, 15)
@@ -251,15 +230,12 @@ func _show_toast(msg: String) -> void:
 		toast_banner.visible = true
 		toast_timer = 3.5
 
-# ── Process & Interaksi ─────────────────────────────────────────────────────
 func _process(delta: float) -> void:
-	# Update Toast
 	if toast_timer > 0.0:
 		toast_timer -= delta
 		if toast_timer <= 0.0:
 			toast_banner.visible = false
 
-	# Update HUD telemetry
 	if is_instance_valid(player):
 		if is_instance_valid(hud_speed_label):
 			var spd = player.velocity.length()
@@ -298,7 +274,6 @@ func _check_poi_proximity() -> void:
 			interact_prompt.visible = true
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Cek tombol interaksi: F (GDD), E, atau Space
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE]:
 			if not active_poi_id.is_empty():
@@ -318,7 +293,6 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
 				_open_letter_closeup()
 			elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_3_PHOTO:
-				# Buka Minigame 3: Cuci Foto
 				if is_instance_valid(minigame_photo_wash):
 					player.can_move = false
 					minigame_photo_wash.start_minigame()
@@ -327,7 +301,6 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 
 		"police":
 			if inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
-				# Buka Minigame 1: Tailgate Marcus
 				var marcus_npc = find_child("NPC4", true, false)
 				if not is_instance_valid(marcus_npc):
 					marcus_npc = find_child("NPC1", true, false)
@@ -339,7 +312,6 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 
 		"station":
 			if inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_2_STATION:
-				# Buka Minigame 2: Hidden Objects
 				if is_instance_valid(minigame_hidden_objects):
 					player.can_move = false
 					minigame_hidden_objects.start_minigame()
@@ -357,7 +329,6 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				_show_toast("Rumah Sakit: 'Pemeriksaan jasad korban sedang dijaga ketat oleh dokter.'")
 
 		"safe":
-			# Buka Minigame Brankas Ibu
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
@@ -365,7 +336,6 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 		"shrine":
 			_on_shrine_interacted()
 
-# ── Alur Dewa Kematian & True Ending ─────────────────────────────────────────
 func _on_shrine_interacted() -> void:
 	if is_instance_valid(dialog_box):
 		var prompt = ""
@@ -398,7 +368,6 @@ func _update_hud_objective() -> void:
 	if is_instance_valid(hud_objective_label) and is_instance_valid(inv_mgr):
 		hud_objective_label.text = "🎯 Target: " + inv_mgr.get_current_objective_title()
 
-# ── UI Buttons Handlers ────────────────────────────────────────────────────
 func _on_journal_btn_pressed() -> void:
 	if is_instance_valid(clue_journal):
 		clue_journal.toggle_journal()
@@ -420,7 +389,6 @@ func _on_zoom_reset_btn_pressed() -> void:
 	if is_instance_valid(player) and player.has_method("reset_zoom"):
 		player.reset_zoom()
 
-# ── Otomatis Jalankan Server AI ──────────────────────────────────────────
 func _start_ai_server() -> void:
 	var exe_path = OS.get_executable_path().get_base_dir() + "/ai_server.exe"
 	if FileAccess.file_exists(exe_path):

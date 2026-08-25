@@ -1,10 +1,5 @@
 extends CanvasLayer
 
-# ── Side Quest: Brankas 3-Digit Hadiah Ibu Medeline (Sesuai GDD) ───────────
-# Teka-teki 3 digit kode dari pesan Ibu Medeline.
-# Kode Benar: 1 - 6 - 4
-# Hadiah: Liontin Kenangan Ibu Medeline (Emotional Item untuk True Ending).
-
 signal safe_opened(success: bool)
 
 var is_active: bool = false
@@ -94,7 +89,6 @@ func _build_scene_ui() -> void:
 	main_box.add_theme_constant_override("separation", 14)
 	margin.add_child(main_box)
 
-	# Header
 	var header = HBoxContainer.new()
 	main_box.add_child(header)
 
@@ -111,7 +105,6 @@ func _build_scene_ui() -> void:
 	close_btn.pressed.connect(func(): is_active = false; visible = false)
 	header.add_child(close_btn)
 
-	# Teka-teki Riddle Note Ibu
 	var riddle_panel = PanelContainer.new()
 	var r_style = StyleBoxFlat.new()
 	r_style.bg_color = Color(0.12, 0.14, 0.18, 0.95)
@@ -138,28 +131,23 @@ func _build_scene_ui() -> void:
 	status_label.add_theme_font_size_override("font_size", 15)
 	main_box.add_child(status_label)
 
-	# 3 Dials Digit
 	var dials_hbox = HBoxContainer.new()
 	dials_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	dials_hbox.add_theme_constant_override("separation", 30)
 	main_box.add_child(dials_hbox)
 
-	# Dial 1
 	var d1_box = _create_dial_widget(1, func(amt): _change_digit(1, amt))
 	digit1_label = d1_box.get_node("DigitLabel")
 	dials_hbox.add_child(d1_box)
 
-	# Dial 2
 	var d2_box = _create_dial_widget(2, func(amt): _change_digit(2, amt))
 	digit2_label = d2_box.get_node("DigitLabel")
 	dials_hbox.add_child(d2_box)
 
-	# Dial 3
 	var d3_box = _create_dial_widget(3, func(amt): _change_digit(3, amt))
 	digit3_label = d3_box.get_node("DigitLabel")
 	dials_hbox.add_child(d3_box)
 
-	# Tombol Buka
 	unlock_btn = Button.new()
 	unlock_btn.text = "🔓 BUKA BRANKAS"
 	unlock_btn.custom_minimum_size = Vector2(260, 44)

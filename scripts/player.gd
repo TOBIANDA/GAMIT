@@ -1,47 +1,41 @@
 extends CharacterBody2D
 
-# ── Konfigurasi Pergerakan 3/4 Top-Down Sesuai GDD ────────────────────────────
-@export var walk_speed: float = 90.0        # 0.75x dari kecepatan semula (120 * 0.75)
-@export var sprint_speed: float = 144.0     # 1.20x dari kecepatan semula (120 * 1.20)
-@export var max_speed: float = 90.0         # Kecepatan aktif saat ini
-@export var acceleration: float = 1600.0    # Akselerasi halus
-@export var friction: float = 1800.0        # Gesekan
+@export var walk_speed: float = 90.0
+@export var sprint_speed: float = 144.0
+@export var max_speed: float = 90.0
+@export var acceleration: float = 1600.0
+@export var friction: float = 1800.0
 @export var can_move: bool = true
 
-# ── Pilihan Karakter MC (Default: MC Detektif Asli 'posisi mc') ────────────
 enum MCType { DETECTIVE_BOY, CASUAL_BOY, GIRL }
-@export var current_mc_type: MCType = MCType.DETECTIVE_BOY # MC Detektif Asli (Benedict)
-@export var target_height_px: float = 38.0                 # Ukuran badan MC diperbesar sedikit & proporsional
-@export var base_step_anim_speed: float = 2.0              # Langkah jalan santai
-@export var sprint_step_anim_speed: float = 3.2            # Langkah saat lari
+@export var current_mc_type: MCType = MCType.DETECTIVE_BOY
+@export var target_height_px: float = 38.0
+@export var base_step_anim_speed: float = 2.0
+@export var sprint_step_anim_speed: float = 3.2
 var step_anim_speed: float = 2.0
 
-# ── Variabel Visual & Animasi 3/4 ──────────────────────────────────────────
 var facing_direction: Vector2 = Vector2.DOWN
 var step_cycle: float = 0.0
 var is_moving: bool = false
 var is_sprinting: bool = false
 
-# Dictionary untuk menyimpan 12 texture per karakter
 var sprite_sets: Dictionary = {}
 
-# ── Node References & Zoom Kontrol ─────────────────────────────────────────
 @onready var camera: Camera2D = $Camera2D
 
-@export var target_zoom_val: float = 2.0   # Nilai zoom aktif default (2.0x)
-@export var min_zoom_val: float = 0.35     # Penglihatan paling luas
-@export var max_zoom_val: float = 3.5      # Penglihatan paling dekat
-@export var zoom_step: float = 0.20        # Langkah per scroll / klik
+@export var target_zoom_val: float = 2.0
+@export var min_zoom_val: float = 0.35
+@export var max_zoom_val: float = 3.5
+@export var zoom_step: float = 0.20
 
 func _ready() -> void:
 	add_to_group("player")
 	y_sort_enabled = true
 	collision_layer = 2
-	collision_mask = 1 # Hanya bertabrakan dengan lingkungan/tembok (dapat overlap dengan NPC)
+	collision_mask = 1
 	if is_instance_valid(camera):
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
-	# Load semua set sprite MC (posisi mc, NPC_Boy, NPC_Girl)
 	_load_all_mc_sprite_sets()
 	queue_redraw()
 
@@ -70,14 +64,12 @@ func _load_sprites_from_folder(folder_path: String) -> Dictionary:
 	return set_dict
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 1. Mouse Scroll Wheel untuk Zoom
 	if event is InputEventMouseButton and event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_in()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom_out()
 
-	# 2. Keyboard Hotkeys Zoom
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_I or event.keycode == KEY_BRACKETRIGHT:
 			zoom_in()
@@ -110,20 +102,16 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 
-	# 1. Dapatkan arah input 8-arah
 	var input_vector = _get_input_vector()
 
-	# 2. Cek apakah tombol Shift ditekan untuk Sprint (Lari)
 	is_sprinting = Input.is_key_pressed(KEY_SHIFT)
 	max_speed = sprint_speed if is_sprinting else walk_speed
 	step_anim_speed = sprint_step_anim_speed if is_sprinting else base_step_anim_speed
 
-	# 3. Update kecepatan & pergerakan
 	if input_vector != Vector2.ZERO:
 		is_moving = true
 		facing_direction = input_vector.normalized()
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
-		# Step cycle disesuaikan saat lari vs jalan
 		step_cycle += delta * step_anim_speed
 	else:
 		is_moving = false
@@ -131,15 +119,12 @@ func _physics_process(delta: float) -> void:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		step_cycle = 0.0
 
-	# 4. Fisika pergerakan dan tabrakan
 	move_and_slide()
 
-	# 5. Smooth Camera Zoom Lerp
 	if is_instance_valid(camera):
 		var target_vec = Vector2(target_zoom_val, target_zoom_val)
 		camera.zoom = camera.zoom.lerp(target_vec, delta * 12.0)
 
-	# 6. Trigger redraw untuk rendering sprite MC
 	queue_redraw()
 
 func _get_input_vector() -> Vector2:
@@ -156,7 +141,6 @@ func _get_input_vector() -> Vector2:
 
 	return dir.normalized()
 
-# ── Dapatkan Texture Sprite yang Sesuai dengan Arah & Animasi Langkah ───────
 func _get_current_sprite() -> Texture2D:
 	var cur_set = sprite_sets.get(current_mc_type)
 	if cur_set == null or cur_set.is_empty():
@@ -190,7 +174,6 @@ func _get_current_sprite() -> Texture2D:
 	if not is_moving:
 		return cur_set.get(idle_key)
 
-	# Animasi 4-frame walk cycle (Idle -> Step Left -> Idle -> Step Right)
 	var anim_phase = fmod(step_cycle, 1.0)
 	if anim_phase < 0.25:
 		return cur_set.get(idle_key)
@@ -202,17 +185,13 @@ func _get_current_sprite() -> Texture2D:
 		return cur_set.get(step_r_key)
 
 func _draw() -> void:
-	# Gambar Sprite Art MC dengan Ukuran Badan Proporsional
 	var cur_tex = _get_current_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
-		# Skala dinamis agar tinggi fisik MC tepat target_height_px (~36px)
 		var calculated_scale = target_height_px / max(size.y, 1.0)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2(calculated_scale, calculated_scale))
 		
-		# Offset agar posisi kaki tepat berada di origin
 		var draw_offset = Vector2(-size.x / 2.0, -size.y + 8.0)
 		draw_texture(cur_tex, draw_offset)
 		
-		# Reset transform
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
