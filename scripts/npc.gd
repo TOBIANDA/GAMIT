@@ -284,17 +284,14 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _handle_travel_state(delta: float, dist_to_player: float) -> void:
-	if dist_to_player <= too_close_radius:
-		current_state = State.AFRAID
-		panic_timer = 0.0
-		msg_cooldown_timer = 0.0
+	if dist_to_player <= eavesdrop_radius and social_cooldown <= 0.0:
 		_trigger_new_clue_dialogue()
-		return
-	elif dist_to_player <= eavesdrop_radius:
-		current_state = State.EAVESDROP
-		msg_cooldown_timer = 0.0
-		_trigger_new_clue_dialogue()
-		return
+		social_cooldown = randf_range(12.0, 20.0)
+		var npcs = get_tree().get_nodes_in_group("npcs")
+		for other in npcs:
+			if other != self and is_instance_valid(other):
+				if other.global_position.distance_to(global_position) < 140.0:
+					other.social_cooldown = max(other.social_cooldown, 8.0)
 
 	if social_cooldown <= 0.0:
 		_check_for_walking_greeting()
@@ -306,7 +303,7 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	var dist_to_goal = global_position.distance_to(target_destination)
 	if is_finished or dist_to_goal < 28.0:
 		current_state = State.IDLE
-		idle_hangout_timer = randf_range(1.5, 3.2)
+		idle_hangout_timer = randf_range(1.2, 2.5)
 		velocity = Vector2.ZERO
 		is_moving = false
 		return
@@ -319,11 +316,23 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	if move_dir == Vector2.ZERO:
 		move_dir = (target_destination - global_position).normalized()
 
+	if dist_to_player <= too_close_radius and is_instance_valid(player_ref):
+		var push_away = (global_position - player_ref.global_position).normalized()
+		move_dir = (move_dir * 0.4 + push_away * 0.6).normalized()
+
+	var sep_force = Vector2.ZERO
+	var npcs = get_tree().get_nodes_in_group("npcs")
+	for other in npcs:
+		if other != self and is_instance_valid(other):
+			var d = global_position.distance_to(other.global_position)
+			if d > 0.1 and d < 42.0:
+				sep_force += (global_position - other.global_position).normalized() * (42.0 - d) * 1.5
+
 	move_dir_facing = move_dir
 	is_moving = true
 	step_cycle += delta * 4.5
 	body_bob_y = abs(sin(step_cycle)) * -1.5
-	velocity = move_dir * walk_speed
+	velocity = move_dir * walk_speed + sep_force
 	move_and_slide()
 
 	_check_stuck_watchdog(delta)
@@ -346,15 +355,7 @@ func _handle_stuck_recovery() -> void:
 
 func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if dist_to_player <= too_close_radius:
-		current_state = State.AFRAID
-		panic_timer = 0.0
-		msg_cooldown_timer = 0.0
-		_trigger_new_clue_dialogue()
-		return
-	elif dist_to_player <= eavesdrop_radius:
-		current_state = State.EAVESDROP
-		msg_cooldown_timer = 0.0
-		_trigger_new_clue_dialogue()
+		_pick_next_destination()
 		return
 
 	velocity = Vector2.ZERO
@@ -380,54 +381,11 @@ func _check_for_walking_greeting() -> void:
 					other.social_cooldown = 16.0
 					break
 
-func _handle_eavesdrop_state(delta: float, dist: float) -> void:
-	if dist > eavesdrop_radius + 10.0:
-		current_state = State.GO_TO_DESTINATION
-		is_textbox_visible = false
-		msg_display_timer = 0.0
-		msg_cooldown_timer = 0.0
-		velocity = Vector2.ZERO
-		tremble_offset = Vector2.ZERO
-		return
-	elif dist <= too_close_radius:
-		current_state = State.AFRAID
-		panic_timer = 0.0
-		return
+func _handle_eavesdrop_state(_delta: float, _dist: float) -> void:
+	current_state = State.GO_TO_DESTINATION
 
-	panic_timer = 0.0
-	tremble_offset = Vector2.ZERO
-	velocity = Vector2.ZERO
-	is_moving = false
-
-	if msg_display_timer <= 0.0 and msg_cooldown_timer <= 0.0:
-		_trigger_new_clue_dialogue()
-		msg_cooldown_timer = MSG_COOLDOWN_DURATION
-	elif msg_cooldown_timer > 0.0:
-		msg_cooldown_timer -= delta
-
-func _handle_afraid_state(delta: float, dist: float) -> void:
-	if dist > too_close_radius and dist <= eavesdrop_radius:
-		current_state = State.EAVESDROP
-		tremble_offset = Vector2.ZERO
-		return
-	elif dist > eavesdrop_radius:
-		current_state = State.GO_TO_DESTINATION
-		is_textbox_visible = false
-		panic_timer = 0.0
-		velocity = Vector2.ZERO
-		tremble_offset = Vector2.ZERO
-		return
-
-	panic_timer += delta
-	velocity = Vector2.ZERO
-	is_moving = false
-	tremble_offset = Vector2(randf_range(-1.12, 1.12), randf_range(-1.12, 1.12))
-
-	if msg_display_timer <= 0.0 and msg_cooldown_timer <= 0.0 and panic_timer < panic_time_limit - 0.5:
-		_trigger_new_clue_dialogue()
-		msg_cooldown_timer = MSG_COOLDOWN_DURATION
-	elif msg_cooldown_timer > 0.0:
-		msg_cooldown_timer -= delta
+func _handle_afraid_state(_delta: float, _dist: float) -> void:
+	current_state = State.GO_TO_DESTINATION
 
 	if panic_timer >= panic_time_limit:
 		current_state = State.PANIC_RUN
