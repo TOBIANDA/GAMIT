@@ -168,15 +168,17 @@ func _draw() -> void:
 		if i == 6:
 			_draw_detective_house(r_rect)
 		else:
-			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 40, 132, 116))
+			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 42, 132, 116))
 
-		# Pagar Belakang (Atas)
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 4, 34, 148, 26))
+			# Pagar Belakang (3 panel x 52px = 156px rapat sempurna)
+			draw_texture_rect(tex_pagar, Rect2(sq_x, 32, 52, 24), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 52, 32, 52, 24), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 104, 32, 52, 24), false)
 
-		# Pagar Depan (Kiri Pintu, Gerbang Pintu Tengah, Kanan Pintu)
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 2, 166, 60, 26))
-		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 62, 160, 32, 32))
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 94, 166, 60, 26))
+			# Pagar Depan (62px kiri + 32px pintu + 62px kanan = 156px rapat sempurna)
+			draw_texture_rect(tex_pagar, Rect2(sq_x, 166, 62, 26), false)
+			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62, 162, 32, 30), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 94, 166, 62, 26), false)
 
 	var l_pts = PackedVector2Array([
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
