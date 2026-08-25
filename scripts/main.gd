@@ -50,6 +50,7 @@ func _ready() -> void:
 	_setup_world_shader()
 	_setup_clue_journal()
 	_setup_minigames()
+	_setup_letter_viewer()
 	_setup_hud_prompts()
 	_start_ai_server()
 
@@ -145,6 +146,64 @@ func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
 	_update_hud_objective()
+
+# ── ✉️ Viewer Surat Petunjuk Kasus (Close-Up UI) ─────────────────────────────
+var letter_layer: CanvasLayer
+var letter_rect: TextureRect
+var letter_close_btn: Button
+
+func _setup_letter_viewer() -> void:
+	letter_layer = CanvasLayer.new()
+	letter_layer.name = "LetterViewer"
+	letter_layer.layer = 15
+	add_child(letter_layer)
+
+	var bg = ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.04, 0.05, 0.08, 0.85)
+	letter_layer.add_child(bg)
+
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	letter_layer.add_child(center)
+
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 14)
+	center.add_child(vb)
+
+	letter_rect = TextureRect.new()
+	var tex_close = load("res://interactable assets/surat close up.png")
+	if is_instance_valid(tex_close):
+		letter_rect.texture = tex_close
+	letter_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	letter_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	letter_rect.custom_minimum_size = Vector2(460, 480)
+	vb.add_child(letter_rect)
+
+	letter_close_btn = Button.new()
+	letter_close_btn.text = "✔ Simpan ke Jurnal & Lanjutkan Investigasi [ESC / Spasi]"
+	letter_close_btn.custom_minimum_size = Vector2(320, 40)
+	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	letter_close_btn.pressed.connect(_close_letter_viewer)
+	vb.add_child(letter_close_btn)
+
+	letter_layer.visible = false
+
+func _open_letter_closeup() -> void:
+	if is_instance_valid(letter_layer):
+		letter_layer.visible = true
+		if is_instance_valid(player):
+			player.can_move = false
+
+func _close_letter_viewer() -> void:
+	if is_instance_valid(letter_layer):
+		letter_layer.visible = false
+	if is_instance_valid(player):
+		player.can_move = true
+	if is_instance_valid(inv_mgr):
+		if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
+			_show_toast("✉️ Surat Tugas: Temui Inspektur Marcus di Kantor Polisi!")
+			inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
 
 # ── HUD & Interaksi POI ─────────────────────────────────────────────────────
 func _setup_hud_prompts() -> void:
@@ -257,8 +316,7 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 	match poi_id:
 		"desk":
 			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-				_show_toast("✉️ Membaca surat tugas di meja: Temui Inspektur Marcus di Kantor Polisi!")
-				inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
+				_open_letter_closeup()
 			elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_3_PHOTO:
 				# Buka Minigame 3: Cuci Foto
 				if is_instance_valid(minigame_photo_wash):

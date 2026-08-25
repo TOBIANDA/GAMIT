@@ -67,15 +67,61 @@ const COLOR_TRACK_RAIL      = Color(0.70, 0.74, 0.80, 1.0)
 const COLOR_TRACK_TIE       = Color(0.38, 0.33, 0.28, 1.0)
 
 const WT = 6.0
-var collision_bodies: Array[StaticBody2D] = []
+# ── Textures Bangunan, Kamar & Interactables ─────────────────────────────────
+var tex_hospital: Texture2D
+var tex_police: Texture2D
+var tex_rumah_mc: Texture2D
+var tex_rumah_depan: Texture2D
+var tex_rumah_belakang: Texture2D
+var tex_rumah_samping: Texture2D
+var tex_pagar: Texture2D
+var tex_pintu_pagar: Texture2D
+
+var tex_bed: Texture2D
+var tex_karpet: Texture2D
+var tex_laci: Texture2D
+var tex_lemari: Texture2D
+
+var tex_baskom: Texture2D
+var tex_surat: Texture2D
 
 var nav_region: NavigationRegion2D
 
 func _ready() -> void:
 	z_index = -1
+	_load_textures()
 	_build_all_colliders()
 	_setup_navigation_region()
 	queue_redraw()
+
+func _load_textures() -> void:
+	tex_hospital = load("res://Bangunan/Hospital.png")
+	tex_police = load("res://Bangunan/police.png")
+	tex_rumah_mc = load("res://Bangunan/rumahMC.png")
+	tex_rumah_depan = load("res://Bangunan/rumahTampakDepan.png")
+	tex_rumah_belakang = load("res://Bangunan/rumahTampakBelakang.png")
+	tex_rumah_samping = load("res://Bangunan/rumahTampakSamping.png")
+	tex_pagar = load("res://Bangunan/pagar.png")
+	tex_pintu_pagar = load("res://Bangunan/pintuPagar.png")
+
+	tex_bed = load("res://kamar/bed.png")
+	tex_karpet = load("res://kamar/karpet.png")
+	tex_laci = load("res://kamar/laci.png")
+	tex_lemari = load("res://kamar/lemari.png")
+
+	tex_baskom = load("res://interactable assets/baskom cetak photo.png")
+	tex_surat = load("res://interactable assets/surat.png")
+
+func _draw_texture_fit(tex: Texture2D, target_rect: Rect2) -> void:
+	if not is_instance_valid(tex):
+		return
+	var src_size = tex.get_size()
+	if src_size.x <= 0 or src_size.y <= 0:
+		return
+	var scale_factor = min(target_rect.size.x / src_size.x, target_rect.size.y / src_size.y)
+	var draw_size = src_size * scale_factor
+	var draw_pos = target_rect.position + (target_rect.size - draw_size) * 0.5
+	draw_texture_rect(tex, Rect2(draw_pos, draw_size), false)
 
 func _setup_navigation_region() -> void:
 	nav_region = NavigationRegion2D.new()
@@ -164,6 +210,14 @@ func _draw() -> void:
 				r_color = COLOR_ROOM_OCHRE
 			_draw_room_pavement(r_rect, r_color)
 			_draw_desk(Rect2(sq_x + 30, 70, 96, 75))
+			
+			# Render Variasi Bangunan Rumah Warga Asli
+			if i % 3 == 0:
+				_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 10, 42, 136, 140))
+			elif i % 3 == 1:
+				_draw_texture_fit(tex_rumah_samping, Rect2(sq_x + 10, 42, 136, 140))
+			else:
+				_draw_texture_fit(tex_rumah_belakang, Rect2(sq_x + 10, 42, 136, 140))
 
 	# 2. ROOM LEFT L (L-Shaped Room)
 	var l_pts = PackedVector2Array([
@@ -182,8 +236,10 @@ func _draw() -> void:
 
 	# 3. ROOM BOTTOM LEFT (0, 951, 357, 360) - Kantor Polisi & Arsip
 	_draw_room_pavement(Rect2(0, 951, 357, 360), COLOR_ROOM_STONE_B)
-	_draw_desk(Rect2(40, 1000, 270, 120))
-	_draw_desk(Rect2(40, 1160, 270, 120))
+	_draw_texture_fit(tex_police, Rect2(40, 965, 270, 190))
+	_draw_texture_fit(tex_lemari, Rect2(20, 1180, 50, 60))
+	_draw_texture_fit(tex_laci, Rect2(80, 1180, 30, 40))
+	_draw_texture_fit(tex_surat, Rect2(170, 1040, 32, 32)) # Surat Berkas Rahasia Brankas Ibu
 
 	# 4. TOP COMPLEX (GEDUNG TENGAH ATAS NYATU)
 	var top_complex_pts = PackedVector2Array([
@@ -366,93 +422,85 @@ func _draw_detective_house(rect: Rect2) -> void:
 	draw_rect(rect, COLOR_PARQUET_WOOD, true)
 	for py in range(int(rect.position.y) + 12, int(rect.end.y), 14):
 		draw_line(Vector2(rect.position.x, py), Vector2(rect.end.x, py), COLOR_PARQUET_DARK, 1.0)
-	for px in range(int(rect.position.x) + 24, int(rect.end.x), 36):
-		draw_line(Vector2(px, rect.position.y), Vector2(px, rect.end.y), Color(COLOR_PARQUET_DARK.r, COLOR_PARQUET_DARK.g, COLOR_PARQUET_DARK.b, 0.4), 0.8)
 
-	# 2. Karpet Beludru Persia Merah-Emas di Tengah
-	var rug_rect = Rect2(rect.position.x + 24, rect.position.y + 35, rect.size.x - 48, rect.size.y - 55)
-	draw_rect(rug_rect, COLOR_RUG_RED, true)
-	draw_rect(rug_rect, COLOR_RUG_GOLD, false, 2.0)
-	draw_rect(Rect2(rug_rect.position + Vector2(6, 6), rug_rect.size - Vector2(12, 12)), Color(0.48, 0.10, 0.14), true)
+	# 2. Karpet Texture Asli Kamar
+	_draw_texture_fit(tex_karpet, Rect2(rect.position.x + 28, rect.position.y + 40, 96, 75))
 
-	# 3. Papan Bukti Kasus (Detective Crime Corkboard) di Dinding Atas
-	var cork_rect = Rect2(rect.position.x + 28, rect.position.y + 4, rect.size.x - 56, 26)
+	# 3. Kasur / Bed Texture Asli di Sudut Kiri Atas
+	_draw_texture_fit(tex_bed, Rect2(rect.position.x + 8, rect.position.y + 10, 46, 56))
+
+	# 4. Lemari Texture Asli di Dinding Kanan Atas
+	_draw_texture_fit(tex_lemari, Rect2(rect.position.x + 102, rect.position.y + 8, 44, 52))
+
+	# 5. Papan Bukti Kasus (Detective Crime Corkboard)
+	var cork_rect = Rect2(rect.position.x + 56, rect.position.y + 4, 44, 20)
 	draw_rect(cork_rect, COLOR_CORKBOARD, true)
 	draw_rect(cork_rect, Color(0.35, 0.22, 0.12), false, 1.5)
 	# Foto & Kliping Bukti
-	draw_rect(Rect2(cork_rect.position.x + 8, cork_rect.position.y + 4, 16, 16), Color(0.95, 0.95, 0.90), true)
-	draw_rect(Rect2(cork_rect.position.x + 36, cork_rect.position.y + 4, 20, 14), Color(0.90, 0.88, 0.80), true)
-	draw_rect(Rect2(cork_rect.position.x + 72, cork_rect.position.y + 4, 18, 16), Color(0.95, 0.95, 0.90), true)
-	# Benang Merah Investigasi (Red Strings)
-	draw_line(Vector2(cork_rect.position.x + 16, cork_rect.position.y + 12), Vector2(cork_rect.position.x + 46, cork_rect.position.y + 10), Color(0.9, 0.15, 0.15), 1.5)
-	draw_line(Vector2(cork_rect.position.x + 46, cork_rect.position.y + 10), Vector2(cork_rect.position.x + 80, cork_rect.position.y + 12), Color(0.9, 0.15, 0.15), 1.5)
+	draw_rect(Rect2(cork_rect.position.x + 4, cork_rect.position.y + 3, 10, 10), Color(0.95, 0.95, 0.90), true)
+	draw_rect(Rect2(cork_rect.position.x + 18, cork_rect.position.y + 3, 12, 9), Color(0.90, 0.88, 0.80), true)
+	draw_line(Vector2(cork_rect.position.x + 9, cork_rect.position.y + 8), Vector2(cork_rect.position.x + 24, cork_rect.position.y + 7), Color(0.9, 0.15, 0.15), 1.5)
 
-	# 4. Meja Kerja Mahoni Detektif
-	var desk_rect = Rect2(rect.position.x + 32, rect.position.y + 72, 92, 52)
+	# 6. Meja Kerja Mahoni Detektif
+	var desk_rect = Rect2(rect.position.x + 32, rect.position.y + 76, 88, 48)
 	draw_rect(Rect2(desk_rect.position + Vector2(3, 3), desk_rect.size), Color(0, 0, 0, 0.35), true)
 	draw_rect(desk_rect, Color(0.36, 0.20, 0.12), true)
 	draw_rect(desk_rect, Color(0.55, 0.35, 0.20), false, 2.0)
 
-	# Mesin Tik Vintage Hitam & Berkas Manila
-	draw_rect(Rect2(desk_rect.position.x + 34, desk_rect.position.y + 12, 24, 20), Color(0.12, 0.12, 0.15), true)
-	draw_rect(Rect2(desk_rect.position.x + 38, desk_rect.position.y + 6, 16, 6), Color(0.95, 0.95, 0.95), true) # Kertas putih
-	draw_rect(Rect2(desk_rect.position.x + 10, desk_rect.position.y + 14, 16, 22), Color(0.85, 0.75, 0.50), true) # Map Manila
+	# Laci Texture Asli di Samping Meja
+	_draw_texture_fit(tex_laci, Rect2(rect.position.x + 8, rect.position.y + 76, 22, 26))
 
-	# Banker's Brass Green Lamp dengan Cahaya Kuning Hangat
-	draw_circle(Vector2(desk_rect.position.x + 75, desk_rect.position.y + 20), 16.0, Color(1.0, 0.92, 0.45, 0.28))
-	draw_circle(Vector2(desk_rect.position.x + 75, desk_rect.position.y + 20), 5.0, Color(0.18, 0.52, 0.28)) # Lampu Hijau
-	draw_circle(Vector2(desk_rect.position.x + 75, desk_rect.position.y + 20), 2.5, Color(1.0, 0.95, 0.6))
+	# Surat Tugas / Clue Letter Asli di Atas Meja Detektif
+	_draw_texture_fit(tex_surat, Rect2(desk_rect.position.x + 10, desk_rect.position.y + 12, 22, 22))
 
-	# Rak Buku & Arsip di Dinding Kiri
-	draw_rect(Rect2(rect.position.x + 4, rect.position.y + 36, 16, 80), Color(0.30, 0.18, 0.10), true)
-	for by in range(int(rect.position.y) + 40, int(rect.position.y) + 110, 12):
-		draw_line(Vector2(rect.position.x + 6, by), Vector2(rect.position.x + 18, by), Color(0.75, 0.35, 0.25), 2.5)
-
-	# Gantungan Topi & Jas Detektif di Sudut
-	draw_circle(Vector2(rect.end.x - 16, rect.position.y + 45), 6.0, Color(0.40, 0.25, 0.15))
-	draw_circle(Vector2(rect.end.x - 16, rect.position.y + 45), 3.5, Color(0.20, 0.15, 0.12))
+	# Mesin Tik Vintage Hitam & Banker's Lamp
+	draw_rect(Rect2(desk_rect.position.x + 36, desk_rect.position.y + 10, 22, 18), Color(0.12, 0.12, 0.15), true)
+	draw_rect(Rect2(desk_rect.position.x + 40, desk_rect.position.y + 5, 14, 5), Color(0.95, 0.95, 0.95), true)
+	draw_circle(Vector2(desk_rect.position.x + 72, desk_rect.position.y + 18), 14.0, Color(1.0, 0.92, 0.45, 0.28))
+	draw_circle(Vector2(desk_rect.position.x + 72, desk_rect.position.y + 18), 4.5, Color(0.18, 0.52, 0.28))
 
 # ── 🏥 ART KHUSUS: RUMAH SAKIT & KAMAR JENAZAH / FORENSIK ───────────────────
 func _draw_hospital_morgue(rect: Rect2) -> void:
 	# 1. Lantai Ubin Keramik Medis Cyan-Putih Mengkilap
 	draw_rect(rect, COLOR_HOSPITAL_TILE, true)
-	for tx in range(int(rect.position.x) + 24, int(rect.end.x), 24):
+	for tx in range(int(rect.position.x) + 24, int(rect.end.y), 24):
 		draw_line(Vector2(tx, rect.position.y), Vector2(tx, rect.end.y), COLOR_HOSPITAL_GROUT, 1.0)
 	for ty in range(int(rect.position.y) + 24, int(rect.end.y), 24):
 		draw_line(Vector2(rect.position.x, ty), Vector2(rect.end.x, ty), COLOR_HOSPITAL_GROUT, 1.0)
 
-	# 2. Lambang Palang Merah Medis Besar di Lantai Tengah
-	var center_m = Vector2(rect.position.x + 130, rect.position.y + 110)
-	draw_circle(center_m, 32.0, Color(1, 1, 1, 0.95))
-	draw_circle(center_m, 32.0, COLOR_HOSPITAL_GROUT, false, 2.0)
-	draw_rect(Rect2(center_m.x - 6, center_m.y - 20, 12, 40), COLOR_MED_RED, true)
-	draw_rect(Rect2(center_m.x - 20, center_m.y - 6, 40, 12), COLOR_MED_RED, true)
+	# 2. Hospital Building Artwork Texture di Sisi Depan RS
+	_draw_texture_fit(tex_hospital, Rect2(rect.position.x + 12, rect.position.y + 10, 150, 110))
 
-	# 3. Meja Bedah Autopsi Stainless Steel
+	# 3. Lambang Palang Merah Medis Besar di Lantai Tengah
+	var center_m = Vector2(rect.position.x + 190, rect.position.y + 110)
+	draw_circle(center_m, 26.0, Color(1, 1, 1, 0.95))
+	draw_circle(center_m, 26.0, COLOR_HOSPITAL_GROUT, false, 2.0)
+	draw_rect(Rect2(center_m.x - 5, center_m.y - 16, 10, 32), COLOR_MED_RED, true)
+	draw_rect(Rect2(center_m.x - 16, center_m.y - 5, 32, 10), COLOR_MED_RED, true)
+
+	# 4. Meja Bedah Autopsi Stainless Steel
 	var table_rect = Rect2(rect.position.x + 50, rect.position.y + 140, 140, 65)
 	draw_rect(Rect2(table_rect.position + Vector2(3, 3), table_rect.size), Color(0, 0, 0, 0.28), true)
 	draw_rect(table_rect, COLOR_STEEL_LIGHT, true)
 	draw_rect(table_rect, COLOR_STEEL_DARK, false, 2.5)
 	draw_rect(Rect2(table_rect.position + Vector2(6, 6), table_rect.size - Vector2(12, 12)), Color(0.68, 0.74, 0.78), true)
-	# Lampu Operasi Overhead (Cahaya Putih Terang Menyorot Meja)
 	draw_circle(table_rect.get_center(), 48.0, Color(1.0, 1.0, 1.0, 0.22))
 	draw_circle(table_rect.get_center(), 14.0, Color(0.95, 0.98, 1.0, 0.85))
 
-	# 4. Laboratorium Kamar Gelap Forensik (Darkroom Minigame Cuci Foto)
-	var darkroom_rect = Rect2(rect.position.x + 220, rect.position.y + 35, 140, 75)
+	# 5. Laboratorium Kamar Gelap Forensik & Baskom Cetak Foto Asli
+	var darkroom_rect = Rect2(rect.position.x + 230, rect.position.y + 35, 135, 80)
 	draw_rect(darkroom_rect, Color(0.12, 0.13, 0.15), true)
 	draw_rect(darkroom_rect, Color(0.4, 0.15, 0.15), false, 2.0)
-	# Cahaya Merah Safelight
-	draw_circle(Vector2(darkroom_rect.position.x + 70, darkroom_rect.position.y + 35), 45.0, COLOR_DARKROOM_RED)
-	# 3 Bak Cairan Kimia Cuci Foto (Developer, Stop Bath, Fixer)
-	draw_rect(Rect2(darkroom_rect.position.x + 12, darkroom_rect.position.y + 15, 30, 45), Color(0.20, 0.25, 0.35), true) # Cairan biru
-	draw_rect(Rect2(darkroom_rect.position.x + 52, darkroom_rect.position.y + 15, 30, 45), Color(0.35, 0.20, 0.20), true) # Cairan merah
-	draw_rect(Rect2(darkroom_rect.position.x + 92, darkroom_rect.position.y + 15, 30, 45), Color(0.18, 0.30, 0.25), true) # Cairan hijau
+	draw_circle(Vector2(darkroom_rect.position.x + 68, darkroom_rect.position.y + 40), 45.0, COLOR_DARKROOM_RED)
+
+	# Baskom Cetak Photo Texture Asli di Meja Kamar Gelap!
+	_draw_texture_fit(tex_baskom, Rect2(darkroom_rect.position.x + 15, darkroom_rect.position.y + 12, 105, 55))
+
 	# Tali Jemuran Foto Hasil Cuci
 	draw_line(Vector2(darkroom_rect.position.x + 8, darkroom_rect.position.y + 68), Vector2(darkroom_rect.end.x - 8, darkroom_rect.position.y + 68), Color(0.9, 0.9, 0.9), 1.0)
 	draw_rect(Rect2(darkroom_rect.position.x + 35, darkroom_rect.position.y + 62, 12, 10), Color(0.95, 0.95, 0.95), true) # Foto tergantung
 
-	# 5. Monitor Jantung ECG Medis (Layar Hitam dengan Gelombang Detak Jantung Hijau)
+	# 6. Monitor Jantung ECG Medis (Layar Hitam dengan Gelombang Detak Jantung Hijau)
 	var ecg_rect = Rect2(rect.position.x + 225, rect.position.y + 135, 60, 45)
 	draw_rect(ecg_rect, Color(0.08, 0.09, 0.11), true)
 	draw_rect(ecg_rect, Color(0.40, 0.45, 0.50), false, 2.0)

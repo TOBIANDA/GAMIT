@@ -20,6 +20,8 @@ const QTE_TARGET_GOAL = 4
 
 var status_label: Label
 var action_hint: Label
+var soak_container: VBoxContainer
+var baskom_texture_rect: TextureRect
 var soak_progress_bar: ProgressBar
 var qte_box: PanelContainer
 var qte_label: Label
@@ -49,9 +51,12 @@ func _setup_soak_step() -> void:
 	status_label.text = "🧪 LANGKAH 1: MERENDAM FOTO KE CAIRAN PENGEMBANG"
 	action_hint.text = "👉 TAHAN KLIK KIRI MOUSE untuk merendam foto dalam bak kimia..."
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	soak_progress_bar.visible = true
-	qte_box.visible = false
-	result_panel.visible = false
+	if is_instance_valid(soak_container):
+		soak_container.visible = true
+	if is_instance_valid(qte_box):
+		qte_box.visible = false
+	if is_instance_valid(result_panel):
+		result_panel.visible = false
 
 func _setup_qte_step() -> void:
 	current_step = 1
@@ -59,8 +64,10 @@ func _setup_qte_step() -> void:
 	status_label.text = "💧 LANGKAH 2: MEMBILAS FOTO DENGAN CEPAT (QTE)"
 	action_hint.text = "👉 TEKAN TOMBOL KEYBOARD YANG MUNCUL DENGAN TEPAT!"
 	action_hint.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
-	soak_progress_bar.visible = false
-	qte_box.visible = true
+	if is_instance_valid(soak_container):
+		soak_container.visible = false
+	if is_instance_valid(qte_box):
+		qte_box.visible = true
 	_pick_next_qte_key()
 
 func _pick_next_qte_key() -> void:
@@ -195,11 +202,27 @@ func _build_scene_ui() -> void:
 	action_hint.add_theme_font_size_override("font_size", 14)
 	main_vbox.add_child(action_hint)
 
+	# Basin Texture (Baskom Cetak Foto) & Soak Container
+	soak_container = VBoxContainer.new()
+	soak_container.add_theme_constant_override("separation", 10)
+	main_vbox.add_child(soak_container)
+
+	baskom_texture_rect = TextureRect.new()
+	var tex_baskom = load("res://interactable assets/baskom cetak photo.png")
+	if is_instance_valid(tex_baskom):
+		baskom_texture_rect.texture = tex_baskom
+	baskom_texture_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	baskom_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	baskom_texture_rect.custom_minimum_size = Vector2(280, 160)
+	baskom_texture_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	soak_container.add_child(baskom_texture_rect)
+
 	# Progress Bar Rendam
 	soak_progress_bar = ProgressBar.new()
-	soak_progress_bar.custom_minimum_size = Vector2(0, 32)
+	soak_progress_bar.custom_minimum_size = Vector2(400, 24)
+	soak_progress_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	soak_progress_bar.max_value = 100
-	main_vbox.add_child(soak_progress_bar)
+	soak_container.add_child(soak_progress_bar)
 
 	# Box QTE
 	qte_box = PanelContainer.new()
