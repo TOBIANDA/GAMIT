@@ -28,7 +28,7 @@ var sprite_sets: Dictionary = {}
 # ── Node References & Zoom Kontrol ─────────────────────────────────────────
 @onready var camera: Camera2D = $Camera2D
 
-@export var target_zoom_val: float = 1.8   # Nilai zoom aktif default
+@export var target_zoom_val: float = 2.0   # Nilai zoom aktif default (2.0x)
 @export var min_zoom_val: float = 0.35     # Penglihatan paling luas
 @export var max_zoom_val: float = 3.5      # Penglihatan paling dekat
 @export var zoom_step: float = 0.20        # Langkah per scroll / klik
@@ -91,7 +91,7 @@ func zoom_out() -> void:
 	target_zoom_val = clampf(target_zoom_val - zoom_step, min_zoom_val, max_zoom_val)
 
 func reset_zoom() -> void:
-	target_zoom_val = 1.8
+	target_zoom_val = 2.0
 
 func get_zoom_level() -> float:
 	return target_zoom_val
