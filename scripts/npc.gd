@@ -463,7 +463,7 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 	panic_timer += delta
 	velocity = Vector2.ZERO
 	is_moving = false
-	tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
+	tremble_offset = Vector2(randf_range(-1.12, 1.12), randf_range(-1.12, 1.12))
 
 	if msg_display_timer > 0.0:
 		msg_display_timer -= delta
@@ -496,7 +496,7 @@ func _handle_panic_run(delta: float) -> void:
 	is_moving = true
 	step_cycle += delta * 12.0
 	body_bob_y = abs(sin(step_cycle)) * -3.0
-	tremble_offset = Vector2(randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
+	tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
 
 	if run_timer <= 0.0:
 		current_state = State.DESPAWNED
