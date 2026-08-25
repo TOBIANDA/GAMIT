@@ -196,7 +196,7 @@ func _draw() -> void:
 
 	# ── A. GAMBAR RUANGAN DENGAN ART KHUSUS TEMATIK ──────────────────────────
 
-	# 1. 11 TOP ROW SQUARES (sq_top_1 .. sq_top_11)
+	# 1. 11 TOP ROW SQUARES (sq_top_1 .. sq_top_11) - Seluruhnya Hadap Depan ke Jalan
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var r_rect = Rect2(sq_x, 36, 156, 156)
@@ -211,13 +211,8 @@ func _draw() -> void:
 			_draw_room_pavement(r_rect, r_color)
 			_draw_desk(Rect2(sq_x + 30, 70, 96, 75))
 			
-			# Render Variasi Bangunan Rumah Warga Asli
-			if i % 3 == 0:
-				_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 10, 42, 136, 140))
-			elif i % 3 == 1:
-				_draw_texture_fit(tex_rumah_samping, Rect2(sq_x + 10, 42, 136, 140))
-			else:
-				_draw_texture_fit(tex_rumah_belakang, Rect2(sq_x + 10, 42, 136, 140))
+			# 🏠 Seluruh Rumah Baris Atas Menghadap ke Depan (Pintu & Jendela ke Jalan Raya)
+			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 10, 42, 136, 140))
 
 	# 2. ROOM LEFT L (L-Shaped Room)
 	var l_pts = PackedVector2Array([
@@ -272,16 +267,13 @@ func _draw() -> void:
 	_draw_desk(Rect2(510, 1120, 490, 100))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	# 6. ROOM SMALL MID BOTTOM (1158, 840, 270, 210)
+	# 6. ROOM SMALL MID BOTTOM (1158, 840, 270, 210) - Hadap Belakang (Jalan ada di Utara)
 	_draw_room_pavement(Rect2(1158, 840, 270, 210), COLOR_ROOM_OCHRE)
-	_draw_desk(Rect2(1190, 880, 205, 120))
+	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 860, 220, 170))
 
-	# 7. ROOM GRID RIGHT (1626, 324, 390, 390)
+	# 7. ROOM GRID RIGHT (1626, 324, 390, 390) - Hadap Samping (Menghadap Gang Vertikal Kanan)
 	_draw_room_pavement(Rect2(1626, 324, 390, 390), COLOR_ROOM_STONE_A)
-	_draw_desk(Rect2(1656, 354, 120, 120))
-	_draw_desk(Rect2(1812, 354, 120, 120))
-	_draw_desk(Rect2(1656, 585, 120, 120))
-	_draw_desk(Rect2(1812, 585, 120, 120))
+	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 340, 340, 350))
 
 	# 8. ROOM BOTTOM RIGHT: Sanctuary of Dewa Kematian (1581, 849, 504, 420)
 	draw_rect(Rect2(1581, 849, 504, 420), COLOR_ROOM_DARK, true)
