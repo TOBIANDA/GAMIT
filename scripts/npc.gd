@@ -1,26 +1,29 @@
 extends CharacterBody2D
 
-# ── NPC System v8 - Multi-Sprite Support (NPC Cowo, NPC Polisi, NPC Cewe) ─────
+# ── NPC System v9 - Unified Goals & Inter-NPC Social Interactions ────────────
 # Fitur:
-# 1. Tiga Tipe NPC Resmi:
-#    - NPCType.BOY: Karakter Cowo dari folder 'NPC_Boy' / 'posisi mc'
-#    - NPCType.POLICE: Karakter Polisi dari folder 'NPC_Police'
-#    - NPCType.GIRL: Karakter Cewe dari folder 'NPC_Girl'
-# 2. Skala Fisik Otomatis (~28px) presisi menyamai MC
-# 3. Fitur Anti-Nyangkut Tembok & Smart Avoidance Tetap Aktif
-# 4. Textbox Dialog Misteri Halus (Growtopia Style)
+# 1. Tujuan Terpadu & Sederhana (Unified Civilian Life Loop):
+#    - Warga (Cowo & Cewe) berbagi daftar destinasi kota yang sama (Stasiun, Taman, RS, Plaza).
+#    - Menuju lokasi ➔ Bersantai sejenak (4-8s) ➔ Melanjutkan ke lokasi berikutnya.
+# 2. Rute Patroli Polisi:
+#    - Polisi berpatroli berkeliling pos, simpang tengah, dan stasiun secara tertib.
+# 3. Interaksi Sosial Antar-NPC (Social Emergence):
+#    - Saat 2 NPC berpapasan (<70px), mereka berhenti, berhadapan, dan saling bertukar obrolan/gosip.
+#    - Balon dialog Growtopia muncul menampilkan percakapan dinamis.
+# 4. Super Ringan (0ms AI Overhead) & Animasi Mulus 60 FPS.
+# 5. Skala Karakter 38px, Bayangan Lantai Aktif, & Reaksi Detektif Benedict.
 
 enum NPCType { BOY, POLICE, GIRL }
-@export var npc_type: NPCType = NPCType.BOY # Default NPC Cowo
-@export var target_height_px: float = 38.0  # Menyamai ukuran MC (diperbesar sedikit)
+@export var npc_type: NPCType = NPCType.BOY
+@export var target_height_px: float = 38.0
 @export var too_close_radius: float = 110.0
 @export var eavesdrop_radius: float = 220.0
 @export var panic_time_limit: float = 7.0
 @export var run_speed: float = 380.0
-@export var wander_speed: float = 42.0
+@export var walk_speed: float = 46.0
 
-enum State { IDLE, WANDER, EAVESDROP, AFRAID, PANIC_RUN, DESPAWNED }
-var current_state: State = State.IDLE
+enum State { IDLE, GO_TO_DESTINATION, SOCIAL_CHAT, EAVESDROP, AFRAID, PANIC_RUN, DESPAWNED }
+var current_state: State = State.GO_TO_DESTINATION
 
 var player_ref: CharacterBody2D = null
 var panic_timer: float = 0.0
@@ -28,16 +31,64 @@ var run_timer: float = 0.0
 var run_direction: Vector2 = Vector2.ZERO
 var tremble_offset: Vector2 = Vector2.ZERO
 
-# Timer Tampil Textbox 2 Detik & Pause Antar Percakapan
+# Destinasi Terpadu Kota (Untuk Warga Cowo & Cewe)
+const SHARED_DESTINATIONS = [
+	Vector2(2088, 550), # Stasiun Kereta Timur
+	Vector2(1090, 435), # Taman Courtyard Atas
+	Vector2(1104, 780), # Simpang Jalan Tengah
+	Vector2(594, 550),  # Rumah Sakit & Lab Forensik
+	Vector2(780, 830),  # Taman Courtyard Bawah
+	Vector2(1581, 258), # Plaza Timur
+	Vector2(411, 1278), # Jalan Lingkar Bawah
+	Vector2(350, 258)   # Pos Polisi / Stasiun Barat
+]
+
+# Rute Patroli Khusus Polisi
+const POLICE_PATROL_WAYPOINTS = [
+	Vector2(350, 258),   # Pos Polisi Barat
+	Vector2(577, 258),   # Simpang Atas
+	Vector2(1104, 780),  # Simpang Tengah
+	Vector2(2088, 550),  # Stasiun Kereta
+	Vector2(1581, 780),  # Koridor Kanan
+	Vector2(411, 1278)   # Jalan Bawah
+]
+
+var target_destination: Vector2 = Vector2.ZERO
+var current_patrol_idx: int = 0
+var idle_hangout_timer: float = 0.0
+
+# Interaksi Sosial Antar-NPC
+var social_cooldown: float = 0.0
+var social_chat_timer: float = 0.0
+var social_partner: CharacterBody2D = null
+
+const SOCIAL_CHATS_CIVILIAN = [
+	"Hai! Mau ke stasiun juga ya?",
+	"Cuaca kota hari ini terasa dingin sekali...",
+	"Kamu dengar suara kereta tadi? Tepat waktu ya.",
+	"Hati-hati ya di jalan, ada detektif sedang menyelidiki.",
+	"Mau mampir ke taman courtyard sebentar?",
+	"Semoga urusanmu lancar hari ini!",
+	"Aku baru saja dari rumah sakit, suasananya sepi sekali."
+]
+
+const SOCIAL_CHATS_POLICE = [
+	"Selamat siang warga, situasi kota terpantau aman.",
+	"Tetap berhati-hati di dekat rel kereta api timur.",
+	"Ada laporan mencurigakan di area kuil lama...",
+	"Lanjutkan perjalananmu dengan tertib ya."
+]
+
+# Timer Tampil Textbox & Cooldown
 var msg_display_timer: float = 0.0
 var msg_cooldown_timer: float = 0.0
-const MSG_DISPLAY_DURATION: float = 2.0
+const MSG_DISPLAY_DURATION: float = 2.4
 const MSG_COOLDOWN_DURATION: float = 1.2
 
-# Cache Sprite Textures untuk ketiga tipe NPC
+# Cache Sprite Textures
 var sprite_sets: Dictionary = {}
 
-# Node Referensi Textbox
+# Node UI Textbox
 var textbox_panel: PanelContainer
 var textbox_label: Label
 var textbox_pointer: Polygon2D
@@ -46,14 +97,13 @@ var is_textbox_visible: bool = false
 var current_text_msg: String = ""
 var last_clue_index: int = -1
 
-# Animasi pergerakan NPC
+# Animasi pergerakan
 var step_cycle: float = 0.0
 var is_moving: bool = false
 var body_bob_y: float = 0.0
-var wander_timer: float = 0.0
-var wander_direction: Vector2 = Vector2.ZERO
+var move_dir_facing: Vector2 = Vector2.DOWN
 
-# Pool Percakapan Misteri Halus (Zona Aman / Clue)
+# Pool Percakapan Misteri saat Dekat Benedict
 const CLUE_MESSAGES_CIVILIAN = [
 	"Perasaanku tidak enak... hawa di sini dingin sekali...",
 	"Jam dinding di ruangan itu... berhenti tepat jam dua.",
@@ -72,7 +122,6 @@ const CLUE_MESSAGES_POLICE = [
 	"Ada jejak aneh yang berhenti tepat di depan kuil itu."
 ]
 
-# Pool Teriakan Panik (Terlalu Dekat > 7s)
 const PANIC_MESSAGES = [
 	"PERGI!! JANGAN MENDEKATIKU!! 🏃‍♂️",
 	"Tolong! Rasanya tempat ini membuatku tercekik!! 🏃‍♂️",
@@ -82,9 +131,14 @@ const PANIC_MESSAGES = [
 ]
 
 func _ready() -> void:
+	add_to_group("npcs")
 	y_sort_enabled = true
 	_load_all_npc_sprite_sets()
 	_build_growtopia_textbox()
+	
+	# Pilih destinasi awal secara acak & beri offset jeda agar tidak barengan
+	social_cooldown = randf_range(2.0, 6.0)
+	_pick_next_destination()
 	queue_redraw()
 
 func _load_all_npc_sprite_sets() -> void:
@@ -97,28 +151,24 @@ func _load_sprites_from_folder(folder_path: String) -> Dictionary:
 	set_dict["front"]       = load(folder_path + "front.png")
 	set_dict["front_left"]  = load(folder_path + "front_left.png")
 	set_dict["front_right"] = load(folder_path + "front_right.png")
-	
 	set_dict["back"]        = load(folder_path + "back.png")
 	set_dict["back_left"]   = load(folder_path + "back_left.png")
 	set_dict["back_right"]  = load(folder_path + "back_right.png")
-	
 	set_dict["left"]        = load(folder_path + "left.png")
 	set_dict["left_left"]   = load(folder_path + "left_left.png")
 	set_dict["left_right"]  = load(folder_path + "left_right.png")
-	
 	set_dict["right"]       = load(folder_path + "right.png")
 	set_dict["right_left"]  = load(folder_path + "right_left.png")
 	set_dict["right_right"] = load(folder_path + "right_right.png")
 	return set_dict
 
-# ── Membuat UI Textbox Gaya Growtopia ───────────────────────────────────────
+# ── Textbox Growtopia ───────────────────────────────────────────────────────
 func _build_growtopia_textbox() -> void:
 	var root_box = Node2D.new()
 	root_box.name = "TextboxRoot"
 	root_box.position = Vector2(0, -42)
 	add_child(root_box)
 
-	# Panel Putih Growtopia
 	textbox_panel = PanelContainer.new()
 	textbox_panel.position = Vector2(-90, -40)
 	textbox_panel.size = Vector2(180, 36)
@@ -139,7 +189,6 @@ func _build_growtopia_textbox() -> void:
 	textbox_panel.add_theme_stylebox_override("panel", style_box)
 	root_box.add_child(textbox_panel)
 
-	# Label Teks Hitam
 	textbox_label = Label.new()
 	textbox_label.text = ""
 	textbox_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -149,7 +198,6 @@ func _build_growtopia_textbox() -> void:
 	textbox_label.add_theme_font_size_override("font_size", 11)
 	textbox_panel.add_child(textbox_label)
 
-	# Segitiga Ekor Textbox Growtopia
 	textbox_pointer = Polygon2D.new()
 	textbox_pointer.polygon = PackedVector2Array([
 		Vector2(-6, -2), Vector2(6, -2), Vector2(0, 6)
@@ -167,6 +215,13 @@ func _build_growtopia_textbox() -> void:
 
 	root_box.scale = Vector2.ZERO
 
+func show_chat_bubble(msg: String, duration: float = 2.5) -> void:
+	current_text_msg = msg
+	if is_instance_valid(textbox_label):
+		textbox_label.text = current_text_msg
+	msg_display_timer = duration
+	is_textbox_visible = true
+
 func _trigger_new_clue_dialogue() -> void:
 	var msg_pool = CLUE_MESSAGES_POLICE if npc_type == NPCType.POLICE else CLUE_MESSAGES_CIVILIAN
 	var next_idx = randi() % msg_pool.size()
@@ -174,17 +229,33 @@ func _trigger_new_clue_dialogue() -> void:
 		next_idx = (next_idx + 1) % msg_pool.size()
 	last_clue_index = next_idx
 
-	current_text_msg = msg_pool[next_idx]
-	if is_instance_valid(textbox_label):
-		textbox_label.text = current_text_msg
+	show_chat_bubble(msg_pool[next_idx], MSG_DISPLAY_DURATION)
 
-	msg_display_timer = MSG_DISPLAY_DURATION
-	is_textbox_visible = true
+# ── Sistem Tujuan Terpadu (Unified Life Loop) ────────────────────────────────
+func _pick_next_destination() -> void:
+	if npc_type == NPCType.POLICE:
+		current_patrol_idx = (current_patrol_idx + 1) % POLICE_PATROL_WAYPOINTS.size()
+		target_destination = POLICE_PATROL_WAYPOINTS[current_patrol_idx]
+	else:
+		# Pilih dari daftar destinasi terpadu kota
+		var candidates = SHARED_DESTINATIONS.duplicate()
+		candidates.shuffle()
+		for pos in candidates:
+			if pos.distance_to(global_position) > 150.0:
+				target_destination = pos + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+				break
+		if target_destination == Vector2.ZERO:
+			target_destination = candidates[0]
 
-# ── Process & Physics ───────────────────────────────────────────────────────
+	current_state = State.GO_TO_DESTINATION
+
+# ── Physics Process & AI Lifecycle ──────────────────────────────────────────
 func _physics_process(delta: float) -> void:
 	if current_state == State.DESPAWNED:
 		return
+
+	if social_cooldown > 0.0:
+		social_cooldown -= delta
 
 	if not is_instance_valid(player_ref):
 		player_ref = get_tree().get_first_node_in_group("player")
@@ -196,8 +267,14 @@ func _physics_process(delta: float) -> void:
 		dist_to_player = global_position.distance_to(player_ref.global_position)
 
 	match current_state:
-		State.IDLE, State.WANDER:
-			_handle_idle_wander(delta, dist_to_player)
+		State.IDLE:
+			_handle_idle_state(delta, dist_to_player)
+
+		State.GO_TO_DESTINATION:
+			_handle_travel_state(delta, dist_to_player)
+
+		State.SOCIAL_CHAT:
+			_handle_social_chat_state(delta, dist_to_player)
 
 		State.EAVESDROP:
 			_handle_eavesdrop_state(delta, dist_to_player)
@@ -209,79 +286,137 @@ func _physics_process(delta: float) -> void:
 			_handle_panic_run(delta)
 
 	_animate_textbox_scale(delta)
-	
-	# Eksekusi pergerakan fisika
 	move_and_slide()
 
-	# Cek tabrakan tembok/pilar -> auto-slide & bounce
 	if is_on_wall():
 		_handle_wall_collision()
 
 	queue_redraw()
 
-# ── Penanganan Tabrakan Tembok (Anti-Nyangkut) ──────────────────────────────
-func _handle_wall_collision() -> void:
-	var wall_normal = get_wall_normal()
-	
-	if current_state in [State.IDLE, State.WANDER]:
-		var bounce_dir = (wall_normal + Vector2(randf_range(-0.4, 0.4), randf_range(-0.4, 0.4))).normalized()
-		wander_direction = bounce_dir
-		wander_timer = randf_range(2.0, 5.0)
-		velocity = wander_direction * wander_speed
-	elif current_state == State.PANIC_RUN:
-		var slide_dir = run_direction.slide(wall_normal).normalized()
-		if slide_dir == Vector2.ZERO or slide_dir.length() < 0.1:
-			slide_dir = wall_normal
-		run_direction = slide_dir
-		velocity = run_direction * run_speed
-
-# ── Smart Navigation ────────────────────────────────────────────────────────
-func _pick_smart_wander_direction() -> Vector2:
-	if is_instance_valid(player_ref):
-		var to_player = (player_ref.global_position - global_position).normalized()
-		var away_angle = to_player.angle() + PI + randf_range(-PI * 0.35, PI * 0.35)
-		return Vector2(cos(away_angle), sin(away_angle)).normalized()
-	
-	var angle = randf() * TAU
-	return Vector2(cos(angle), sin(angle)).normalized()
-
 # ── Handlers Logika State ───────────────────────────────────────────────────
-func _handle_idle_wander(delta: float, dist: float) -> void:
-	if dist <= too_close_radius:
+func _handle_travel_state(delta: float, dist_to_player: float) -> void:
+	# Prioritas deteksi MC Benedict
+	if dist_to_player <= too_close_radius:
 		current_state = State.AFRAID
 		panic_timer = 0.0
 		msg_cooldown_timer = 0.0
 		_trigger_new_clue_dialogue()
 		return
-	elif dist <= eavesdrop_radius:
+	elif dist_to_player <= eavesdrop_radius:
 		current_state = State.EAVESDROP
 		msg_cooldown_timer = 0.0
 		_trigger_new_clue_dialogue()
 		return
 
-	wander_timer -= delta
-	if wander_timer <= 0.0:
-		wander_timer = randf_range(3.0, 7.0)
-		if randf() > 0.45:
-			wander_direction = _pick_smart_wander_direction()
-			is_moving = true
-		else:
-			wander_direction = Vector2.ZERO
-			is_moving = false
+	# Cek kemungkinan interaksi sosial dengan sesama NPC yang berpapasan
+	if social_cooldown <= 0.0:
+		_check_for_social_interaction()
 
-	if is_moving:
-		velocity = wander_direction * wander_speed
-		step_cycle += delta * 4.5
-		body_bob_y = abs(sin(step_cycle)) * -1.5
-	else:
+	var dist_to_goal = global_position.distance_to(target_destination)
+	if dist_to_goal < 30.0:
+		# Tiba di lokasi tujuan ➔ Bersantai sejenak
+		current_state = State.IDLE
+		idle_hangout_timer = randf_range(4.0, 7.5)
 		velocity = Vector2.ZERO
-		body_bob_y = move_toward(body_bob_y, 0.0, delta * 10.0)
+		is_moving = false
+		return
 
+	var move_dir = (target_destination - global_position).normalized()
+	move_dir_facing = move_dir
+	velocity = move_dir * walk_speed
+	is_moving = true
+	step_cycle += delta * 4.5
+	body_bob_y = abs(sin(step_cycle)) * -1.5
 	tremble_offset = Vector2.ZERO
 
+func _handle_idle_state(delta: float, dist_to_player: float) -> void:
+	if dist_to_player <= too_close_radius:
+		current_state = State.AFRAID
+		panic_timer = 0.0
+		msg_cooldown_timer = 0.0
+		_trigger_new_clue_dialogue()
+		return
+	elif dist_to_player <= eavesdrop_radius:
+		current_state = State.EAVESDROP
+		msg_cooldown_timer = 0.0
+		_trigger_new_clue_dialogue()
+		return
+
+	if social_cooldown <= 0.0:
+		_check_for_social_interaction()
+
+	velocity = Vector2.ZERO
+	is_moving = false
+	body_bob_y = move_toward(body_bob_y, 0.0, delta * 10.0)
+	tremble_offset = Vector2.ZERO
+
+	idle_hangout_timer -= delta
+	if idle_hangout_timer <= 0.0:
+		# Selesai bersantai ➔ Lanjut ke destinasi berikutnya
+		_pick_next_destination()
+
+# ── Interaksi Sosial Antar-NPC saat Berpapasan ──────────────────────────────
+func _check_for_social_interaction() -> void:
+	var npcs = get_tree().get_nodes_in_group("npcs")
+	for other in npcs:
+		if other != self and is_instance_valid(other):
+			if other.current_state in [State.GO_TO_DESTINATION, State.IDLE]:
+				var dist = global_position.distance_to(other.global_position)
+				if dist < 65.0 and other.social_cooldown <= 0.0:
+					# Mulai obrolan sosial singkat!
+					_start_social_chat_with(other)
+					if other.has_method("receive_social_chat_from"):
+						other.receive_social_chat_from(self)
+					break
+
+func _start_social_chat_with(other_npc: CharacterBody2D) -> void:
+	current_state = State.SOCIAL_CHAT
+	social_partner = other_npc
+	social_chat_timer = 3.2
+	social_cooldown = 14.0 # Jeda 14 detik sebelum bisa ngobrol lagi
+	velocity = Vector2.ZERO
+	is_moving = false
+	
+	# Menghadap ke NPC rekan bicara
+	move_dir_facing = (other_npc.global_position - global_position).normalized()
+	
+	var pool = SOCIAL_CHATS_POLICE if npc_type == NPCType.POLICE else SOCIAL_CHATS_CIVILIAN
+	var msg = pool[randi() % pool.size()]
+	show_chat_bubble(msg, 3.0)
+
+func receive_social_chat_from(initiator_npc: CharacterBody2D) -> void:
+	current_state = State.SOCIAL_CHAT
+	social_partner = initiator_npc
+	social_chat_timer = 3.2
+	social_cooldown = 14.0
+	velocity = Vector2.ZERO
+	is_moving = false
+	move_dir_facing = (initiator_npc.global_position - global_position).normalized()
+
+func _handle_social_chat_state(delta: float, dist_to_player: float) -> void:
+	if dist_to_player <= too_close_radius:
+		current_state = State.AFRAID
+		panic_timer = 0.0
+		_trigger_new_clue_dialogue()
+		return
+	elif dist_to_player <= eavesdrop_radius:
+		current_state = State.EAVESDROP
+		_trigger_new_clue_dialogue()
+		return
+
+	velocity = Vector2.ZERO
+	is_moving = false
+	social_chat_timer -= delta
+
+	if social_chat_timer <= 0.0:
+		# Pamitan & Lanjut perjalanan
+		is_textbox_visible = false
+		current_state = State.GO_TO_DESTINATION
+
+# ── Interaksi dengan Pemain (Benedict) ───────────────────────────────────────
 func _handle_eavesdrop_state(delta: float, dist: float) -> void:
 	if dist > eavesdrop_radius + 10.0:
-		current_state = State.IDLE
+		current_state = State.GO_TO_DESTINATION
 		is_textbox_visible = false
 		msg_display_timer = 0.0
 		msg_cooldown_timer = 0.0
@@ -316,7 +451,7 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 		tremble_offset = Vector2.ZERO
 		return
 	elif dist > eavesdrop_radius:
-		current_state = State.IDLE
+		current_state = State.GO_TO_DESTINATION
 		is_textbox_visible = false
 		panic_timer = 0.0
 		velocity = Vector2.ZERO
@@ -344,10 +479,7 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 		current_state = State.PANIC_RUN
 		run_timer = 3.0
 		current_text_msg = PANIC_MESSAGES[randi() % PANIC_MESSAGES.size()]
-		if is_instance_valid(textbox_label):
-			textbox_label.text = current_text_msg
-		is_textbox_visible = true
-		msg_display_timer = 3.0
+		show_chat_bubble(current_text_msg, 3.0)
 
 		if is_instance_valid(player_ref):
 			run_direction = (global_position - player_ref.global_position).normalized()
@@ -358,17 +490,27 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 
 func _handle_panic_run(delta: float) -> void:
 	run_timer -= delta
-	is_moving = true
-
 	velocity = run_direction * run_speed
-	step_cycle += delta * 18.0
-	body_bob_y = abs(sin(step_cycle)) * -3.5
-	tremble_offset = Vector2.ZERO
+	is_moving = true
+	step_cycle += delta * 12.0
+	body_bob_y = abs(sin(step_cycle)) * -3.0
+	tremble_offset = Vector2(randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
 
 	if run_timer <= 0.0:
 		current_state = State.DESPAWNED
 		is_textbox_visible = false
 		queue_free()
+
+func _handle_wall_collision() -> void:
+	var wall_normal = get_wall_normal()
+	if current_state in [State.GO_TO_DESTINATION, State.IDLE]:
+		target_destination = global_position + (wall_normal * 120.0) + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+	elif current_state == State.PANIC_RUN:
+		var slide_dir = run_direction.slide(wall_normal).normalized()
+		if slide_dir == Vector2.ZERO or slide_dir.length() < 0.1:
+			slide_dir = wall_normal
+		run_direction = slide_dir
+		velocity = run_direction * run_speed
 
 # ── Smooth Scale Textbox Growtopia ──────────────────────────────────────────
 func _animate_textbox_scale(delta: float) -> void:
@@ -387,7 +529,7 @@ func _get_current_npc_sprite() -> Texture2D:
 
 	var move_dir = velocity.normalized()
 	if not is_moving or move_dir == Vector2.ZERO:
-		move_dir = wander_direction.normalized()
+		move_dir = move_dir_facing.normalized()
 	if move_dir == Vector2.ZERO:
 		move_dir = Vector2.DOWN
 
@@ -444,7 +586,6 @@ func _draw() -> void:
 	var cur_tex = _get_current_npc_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()
-		# Skala Otomatis agar tinggi fisik NPC tepat ~28px menyamai MC
 		var calculated_scale = target_height_px / max(size.y, 1.0)
 		
 		draw_set_transform(draw_pos, 0.0, Vector2(calculated_scale, calculated_scale))
