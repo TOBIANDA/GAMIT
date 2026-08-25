@@ -160,24 +160,24 @@ func _draw() -> void:
 
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
-		var r_rect = Rect2(sq_x, 36, 156, 156)
+		var r_rect = Rect2(sq_x, 24, 156, 168)
 		
 		draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
-		draw_rect(Rect2(sq_x + 64, 130, 28, 62), Color(0.70, 0.68, 0.62), true)
-
-		if i == 6:
-			_draw_detective_house(r_rect)
-		else:
-			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 40, 132, 116))
+		draw_rect(Rect2(sq_x + 64, 136, 28, 56), Color(0.70, 0.68, 0.62), true)
 
 		# Pagar Belakang (Atas)
 		for k in range(4):
-			_draw_texture_fit(tex_pagar, Rect2(sq_x + k * 39.0, 24, 39.0, 26))
+			_draw_texture_fit(tex_pagar, Rect2(sq_x + k * 39.0, 24, 39.0, 24))
 
-		# Pagar Depan (Kiri Pintu, Gerbang Pintu Tengah, Kanan Pintu)
+		if i == 6:
+			_draw_detective_house(Rect2(sq_x, 36, 156, 156))
+		else:
+			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 42, 132, 116))
+
+		# Pagar Depan Rata Jalan (Kiri Pintu, Gerbang Pintu Tengah, Kanan Pintu)
 		_draw_texture_fit(tex_pagar, Rect2(sq_x, 168, 32, 24))
 		_draw_texture_fit(tex_pagar, Rect2(sq_x + 32, 168, 32, 24))
-		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 64, 165, 28, 27))
+		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 64, 166, 28, 26))
 		_draw_texture_fit(tex_pagar, Rect2(sq_x + 92, 168, 32, 24))
 		_draw_texture_fit(tex_pagar, Rect2(sq_x + 124, 168, 32, 24))
 
