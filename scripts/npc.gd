@@ -145,10 +145,8 @@ func _ready() -> void:
 	if is_instance_valid(nav_agent):
 		nav_agent.path_desired_distance = 12.0
 		nav_agent.target_desired_distance = 24.0
-		nav_agent.avoidance_enabled = true
 		nav_agent.radius = 14.0
 		nav_agent.max_speed = walk_speed
-		nav_agent.velocity_computed.connect(_on_velocity_computed)
 
 	social_cooldown = randf_range(2.0, 6.0)
 	
