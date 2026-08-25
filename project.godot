@@ -12,10 +12,6 @@ config_version=5
 
 compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
-[autoload]
-
-InvestigationManager="*res://scripts/investigation_manager.gd"
-
 [application]
 
 config/name="Game IPB"
@@ -23,6 +19,10 @@ config/description="Game project created with Antigravity + Godot"
 run/main_scene="res://scenes/opening_cutscene.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://Game IPB.icon.png"
+
+[autoload]
+
+InvestigationManager="*res://scripts/investigation_manager.gd"
 
 [display]
 
