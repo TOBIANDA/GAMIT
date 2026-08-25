@@ -1,28 +1,27 @@
 extends CharacterBody2D
 
-# ── NPC System v9 - Unified Goals & Inter-NPC Social Interactions ────────────
+# ── NPC System v10 - Active Flow & Pedestrian-Only Hangouts ──────────────────
 # Fitur:
-# 1. Tujuan Terpadu & Sederhana (Unified Civilian Life Loop):
-#    - Warga (Cowo & Cewe) berbagi daftar destinasi kota yang sama (Stasiun, Taman, RS, Plaza).
-#    - Menuju lokasi ➔ Bersantai sejenak (4-8s) ➔ Melanjutkan ke lokasi berikutnya.
-# 2. Rute Patroli Polisi:
-#    - Polisi berpatroli berkeliling pos, simpang tengah, dan stasiun secara tertib.
-# 3. Interaksi Sosial Antar-NPC (Social Emergence):
-#    - Saat 2 NPC berpapasan (<70px), mereka berhenti, berhadapan, dan saling bertukar obrolan/gosip.
-#    - Balon dialog Growtopia muncul menampilkan percakapan dinamis.
-# 4. Super Ringan (0ms AI Overhead) & Animasi Mulus 60 FPS.
-# 5. Skala Karakter 38px, Bayangan Lantai Aktif, & Reaksi Detektif Benedict.
+# 1. 🚶‍♂️ Selalu Aktif Berjalan di Jalanan (Anti-Bengong di Tengah Jalan):
+#    - NPC terus berjalan menyusuri jalan/trotoar tanpa berhenti di aspal.
+#    - Sapaan berpapasan antar-NPC dilakukan sambil terus berjalan (Walking Sapaan).
+# 2. 🌳 Istirahat Singkat Hanya di Area Pejalan Kaki (Taman, Peron Stasiun, Lobi RS):
+#    - Destinasi dipindahkan 100% dari tengah aspal ke area pejalan kaki resmi.
+#    - Waktu istirahat singkat (1.5 - 3.0 detik) lalu langsung berjalan kembali.
+# 3. 🛡️ Navigasi Bebas Hambatan (Smart Wall Slide):
+#    - NPC tidak macet saat menyentuh sudut tembok/pilar, otomatis meluncur mulus.
+# 4. 👻 Overlapping Mulus dengan MC Benedict & Jangkauan Merinding Fokus.
 
 enum NPCType { BOY, POLICE, GIRL }
 @export var npc_type: NPCType = NPCType.BOY
 @export var target_height_px: float = 38.0
-@export var too_close_radius: float = 42.0  # Jarak intim baru yang lebih sempit
-@export var eavesdrop_radius: float = 85.0  # Jangkauan merinding baru yang lebih fokus
+@export var too_close_radius: float = 42.0
+@export var eavesdrop_radius: float = 85.0
 @export var panic_time_limit: float = 7.0
 @export var run_speed: float = 380.0
-@export var walk_speed: float = 46.0
+@export var walk_speed: float = 52.0
 
-enum State { IDLE, GO_TO_DESTINATION, SOCIAL_CHAT, EAVESDROP, AFRAID, PANIC_RUN, DESPAWNED }
+enum State { IDLE, GO_TO_DESTINATION, EAVESDROP, AFRAID, PANIC_RUN, DESPAWNED }
 var current_state: State = State.GO_TO_DESTINATION
 
 var player_ref: CharacterBody2D = null
@@ -31,24 +30,23 @@ var run_timer: float = 0.0
 var run_direction: Vector2 = Vector2.ZERO
 var tremble_offset: Vector2 = Vector2.ZERO
 
-# Destinasi Terpadu Kota (Untuk Warga Cowo & Cewe)
+# 📍 Destinasi Terpadu Khusus Area Pejalan Kaki (Bukan di Tengah Jalan)
 const SHARED_DESTINATIONS = [
-	Vector2(2088, 550), # Stasiun Kereta Timur
-	Vector2(1090, 435), # Taman Courtyard Atas
-	Vector2(1104, 780), # Simpang Jalan Tengah
-	Vector2(594, 550),  # Rumah Sakit & Lab Forensik
-	Vector2(780, 830),  # Taman Courtyard Bawah
-	Vector2(1581, 258), # Plaza Timur
-	Vector2(411, 1278), # Jalan Lingkar Bawah
-	Vector2(350, 258)   # Pos Polisi / Stasiun Barat
+	Vector2(2088, 520), # Peron Stasiun Kereta Timur (Trotoar Peron)
+	Vector2(1090, 435), # Taman Courtyard Atas (Taman Hijau)
+	Vector2(780, 830),  # Taman Courtyard Bawah (Taman Hijau)
+	Vector2(720, 480),  # Lobi Depan Rumah Sakit & Forensik
+	Vector2(260, 250),  # Trotoar Bilik Depan Kantor Barat
+	Vector2(1280, 920), # Area Bilik Pod Kerja
+	Vector2(1750, 480)  # Lobi Gedung Kanan
 ]
 
-# Rute Patroli Khusus Polisi
+# 👮 Rute Patroli Polisi
 const POLICE_PATROL_WAYPOINTS = [
 	Vector2(350, 258),   # Pos Polisi Barat
 	Vector2(577, 258),   # Simpang Atas
 	Vector2(1104, 780),  # Simpang Tengah
-	Vector2(2088, 550),  # Stasiun Kereta
+	Vector2(2088, 520),  # Stasiun Kereta
 	Vector2(1581, 780),  # Koridor Kanan
 	Vector2(411, 1278)   # Jalan Bawah
 ]
@@ -57,10 +55,8 @@ var target_destination: Vector2 = Vector2.ZERO
 var current_patrol_idx: int = 0
 var idle_hangout_timer: float = 0.0
 
-# Interaksi Sosial Antar-NPC
+# Interaksi Sosial Sambil Berjalan (Walking Chit-Chat)
 var social_cooldown: float = 0.0
-var social_chat_timer: float = 0.0
-var social_partner: CharacterBody2D = null
 
 const SOCIAL_CHATS_CIVILIAN = [
 	"Hai! Mau ke stasiun juga ya?",
@@ -134,11 +130,11 @@ func _ready() -> void:
 	add_to_group("npcs")
 	y_sort_enabled = true
 	collision_layer = 4
-	collision_mask = 1 # Hanya bertabrakan dengan tembok (dapat overlap dengan MC Benedict)
+	collision_mask = 1 # Hanya bertabrakan dengan tembok (overlap dengan MC Benedict)
+	
 	_load_all_npc_sprite_sets()
 	_build_growtopia_textbox()
 	
-	# Pilih destinasi awal secara acak & beri offset jeda agar tidak barengan
 	social_cooldown = randf_range(2.0, 6.0)
 	_pick_next_destination()
 	queue_redraw()
@@ -233,18 +229,17 @@ func _trigger_new_clue_dialogue() -> void:
 
 	show_chat_bubble(msg_pool[next_idx], MSG_DISPLAY_DURATION)
 
-# ── Sistem Tujuan Terpadu (Unified Life Loop) ────────────────────────────────
+# ── Sistem Tujuan Terpadu ───────────────────────────────────────────────────
 func _pick_next_destination() -> void:
 	if npc_type == NPCType.POLICE:
 		current_patrol_idx = (current_patrol_idx + 1) % POLICE_PATROL_WAYPOINTS.size()
 		target_destination = POLICE_PATROL_WAYPOINTS[current_patrol_idx]
 	else:
-		# Pilih dari daftar destinasi terpadu kota
 		var candidates = SHARED_DESTINATIONS.duplicate()
 		candidates.shuffle()
 		for pos in candidates:
-			if pos.distance_to(global_position) > 150.0:
-				target_destination = pos + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+			if pos.distance_to(global_position) > 120.0:
+				target_destination = pos + Vector2(randf_range(-20, 20), randf_range(-20, 20))
 				break
 		if target_destination == Vector2.ZERO:
 			target_destination = candidates[0]
@@ -258,6 +253,11 @@ func _physics_process(delta: float) -> void:
 
 	if social_cooldown > 0.0:
 		social_cooldown -= delta
+
+	if msg_display_timer > 0.0:
+		msg_display_timer -= delta
+		if msg_display_timer <= 0.0:
+			is_textbox_visible = false
 
 	if not is_instance_valid(player_ref):
 		player_ref = get_tree().get_first_node_in_group("player")
@@ -274,9 +274,6 @@ func _physics_process(delta: float) -> void:
 
 		State.GO_TO_DESTINATION:
 			_handle_travel_state(delta, dist_to_player)
-
-		State.SOCIAL_CHAT:
-			_handle_social_chat_state(delta, dist_to_player)
 
 		State.EAVESDROP:
 			_handle_eavesdrop_state(delta, dist_to_player)
@@ -297,7 +294,6 @@ func _physics_process(delta: float) -> void:
 
 # ── Handlers Logika State ───────────────────────────────────────────────────
 func _handle_travel_state(delta: float, dist_to_player: float) -> void:
-	# Prioritas deteksi MC Benedict
 	if dist_to_player <= too_close_radius:
 		current_state = State.AFRAID
 		panic_timer = 0.0
@@ -310,15 +306,15 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		_trigger_new_clue_dialogue()
 		return
 
-	# Cek kemungkinan interaksi sosial dengan sesama NPC yang berpapasan
+	# Sapaan saat berpapasan (tanpa berhenti jalan)
 	if social_cooldown <= 0.0:
-		_check_for_social_interaction()
+		_check_for_walking_greeting()
 
 	var dist_to_goal = global_position.distance_to(target_destination)
-	if dist_to_goal < 30.0:
-		# Tiba di lokasi tujuan ➔ Bersantai sejenak
+	if dist_to_goal < 28.0:
+		# Tiba di area pejalan kaki tujuan ➔ Istirahat singkat
 		current_state = State.IDLE
-		idle_hangout_timer = randf_range(4.0, 7.5)
+		idle_hangout_timer = randf_range(1.5, 3.2)
 		velocity = Vector2.ZERO
 		is_moving = false
 		return
@@ -344,9 +340,6 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 		_trigger_new_clue_dialogue()
 		return
 
-	if social_cooldown <= 0.0:
-		_check_for_social_interaction()
-
 	velocity = Vector2.ZERO
 	is_moving = false
 	body_bob_y = move_toward(body_bob_y, 0.0, delta * 10.0)
@@ -354,66 +347,22 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 
 	idle_hangout_timer -= delta
 	if idle_hangout_timer <= 0.0:
-		# Selesai bersantai ➔ Lanjut ke destinasi berikutnya
 		_pick_next_destination()
 
-# ── Interaksi Sosial Antar-NPC saat Berpapasan ──────────────────────────────
-func _check_for_social_interaction() -> void:
+# ── Sapaan Berjalan Antar-NPC (Tanpa Macet di Jalan) ─────────────────────────
+func _check_for_walking_greeting() -> void:
 	var npcs = get_tree().get_nodes_in_group("npcs")
 	for other in npcs:
 		if other != self and is_instance_valid(other):
-			if other.current_state in [State.GO_TO_DESTINATION, State.IDLE]:
+			if other.current_state == State.GO_TO_DESTINATION:
 				var dist = global_position.distance_to(other.global_position)
-				if dist < 65.0 and other.social_cooldown <= 0.0:
-					# Mulai obrolan sosial singkat!
-					_start_social_chat_with(other)
-					if other.has_method("receive_social_chat_from"):
-						other.receive_social_chat_from(self)
+				if dist < 60.0 and other.social_cooldown <= 0.0:
+					var pool = SOCIAL_CHATS_POLICE if npc_type == NPCType.POLICE else SOCIAL_CHATS_CIVILIAN
+					var msg = pool[randi() % pool.size()]
+					show_chat_bubble(msg, 2.5)
+					social_cooldown = 16.0
+					other.social_cooldown = 16.0
 					break
-
-func _start_social_chat_with(other_npc: CharacterBody2D) -> void:
-	current_state = State.SOCIAL_CHAT
-	social_partner = other_npc
-	social_chat_timer = 3.2
-	social_cooldown = 14.0 # Jeda 14 detik sebelum bisa ngobrol lagi
-	velocity = Vector2.ZERO
-	is_moving = false
-	
-	# Menghadap ke NPC rekan bicara
-	move_dir_facing = (other_npc.global_position - global_position).normalized()
-	
-	var pool = SOCIAL_CHATS_POLICE if npc_type == NPCType.POLICE else SOCIAL_CHATS_CIVILIAN
-	var msg = pool[randi() % pool.size()]
-	show_chat_bubble(msg, 3.0)
-
-func receive_social_chat_from(initiator_npc: CharacterBody2D) -> void:
-	current_state = State.SOCIAL_CHAT
-	social_partner = initiator_npc
-	social_chat_timer = 3.2
-	social_cooldown = 14.0
-	velocity = Vector2.ZERO
-	is_moving = false
-	move_dir_facing = (initiator_npc.global_position - global_position).normalized()
-
-func _handle_social_chat_state(delta: float, dist_to_player: float) -> void:
-	if dist_to_player <= too_close_radius:
-		current_state = State.AFRAID
-		panic_timer = 0.0
-		_trigger_new_clue_dialogue()
-		return
-	elif dist_to_player <= eavesdrop_radius:
-		current_state = State.EAVESDROP
-		_trigger_new_clue_dialogue()
-		return
-
-	velocity = Vector2.ZERO
-	is_moving = false
-	social_chat_timer -= delta
-
-	if social_chat_timer <= 0.0:
-		# Pamitan & Lanjut perjalanan
-		is_textbox_visible = false
-		current_state = State.GO_TO_DESTINATION
 
 # ── Interaksi dengan Pemain (Benedict) ───────────────────────────────────────
 func _handle_eavesdrop_state(delta: float, dist: float) -> void:
@@ -435,17 +384,11 @@ func _handle_eavesdrop_state(delta: float, dist: float) -> void:
 	velocity = Vector2.ZERO
 	is_moving = false
 
-	if msg_display_timer > 0.0:
-		msg_display_timer -= delta
-		is_textbox_visible = true
-		if msg_display_timer <= 0.0:
-			is_textbox_visible = false
-			msg_cooldown_timer = MSG_COOLDOWN_DURATION
+	if msg_display_timer <= 0.0 and msg_cooldown_timer <= 0.0:
+		_trigger_new_clue_dialogue()
+		msg_cooldown_timer = MSG_COOLDOWN_DURATION
 	elif msg_cooldown_timer > 0.0:
 		msg_cooldown_timer -= delta
-		is_textbox_visible = false
-		if msg_cooldown_timer <= 0.0:
-			_trigger_new_clue_dialogue()
 
 func _handle_afraid_state(delta: float, dist: float) -> void:
 	if dist > too_close_radius and dist <= eavesdrop_radius:
@@ -465,17 +408,11 @@ func _handle_afraid_state(delta: float, dist: float) -> void:
 	is_moving = false
 	tremble_offset = Vector2(randf_range(-1.12, 1.12), randf_range(-1.12, 1.12))
 
-	if msg_display_timer > 0.0:
-		msg_display_timer -= delta
-		is_textbox_visible = true
-		if msg_display_timer <= 0.0:
-			is_textbox_visible = false
-			msg_cooldown_timer = MSG_COOLDOWN_DURATION
+	if msg_display_timer <= 0.0 and msg_cooldown_timer <= 0.0 and panic_timer < panic_time_limit - 0.5:
+		_trigger_new_clue_dialogue()
+		msg_cooldown_timer = MSG_COOLDOWN_DURATION
 	elif msg_cooldown_timer > 0.0:
 		msg_cooldown_timer -= delta
-		is_textbox_visible = false
-		if msg_cooldown_timer <= 0.0 and panic_timer < panic_time_limit - 0.5:
-			_trigger_new_clue_dialogue()
 
 	if panic_timer >= panic_time_limit:
 		current_state = State.PANIC_RUN
@@ -505,8 +442,11 @@ func _handle_panic_run(delta: float) -> void:
 
 func _handle_wall_collision() -> void:
 	var wall_normal = get_wall_normal()
-	if current_state in [State.GO_TO_DESTINATION, State.IDLE]:
-		target_destination = global_position + (wall_normal * 120.0) + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+	if current_state == State.GO_TO_DESTINATION:
+		# Meluncur mulus menghindari sudut dinding
+		var slide_dir = velocity.slide(wall_normal).normalized()
+		if slide_dir != Vector2.ZERO:
+			velocity = slide_dir * walk_speed
 	elif current_state == State.PANIC_RUN:
 		var slide_dir = run_direction.slide(wall_normal).normalized()
 		if slide_dir == Vector2.ZERO or slide_dir.length() < 0.1:
