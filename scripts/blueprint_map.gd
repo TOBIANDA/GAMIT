@@ -69,10 +69,48 @@ const COLOR_TRACK_TIE       = Color(0.38, 0.33, 0.28, 1.0)
 const WT = 6.0
 var collision_bodies: Array[StaticBody2D] = []
 
+var nav_region: NavigationRegion2D
+
 func _ready() -> void:
 	z_index = -1
 	_build_all_colliders()
+	_setup_navigation_region()
 	queue_redraw()
+
+func _setup_navigation_region() -> void:
+	nav_region = NavigationRegion2D.new()
+	nav_region.name = "NavigationRegion2D"
+	var nav_poly = NavigationPolygon.new()
+
+	var walkable_rects: Array[Rect2] = [
+		Rect2(0, 192, 2160, 132),       # Jalan Utama Atas
+		Rect2(516, 192, 123, 594),      # Gang Menyiku Barat Atas
+		Rect2(192, 786, 447, 159),      # Belokan Siku Tengah
+		Rect2(357, 945, 108, 366),      # Gang Vertikal Barat Bawah
+		Rect2(639, 549, 519, 141),      # Jalan Tengah Barat
+		Rect2(1050, 714, 576, 126),     # Jalan Tengah Timur
+		Rect2(1536, 192, 90, 522),      # Gang Vertikal Kanan
+		Rect2(2016, 192, 144, 1119),    # Jalan Sisi Rel Kanan
+		Rect2(357, 1245, 1803, 66),     # Jalan Lingkar Bawah
+		Rect2(950, 360, 200, 180),      # Taman Courtyard Atas
+		Rect2(650, 340, 320, 200),      # Lobi RS & Forensik
+		Rect2(670, 700, 350, 240),      # Lobi & Taman Bawah
+		Rect2(100, 200, 300, 120),      # Area Kantor Depan
+		Rect2(1200, 850, 220, 190)      # Lobi Pod Tengah
+	]
+
+	for r in walkable_rects:
+		var pts = PackedVector2Array([
+			r.position,
+			Vector2(r.end.x, r.position.y),
+			r.end,
+			Vector2(r.position.x, r.end.y)
+		])
+		nav_poly.add_outline(pts)
+
+	nav_poly.make_polygons_from_outlines()
+	nav_region.navigation_polygon = nav_poly
+	add_child(nav_region)
 
 # ─────────────────────────────────────────────────────────────────────────────
 func _draw() -> void:

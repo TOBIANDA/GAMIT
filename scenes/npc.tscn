@@ -7,8 +7,17 @@ radius = 16.0
 
 [node name="NPC" type="CharacterBody2D" groups=["npc"]]
 y_sort_enabled = true
+collision_layer = 4
+collision_mask = 1
 script = ExtResource("1_npc_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 0)
 shape = SubResource("CircleShape2D_npc")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+path_desired_distance = 12.0
+target_desired_distance = 24.0
+avoidance_enabled = true
+radius = 14.0
+max_speed = 52.0

@@ -1,16 +1,15 @@
 extends CharacterBody2D
 
-# ── NPC System v10 - Active Flow & Pedestrian-Only Hangouts ──────────────────
+# ── NPC System v11 - Native NavigationAgent2D + Anti-Stuck Watchdog ──────────
 # Fitur:
-# 1. 🚶‍♂️ Selalu Aktif Berjalan di Jalanan (Anti-Bengong di Tengah Jalan):
-#    - NPC terus berjalan menyusuri jalan/trotoar tanpa berhenti di aspal.
-#    - Sapaan berpapasan antar-NPC dilakukan sambil terus berjalan (Walking Sapaan).
-# 2. 🌳 Istirahat Singkat Hanya di Area Pejalan Kaki (Taman, Peron Stasiun, Lobi RS):
-#    - Destinasi dipindahkan 100% dari tengah aspal ke area pejalan kaki resmi.
-#    - Waktu istirahat singkat (1.5 - 3.0 detik) lalu langsung berjalan kembali.
-# 3. 🛡️ Navigasi Bebas Hambatan (Smart Wall Slide):
-#    - NPC tidak macet saat menyentuh sudut tembok/pilar, otomatis meluncur mulus.
-# 4. 👻 Overlapping Mulus dengan MC Benedict & Jangkauan Merinding Fokus.
+# 1. 🧭 NavigationAgent2D (Godot 4 Native Pathfinding):
+#    - Navigasi otomatis mengikuti NavMesh koridor jalan & trotoar kota.
+#    - get_next_path_position() memandu belokan sudut siku tanpa menabrak tembok.
+# 2. ⚡ Server-Side Avoidance (RVO Avoidance):
+#    - Menghindari tabrakan antar NPC secara dinamis lewat signal velocity_computed.
+# 3. 🐕 Watchdog Stuck Detector:
+#    - Jika NPC terdeteksi diam <4px selama >0.7 detik saat moving, otomatis re-path.
+# 4. 💬 Sapaan Berpapasan Dinamis & Siklus Hidup Landmark Alami.
 
 enum NPCType { BOY, POLICE, GIRL }
 @export var npc_type: NPCType = NPCType.BOY
@@ -30,13 +29,13 @@ var run_timer: float = 0.0
 var run_direction: Vector2 = Vector2.ZERO
 var tremble_offset: Vector2 = Vector2.ZERO
 
-# 📍 Destinasi Terpadu Khusus Area Pejalan Kaki (Bukan di Tengah Jalan)
+# 📍 Destinasi Terpadu Khusus Area Pejalan Kaki
 const SHARED_DESTINATIONS = [
-	Vector2(2088, 520), # Peron Stasiun Kereta Timur (Trotoar Peron)
-	Vector2(1090, 435), # Taman Courtyard Atas (Taman Hijau)
-	Vector2(780, 830),  # Taman Courtyard Bawah (Taman Hijau)
-	Vector2(720, 480),  # Lobi Depan Rumah Sakit & Forensik
-	Vector2(260, 250),  # Trotoar Bilik Depan Kantor Barat
+	Vector2(2088, 520), # Peron Stasiun Kereta Timur
+	Vector2(1090, 435), # Taman Courtyard Atas
+	Vector2(780, 830),  # Taman Courtyard Bawah
+	Vector2(720, 480),  # Lobi Depan Rumah Sakit
+	Vector2(260, 250),  # Trotoar Bilik Kantor Barat
 	Vector2(1280, 920), # Area Bilik Pod Kerja
 	Vector2(1750, 480)  # Lobi Gedung Kanan
 ]
@@ -55,7 +54,13 @@ var target_destination: Vector2 = Vector2.ZERO
 var current_patrol_idx: int = 0
 var idle_hangout_timer: float = 0.0
 
-# Interaksi Sosial Sambil Berjalan (Walking Chit-Chat)
+# 🐕 Watchdog Stuck Detector
+var stuck_timer: float = 0.0
+var last_check_pos: Vector2 = Vector2.ZERO
+const STUCK_THRESHOLD: float = 0.7
+const STUCK_DIST_MIN: float = 4.0
+
+# Interaksi Sosial Sambil Berjalan
 var social_cooldown: float = 0.0
 
 const SOCIAL_CHATS_CIVILIAN = [
@@ -84,7 +89,8 @@ const MSG_COOLDOWN_DURATION: float = 1.2
 # Cache Sprite Textures
 var sprite_sets: Dictionary = {}
 
-# Node UI Textbox
+# Node Referensi
+@onready var nav_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D")
 var textbox_panel: PanelContainer
 var textbox_label: Label
 var textbox_pointer: Polygon2D
@@ -130,13 +136,24 @@ func _ready() -> void:
 	add_to_group("npcs")
 	y_sort_enabled = true
 	collision_layer = 4
-	collision_mask = 1 # Hanya bertabrakan dengan tembok (overlap dengan MC Benedict)
+	collision_mask = 1
+	last_check_pos = global_position
 	
 	_load_all_npc_sprite_sets()
 	_build_growtopia_textbox()
 	
+	if is_instance_valid(nav_agent):
+		nav_agent.path_desired_distance = 12.0
+		nav_agent.target_desired_distance = 24.0
+		nav_agent.avoidance_enabled = true
+		nav_agent.radius = 14.0
+		nav_agent.max_speed = walk_speed
+		nav_agent.velocity_computed.connect(_on_velocity_computed)
+
 	social_cooldown = randf_range(2.0, 6.0)
-	_pick_next_destination()
+	
+	# Delay 1 frame sebelum set destinasi agar NavigationServer selesai init
+	call_deferred("_pick_next_destination")
 	queue_redraw()
 
 func _load_all_npc_sprite_sets() -> void:
@@ -239,12 +256,17 @@ func _pick_next_destination() -> void:
 		candidates.shuffle()
 		for pos in candidates:
 			if pos.distance_to(global_position) > 120.0:
-				target_destination = pos + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+				target_destination = pos + Vector2(randf_range(-15, 15), randf_range(-15, 15))
 				break
 		if target_destination == Vector2.ZERO:
 			target_destination = candidates[0]
 
 	current_state = State.GO_TO_DESTINATION
+	stuck_timer = 0.0
+	last_check_pos = global_position
+
+	if is_instance_valid(nav_agent):
+		nav_agent.target_position = target_destination
 
 # ── Physics Process & AI Lifecycle ──────────────────────────────────────────
 func _physics_process(delta: float) -> void:
@@ -285,11 +307,6 @@ func _physics_process(delta: float) -> void:
 			_handle_panic_run(delta)
 
 	_animate_textbox_scale(delta)
-	move_and_slide()
-
-	if is_on_wall():
-		_handle_wall_collision()
-
 	queue_redraw()
 
 # ── Handlers Logika State ───────────────────────────────────────────────────
@@ -306,26 +323,69 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		_trigger_new_clue_dialogue()
 		return
 
-	# Sapaan saat berpapasan (tanpa berhenti jalan)
+	# Sapaan saat berpapasan
 	if social_cooldown <= 0.0:
 		_check_for_walking_greeting()
 
+	var is_finished = false
+	if is_instance_valid(nav_agent):
+		is_finished = nav_agent.is_navigation_finished()
+	
 	var dist_to_goal = global_position.distance_to(target_destination)
-	if dist_to_goal < 28.0:
-		# Tiba di area pejalan kaki tujuan ➔ Istirahat singkat
+	if is_finished or dist_to_goal < 28.0:
 		current_state = State.IDLE
 		idle_hangout_timer = randf_range(1.5, 3.2)
 		velocity = Vector2.ZERO
 		is_moving = false
 		return
 
-	var move_dir = (target_destination - global_position).normalized()
+	# Ambil waypoint navigasi berikutnya dari NavigationAgent2D
+	var next_pos = target_destination
+	if is_instance_valid(nav_agent):
+		next_pos = nav_agent.get_next_path_position()
+
+	var move_dir = (next_pos - global_position).normalized()
+	if move_dir == Vector2.ZERO:
+		move_dir = (target_destination - global_position).normalized()
+
 	move_dir_facing = move_dir
-	velocity = move_dir * walk_speed
 	is_moving = true
 	step_cycle += delta * 4.5
 	body_bob_y = abs(sin(step_cycle)) * -1.5
 	tremble_offset = Vector2.ZERO
+
+	if is_instance_valid(nav_agent) and nav_agent.avoidance_enabled:
+		nav_agent.set_velocity(move_dir * walk_speed)
+	else:
+		velocity = move_dir * walk_speed
+		move_and_slide()
+
+	_check_stuck_watchdog(delta)
+
+func _on_velocity_computed(safe_velocity: Vector2) -> void:
+	if current_state == State.GO_TO_DESTINATION:
+		velocity = safe_velocity
+		move_and_slide()
+
+# ── 🐕 Watchdog Anti-Stuck ──────────────────────────────────────────────────
+func _check_stuck_watchdog(delta: float) -> void:
+	if is_moving and current_state == State.GO_TO_DESTINATION:
+		var moved_dist = global_position.distance_to(last_check_pos)
+		if moved_dist < STUCK_DIST_MIN:
+			stuck_timer += delta
+			if stuck_timer >= STUCK_THRESHOLD:
+				_handle_stuck_recovery()
+		else:
+			stuck_timer = 0.0
+			last_check_pos = global_position
+
+func _handle_stuck_recovery() -> void:
+	stuck_timer = 0.0
+	# Re-request target position atau pindah ke destinasi baru
+	if is_instance_valid(nav_agent):
+		nav_agent.target_position = target_destination
+	# Beri sedikit dorongan arah terbuka
+	global_position += Vector2(randf_range(-6, 6), randf_range(-6, 6))
 
 func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if dist_to_player <= too_close_radius:
@@ -349,7 +409,7 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if idle_hangout_timer <= 0.0:
 		_pick_next_destination()
 
-# ── Sapaan Berjalan Antar-NPC (Tanpa Macet di Jalan) ─────────────────────────
+# ── Sapaan Berjalan Antar-NPC ────────────────────────────────────────────────
 func _check_for_walking_greeting() -> void:
 	var npcs = get_tree().get_nodes_in_group("npcs")
 	for other in npcs:
@@ -431,6 +491,7 @@ func _handle_panic_run(delta: float) -> void:
 	run_timer -= delta
 	velocity = run_direction * run_speed
 	is_moving = true
+	move_and_slide()
 	step_cycle += delta * 12.0
 	body_bob_y = abs(sin(step_cycle)) * -3.0
 	tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
@@ -439,20 +500,6 @@ func _handle_panic_run(delta: float) -> void:
 		current_state = State.DESPAWNED
 		is_textbox_visible = false
 		queue_free()
-
-func _handle_wall_collision() -> void:
-	var wall_normal = get_wall_normal()
-	if current_state == State.GO_TO_DESTINATION:
-		# Meluncur mulus menghindari sudut dinding
-		var slide_dir = velocity.slide(wall_normal).normalized()
-		if slide_dir != Vector2.ZERO:
-			velocity = slide_dir * walk_speed
-	elif current_state == State.PANIC_RUN:
-		var slide_dir = run_direction.slide(wall_normal).normalized()
-		if slide_dir == Vector2.ZERO or slide_dir.length() < 0.1:
-			slide_dir = wall_normal
-		run_direction = slide_dir
-		velocity = run_direction * run_speed
 
 # ── Smooth Scale Textbox Growtopia ──────────────────────────────────────────
 func _animate_textbox_scale(delta: float) -> void:
