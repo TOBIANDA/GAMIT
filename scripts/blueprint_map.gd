@@ -171,15 +171,10 @@ func _draw() -> void:
 			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 40, 132, 116))
 
 		# Pagar Belakang (Atas)
-		for k in range(5):
-			_draw_texture_fit(tex_pagar, Rect2(sq_x + k * 31.2, 24, 32, 20))
+		for k in range(4):
+			_draw_texture_fit(tex_pagar, Rect2(sq_x + k * 39.0, 24, 39.0, 26))
 
-		# Pagar Samping Kiri & Kanan
-		for sy in range(36, 160, 22):
-			_draw_texture_fit(tex_pagar, Rect2(sq_x - 8, sy, 14, 22))
-			_draw_texture_fit(tex_pagar, Rect2(sq_x + 150, sy, 14, 22))
-
-		# Pagar Depan Rapat (Kiri Pintu, Pintu Tengah, Kanan Pintu)
+		# Pagar Depan (Kiri Pintu, Gerbang Pintu Tengah, Kanan Pintu)
 		_draw_texture_fit(tex_pagar, Rect2(sq_x, 168, 32, 24))
 		_draw_texture_fit(tex_pagar, Rect2(sq_x + 32, 168, 32, 24))
 		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 64, 165, 28, 27))
