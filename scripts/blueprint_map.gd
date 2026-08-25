@@ -188,31 +188,49 @@ func _draw() -> void:
 	# 1. Base Trotoar / Lantai Dasar Map
 	draw_rect(Rect2(0, 0, 2160, 1311), COLOR_SIDEWALK, true)
 
-	# Grid Trotoar Halus
+	# 🌿 Area Hijau / Halaman Rumput Pemukiman Baris Atas (y=0..192)
+	draw_rect(Rect2(0, 0, 2160, 192), Color(0.34, 0.48, 0.20), true)
+	# Detail Tekstur Rumput
+	for gx in range(20, 2160, 45):
+		for gy in range(15, 185, 30):
+			draw_circle(Vector2(gx, gy), 3.5, Color(0.28, 0.40, 0.16, 0.7))
+			draw_circle(Vector2(gx + 6, gy - 3), 2.5, Color(0.42, 0.58, 0.26, 0.8))
+
+	# Grid Trotoar Halus untuk Area Kota Bawah
 	for gx in range(40, 2160, 40):
-		draw_line(Vector2(gx, 0), Vector2(gx, 1311), Color(0, 0, 0, 0.08), 1.0)
-	for gy in range(40, 1311, 40):
+		draw_line(Vector2(gx, 192), Vector2(gx, 1311), Color(0, 0, 0, 0.08), 1.0)
+	for gy in range(220, 1311, 40):
 		draw_line(Vector2(0, gy), Vector2(2160, gy), Color(0, 0, 0, 0.08), 1.0)
 
 	# ── A. GAMBAR RUANGAN DENGAN ART KHUSUS TEMATIK ──────────────────────────
 
-	# 1. 11 TOP ROW SQUARES (sq_top_1 .. sq_top_11) - Seluruhnya Hadap Depan ke Jalan
+	# 1. 11 TOP ROW SQUARES (sq_top_1 .. sq_top_11) - Halaman Hijau & Pagar Keliling
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var r_rect = Rect2(sq_x, 36, 156, 156)
 		
+		# Halaman Rumput Hijau Persegi untuk Rumah
+		draw_rect(r_rect, Color(0.38, 0.52, 0.22), true)
+		# Jalan Setapak Batu Menuju Pintu Depan
+		draw_rect(Rect2(sq_x + 60, 130, 36, 62), Color(0.68, 0.65, 0.60), true)
+
 		if i == 6:
 			# 🔍 ART KHUSUS: RUMAH DETEKTIF BENEDICT (sq_top_7: x=1155..1311)
 			_draw_detective_house(r_rect)
 		else:
-			var r_color = COLOR_ROOM_STONE_A if i % 2 == 0 else COLOR_ROOM_STONE_B
-			if i == 0 or i == 10:
-				r_color = COLOR_ROOM_OCHRE
-			_draw_room_pavement(r_rect, r_color)
-			_draw_desk(Rect2(sq_x + 30, 70, 96, 75))
-			
-			# 🏠 Seluruh Rumah Baris Atas Menghadap ke Depan (Pintu & Jendela ke Jalan Raya)
-			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 10, 42, 136, 140))
+			# 🏠 Rumah Warga Menghadap Depan ke Jalan
+			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 10, 42, 136, 130))
+
+		# 🧱 Pagar & Pintu Pagar di Sekeliling Setiap Rumah
+		# Pagar Sisi Kiri & Kanan
+		_draw_texture_fit(tex_pagar, Rect2(sq_x - 2, 36, 12, 156))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 146, 36, 12, 156))
+		# Pagar Sisi Atas
+		_draw_texture_fit(tex_pagar, Rect2(sq_x, 32, 156, 14))
+		# Pagar Sisi Depan (Bawah) dengan Gerbang Pintu Pagar di Tengah
+		_draw_texture_fit(tex_pagar, Rect2(sq_x, 180, 56, 14))
+		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 56, 177, 44, 18))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 100, 180, 56, 14))
 
 	# 2. ROOM LEFT L (L-Shaped Room)
 	var l_pts = PackedVector2Array([
