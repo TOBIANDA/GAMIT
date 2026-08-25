@@ -285,19 +285,6 @@ func _draw() -> void:
 
 	_draw_asphalt_strip(Rect2(357, 1245, 1803, 66), true, 1)
 
-	_draw_intersection_hub(Vector2(577, 258), 66.0)
-	_draw_intersection_hub(Vector2(1581, 258), 66.0)
-	_draw_intersection_hub(Vector2(2088, 258), 70.0)
-	_draw_intersection_hub(Vector2(577, 780), 75.0)
-	_draw_intersection_hub(Vector2(1104, 780), 63.0)
-	_draw_intersection_hub(Vector2(1581, 780), 63.0)
-	_draw_intersection_hub(Vector2(2088, 780), 70.0)
-	_draw_intersection_hub(Vector2(411, 1278), 45.0)
-	_draw_intersection_hub(Vector2(2088, 1278), 50.0)
-
-	_draw_helipad(Vector2(2088, 258), 34.0)
-	_draw_helipad(Vector2(1360, 945), 32.0)
-
 	draw_rect(Rect2(2160, 0, 162, 1311), COLOR_TRACK_BALLAST, true)
 	draw_line(Vector2(2185, 0), Vector2(2185, 1311), COLOR_TRACK_RAIL, 4.5)
 	draw_line(Vector2(2295, 0), Vector2(2295, 1311), COLOR_TRACK_RAIL, 4.5)
@@ -493,20 +480,6 @@ func _draw_asphalt_strip(rect: Rect2, is_horizontal: bool, num_lanes: int) -> vo
 		elif num_lanes == 1:
 			for dy in range(int(rect.position.y) + 10, int(rect.end.y) - 10, 48):
 				draw_line(Vector2(cx, dy), Vector2(cx, dy + 16), Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.45), 1.5)
-
-func _draw_intersection_hub(center: Vector2, radius: float) -> void:
-	draw_circle(center, radius + 2.0, COLOR_SIDEWALK_BEVEL)
-	draw_circle(center, radius, COLOR_ASPHALT)
-	draw_arc(center, radius - 4.0, 0, TAU, 32, Color(COLOR_CURB_LINE.r, COLOR_CURB_LINE.g, COLOR_CURB_LINE.b, 0.5), 1.5)
-
-func _draw_helipad(center: Vector2, radius: float) -> void:
-	draw_circle(center, radius, Color(0.20, 0.21, 0.24, 1.0))
-	draw_arc(center, radius - 3.0, 0, TAU, 32, COLOR_HELIPAD_RING, 3.0)
-	var hw = radius * 0.45
-	var hh = radius * 0.55
-	draw_line(Vector2(center.x - hw, center.y - hh), Vector2(center.x - hw, center.y + hh), COLOR_HELIPAD_RING, 3.5)
-	draw_line(Vector2(center.x + hw, center.y - hh), Vector2(center.x + hw, center.y + hh), COLOR_HELIPAD_RING, 3.5)
-	draw_line(Vector2(center.x - hw, center.y), Vector2(center.x + hw, center.y), COLOR_HELIPAD_RING, 3.5)
 
 func _draw_courtyard_garden(center: Vector2, radius: float) -> void:
 	draw_circle(center, radius, COLOR_GRASS)
