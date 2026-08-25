@@ -170,12 +170,9 @@ func _draw() -> void:
 		else:
 			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 40, 132, 116))
 
-		_draw_texture_fit(tex_pagar, Rect2(sq_x, 26, 156, 20))
-		_draw_texture_fit(tex_pagar, Rect2(sq_x - 8, 36, 16, 156))
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 148, 36, 16, 156))
-		_draw_texture_fit(tex_pagar, Rect2(sq_x, 176, 58, 20))
-		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 60, 172, 36, 24))
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 98, 176, 58, 20))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x, 172, 60, 24))
+		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 60, 168, 36, 28))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 96, 172, 60, 24))
 
 	var l_pts = PackedVector2Array([
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
