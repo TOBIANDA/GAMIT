@@ -222,6 +222,9 @@ func _trigger_new_clue_dialogue() -> void:
 
 	show_chat_bubble(msg_pool[next_idx], MSG_DISPLAY_DURATION)
 
+var player_stationary_timer: float = 0.0
+var spook_freeze_timer: float = 0.0
+
 func _pick_next_destination() -> void:
 	if npc_type == NPCType.POLICE:
 		current_patrol_idx = (current_patrol_idx + 1) % POLICE_PATROL_WAYPOINTS.size()
@@ -230,6 +233,9 @@ func _pick_next_destination() -> void:
 		var candidates = SHARED_DESTINATIONS.duplicate()
 		candidates.shuffle()
 		for pos in candidates:
+			if is_instance_valid(player_ref) and player_stationary_timer >= 3.0:
+				if pos.distance_to(player_ref.global_position) < 180.0:
+					continue
 			if pos.distance_to(global_position) > 120.0:
 				target_destination = pos + Vector2(randf_range(-15, 15), randf_range(-15, 15))
 				break
@@ -263,6 +269,10 @@ func _physics_process(delta: float) -> void:
 	var dist_to_player = 9999.0
 	if is_instance_valid(player_ref):
 		dist_to_player = global_position.distance_to(player_ref.global_position)
+		if player_ref.velocity.length() < 10.0:
+			player_stationary_timer += delta
+		else:
+			player_stationary_timer = 0.0
 
 	match current_state:
 		State.IDLE:
@@ -284,14 +294,20 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _handle_travel_state(delta: float, dist_to_player: float) -> void:
-	if dist_to_player <= eavesdrop_radius and social_cooldown <= 0.0:
-		_trigger_new_clue_dialogue()
-		social_cooldown = randf_range(12.0, 20.0)
-		var npcs = get_tree().get_nodes_in_group("npcs")
-		for other in npcs:
-			if other != self and is_instance_valid(other):
-				if other.global_position.distance_to(global_position) < 140.0:
-					other.social_cooldown = max(other.social_cooldown, 8.0)
+	if player_stationary_timer < 3.0 and social_cooldown <= 0.0:
+		if dist_to_player <= too_close_radius:
+			current_state = State.AFRAID
+			spook_freeze_timer = 2.2
+			panic_timer = 0.0
+			_trigger_new_clue_dialogue()
+			social_cooldown = 14.0
+			return
+		elif dist_to_player <= eavesdrop_radius:
+			current_state = State.EAVESDROP
+			spook_freeze_timer = 1.8
+			_trigger_new_clue_dialogue()
+			social_cooldown = 14.0
+			return
 
 	if social_cooldown <= 0.0:
 		_check_for_walking_greeting()
@@ -316,9 +332,14 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	if move_dir == Vector2.ZERO:
 		move_dir = (target_destination - global_position).normalized()
 
-	if dist_to_player <= too_close_radius and is_instance_valid(player_ref):
-		var push_away = (global_position - player_ref.global_position).normalized()
-		move_dir = (move_dir * 0.4 + push_away * 0.6).normalized()
+	if is_instance_valid(player_ref):
+		if player_stationary_timer >= 3.0 and dist_to_player < 140.0:
+			var steer_away = (global_position - player_ref.global_position).normalized()
+			var avoid_factor = clamp((140.0 - dist_to_player) / 140.0, 0.0, 1.0)
+			move_dir = (move_dir * (1.0 - avoid_factor) + steer_away * (avoid_factor * 1.6)).normalized()
+		elif dist_to_player <= too_close_radius:
+			var push_away = (global_position - player_ref.global_position).normalized()
+			move_dir = (move_dir * 0.4 + push_away * 0.6).normalized()
 
 	var sep_force = Vector2.ZERO
 	var npcs = get_tree().get_nodes_in_group("npcs")
@@ -381,11 +402,38 @@ func _check_for_walking_greeting() -> void:
 					other.social_cooldown = 16.0
 					break
 
-func _handle_eavesdrop_state(_delta: float, _dist: float) -> void:
-	current_state = State.GO_TO_DESTINATION
+func _handle_eavesdrop_state(delta: float, dist_to_player: float) -> void:
+	velocity = Vector2.ZERO
+	is_moving = false
+	tremble_offset = Vector2(randf_range(-0.8, 0.8), randf_range(-0.8, 0.8))
+	spook_freeze_timer -= delta
+	if spook_freeze_timer <= 0.0 or player_stationary_timer >= 3.0 or dist_to_player > eavesdrop_radius + 20.0:
+		current_state = State.GO_TO_DESTINATION
+		tremble_offset = Vector2.ZERO
+		_pick_next_destination()
 
-func _handle_afraid_state(_delta: float, _dist: float) -> void:
-	current_state = State.GO_TO_DESTINATION
+func _handle_afraid_state(delta: float, dist_to_player: float) -> void:
+	velocity = Vector2.ZERO
+	is_moving = false
+	tremble_offset = Vector2(randf_range(-1.2, 1.2), randf_range(-1.2, 1.2))
+	panic_timer += delta
+	spook_freeze_timer -= delta
+
+	if panic_timer >= panic_time_limit:
+		current_state = State.PANIC_RUN
+		run_timer = 3.0
+		current_text_msg = PANIC_MESSAGES[randi() % PANIC_MESSAGES.size()]
+		show_chat_bubble(current_text_msg, 3.0)
+		if is_instance_valid(player_ref):
+			run_direction = (global_position - player_ref.global_position).normalized()
+			if run_direction == Vector2.ZERO:
+				run_direction = Vector2.RIGHT
+		else:
+			run_direction = Vector2.RIGHT
+	elif spook_freeze_timer <= 0.0 or player_stationary_timer >= 3.0 or dist_to_player > too_close_radius + 20.0:
+		current_state = State.GO_TO_DESTINATION
+		tremble_offset = Vector2.ZERO
+		_pick_next_destination()
 
 	if panic_timer >= panic_time_limit:
 		current_state = State.PANIC_RUN
