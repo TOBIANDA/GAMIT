@@ -435,7 +435,12 @@ func _draw() -> void:
 
 	var draw_pos = tremble_offset
 
-	# Render Sprite Custom Texture Sesuai NPCType
+	# 1. Bayangan lantai oval untuk NPC
+	draw_set_transform(draw_pos, 0.0, Vector2(1.0, 0.45))
+	draw_circle(Vector2(0, 6), 7.5, Color(0, 0, 0, 0.32))
+	draw_set_transform(draw_pos, 0.0, Vector2.ONE)
+
+	# 2. Render Sprite Custom Texture Sesuai NPCType
 	var cur_tex = _get_current_npc_sprite()
 	if is_instance_valid(cur_tex):
 		var size = cur_tex.get_size()

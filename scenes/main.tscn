@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://dialog_box_scene_01" path="res://scenes/dialog_box.tscn" id="5_dialog_scene"]
 [ext_resource type="PackedScene" uid="uid://npc_scene_01" path="res://scenes/npc.tscn" id="6_npc_scene"]
 [ext_resource type="PackedScene" uid="uid://train_scene_01" path="res://scenes/train.tscn" id="7_train_scene"]
-[ext_resource type="PackedScene" uid="uid://autumn_weather_scene_01" path="res://scenes/autumn_weather.tscn" id="8_autumn_scene"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.06, 0.08, 0.12, 0.88)
@@ -72,8 +71,6 @@ npc_type = 2
 
 [node name="Train" parent="." instance=ExtResource("7_train_scene")]
 position = Vector2(2240, -950)
-
-[node name="AutumnWeather" parent="." instance=ExtResource("8_autumn_scene")]
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 2

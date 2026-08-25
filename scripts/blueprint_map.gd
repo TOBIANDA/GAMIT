@@ -224,7 +224,6 @@ func _draw() -> void:
 	draw_line(Vector2(2295, 0), Vector2(2295, 1311), COLOR_TRACK_RAIL, 4.0)
 	for ty in range(15, 1311, 18):
 		draw_line(Vector2(2172, ty), Vector2(2308, ty), COLOR_TRACK_TIE, 3.5)
-		draw_line(Vector2(2175, ty - 1), Vector2(2305, ty - 1), Color(0.85, 0.45, 0.20, 0.50), 1.5)
 
 	# ── D. GARIS DINDING & PERIMETER LENGKAP DENGAN PINTU ─────────────────────
 
