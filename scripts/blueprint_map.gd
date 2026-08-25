@@ -153,36 +153,29 @@ func _draw() -> void:
 
 	draw_rect(Rect2(0, 0, 2160, 1311), COLOR_SIDEWALK, true)
 
-	draw_rect(Rect2(0, 0, 2160, 192), Color(0.34, 0.48, 0.20), true)
-	for gx in range(20, 2160, 45):
-		for gy in range(15, 185, 30):
-			draw_circle(Vector2(gx, gy), 3.5, Color(0.28, 0.40, 0.16, 0.7))
-			draw_circle(Vector2(gx + 6, gy - 3), 2.5, Color(0.42, 0.58, 0.26, 0.8))
-
 	for gx in range(40, 2160, 40):
-		draw_line(Vector2(gx, 192), Vector2(gx, 1311), Color(0, 0, 0, 0.08), 1.0)
-	for gy in range(220, 1311, 40):
+		draw_line(Vector2(gx, 0), Vector2(gx, 1311), Color(0, 0, 0, 0.08), 1.0)
+	for gy in range(40, 1311, 40):
 		draw_line(Vector2(0, gy), Vector2(2160, gy), Color(0, 0, 0, 0.08), 1.0)
 
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
-		var r_rect = Rect2(sq_x, 32, 156, 158)
+		var r_rect = Rect2(sq_x, 36, 156, 156)
 		
-		draw_rect(r_rect, Color(0.35, 0.50, 0.20), true)
+		draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
 		draw_rect(Rect2(sq_x + 64, 130, 28, 62), Color(0.70, 0.68, 0.62), true)
 
 		if i == 6:
-			_draw_detective_house(Rect2(sq_x, 36, 156, 156))
+			_draw_detective_house(r_rect)
 		else:
-			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 38, 132, 118))
+			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 40, 132, 116))
 
-		draw_line(Vector2(sq_x, 32), Vector2(sq_x, 186), Color(0.42, 0.30, 0.16), 2.5)
-		draw_line(Vector2(sq_x + 156, 32), Vector2(sq_x + 156, 186), Color(0.42, 0.30, 0.16), 2.5)
-		draw_line(Vector2(sq_x, 32), Vector2(sq_x + 156, 32), Color(0.42, 0.30, 0.16), 2.5)
-
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 2, 158, 58, 30))
-		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 62, 155, 32, 34))
-		_draw_texture_fit(tex_pagar, Rect2(sq_x + 96, 158, 58, 30))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x, 26, 156, 20))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x - 8, 36, 16, 156))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 148, 36, 16, 156))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x, 176, 58, 20))
+		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 60, 172, 36, 24))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 98, 176, 58, 20))
 
 	var l_pts = PackedVector2Array([
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
@@ -266,14 +259,6 @@ func _draw() -> void:
 	draw_line(Vector2(2295, 0), Vector2(2295, 1311), COLOR_TRACK_RAIL, 4.5)
 	for ty in range(12, 1311, 16):
 		draw_line(Vector2(2170, ty), Vector2(2310, ty), COLOR_TRACK_TIE, 3.5)
-
-	for i in range(11):
-		var sq_x = (13.0 + i * 62.0) * 3.0
-		draw_line(Vector2(sq_x, 192), Vector2(sq_x, 36), COLOR_WALL_LINE, WT)
-		draw_line(Vector2(sq_x, 36), Vector2(sq_x + 156, 36), COLOR_WALL_LINE, WT)
-		draw_line(Vector2(sq_x + 156, 36), Vector2(sq_x + 156, 192), COLOR_WALL_LINE, WT)
-
-	draw_line(Vector2(0, 192), Vector2(2160, 192), COLOR_WALL_LINE, WT)
 
 	draw_line(Vector2(0, 324), Vector2(516, 324), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(516, 324), Vector2(516, 510), COLOR_WALL_LINE, WT)
