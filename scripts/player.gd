@@ -36,6 +36,8 @@ var sprite_sets: Dictionary = {}
 func _ready() -> void:
 	add_to_group("player")
 	y_sort_enabled = true
+	collision_layer = 2
+	collision_mask = 1 # Hanya bertabrakan dengan lingkungan/tembok (dapat overlap dengan NPC)
 	if is_instance_valid(camera):
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 

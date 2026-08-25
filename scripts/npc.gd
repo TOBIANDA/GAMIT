@@ -16,8 +16,8 @@ extends CharacterBody2D
 enum NPCType { BOY, POLICE, GIRL }
 @export var npc_type: NPCType = NPCType.BOY
 @export var target_height_px: float = 38.0
-@export var too_close_radius: float = 110.0
-@export var eavesdrop_radius: float = 220.0
+@export var too_close_radius: float = 42.0  # Jarak intim baru yang lebih sempit
+@export var eavesdrop_radius: float = 85.0  # Jangkauan merinding baru yang lebih fokus
 @export var panic_time_limit: float = 7.0
 @export var run_speed: float = 380.0
 @export var walk_speed: float = 46.0
@@ -133,6 +133,8 @@ const PANIC_MESSAGES = [
 func _ready() -> void:
 	add_to_group("npcs")
 	y_sort_enabled = true
+	collision_layer = 4
+	collision_mask = 1 # Hanya bertabrakan dengan tembok (dapat overlap dengan MC Benedict)
 	_load_all_npc_sprite_sets()
 	_build_growtopia_textbox()
 	
