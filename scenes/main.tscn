@@ -49,24 +49,44 @@ position = Vector2(1833, 1059)
 [node name="Player" parent="." instance=ExtResource("3_player_scene")]
 position = Vector2(1170, 270)
 
-[node name="NPC1" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC1_Police" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(350, 258)
-npc_type = 0
+npc_type = 1
 
-[node name="NPC2" parent="." instance=ExtResource("6_npc_scene")]
-position = Vector2(594, 550)
-npc_type = 2
-
-[node name="NPC3" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC2_Boy" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(1104, 780)
 npc_type = 0
 
-[node name="NPC4" parent="." instance=ExtResource("6_npc_scene")]
-position = Vector2(180, 1050)
-npc_type = 1
+[node name="NPC3_Boy" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(1581, 258)
+npc_type = 0
 
-[node name="NPC5" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC4_Boy" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(780, 830)
+npc_type = 0
+
+[node name="NPC5_Boy" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(411, 1278)
+npc_type = 0
+
+[node name="NPC6_Boy" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(1581, 780)
+npc_type = 0
+
+[node name="NPC7_Girl" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(594, 550)
+npc_type = 2
+
+[node name="NPC8_Girl" parent="." instance=ExtResource("6_npc_scene")]
 position = Vector2(2088, 550)
+npc_type = 2
+
+[node name="NPC9_Girl" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(180, 1050)
+npc_type = 2
+
+[node name="NPC10_Girl" parent="." instance=ExtResource("6_npc_scene")]
+position = Vector2(1090, 435)
 npc_type = 2
 
 [node name="Train" parent="." instance=ExtResource("7_train_scene")]
