@@ -352,20 +352,10 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	is_moving = true
 	step_cycle += delta * 4.5
 	body_bob_y = abs(sin(step_cycle)) * -1.5
-	tremble_offset = Vector2.ZERO
-
-	if is_instance_valid(nav_agent) and nav_agent.avoidance_enabled:
-		nav_agent.set_velocity(move_dir * walk_speed)
-	else:
-		velocity = move_dir * walk_speed
-		move_and_slide()
+	velocity = move_dir * walk_speed
+	move_and_slide()
 
 	_check_stuck_watchdog(delta)
-
-func _on_velocity_computed(safe_velocity: Vector2) -> void:
-	if current_state == State.GO_TO_DESTINATION:
-		velocity = safe_velocity
-		move_and_slide()
 
 # ── 🐕 Watchdog Anti-Stuck ──────────────────────────────────────────────────
 func _check_stuck_watchdog(delta: float) -> void:
@@ -381,11 +371,9 @@ func _check_stuck_watchdog(delta: float) -> void:
 
 func _handle_stuck_recovery() -> void:
 	stuck_timer = 0.0
-	# Re-request target position atau pindah ke destinasi baru
-	if is_instance_valid(nav_agent):
-		nav_agent.target_position = target_destination
-	# Beri sedikit dorongan arah terbuka
-	global_position += Vector2(randf_range(-6, 6), randf_range(-6, 6))
+	# Jika macet, segera ganti ke destinasi baru yang lain & beri dorongan keluar
+	_pick_next_destination()
+	global_position += Vector2(randf_range(-10, 10), randf_range(-10, 10))
 
 func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if dist_to_player <= too_close_radius:

@@ -82,31 +82,53 @@ func _setup_navigation_region() -> void:
 	nav_region.name = "NavigationRegion2D"
 	var nav_poly = NavigationPolygon.new()
 
-	var walkable_rects: Array[Rect2] = [
-		Rect2(0, 192, 2160, 132),       # Jalan Utama Atas
-		Rect2(516, 192, 123, 594),      # Gang Menyiku Barat Atas
-		Rect2(192, 786, 447, 159),      # Belokan Siku Tengah
-		Rect2(357, 945, 108, 366),      # Gang Vertikal Barat Bawah
-		Rect2(639, 549, 519, 141),      # Jalan Tengah Barat
-		Rect2(1050, 714, 576, 126),     # Jalan Tengah Timur
-		Rect2(1536, 192, 90, 522),      # Gang Vertikal Kanan
-		Rect2(2016, 192, 144, 1119),    # Jalan Sisi Rel Kanan
-		Rect2(357, 1245, 1803, 66),     # Jalan Lingkar Bawah
-		Rect2(950, 360, 200, 180),      # Taman Courtyard Atas
-		Rect2(650, 340, 320, 200),      # Lobi RS & Forensik
-		Rect2(670, 700, 350, 240),      # Lobi & Taman Bawah
-		Rect2(100, 200, 300, 120),      # Area Kantor Depan
-		Rect2(1200, 850, 220, 190)      # Lobi Pod Tengah
-	]
+	# 1. Outer Boundary (Seluruh Area Jalan & Trotoar Kota)
+	var outer_boundary = PackedVector2Array([
+		Vector2(0, 192),
+		Vector2(2160, 192),
+		Vector2(2160, 1311),
+		Vector2(0, 1311)
+	])
+	nav_poly.add_outline(outer_boundary)
 
-	for r in walkable_rects:
-		var pts = PackedVector2Array([
-			r.position,
-			Vector2(r.end.x, r.position.y),
-			r.end,
-			Vector2(r.position.x, r.end.y)
-		])
-		nav_poly.add_outline(pts)
+	# 2. Obstacle Holes (Kompleks Gedung Solid yang Tidak Boleh Ditembus)
+	# Hole A: Room Left L
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(10, 334), Vector2(506, 334), Vector2(506, 776),
+		Vector2(202, 776), Vector2(202, 923), Vector2(10, 923)
+	]))
+	
+	# Hole B: Room Bottom Left
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(10, 961), Vector2(347, 961), Vector2(347, 1301), Vector2(10, 1301)
+	]))
+	
+	# Hole C: Top Complex (Gedung Tengah Atas)
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(649, 334), Vector2(1526, 334), Vector2(1526, 704),
+		Vector2(1168, 704), Vector2(1168, 559), Vector2(649, 559)
+	]))
+	
+	# Hole D: Bottom Complex (Gedung Tengah Bawah)
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(649, 700), Vector2(1040, 700), Vector2(1040, 1235),
+		Vector2(475, 1235), Vector2(475, 955), Vector2(649, 955)
+	]))
+	
+	# Hole E: Room Grid Right
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(1636, 334), Vector2(2006, 334), Vector2(2006, 704), Vector2(1636, 704)
+	]))
+	
+	# Hole F: Room Sanctuary Dewa Kematian
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(1591, 859), Vector2(2006, 859), Vector2(2006, 1259), Vector2(1591, 1259)
+	]))
+	
+	# Hole G: Room Small Mid Bottom
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(1168, 850), Vector2(1418, 850), Vector2(1418, 1040), Vector2(1168, 1040)
+	]))
 
 	nav_poly.make_polygons_from_outlines()
 	nav_region.navigation_polygon = nav_poly
