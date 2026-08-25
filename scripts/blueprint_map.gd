@@ -100,31 +100,6 @@ func _draw_texture_fit(tex: Texture2D, target_rect: Rect2) -> void:
 	var draw_pos = target_rect.position + (target_rect.size - draw_size) * 0.5
 	draw_texture_rect(tex, Rect2(draw_pos, draw_size), false)
 
-func _draw_fence_horizontal(x1: float, x2: float, y: float) -> void:
-	if not is_instance_valid(tex_pagar):
-		return
-	var seg_w = 38.0
-	var seg_h = 16.0
-	var cx = x1
-	while cx < x2:
-		var w = min(seg_w, x2 - cx)
-		draw_texture_rect(tex_pagar, Rect2(cx, y, w, seg_h), false)
-		cx += seg_w
-
-func _draw_fence_vertical(x: float, y1: float, y2: float) -> void:
-	if not is_instance_valid(tex_pagar):
-		return
-	var src_size = tex_pagar.get_size()
-	if src_size.x <= 0 or src_size.y <= 0:
-		return
-	var seg_len = 28.0
-	var cy = y1
-	while cy < y2:
-		draw_set_transform(Vector2(x + 6, cy + seg_len * 0.5), PI * 0.5, Vector2(0.32, 0.32))
-		draw_texture(tex_pagar, Vector2(-src_size.x * 0.5, -src_size.y * 0.5))
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		cy += seg_len
-
 func _setup_navigation_region() -> void:
 	nav_region = NavigationRegion2D.new()
 	nav_region.name = "NavigationRegion2D"
@@ -199,14 +174,15 @@ func _draw() -> void:
 		if i == 6:
 			_draw_detective_house(Rect2(sq_x, 36, 156, 156))
 		else:
-			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 10, 38, 136, 130))
+			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 38, 132, 118))
 
-		_draw_fence_horizontal(sq_x, sq_x + 156, 28)
-		_draw_fence_vertical(sq_x - 4, 30, 186)
-		_draw_fence_vertical(sq_x + 148, 30, 186)
-		_draw_fence_horizontal(sq_x, sq_x + 58, 182)
-		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 58, 177, 40, 20))
-		_draw_fence_horizontal(sq_x + 98, sq_x + 156, 182)
+		draw_line(Vector2(sq_x, 32), Vector2(sq_x, 186), Color(0.42, 0.30, 0.16), 2.5)
+		draw_line(Vector2(sq_x + 156, 32), Vector2(sq_x + 156, 186), Color(0.42, 0.30, 0.16), 2.5)
+		draw_line(Vector2(sq_x, 32), Vector2(sq_x + 156, 32), Color(0.42, 0.30, 0.16), 2.5)
+
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 2, 158, 58, 30))
+		_draw_texture_fit(tex_pintu_pagar, Rect2(sq_x + 62, 155, 32, 34))
+		_draw_texture_fit(tex_pagar, Rect2(sq_x + 96, 158, 58, 30))
 
 	var l_pts = PackedVector2Array([
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
