@@ -120,19 +120,43 @@ var tex_telepon: Texture2D
 	set(val):
 		pagar_belakang_geser_y = 0.0 if val == null else float(val)
 		queue_redraw()
+@export var pagar_belakang_gap_panel: float = 0.0:
+	set(val):
+		pagar_belakang_gap_panel = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_belakang_panel_lebar: float = 52.0:
+	set(val):
+		pagar_belakang_panel_lebar = 52.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
 @export var pagar_belakang_skala: float = 1.0:
 	set(val):
 		pagar_belakang_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
-@export_group("5. Pagar Samping (Vertikal)")
-@export var pagar_samping_geser_x: float = 0.0:
+@export_group("5. Pagar Samping (Vertikal) & Gap Sudut")
+@export var pagar_samping_kiri_geser_x: float = 0.0:
 	set(val):
-		pagar_samping_geser_x = 0.0 if val == null else float(val)
+		pagar_samping_kiri_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_samping_kanan_geser_x: float = 0.0:
+	set(val):
+		pagar_samping_kanan_geser_x = 0.0 if val == null else float(val)
 		queue_redraw()
 @export var pagar_samping_geser_y: float = 0.0:
 	set(val):
 		pagar_samping_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gap_sudut_atas_samping: float = 0.0:
+	set(val):
+		gap_sudut_atas_samping = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_samping_tinggi: float = 130.0:
+	set(val):
+		pagar_samping_tinggi = 130.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var pagar_samping_lebar: float = 16.0:
+	set(val):
+		pagar_samping_lebar = 16.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 @export var pagar_samping_skala: float = 1.0:
 	set(val):
@@ -277,14 +301,19 @@ func _draw() -> void:
 			var sk_belakang = 1.0 if (pagar_belakang_skala == null or pagar_belakang_skala <= 0.0) else float(pagar_belakang_skala)
 			var sk_samping = 1.0 if (pagar_samping_skala == null or pagar_samping_skala <= 0.0) else float(pagar_samping_skala)
 
-			# Pagar Belakang (3 panel x 52px = 156px)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52 * sk_belakang, 24 * sk_belakang), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 52 * sk_belakang + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52 * sk_belakang, 24 * sk_belakang), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 104 * sk_belakang + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52 * sk_belakang, 24 * sk_belakang), false)
+			var pw = pagar_belakang_panel_lebar * sk_belakang
+			var pg = pagar_belakang_gap_panel
+			# Pagar Belakang (3 panel dengan pengaturan lebar dan gap)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + pw + pg + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + (pw + pg) * 2.0 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 
-			# Pagar Samping Kiri & Kanan (Aset Pagar Samping Vertikal)
-			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10 + pagar_samping_geser_x, 36 + pagar_samping_geser_y, 16 * sk_samping, 130 * sk_samping))
-			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150 - pagar_samping_geser_x, 36 + pagar_samping_geser_y, 16 * sk_samping, 130 * sk_samping), true, false)
+			# Pagar Samping Kiri & Kanan (Aset Pagar Samping Vertikal dengan Gap Sudut Atas)
+			var side_y = 36 + pagar_samping_geser_y + gap_sudut_atas_samping
+			var side_w = pagar_samping_lebar * sk_samping
+			var side_h = pagar_samping_tinggi * sk_samping
+			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10 + pagar_samping_kiri_geser_x, side_y, side_w, side_h))
+			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true, false)
 
 			# Pagar Depan Kiri
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
