@@ -311,20 +311,19 @@ func _draw() -> void:
 			var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
 			var sk_belakang = 1.0 if (pagar_belakang_skala == null or pagar_belakang_skala <= 0.0) else float(pagar_belakang_skala)
 			var sk_samping = 1.0 if (pagar_samping_skala == null or pagar_samping_skala <= 0.0) else float(pagar_samping_skala)
-
 			var pw = pagar_belakang_panel_lebar * sk_belakang
 			var pg = pagar_belakang_gap_panel
-			# Pagar Belakang (3 panel dengan pengaturan lebar dan gap)
+			# Pagar Belakang (3 panel x 52px = 156px)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pw + pg + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + (pw + pg) * 2.0 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 
-			# Pagar Samping Kiri & Kanan (Aset Pagar Samping Vertikal dengan Gap Sudut Atas)
-			var side_y = 36 + pagar_samping_geser_y + gap_sudut_atas_samping
-			var side_w = pagar_samping_lebar * sk_samping
-			var side_h = pagar_samping_tinggi * sk_samping
-			_draw_side_fence(Rect2(sq_x - 10 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), false)
-			_draw_side_fence(Rect2(sq_x + 150 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true)
+			# Pagar Samping Kiri & Kanan (Menyambung presisi dari sudut atas ke sudut bawah)
+			var side_y = 32 + pagar_samping_geser_y + gap_sudut_atas_samping
+			var side_w = 8.0 * sk_samping
+			var side_h = 146.0 * sk_samping
+			_draw_side_fence(Rect2(sq_x - 1 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), false)
+			_draw_side_fence(Rect2(sq_x + 149 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true)
 
 			# Pagar Depan Kiri
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
