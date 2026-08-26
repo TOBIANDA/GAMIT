@@ -212,6 +212,17 @@ func _draw_texture_fit(tex: Texture2D, target_rect: Rect2) -> void:
 	var draw_pos = target_rect.position + (target_rect.size - draw_size) * 0.5
 	draw_texture_rect(tex, Rect2(draw_pos, draw_size), false)
 
+func _draw_side_fence(rect: Rect2, flip_h: bool = false) -> void:
+	if not is_instance_valid(tex_pagar_samping):
+		return
+	var src_region = Rect2(414, 0, 32, 1000)
+	if not flip_h:
+		draw_texture_rect_region(tex_pagar_samping, rect, src_region)
+	else:
+		draw_set_transform(Vector2(rect.position.x + rect.size.x, rect.position.y), 0.0, Vector2(-1.0, 1.0))
+		draw_texture_rect_region(tex_pagar_samping, Rect2(0, 0, rect.size.x, rect.size.y), src_region)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 func _draw_texture_flipped(tex: Texture2D, rect: Rect2, flip_h: bool = false, flip_v: bool = false) -> void:
 	if not is_instance_valid(tex):
 		return
@@ -312,8 +323,8 @@ func _draw() -> void:
 			var side_y = 36 + pagar_samping_geser_y + gap_sudut_atas_samping
 			var side_w = pagar_samping_lebar * sk_samping
 			var side_h = pagar_samping_tinggi * sk_samping
-			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10 + pagar_samping_kiri_geser_x, side_y, side_w, side_h))
-			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true, false)
+			_draw_side_fence(Rect2(sq_x - 10 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), false)
+			_draw_side_fence(Rect2(sq_x + 150 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true)
 
 			# Pagar Depan Kiri
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
