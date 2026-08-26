@@ -70,6 +70,10 @@ var tex_telepon: Texture2D
 	set(val):
 		pagar_kiri_lebar = 62.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
+@export var pagar_kiri_skala: float = 1.0:
+	set(val):
+		pagar_kiri_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
 
 @export_group("2. Pintu Pagar Tengah")
 @export var pintu_pagar_geser_x: float = 0.0:
@@ -83,6 +87,10 @@ var tex_telepon: Texture2D
 @export var pintu_pagar_lebar: float = 32.0:
 	set(val):
 		pintu_pagar_lebar = 32.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var pintu_pagar_skala: float = 1.0:
+	set(val):
+		pintu_pagar_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
 @export_group("3. Pagar Depan Kanan")
@@ -98,6 +106,10 @@ var tex_telepon: Texture2D
 	set(val):
 		pagar_kanan_lebar = 62.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
+@export var pagar_kanan_skala: float = 1.0:
+	set(val):
+		pagar_kanan_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
 
 @export_group("4. Pagar Belakang (Atas)")
 @export var pagar_belakang_geser_x: float = 0.0:
@@ -108,6 +120,10 @@ var tex_telepon: Texture2D
 	set(val):
 		pagar_belakang_geser_y = 0.0 if val == null else float(val)
 		queue_redraw()
+@export var pagar_belakang_skala: float = 1.0:
+	set(val):
+		pagar_belakang_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
 
 @export_group("5. Pagar Samping (Vertikal)")
 @export var pagar_samping_geser_x: float = 0.0:
@@ -117,6 +133,10 @@ var tex_telepon: Texture2D
 @export var pagar_samping_geser_y: float = 0.0:
 	set(val):
 		pagar_samping_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_samping_skala: float = 1.0:
+	set(val):
+		pagar_samping_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
 var tex_bed: Texture2D
@@ -251,21 +271,27 @@ func _draw() -> void:
 		else:
 			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 42, 132, 116))
 
+			var sk_kiri = 1.0 if (pagar_kiri_skala == null or pagar_kiri_skala <= 0.0) else float(pagar_kiri_skala)
+			var sk_pintu = 1.0 if (pintu_pagar_skala == null or pintu_pagar_skala <= 0.0) else float(pintu_pagar_skala)
+			var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
+			var sk_belakang = 1.0 if (pagar_belakang_skala == null or pagar_belakang_skala <= 0.0) else float(pagar_belakang_skala)
+			var sk_samping = 1.0 if (pagar_samping_skala == null or pagar_samping_skala <= 0.0) else float(pagar_samping_skala)
+
 			# Pagar Belakang (3 panel x 52px = 156px)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52, 24), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 52 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52, 24), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 104 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52, 24), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52 * sk_belakang, 24 * sk_belakang), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 52 * sk_belakang + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52 * sk_belakang, 24 * sk_belakang), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 104 * sk_belakang + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, 52 * sk_belakang, 24 * sk_belakang), false)
 
 			# Pagar Samping Kiri & Kanan (Aset Pagar Samping Vertikal)
-			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10 + pagar_samping_geser_x, 36 + pagar_samping_geser_y, 16, 130))
-			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150 - pagar_samping_geser_x, 36 + pagar_samping_geser_y, 16, 130), true, false)
+			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10 + pagar_samping_geser_x, 36 + pagar_samping_geser_y, 16 * sk_samping, 130 * sk_samping))
+			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150 - pagar_samping_geser_x, 36 + pagar_samping_geser_y, 16 * sk_samping, 130 * sk_samping), true, false)
 
 			# Pagar Depan Kiri
-			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar, 26), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
 			# Pintu Pagar Tengah (Jalan Masuk)
-			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x, 162 + pintu_pagar_geser_y, pintu_pagar_lebar, 30), false)
+			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x, 162 + pintu_pagar_geser_y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
 			# Pagar Depan Kanan (di-rotate/mirror horizontal)
-			_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, 166 + pagar_kanan_geser_y, pagar_kanan_lebar, 26), true, false)
+			_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, 166 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)
 
 	# ── Stasiun Telepon Umum Kota ─────────────────────────────────────────────
 	var phone_spots = [
