@@ -31,7 +31,8 @@ const POI_LOCATIONS = {
 	"station": {"name": "Peron Stasiun Kereta", "pos": Vector2(2080, 520), "radius": 100.0},
 	"hospital": {"name": "Kamar Mayat Rumah Sakit", "pos": Vector2(850, 1000), "radius": 90.0},
 	"safe": {"name": "Brankas Rumah Ibu Medeline", "pos": Vector2(180, 1050), "radius": 80.0},
-	"shrine": {"name": "Altar Dewa Kematian", "pos": Vector2(1833, 1059), "radius": 110.0}
+	"shrine": {"name": "Altar Dewa Kematian", "pos": Vector2(1833, 1059), "radius": 110.0},
+	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 65.0}
 }
 
 func _ready() -> void:
@@ -346,6 +347,9 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 
 		"shrine":
 			_on_shrine_interacted()
+
+		"phone":
+			_show_toast("📞 Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
 
 func _on_shrine_interacted() -> void:
 	if is_instance_valid(dialog_box):

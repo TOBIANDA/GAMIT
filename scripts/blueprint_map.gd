@@ -52,7 +52,9 @@ var tex_rumah_depan: Texture2D
 var tex_rumah_belakang: Texture2D
 var tex_rumah_samping: Texture2D
 var tex_pagar: Texture2D
+var tex_pagar_samping: Texture2D
 var tex_pintu_pagar: Texture2D
+var tex_telepon: Texture2D
 
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
@@ -79,7 +81,9 @@ func _load_textures() -> void:
 	tex_rumah_belakang = load("res://Bangunan/rumahTampakBelakang.png")
 	tex_rumah_samping = load("res://Bangunan/rumahTampakSamping.png")
 	tex_pagar = load("res://Bangunan/pagar.png")
+	tex_pagar_samping = load("res://Bangunan/pagar samping.png")
 	tex_pintu_pagar = load("res://Bangunan/pintuPagar.png")
+	tex_telepon = load("res://Bangunan/stasiun telepon.png")
 
 	tex_bed = load("res://kamar/bed.png")
 	tex_karpet = load("res://kamar/karpet.png")
@@ -99,6 +103,19 @@ func _draw_texture_fit(tex: Texture2D, target_rect: Rect2) -> void:
 	var draw_size = src_size * scale_factor
 	var draw_pos = target_rect.position + (target_rect.size - draw_size) * 0.5
 	draw_texture_rect(tex, Rect2(draw_pos, draw_size), false)
+
+func _draw_texture_flipped(tex: Texture2D, rect: Rect2, flip_h: bool = false, flip_v: bool = false) -> void:
+	if not is_instance_valid(tex):
+		return
+	if not flip_h and not flip_v:
+		draw_texture_rect(tex, rect, false)
+		return
+	var scale_vec = Vector2(-1.0 if flip_h else 1.0, -1.0 if flip_v else 1.0)
+	var origin_x = rect.position.x + (rect.size.x if flip_h else 0.0)
+	var origin_y = rect.position.y + (rect.size.y if flip_v else 0.0)
+	draw_set_transform(Vector2(origin_x, origin_y), 0.0, scale_vec)
+	draw_texture_rect(tex, Rect2(0, 0, rect.size.x, rect.size.y), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _setup_navigation_region() -> void:
 	nav_region = NavigationRegion2D.new()
@@ -170,15 +187,29 @@ func _draw() -> void:
 		else:
 			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 42, 132, 116))
 
-			# Pagar Belakang (3 panel x 52px = 156px rapat sempurna)
+			# Pagar Belakang (3 panel x 52px = 156px)
 			draw_texture_rect(tex_pagar, Rect2(sq_x, 32, 52, 24), false)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + 52, 32, 52, 24), false)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + 104, 32, 52, 24), false)
 
-			# Pagar Depan (62px kiri + 32px pintu + 62px kanan = 156px rapat sempurna)
+			# Pagar Samping Kiri & Kanan (Aset Pagar Samping Vertikal)
+			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10, 36, 16, 130))
+			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150, 36, 16, 130), true, false)
+
+			# Pagar Depan (Kiri, Gerbang, Kanan di-rotate/mirror horizontal)
 			draw_texture_rect(tex_pagar, Rect2(sq_x, 166, 62, 26), false)
 			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62, 162, 32, 30), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 94, 166, 62, 26), false)
+			_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94, 166, 62, 26), true, false)
+
+	# ── Stasiun Telepon Umum Kota ─────────────────────────────────────────────
+	var phone_spots = [
+		Vector2(480, 240),
+		Vector2(1040, 560),
+		Vector2(1980, 240),
+		Vector2(1460, 1220)
+	]
+	for p_pos in phone_spots:
+		_draw_texture_fit(tex_telepon, Rect2(p_pos.x, p_pos.y, 28, 42))
 
 	var l_pts = PackedVector2Array([
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
@@ -574,6 +605,9 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(0, 0), Vector2(2160, 0))
 	_create_segment_collider(Vector2(0, 0), Vector2(0, 1311))
 	_create_segment_collider(Vector2(0, 1311), Vector2(2160, 1311))
+
+	for p_pos in [Vector2(480, 240), Vector2(1040, 560), Vector2(1980, 240), Vector2(1460, 1220)]:
+		_create_box_collider(Rect2(p_pos.x + 2, p_pos.y + 12, 24, 28))
 
 func _create_box_collider(rect: Rect2) -> void:
 	var body = StaticBody2D.new()
