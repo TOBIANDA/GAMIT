@@ -57,6 +57,32 @@ var tex_pagar_samping: Texture2D
 var tex_pintu_pagar: Texture2D
 var tex_telepon: Texture2D
 
+@export_group("Pengaturan Pagar Manual")
+@export var pagar_depan_offset_y: float = 0.0:
+	set(val):
+		pagar_depan_offset_y = val
+		queue_redraw()
+
+@export var pagar_depan_tinggi: float = 26.0:
+	set(val):
+		pagar_depan_tinggi = val
+		queue_redraw()
+
+@export var pagar_belakang_offset_y: float = 0.0:
+	set(val):
+		pagar_belakang_offset_y = val
+		queue_redraw()
+
+@export var pagar_samping_offset_x: float = 0.0:
+	set(val):
+		pagar_samping_offset_x = val
+		queue_redraw()
+
+@export var pagar_samping_tinggi: float = 130.0:
+	set(val):
+		pagar_samping_tinggi = val
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -190,18 +216,18 @@ func _draw() -> void:
 			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 42, 132, 116))
 
 			# Pagar Belakang (3 panel x 52px = 156px)
-			draw_texture_rect(tex_pagar, Rect2(sq_x, 32, 52, 24), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 52, 32, 52, 24), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + 104, 32, 52, 24), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x, 32 + pagar_belakang_offset_y, 52, 24), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 52, 32 + pagar_belakang_offset_y, 52, 24), false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x + 104, 32 + pagar_belakang_offset_y, 52, 24), false)
 
 			# Pagar Samping Kiri & Kanan (Aset Pagar Samping Vertikal)
-			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10, 36, 16, 130))
-			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150, 36, 16, 130), true, false)
+			_draw_texture_fit(tex_pagar_samping, Rect2(sq_x - 10 + pagar_samping_offset_x, 36, 16, pagar_samping_tinggi))
+			_draw_texture_flipped(tex_pagar_samping, Rect2(sq_x + 150 - pagar_samping_offset_x, 36, 16, pagar_samping_tinggi), true, false)
 
 			# Pagar Depan (Kiri, Gerbang, Kanan di-rotate/mirror horizontal)
-			draw_texture_rect(tex_pagar, Rect2(sq_x, 166, 62, 26), false)
-			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62, 162, 32, 30), false)
-			_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94, 166, 62, 26), true, false)
+			draw_texture_rect(tex_pagar, Rect2(sq_x, 166 + pagar_depan_offset_y, 62, pagar_depan_tinggi), false)
+			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62, 162 + pagar_depan_offset_y, 32, pagar_depan_tinggi + 4), false)
+			_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94, 166 + pagar_depan_offset_y, 62, pagar_depan_tinggi), true, false)
 
 	# ── Stasiun Telepon Umum Kota ─────────────────────────────────────────────
 	var phone_spots = [
