@@ -1,3 +1,4 @@
+@tool
 extends Node2D
 
 const COLOR_VOID            = Color(0.12, 0.13, 0.15, 1.0)
@@ -69,8 +70,9 @@ var nav_region: NavigationRegion2D
 func _ready() -> void:
 	z_index = -1
 	_load_textures()
-	_build_all_colliders()
-	_setup_navigation_region()
+	if not Engine.is_editor_hint():
+		_build_all_colliders()
+		_setup_navigation_region()
 	queue_redraw()
 
 func _load_textures() -> void:
