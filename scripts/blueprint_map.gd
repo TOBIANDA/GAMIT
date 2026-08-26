@@ -163,6 +163,20 @@ var tex_telepon: Texture2D
 		pagar_samping_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
+@export_group("6. Stasiun Telepon Umum")
+@export var telepon_lebar: float = 48.0:
+	set(val):
+		telepon_lebar = 48.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var telepon_tinggi: float = 72.0:
+	set(val):
+		telepon_tinggi = 72.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var telepon_skala: float = 1.0:
+	set(val):
+		telepon_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -222,6 +236,12 @@ func _draw_side_fence(rect: Rect2, flip_h: bool = false) -> void:
 		draw_set_transform(Vector2(rect.position.x + rect.size.x, rect.position.y), 0.0, Vector2(-1.0, 1.0))
 		draw_texture_rect_region(tex_pagar_samping, Rect2(0, 0, rect.size.x, rect.size.y), src_region)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func _draw_phone_booth(rect: Rect2) -> void:
+	if not is_instance_valid(tex_telepon):
+		return
+	var src_region = Rect2(359, 138, 286, 606)
+	draw_texture_rect_region(tex_telepon, rect, src_region)
 
 func _draw_texture_flipped(tex: Texture2D, rect: Rect2, flip_h: bool = false, flip_v: bool = false) -> void:
 	if not is_instance_valid(tex):
@@ -334,13 +354,15 @@ func _draw() -> void:
 
 	# ── Stasiun Telepon Umum Kota ─────────────────────────────────────────────
 	var phone_spots = [
-		Vector2(480, 240),
-		Vector2(1040, 560),
-		Vector2(1980, 240),
-		Vector2(1460, 1220)
+		Vector2(480, 225),
+		Vector2(1040, 545),
+		Vector2(1980, 225),
+		Vector2(1460, 1195)
 	]
+	var tw = telepon_lebar * (1.0 if (telepon_skala == null or telepon_skala <= 0.0) else float(telepon_skala))
+	var th = telepon_tinggi * (1.0 if (telepon_skala == null or telepon_skala <= 0.0) else float(telepon_skala))
 	for p_pos in phone_spots:
-		_draw_texture_fit(tex_telepon, Rect2(p_pos.x, p_pos.y, 28, 42))
+		_draw_phone_booth(Rect2(p_pos.x, p_pos.y, tw, th))
 
 	var l_pts = PackedVector2Array([
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
@@ -737,8 +759,8 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(0, 0), Vector2(0, 1311))
 	_create_segment_collider(Vector2(0, 1311), Vector2(2160, 1311))
 
-	for p_pos in [Vector2(480, 240), Vector2(1040, 560), Vector2(1980, 240), Vector2(1460, 1220)]:
-		_create_box_collider(Rect2(p_pos.x + 2, p_pos.y + 12, 24, 28))
+	for p_pos in [Vector2(480, 225), Vector2(1040, 545), Vector2(1980, 225), Vector2(1460, 1195)]:
+		_create_box_collider(Rect2(p_pos.x + 4, p_pos.y + 20, 40, 52))
 
 func _create_box_collider(rect: Rect2) -> void:
 	var body = StaticBody2D.new()
