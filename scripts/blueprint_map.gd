@@ -185,6 +185,50 @@ var tex_telepon: Texture2D
 		telepon_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
+@export_group("7. Kantor Polisi (Police Station)")
+@export var polisi_geser_x: float = 0.0:
+	set(val):
+		polisi_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var polisi_geser_y: float = 0.0:
+	set(val):
+		polisi_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var polisi_lebar: float = 341.0:
+	set(val):
+		polisi_lebar = 341.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var polisi_tinggi: float = 350.0:
+	set(val):
+		polisi_tinggi = 350.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var polisi_skala: float = 1.0:
+	set(val):
+		polisi_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("8. Rumah Sakit (Hospital)")
+@export var rs_geser_x: float = 0.0:
+	set(val):
+		rs_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rs_geser_y: float = 0.0:
+	set(val):
+		rs_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rs_lebar: float = 585.0:
+	set(val):
+		rs_lebar = 585.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rs_tinggi: float = 300.0:
+	set(val):
+		rs_tinggi = 300.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rs_skala: float = 1.0:
+	set(val):
+		rs_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -393,8 +437,11 @@ func _draw() -> void:
 	_draw_desk(Rect2(411, 666, 105, 120))
 	_draw_desk(Rect2(25, 800, 140, 100))
 
+	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
+	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
+	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
 	_draw_room_pavement(Rect2(0, 951, 357, 360), COLOR_ROOM_STONE_B)
-	_draw_texture_fit(tex_police, Rect2(8, 955, 341, 350))
+	_draw_texture_fit(tex_police, Rect2(8 + polisi_geser_x, 955 + polisi_geser_y, pol_w, pol_h))
 
 	var top_complex_pts = PackedVector2Array([
 		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 549), Vector2(639, 549)
@@ -421,8 +468,11 @@ func _draw() -> void:
 	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	# Gedung Utama Rumah Sakit (Mentok ke tepi jalan dan batas blok)
-	_draw_hospital_main_building(Rect2(465, 945, 585, 300))
+	# Gedung Utama Rumah Sakit (Dapat diatur lewat Inspector)
+	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
+	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
+	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
+	_draw_hospital_main_building(Rect2(465 + rs_geser_x, 945 + rs_geser_y, r_w, r_h))
 
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
 	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
