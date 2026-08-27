@@ -229,7 +229,7 @@ func _draw_texture_fit(tex: Texture2D, target_rect: Rect2) -> void:
 func _draw_side_fence(rect: Rect2, flip_h: bool = false) -> void:
 	if not is_instance_valid(tex_pagar_samping):
 		return
-	var src_region = Rect2(414, 0, 32, 1000)
+	var src_region = Rect2(19, 24, 31, 329)
 	if not flip_h:
 		draw_texture_rect_region(tex_pagar_samping, rect, src_region)
 	else:
@@ -340,10 +340,10 @@ func _draw() -> void:
 
 			# Pagar Samping Kiri & Kanan (Menyambung presisi dari sudut atas ke sudut bawah)
 			var side_y = 32 + pagar_samping_geser_y + gap_sudut_atas_samping
-			var side_w = 8.0 * sk_samping
-			var side_h = 146.0 * sk_samping
-			_draw_side_fence(Rect2(sq_x - 1 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), false)
-			_draw_side_fence(Rect2(sq_x + 149 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true)
+			var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 14.0) * sk_samping
+			var side_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 146.0) * sk_samping
+			_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), false)
+			_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true)
 
 			# Pagar Depan Kiri
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
