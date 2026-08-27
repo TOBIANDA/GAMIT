@@ -58,12 +58,15 @@ pagar_samping_kiri_geser_x = 1.0
 pagar_samping_kanan_geser_x = 1.0
 pagar_samping_geser_y = 5.0
 gap_sudut_atas_samping = 1.0
-pagar_samping_jumlah_panel = 2
-pagar_samping_gap_panel = 0.0
-
-[node name="DeathGodShrine" parent="." unique_id=2034711455 instance=ExtResource("4_shrine_scene")]
-position = Vector2(1833, 1059)
-
+polisi_geser_x = 10.0
+polisi_geser_y = 14.0
+polisi_lebar = null
+polisi_tinggi = null
+polisi_skala = 0.85
+rs_geser_x = -140.0
+rs_geser_y = -12.0
+rs_lebar = null
+rs_tinggi = null
 [node name="Player" parent="." unique_id=1644102521 instance=ExtResource("3_player_scene")]
 position = Vector2(1170, 270)
 
@@ -204,6 +207,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "📍 Reset Posisi Karakter"
 
 [node name="DialogBox" parent="." unique_id=1897403469 instance=ExtResource("5_dialog_scene")]
+visible = false
 
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/JournalBtn" to="." method="_on_journal_btn_pressed"]
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer/ZoomInBtn" to="." method="_on_zoom_in_btn_pressed"]

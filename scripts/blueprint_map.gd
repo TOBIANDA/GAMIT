@@ -348,7 +348,11 @@ func _setup_navigation_region() -> void:
 	]))
 
 	nav_poly.add_outline(PackedVector2Array([
-		Vector2(1591, 859), Vector2(2006, 859), Vector2(2006, 1259), Vector2(1591, 1259)
+		Vector2(1636, 800), Vector2(1792, 800), Vector2(1792, 956), Vector2(1636, 956)
+	]))
+
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(1880, 720), Vector2(2060, 720), Vector2(2060, 870), Vector2(1880, 870)
 	]))
 
 	nav_poly.make_polygons_from_outlines()
@@ -369,47 +373,13 @@ func _draw() -> void:
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var r_rect = Rect2(sq_x, 36, 156, 156)
 		
-		draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
-		draw_rect(Rect2(sq_x + 64, 130, 28, 62), Color(0.70, 0.68, 0.62), true)
-
 		if i == 6:
+			draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
+			draw_rect(Rect2(sq_x + 64, 130, 28, 62), Color(0.70, 0.68, 0.62), true)
 			_draw_detective_house(r_rect)
+			_draw_fences_for_house(sq_x, 36)
 		else:
-			_draw_texture_fit(tex_rumah_depan, Rect2(sq_x + 12, 42, 132, 116))
-
-			var sk_kiri = 1.0 if (pagar_kiri_skala == null or pagar_kiri_skala <= 0.0) else float(pagar_kiri_skala)
-			var sk_pintu = 1.0 if (pintu_pagar_skala == null or pintu_pagar_skala <= 0.0) else float(pintu_pagar_skala)
-			var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
-			var sk_belakang = 1.0 if (pagar_belakang_skala == null or pagar_belakang_skala <= 0.0) else float(pagar_belakang_skala)
-			var sk_samping = 1.0 if (pagar_samping_skala == null or pagar_samping_skala <= 0.0) else float(pagar_samping_skala)
-			var pw = pagar_belakang_panel_lebar * sk_belakang
-			var pg = pagar_belakang_gap_panel
-			# Pagar Belakang (3 panel x 52px = 156px)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + pw + pg + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
-			draw_texture_rect(tex_pagar, Rect2(sq_x + (pw + pg) * 2.0 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
-
-			# Pagar Samping Kiri & Kanan (Panel saling tumpang tindih / overlapping tanpa celah garis)
-			var side_y = 30 + pagar_samping_geser_y + gap_sudut_atas_samping
-			var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 12.0)
-			var side_total_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 148.0)
-			var n_panels = max(1, 2 if (pagar_samping_jumlah_panel == null or pagar_samping_jumlah_panel <= 0) else int(pagar_samping_jumlah_panel))
-			var overlap_px = 16.0
-			var panel_h = (side_total_h + (n_panels - 1) * overlap_px) / float(n_panels)
-			var step_y = panel_h - overlap_px + (0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel))
-
-			for p in range(n_panels):
-				var py = side_y + p * step_y
-				# Sisi Kiri di-flip horizontal (true), Sisi Kanan normal (false)
-				_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, py, side_w, panel_h), true)
-				_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
-
-			# Pagar Depan Kiri
-			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
-			# Pintu Pagar Tengah (Jalan Masuk)
-			draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x, 162 + pintu_pagar_geser_y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
-			# Pagar Depan Kanan (di-rotate/mirror horizontal)
-			_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, 166 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)
+			_draw_civilian_fenced_house(Vector2(sq_x, 36), tex_rumah_depan)
 
 	# ── Stasiun Telepon Umum Kota ─────────────────────────────────────────────
 	var phone_spots = [
@@ -480,14 +450,16 @@ func _draw() -> void:
 	_draw_room_pavement(Rect2(1626, 324, 390, 225), COLOR_ROOM_STONE_A)
 	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
 
-	draw_rect(Rect2(1581, 849, 504, 420), COLOR_ROOM_DARK, true)
-	draw_rect(Rect2(1640, 900, 385, 310), COLOR_ROOM_RUG, true)
-	draw_circle(Vector2(1833, 1059), 110.0, Color(0.85, 0.72, 0.25, 0.35))
-	draw_circle(Vector2(1833, 1059), 85.0, Color(0.12, 0.13, 1.0, 1.0))
-	draw_circle(Vector2(1833, 1059), 80.0, Color(0.85, 0.72, 0.25, 0.8))
-	draw_circle(Vector2(1833, 1059), 74.0, Color(0.12, 0.13, 0.16, 1.0))
-	draw_rect(Rect2(1530, 1000, 60, 120), COLOR_ROOM_RUG, true)
-	draw_rect(Rect2(1770, 810, 125, 60), COLOR_ROOM_RUG, true)
+	# ── Area Tenggara: Rumah Warga, Gang Kecil, dan Stasiun Kereta ────────────
+	# 1. Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
+	_draw_civilian_fenced_house(Vector2(1636, 800), tex_rumah_depan)
+
+	# 2. Gang Kecil Penghubung Jalan Tengah & Jalan Selatan
+	draw_rect(Rect2(1792, 690, 68, 555), COLOR_SIDEWALK, true)
+	_draw_tile_pattern(Rect2(1792, 690, 68, 555), COLOR_PLAZA_TILE_LINE)
+
+	# 3. Stasiun Kereta Api Timur
+	_draw_train_station(Rect2(1860, 690, 300, 555))
 
 	_draw_city_road_network()
 
@@ -539,22 +511,99 @@ func _draw() -> void:
 	draw_line(Vector2(1626, 549), Vector2(1626, 480), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(1626, 420), Vector2(1626, 324), COLOR_WALL_LINE, WT)
 
-	draw_line(Vector2(1581, 849), Vector2(1770, 849), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1890, 849), Vector2(2085, 849), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(2085, 849), Vector2(2085, 1269), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(2085, 1269), Vector2(1581, 1269), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1581, 1269), Vector2(1581, 1120), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1581, 1000), Vector2(1581, 849), COLOR_WALL_LINE, WT)
+	# Dinding Rumah Warga Tenggara
+	draw_line(Vector2(1636, 800), Vector2(1792, 800), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1636, 800), Vector2(1636, 956), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1792, 800), Vector2(1792, 956), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1636, 956), Vector2(1696, 956), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1732, 956), Vector2(1792, 956), COLOR_WALL_LINE, WT)
+
+	# Batas Gang & Stasiun Kereta
+	draw_line(Vector2(1792, 690), Vector2(1792, 1245), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1860, 690), Vector2(1860, 1245), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1860, 690), Vector2(2160, 690), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1860, 1245), Vector2(2160, 1245), COLOR_WALL_LINE, WT)
 
 	draw_line(Vector2(2160, 0), Vector2(2160, 1311), COLOR_WALL_LINE, WT)
 
 	_draw_poi_badge(Vector2(1170, 270), "Rumah Detektif", Color(0.35, 0.65, 0.95))
 	_draw_poi_badge(Vector2(350, 258),  "Kantor Polisi",  Color(0.25, 0.50, 0.85))
-	_draw_poi_badge(Vector2(2088, 550), "Stasiun Kereta", Color(0.95, 0.70, 0.20))
+	_draw_poi_badge(Vector2(2020, 960), "Stasiun Kereta", Color(0.95, 0.70, 0.20))
 	_draw_poi_badge(Vector2(594, 550),  "Kamar Jenazah",  Color(0.85, 0.35, 0.35))
 	_draw_poi_badge(Vector2(750, 1095), "Rumah Sakit",    Color(0.85, 0.25, 0.25))
 	_draw_poi_badge(Vector2(180, 1050), "Brankas Ibu",    Color(0.80, 0.50, 0.90))
-	_draw_poi_badge(Vector2(1833, 1059),"Altar Dewa",     Color(0.70, 0.25, 0.95))
+
+func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null) -> void:
+	var sq_x = pos.x
+	var sq_y = pos.y
+	var r_rect = Rect2(sq_x, sq_y, 156, 156)
+
+	draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
+	draw_rect(Rect2(sq_x + 64, sq_y + 94, 28, 62), Color(0.70, 0.68, 0.62), true)
+
+	var h_tex = tex_rumah_depan if house_tex == null else house_tex
+	_draw_texture_fit(h_tex, Rect2(sq_x + 12, sq_y + 6, 132, 116))
+
+	_draw_fences_for_house(sq_x, sq_y)
+
+func _draw_fences_for_house(sq_x: float, sq_y: float) -> void:
+	var sk_kiri = 1.0 if (pagar_kiri_skala == null or pagar_kiri_skala <= 0.0) else float(pagar_kiri_skala)
+	var sk_pintu = 1.0 if (pintu_pagar_skala == null or pintu_pagar_skala <= 0.0) else float(pintu_pagar_skala)
+	var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
+	var sk_belakang = 1.0 if (pagar_belakang_skala == null or pagar_belakang_skala <= 0.0) else float(pagar_belakang_skala)
+	var pw = pagar_belakang_panel_lebar * sk_belakang
+	var pg = pagar_belakang_gap_panel
+
+	# Pagar Belakang (3 panel)
+	draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_belakang_geser_x, sq_y - 4 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
+	draw_texture_rect(tex_pagar, Rect2(sq_x + pw + pg + pagar_belakang_geser_x, sq_y - 4 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
+	draw_texture_rect(tex_pagar, Rect2(sq_x + (pw + pg) * 2.0 + pagar_belakang_geser_x, sq_y - 4 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
+
+	# Pagar Samping (2 panel tumpang tindih)
+	var side_y = sq_y - 6 + pagar_samping_geser_y + gap_sudut_atas_samping
+	var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 12.0)
+	var side_total_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 148.0)
+	var n_panels = max(1, 2 if (pagar_samping_jumlah_panel == null or pagar_samping_jumlah_panel <= 0) else int(pagar_samping_jumlah_panel))
+	var overlap_px = 16.0
+	var panel_h = (side_total_h + (n_panels - 1) * overlap_px) / float(n_panels)
+	var step_y = panel_h - overlap_px + (0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel))
+
+	for p in range(n_panels):
+		var py = side_y + p * step_y
+		_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, py, side_w, panel_h), true)
+		_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
+
+	# Pagar Depan Kiri
+	draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, sq_y + 130 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
+	# Pintu Pagar Tengah
+	draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x, sq_y + 126 + pintu_pagar_geser_y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
+	# Pagar Depan Kanan
+	_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, sq_y + 130 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)
+
+func _draw_train_station(rect: Rect2) -> void:
+	# Lantai Peron Stasiun
+	draw_rect(rect, COLOR_ROOM_STONE_A, true)
+	_draw_tile_pattern(rect, COLOR_PLAZA_TILE_LINE)
+
+	# Garis Kuning Peringatan Tepi Rel Kereta
+	draw_line(Vector2(rect.end.x - 15, rect.position.y), Vector2(rect.end.x - 15, rect.end.y), Color(0.95, 0.82, 0.15), 4.0)
+	for dy in range(int(rect.position.y) + 10, int(rect.end.y), 24):
+		draw_line(Vector2(rect.end.x - 15, dy), Vector2(rect.end.x - 2, dy), Color(0.12, 0.13, 0.15), 2.0)
+
+	# Kanopi / Ruang Tunggu Stasiun
+	var st_roof = Rect2(rect.position.x + 20, rect.position.y + 30, 180, 150)
+	draw_rect(Rect2(st_roof.position + Vector2(4, 4), st_roof.size), Color(0, 0, 0, 0.3), true)
+	draw_rect(st_roof, COLOR_ROOM_DARK, true)
+	draw_rect(st_roof, Color(0.45, 0.50, 0.60), false, 2.5)
+	_draw_texture_fit(tex_rumah_samping, Rect2(st_roof.position.x + 10, st_roof.position.y + 10, 160, 130))
+
+	# Kursi / Bangku Tunggu Penumpang Stasiun
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 220, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 290, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 360, 120, 45))
+
+	# Bilik Telepon Stasiun
+	_draw_phone_booth(Rect2(rect.position.x + 15, rect.position.y + 440, 48, 72))
 
 func _draw_hospital_main_building(rect: Rect2) -> void:
 	draw_rect(rect, COLOR_ROOM_STONE_B, true)
@@ -895,12 +944,20 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(1626, 420), Vector2(1626, 324))
 	_create_box_collider(Rect2(1656, 350, 330, 175))
 
-	_create_segment_collider(Vector2(1581, 849), Vector2(1770, 849))
-	_create_segment_collider(Vector2(1890, 849), Vector2(2085, 849))
-	_create_segment_collider(Vector2(2085, 849), Vector2(2085, 1269))
-	_create_segment_collider(Vector2(2085, 1269), Vector2(1581, 1269))
-	_create_segment_collider(Vector2(1581, 1269), Vector2(1581, 1120))
-	_create_segment_collider(Vector2(1581, 1000), Vector2(1581, 849))
+	# Rumah Warga Tenggara
+	_create_box_collider(Rect2(1648, 806, 132, 100))
+	_create_segment_collider(Vector2(1636, 800), Vector2(1792, 800))
+	_create_segment_collider(Vector2(1636, 800), Vector2(1636, 956))
+	_create_segment_collider(Vector2(1792, 800), Vector2(1792, 956))
+	_create_segment_collider(Vector2(1636, 956), Vector2(1696, 956))
+	_create_segment_collider(Vector2(1732, 956), Vector2(1792, 956))
+
+	# Stasiun Kereta & Fasilitas
+	_create_box_collider(Rect2(1880, 720, 180, 150))
+	_create_box_collider(Rect2(1890, 910, 120, 45))
+	_create_box_collider(Rect2(1890, 980, 120, 45))
+	_create_box_collider(Rect2(1890, 1050, 120, 45))
+	_create_box_collider(Rect2(1874, 1150, 40, 52))
 
 	_create_segment_collider(Vector2(2160, 0), Vector2(2160, 1311))
 

@@ -28,10 +28,9 @@ var active_poi_id: String = ""
 const POI_LOCATIONS = {
 	"desk": {"name": "Meja Kerja & Foto Ibu", "pos": Vector2(1170, 270), "radius": 75.0},
 	"police": {"name": "Kantor Polisi & Marcus", "pos": Vector2(350, 430), "radius": 90.0},
-	"station": {"name": "Peron Stasiun Kereta", "pos": Vector2(2080, 520), "radius": 100.0},
-	"hospital": {"name": "Kamar Mayat Rumah Sakit", "pos": Vector2(850, 1000), "radius": 90.0},
+	"station": {"name": "Peron Stasiun Kereta", "pos": Vector2(2020, 960), "radius": 110.0},
+	"hospital": {"name": "Rumah Sakit & Kamar Mayat", "pos": Vector2(750, 1095), "radius": 110.0},
 	"safe": {"name": "Brankas Rumah Ibu Medeline", "pos": Vector2(180, 1050), "radius": 80.0},
-	"shrine": {"name": "Altar Dewa Kematian", "pos": Vector2(1833, 1059), "radius": 110.0},
 	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 65.0}
 }
 
@@ -45,12 +44,6 @@ func _ready() -> void:
 	_setup_letter_viewer()
 	_setup_hud_prompts()
 	_start_ai_server()
-
-	if not is_instance_valid(shrine):
-		shrine = find_child("DeathGodShrine", true, false)
-	if is_instance_valid(shrine):
-		if not shrine.interaction_triggered.is_connected(_on_shrine_interacted):
-			shrine.interaction_triggered.connect(_on_shrine_interacted)
 
 	if is_instance_valid(dialog_box):
 		if not dialog_box.dialog_opened.is_connected(_on_dialog_opened):
@@ -287,6 +280,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
+		if event.keycode == KEY_X:
+			_summon_death_god()
+			get_viewport().set_input_as_handled()
+			return
+
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE]:
 			if not active_poi_id.is_empty():
 				_trigger_poi_interaction(active_poi_id)
@@ -334,9 +332,9 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if inv_mgr.current_phase >= inv_mgr.Phase.INVESTIGATION_4_HOSPITAL:
 				inv_mgr.unlock_clue("autopsy_corpse")
 				inv_mgr.set_phase(inv_mgr.Phase.FINAL_DEATH_GOD)
-				_show_toast("🩺 Kamar Mayat: Kamu melihat jasad dirimu sendiri... Kamu telah tiada!")
+				_show_toast("🩺 Rumah Sakit: Kamu melihat jasad dirimu sendiri... Tekan [X] untuk memanggil Dewa Kematian!")
 				if is_instance_valid(dialog_box):
-					dialog_box.open_dialog("...Detektif Benedict. Tataplah tubuh yang terbaring kaku itu. Kamu bukan lagi detektif yang bernafas... kamu adalah arwah yang mencari kebenaran tentang kematianmu sendiri. Datanglah ke altarku di kuil suci...")
+					dialog_box.open_dialog("...Detektif Benedict. Tataplah tubuh yang terbaring kaku itu. Kamu bukan lagi detektif yang bernafas... kamu adalah arwah yang mencari kebenaran tentang kematianmu sendiri. Tekan [X] kapan saja untuk memanggilku...")
 			else:
 				_show_toast("Rumah Sakit: 'Pemeriksaan jasad korban sedang dijaga ketat oleh dokter.'")
 
@@ -345,22 +343,19 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				player.can_move = false
 				minigame_safe.start_minigame()
 
-		"shrine":
-			_on_shrine_interacted()
-
 		"phone":
 			_show_toast("📞 Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
 
-func _on_shrine_interacted() -> void:
+func _summon_death_god() -> void:
 	if is_instance_valid(dialog_box):
 		var prompt = ""
 		if is_instance_valid(inv_mgr):
 			if inv_mgr.has_emotional_item() and inv_mgr.is_clue_unlocked("autopsy_corpse"):
-				prompt = "✦ SANG DEWA MENATAPMU PENUH PENCERAHAN ✦\n\nWahai jiwa Benedict... Kamu telah menyadari bahwa kamu telah mati, dan di dalam genggaman jiwamu, tersimpan liontin kasih sayang Ibu Medeline yang belum tuntas.\n\nKatakan padaku apa yang kau rasakan sekarang untuk melangkah ke peristirahatan abadi..."
+				prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai jiwa Benedict... Kamu telah memanggilku. Di dalam genggaman jiwamu, tersimpan liontin kasih sayang Ibu Medeline yang belum tuntas.\n\nKatakan padaku apa yang kau rasakan sekarang untuk melangkah ke peristirahatan abadi..."
 			elif inv_mgr.is_clue_unlocked("autopsy_corpse"):
-				prompt = "Wahai Benedict... Kamu telah mengetahui fakta bahwa kamu telah mati di stasiun itu. Katakan padaku apa yang telah kau pelajari tentang takdirmu..."
+				prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai Benedict... Kamu telah memanggilku dan mengetahui fakta bahwa kamu telah tiada. Katakan padaku apa yang telah kau pelajari tentang takdirmu..."
 			else:
-				prompt = "Wahai pengelana fana... Setelah melintasi ruang hampa ini, katakan padaku apa yang telah kau pelajari tentang takdirmu?"
+				prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai pengelana fana... Mengapa kamu memanggilku? Katakan padaku apa yang kau cari dalam keheningan ini..."
 		
 		dialog_box.open_dialog(prompt)
 
