@@ -56,6 +56,7 @@ var tex_pagar: Texture2D
 var tex_pagar_samping: Texture2D
 var tex_pintu_pagar: Texture2D
 var tex_telepon: Texture2D
+var tex_station: Texture2D
 
 @export_group("1. Pagar Depan Kiri")
 @export var pagar_kiri_geser_x: float = 0.0:
@@ -229,6 +230,28 @@ var tex_telepon: Texture2D
 		rs_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
+@export_group("9. Stasiun Kereta (Train Station)")
+@export var stasiun_geser_x: float = 0.0:
+	set(val):
+		stasiun_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var stasiun_geser_y: float = 0.0:
+	set(val):
+		stasiun_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var stasiun_lebar: float = 290.0:
+	set(val):
+		stasiun_lebar = 290.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var stasiun_tinggi: float = 280.0:
+	set(val):
+		stasiun_tinggi = 280.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var stasiun_skala: float = 1.0:
+	set(val):
+		stasiun_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -258,6 +281,7 @@ func _load_textures() -> void:
 	tex_pagar_samping = load("res://Bangunan/pagar samping.png")
 	tex_pintu_pagar = load("res://Bangunan/pintuPagar.png")
 	tex_telepon = load("res://Bangunan/stasiun telepon.png")
+	tex_station = load("res://Bangunan/stasiun.png")
 
 	tex_bed = load("res://kamar/bed.png")
 	tex_karpet = load("res://kamar/karpet.png")
@@ -347,12 +371,14 @@ func _setup_navigation_region() -> void:
 		Vector2(1168, 740), Vector2(1418, 740), Vector2(1418, 940), Vector2(1168, 940)
 	]))
 
-	nav_poly.add_outline(PackedVector2Array([
-		Vector2(1636, 800), Vector2(1792, 800), Vector2(1792, 956), Vector2(1636, 956)
-	]))
+	# Tiga Rumah Warga Tenggara
+	for hy in [705.0, 880.0, 1055.0]:
+		nav_poly.add_outline(PackedVector2Array([
+			Vector2(1636, hy), Vector2(1792, hy), Vector2(1792, hy + 156), Vector2(1636, hy + 156)
+		]))
 
 	nav_poly.add_outline(PackedVector2Array([
-		Vector2(1880, 720), Vector2(2060, 720), Vector2(2060, 870), Vector2(1880, 870)
+		Vector2(1880, 715), Vector2(2150, 715), Vector2(2150, 995), Vector2(1880, 995)
 	]))
 
 	nav_poly.make_polygons_from_outlines()
@@ -452,15 +478,17 @@ func _draw() -> void:
 	_draw_room_pavement(Rect2(1626, 324, 390, 225), COLOR_ROOM_STONE_A)
 	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
 
-	# ── Area Tenggara: Rumah Warga, Gang Kecil, dan Stasiun Kereta ────────────
-	# 1. Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
-	_draw_civilian_fenced_house(Vector2(1636, 800), tex_rumah_depan)
+	# ── Area Tenggara: Tiga Rumah Warga, Gang Kecil, dan Stasiun Kereta ───────
+	# 1. Tiga Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
+	_draw_civilian_fenced_house(Vector2(1636, 705), tex_rumah_depan)
+	_draw_civilian_fenced_house(Vector2(1636, 880), tex_rumah_depan)
+	_draw_civilian_fenced_house(Vector2(1636, 1055), tex_rumah_depan)
 
 	# 2. Gang Kecil Penghubung Jalan Tengah & Jalan Selatan
 	draw_rect(Rect2(1792, 690, 68, 621), COLOR_SIDEWALK, true)
 	_draw_tile_pattern(Rect2(1792, 690, 68, 621), COLOR_PLAZA_TILE_LINE)
 
-	# 3. Stasiun Kereta Api Timur
+	# 3. Stasiun Kereta Api Timur (Nempel langsung ke rel kereta tanpa dipisahkan jalan)
 	_draw_train_station(Rect2(1860, 690, 300, 621))
 
 	draw_rect(Rect2(2160, 0, 162, 1311), COLOR_TRACK_BALLAST, true)
@@ -511,12 +539,13 @@ func _draw() -> void:
 	draw_line(Vector2(1626, 549), Vector2(1626, 480), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(1626, 420), Vector2(1626, 324), COLOR_WALL_LINE, WT)
 
-	# Dinding Rumah Warga Tenggara
-	draw_line(Vector2(1636, 800), Vector2(1792, 800), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1636, 800), Vector2(1636, 956), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1792, 800), Vector2(1792, 956), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1636, 956), Vector2(1696, 956), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1732, 956), Vector2(1792, 956), COLOR_WALL_LINE, WT)
+	# Dinding Tiga Rumah Warga Tenggara
+	for hy in [705.0, 880.0, 1055.0]:
+		draw_line(Vector2(1636, hy), Vector2(1792, hy), COLOR_WALL_LINE, WT)
+		draw_line(Vector2(1636, hy), Vector2(1636, hy + 156), COLOR_WALL_LINE, WT)
+		draw_line(Vector2(1792, hy), Vector2(1792, hy + 156), COLOR_WALL_LINE, WT)
+		draw_line(Vector2(1636, hy + 156), Vector2(1696, hy + 156), COLOR_WALL_LINE, WT)
+		draw_line(Vector2(1732, hy + 156), Vector2(1792, hy + 156), COLOR_WALL_LINE, WT)
 
 	# Batas Gang & Stasiun Kereta
 	draw_line(Vector2(1792, 690), Vector2(1792, 1311), COLOR_WALL_LINE, WT)
@@ -590,20 +619,19 @@ func _draw_train_station(rect: Rect2) -> void:
 	for dy in range(int(rect.position.y) + 10, int(rect.end.y), 24):
 		draw_line(Vector2(rect.end.x - 15, dy), Vector2(rect.end.x - 2, dy), Color(0.12, 0.13, 0.15), 2.0)
 
-	# Kanopi / Ruang Tunggu Stasiun
-	var st_roof = Rect2(rect.position.x + 20, rect.position.y + 30, 180, 150)
-	draw_rect(Rect2(st_roof.position + Vector2(4, 4), st_roof.size), Color(0, 0, 0, 0.3), true)
-	draw_rect(st_roof, COLOR_ROOM_DARK, true)
-	draw_rect(st_roof, Color(0.45, 0.50, 0.60), false, 2.5)
-	_draw_texture_fit(tex_rumah_samping, Rect2(st_roof.position.x + 10, st_roof.position.y + 10, 160, 130))
+	# Gedung Seni Stasiun Kereta Api (Custom Pixel Art Sprite)
+	var st_sk = 1.0 if (stasiun_skala == null or stasiun_skala <= 0.0) else float(stasiun_skala)
+	var st_w = (stasiun_lebar if (stasiun_lebar != null and stasiun_lebar > 0.0) else 290.0) * st_sk
+	var st_h = (stasiun_tinggi if (stasiun_tinggi != null and stasiun_tinggi > 0.0) else 280.0) * st_sk
+	_draw_texture_fit(tex_station, Rect2(rect.position.x + 5 + stasiun_geser_x, rect.position.y + 25 + stasiun_geser_y, st_w, st_h))
 
 	# Kursi / Bangku Tunggu Penumpang Stasiun
-	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 220, 120, 45))
-	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 290, 120, 45))
-	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 360, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 350, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 420, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 490, 120, 45))
 
 	# Bilik Telepon Stasiun
-	_draw_phone_booth(Rect2(rect.position.x + 15, rect.position.y + 440, 48, 72))
+	_draw_phone_booth(Rect2(rect.position.x + 15, rect.position.y + 550, 48, 72))
 
 func _draw_hospital_main_building(rect: Rect2) -> void:
 	draw_rect(rect, COLOR_ROOM_STONE_B, true)
@@ -942,20 +970,21 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(1626, 420), Vector2(1626, 324))
 	_create_box_collider(Rect2(1656, 350, 330, 175))
 
-	# Rumah Warga Tenggara
-	_create_box_collider(Rect2(1648, 806, 132, 100))
-	_create_segment_collider(Vector2(1636, 800), Vector2(1792, 800))
-	_create_segment_collider(Vector2(1636, 800), Vector2(1636, 956))
-	_create_segment_collider(Vector2(1792, 800), Vector2(1792, 956))
-	_create_segment_collider(Vector2(1636, 956), Vector2(1696, 956))
-	_create_segment_collider(Vector2(1732, 956), Vector2(1792, 956))
+	# Tiga Rumah Warga Tenggara
+	for hy in [705.0, 880.0, 1055.0]:
+		_create_box_collider(Rect2(1648, hy + 6, 132, 100))
+		_create_segment_collider(Vector2(1636, hy), Vector2(1792, hy))
+		_create_segment_collider(Vector2(1636, hy), Vector2(1636, hy + 156))
+		_create_segment_collider(Vector2(1792, hy), Vector2(1792, hy + 156))
+		_create_segment_collider(Vector2(1636, hy + 156), Vector2(1696, hy + 156))
+		_create_segment_collider(Vector2(1732, hy + 156), Vector2(1792, hy + 156))
 
 	# Stasiun Kereta & Fasilitas
-	_create_box_collider(Rect2(1880, 720, 180, 150))
-	_create_box_collider(Rect2(1890, 910, 120, 45))
-	_create_box_collider(Rect2(1890, 980, 120, 45))
-	_create_box_collider(Rect2(1890, 1050, 120, 45))
-	_create_box_collider(Rect2(1874, 1150, 40, 52))
+	_create_box_collider(Rect2(1880, 715, 270, 270))
+	_create_box_collider(Rect2(1890, 1040, 120, 45))
+	_create_box_collider(Rect2(1890, 1110, 120, 45))
+	_create_box_collider(Rect2(1890, 1180, 120, 45))
+	_create_box_collider(Rect2(1875, 1240, 40, 52))
 
 	_create_segment_collider(Vector2(2160, 0), Vector2(2160, 1311))
 
