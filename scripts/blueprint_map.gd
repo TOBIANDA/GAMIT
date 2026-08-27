@@ -150,13 +150,13 @@ var tex_telepon: Texture2D
 	set(val):
 		gap_sudut_atas_samping = 0.0 if val == null else float(val)
 		queue_redraw()
-@export var pagar_samping_tinggi: float = 130.0:
+@export var pagar_samping_tinggi: float = 146.0:
 	set(val):
-		pagar_samping_tinggi = 130.0 if (val == null or val <= 0.0) else float(val)
+		pagar_samping_tinggi = 146.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var pagar_samping_lebar: float = 16.0:
+@export var pagar_samping_lebar: float = 12.0:
 	set(val):
-		pagar_samping_lebar = 16.0 if (val == null or val <= 0.0) else float(val)
+		pagar_samping_lebar = 12.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 @export var pagar_samping_skala: float = 1.0:
 	set(val):
@@ -338,12 +338,13 @@ func _draw() -> void:
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pw + pg + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + (pw + pg) * 2.0 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 
-			# Pagar Samping Kiri & Kanan (Menyambung presisi dari sudut atas ke sudut bawah)
+			# Pagar Samping Kiri & Kanan (Menyambung presisi dari sudut atas ke sudut bawah menutupi seluruh halaman)
 			var side_y = 32 + pagar_samping_geser_y + gap_sudut_atas_samping
-			var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 14.0) * sk_samping
-			var side_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 146.0) * sk_samping
-			_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), false)
-			_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), true)
+			var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 12.0)
+			var side_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 146.0)
+			# Sisi Kiri di-flip horizontal (true), Sisi Kanan normal (false)
+			_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, side_y, side_w, side_h), true)
+			_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, side_y, side_w, side_h), false)
 
 			# Pagar Depan Kiri
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, 166 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)

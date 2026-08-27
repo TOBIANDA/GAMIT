@@ -1,14 +1,18 @@
-[gd_scene load_steps=9 format=3 uid="uid://main_scene_01"]
+[gd_scene format=3 uid="uid://ww24ly6xyi66"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main_script"]
-[ext_resource type="Script" path="res://scripts/blueprint_map.gd" id="2_map_script"]
-[ext_resource type="PackedScene" uid="uid://player_scene_01" path="res://scenes/player.tscn" id="3_player_scene"]
-[ext_resource type="PackedScene" uid="uid://death_god_shrine_scene_01" path="res://scenes/death_god_shrine.tscn" id="4_shrine_scene"]
-[ext_resource type="PackedScene" uid="uid://dialog_box_scene_01" path="res://scenes/dialog_box.tscn" id="5_dialog_scene"]
-[ext_resource type="PackedScene" uid="uid://npc_scene_01" path="res://scenes/npc.tscn" id="6_npc_scene"]
-[ext_resource type="PackedScene" uid="uid://train_scene_01" path="res://scenes/train.tscn" id="7_train_scene"]
+[ext_resource type="Script" uid="uid://depv87mrl6pxj" path="res://scripts/main.gd" id="1_main_script"]
+[ext_resource type="Script" uid="uid://cq4lv857r4ysq" path="res://scripts/blueprint_map.gd" id="2_map_script"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player_scene"]
+[ext_resource type="PackedScene" path="res://scenes/death_god_shrine.tscn" id="4_shrine_scene"]
+[ext_resource type="PackedScene" path="res://scenes/dialog_box.tscn" id="5_dialog_scene"]
+[ext_resource type="PackedScene" path="res://scenes/npc.tscn" id="6_npc_scene"]
+[ext_resource type="PackedScene" path="res://scenes/train.tscn" id="7_train_scene"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
 bg_color = Color(0.06, 0.08, 0.12, 0.88)
 border_width_left = 1
 border_width_top = 1
@@ -19,178 +23,188 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-content_margin_left = 16.0
-content_margin_top = 14.0
-content_margin_right = 16.0
-content_margin_bottom = 14.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
 bg_color = Color(0.15, 0.35, 0.55, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-content_margin_left = 10.0
-content_margin_top = 6.0
-content_margin_right = 10.0
-content_margin_bottom = 6.0
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1989873088]
 y_sort_enabled = true
 script = ExtResource("1_main_script")
 
-[node name="BlueprintMap" type="Node2D" parent="."]
+[node name="BlueprintMap" type="Node2D" parent="." unique_id=1843604719]
 z_index = -1
 script = ExtResource("2_map_script")
+pagar_kiri_geser_x = 3.0
+pagar_kiri_lebar = 64.0
+pagar_kiri_skala = 1.05
+pintu_pagar_geser_x = -2.6
+pintu_pagar_skala = 1.15
+pagar_kanan_geser_x = -8.0
+pagar_kanan_lebar = 64.0
+pagar_kanan_skala = 1.05
+pagar_belakang_geser_x = 4.0
+pagar_belakang_geser_y = -2.0
+pagar_belakang_gap_panel = -7.0
+pagar_belakang_skala = 1.05
+pagar_samping_kiri_geser_x = 1.0
+pagar_samping_kanan_geser_x = 1.0
+pagar_samping_geser_y = 1.0
+gap_sudut_atas_samping = 1.0
+pagar_samping_tinggi = 146.0
+pagar_samping_lebar = 12.0
+pagar_samping_skala = 1.0
 
-[node name="DeathGodShrine" parent="." instance=ExtResource("4_shrine_scene")]
+[node name="DeathGodShrine" parent="." unique_id=2034711455 instance=ExtResource("4_shrine_scene")]
 position = Vector2(1833, 1059)
 
-[node name="Player" parent="." instance=ExtResource("3_player_scene")]
+[node name="Player" parent="." unique_id=1644102521 instance=ExtResource("3_player_scene")]
 position = Vector2(1170, 270)
 
-[node name="NPC1_Police" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC1_Police" parent="." unique_id=7902225 instance=ExtResource("6_npc_scene")]
 position = Vector2(350, 258)
 npc_type = 1
 
-[node name="NPC2_Boy" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC2_Boy" parent="." unique_id=766046511 instance=ExtResource("6_npc_scene")]
 position = Vector2(1104, 780)
-npc_type = 0
 
-[node name="NPC3_Boy" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC3_Boy" parent="." unique_id=1297191088 instance=ExtResource("6_npc_scene")]
 position = Vector2(1581, 258)
-npc_type = 0
 
-[node name="NPC4_Boy" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC4_Boy" parent="." unique_id=1788145239 instance=ExtResource("6_npc_scene")]
 position = Vector2(780, 830)
-npc_type = 0
 
-[node name="NPC5_Boy" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC5_Boy" parent="." unique_id=2072658693 instance=ExtResource("6_npc_scene")]
 position = Vector2(411, 1278)
-npc_type = 0
 
-[node name="NPC6_Boy" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC6_Boy" parent="." unique_id=1608803956 instance=ExtResource("6_npc_scene")]
 position = Vector2(1581, 780)
-npc_type = 0
 
-[node name="NPC7_Girl" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC7_Girl" parent="." unique_id=406029162 instance=ExtResource("6_npc_scene")]
 position = Vector2(594, 550)
 npc_type = 2
 
-[node name="NPC8_Girl" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC8_Girl" parent="." unique_id=1870075750 instance=ExtResource("6_npc_scene")]
 position = Vector2(2088, 550)
 npc_type = 2
 
-[node name="NPC9_Girl" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC9_Girl" parent="." unique_id=2068336920 instance=ExtResource("6_npc_scene")]
 position = Vector2(180, 1050)
 npc_type = 2
 
-[node name="NPC10_Girl" parent="." instance=ExtResource("6_npc_scene")]
+[node name="NPC10_Girl" parent="." unique_id=111074409 instance=ExtResource("6_npc_scene")]
 position = Vector2(1090, 435)
 npc_type = 2
 
-[node name="Train" parent="." instance=ExtResource("7_train_scene")]
+[node name="Train" parent="." unique_id=1392418782 instance=ExtResource("7_train_scene")]
 position = Vector2(2240, -950)
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1229094225]
 layer = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+[node name="MarginContainer" type="MarginContainer" parent="HUD" unique_id=249440785]
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 380.0
 offset_bottom = 230.0
 
-[node name="PanelContainer" type="PanelContainer" parent="HUD/MarginContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="HUD/MarginContainer" unique_id=575390529]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer/PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer/PanelContainer" unique_id=577393015]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=301959838]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 17
 text = "🎮 IPB GAMEPLAY - EXPANDED MAP"
 
-[node name="ControlsLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="ControlsLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=37143290]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
 theme_override_font_sizes/font_size = 13
 text = "Jalan: [WASD] | Lari: [Shift] | Interaksi: [F] | Jurnal: [J]"
 
-[node name="ObjectiveLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="ObjectiveLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=1184209216]
 layout_mode = 2
-theme_override_colors/font_color = Color(1.0, 0.85, 0.35, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_font_sizes/font_size = 13
 text = "🎯 Target: Periksa Meja Kerja"
 
-[node name="HSeparator" type="HSeparator" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=2103414884]
 layout_mode = 2
 
-[node name="SpeedLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="SpeedLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=1247854067]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 13
 text = "Kecepatan: 0 px/s"
 
-[node name="PosLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="PosLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=102841841]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 13
 text = "Posisi: (X: 1170, Y: 270)"
 
-[node name="ZoomLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="ZoomLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=801263873]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 13
 text = "Penglihatan (Zoom): 1.8x"
 
-[node name="JournalBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="JournalBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=1821402602]
 layout_mode = 2
 focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "📓 Buka Jurnal Kasus [J]"
 
-[node name="ZoomBtnContainer" type="HBoxContainer" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="ZoomBtnContainer" type="HBoxContainer" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=2049215923]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ZoomInBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer"]
+[node name="ZoomInBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer" unique_id=66454766]
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "🔍 Zoom In"
 
-[node name="ZoomOutBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer"]
+[node name="ZoomOutBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer" unique_id=228155372]
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "🔭 Zoom Out"
 
-[node name="ZoomResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer"]
+[node name="ZoomResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer" unique_id=761193213]
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "🔄 Reset"
 
-[node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer"]
+[node name="ResetBtn" type="Button" parent="HUD/MarginContainer/PanelContainer/VBoxContainer" unique_id=1769817967]
 layout_mode = 2
 focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "📍 Reset Posisi Karakter"
 
-[node name="DialogBox" parent="." instance=ExtResource("5_dialog_scene")]
+[node name="DialogBox" parent="." unique_id=1897403469 instance=ExtResource("5_dialog_scene")]
 
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/JournalBtn" to="." method="_on_journal_btn_pressed"]
 [connection signal="pressed" from="HUD/MarginContainer/PanelContainer/VBoxContainer/ZoomBtnContainer/ZoomInBtn" to="." method="_on_zoom_in_btn_pressed"]
