@@ -345,16 +345,17 @@ func _draw() -> void:
 			draw_texture_rect(tex_pagar, Rect2(sq_x + pw + pg + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 			draw_texture_rect(tex_pagar, Rect2(sq_x + (pw + pg) * 2.0 + pagar_belakang_geser_x, 32 + pagar_belakang_geser_y, pw, 24 * sk_belakang), false)
 
-			# Pagar Samping Kiri & Kanan (2 panel bersusun vertikal agar proporsional dan tidak terdistorsi)
-			var side_y = 32 + pagar_samping_geser_y + gap_sudut_atas_samping
+			# Pagar Samping Kiri & Kanan (Panel saling tumpang tindih / overlapping tanpa celah garis)
+			var side_y = 30 + pagar_samping_geser_y + gap_sudut_atas_samping
 			var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 12.0)
-			var side_total_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 146.0)
+			var side_total_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 148.0)
 			var n_panels = max(1, 2 if (pagar_samping_jumlah_panel == null or pagar_samping_jumlah_panel <= 0) else int(pagar_samping_jumlah_panel))
-			var panel_h = side_total_h / float(n_panels)
-			var side_gap = 0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel)
+			var overlap_px = 16.0
+			var panel_h = (side_total_h + (n_panels - 1) * overlap_px) / float(n_panels)
+			var step_y = panel_h - overlap_px + (0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel))
 
 			for p in range(n_panels):
-				var py = side_y + p * (panel_h + side_gap)
+				var py = side_y + p * step_y
 				# Sisi Kiri di-flip horizontal (true), Sisi Kanan normal (false)
 				_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, py, side_w, panel_h), true)
 				_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
