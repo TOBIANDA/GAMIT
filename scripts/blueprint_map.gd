@@ -394,10 +394,7 @@ func _draw() -> void:
 	_draw_desk(Rect2(25, 800, 140, 100))
 
 	_draw_room_pavement(Rect2(0, 951, 357, 360), COLOR_ROOM_STONE_B)
-	_draw_texture_fit(tex_police, Rect2(40, 965, 270, 190))
-	_draw_texture_fit(tex_lemari, Rect2(20, 1180, 50, 60))
-	_draw_texture_fit(tex_laci, Rect2(80, 1180, 30, 40))
-	_draw_texture_fit(tex_surat, Rect2(170, 1040, 32, 32))
+	_draw_texture_fit(tex_police, Rect2(8, 955, 341, 350))
 
 	var top_complex_pts = PackedVector2Array([
 		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 549), Vector2(639, 549)
@@ -424,8 +421,8 @@ func _draw() -> void:
 	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	# Gedung Utama Rumah Sakit (Digeser ke tepi jalan dengan warna lantai serasi)
-	_draw_hospital_main_building(Rect2(468, 948, 576, 292))
+	# Gedung Utama Rumah Sakit (Mentok ke tepi jalan dan batas blok)
+	_draw_hospital_main_building(Rect2(465, 945, 585, 300))
 
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
 	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
@@ -806,8 +803,7 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(357, 951), Vector2(357, 1080))
 	_create_segment_collider(Vector2(357, 1150), Vector2(357, 1311))
 	_create_segment_collider(Vector2(357, 1311), Vector2(0, 1311))
-	_create_box_collider(Rect2(40, 1000, 270, 120))
-	_create_box_collider(Rect2(40, 1160, 270, 120))
+	_create_box_collider(Rect2(8, 955, 341, 350))
 
 	_create_segment_collider(Vector2(639, 324), Vector2(1000, 324))
 	_create_segment_collider(Vector2(1060, 324), Vector2(1536, 324))
@@ -833,7 +829,7 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(639, 750), Vector2(639, 690))
 
 	_create_box_collider(Rect2(672, 730, 340, 170))
-	_create_box_collider(Rect2(468, 948, 576, 292))
+	_create_box_collider(Rect2(465, 945, 585, 300))
 
 	_create_segment_collider(Vector2(1158, 730), Vector2(1260, 730))
 	_create_segment_collider(Vector2(1320, 730), Vector2(1428, 730))
