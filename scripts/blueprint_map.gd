@@ -287,8 +287,11 @@ func _setup_navigation_region() -> void:
 	]))
 	
 	nav_poly.add_outline(PackedVector2Array([
-		Vector2(649, 334), Vector2(1526, 334), Vector2(1526, 704),
-		Vector2(1168, 704), Vector2(1168, 559), Vector2(649, 559)
+		Vector2(649, 334), Vector2(1526, 334), Vector2(1526, 539), Vector2(649, 539)
+	]))
+
+	nav_poly.add_outline(PackedVector2Array([
+		Vector2(1636, 334), Vector2(2006, 334), Vector2(2006, 539), Vector2(1636, 539)
 	]))
 	
 	nav_poly.add_outline(PackedVector2Array([
@@ -297,15 +300,11 @@ func _setup_navigation_region() -> void:
 	]))
 	
 	nav_poly.add_outline(PackedVector2Array([
-		Vector2(1636, 334), Vector2(2006, 334), Vector2(2006, 704), Vector2(1636, 704)
+		Vector2(1168, 740), Vector2(1418, 740), Vector2(1418, 940), Vector2(1168, 940)
 	]))
-	
+
 	nav_poly.add_outline(PackedVector2Array([
 		Vector2(1591, 859), Vector2(2006, 859), Vector2(2006, 1259), Vector2(1591, 1259)
-	]))
-	
-	nav_poly.add_outline(PackedVector2Array([
-		Vector2(1168, 850), Vector2(1418, 850), Vector2(1418, 1040), Vector2(1168, 1040)
 	]))
 
 	nav_poly.make_polygons_from_outlines()
@@ -400,19 +399,18 @@ func _draw() -> void:
 	_draw_texture_fit(tex_surat, Rect2(170, 1040, 32, 32))
 
 	var top_complex_pts = PackedVector2Array([
-		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 714),
-		Vector2(1158, 714), Vector2(1158, 549), Vector2(639, 549)
+		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 549), Vector2(639, 549)
 	])
 	draw_colored_polygon(top_complex_pts, COLOR_ROOM_STONE_A)
 	_draw_tile_pattern(Rect2(639, 324, 897, 225), COLOR_PLAZA_TILE_LINE)
 
 	_draw_hospital_morgue(Rect2(639, 324, 380, 225))
 
-	_draw_courtyard_garden(Vector2(1090, 435), 55.0)
-	_draw_desk(Rect2(1191, 354, 120, 120))
-	_draw_desk(Rect2(1341, 354, 120, 120))
-	_draw_desk(Rect2(1191, 585, 120, 120))
-	_draw_desk(Rect2(1341, 585, 120, 120))
+	_draw_courtyard_garden(Vector2(1090, 435), 50.0)
+	_draw_desk(Rect2(1180, 350, 110, 75))
+	_draw_desk(Rect2(1330, 350, 110, 75))
+	_draw_desk(Rect2(1180, 445, 110, 75))
+	_draw_desk(Rect2(1330, 445, 110, 75))
 
 	var bot_complex_pts = PackedVector2Array([
 		Vector2(639, 690), Vector2(1050, 690), Vector2(1050, 1245),
@@ -426,16 +424,16 @@ func _draw() -> void:
 	_draw_desk(Rect2(510, 1120, 490, 100))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	_draw_room_pavement(Rect2(1158, 840, 270, 210), COLOR_ROOM_OCHRE)
-	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 860, 220, 170))
+	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
+	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
 
-	_draw_room_pavement(Rect2(1626, 324, 390, 390), COLOR_ROOM_STONE_A)
-	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 340, 340, 350))
+	_draw_room_pavement(Rect2(1626, 324, 390, 225), COLOR_ROOM_STONE_A)
+	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
 
 	draw_rect(Rect2(1581, 849, 504, 420), COLOR_ROOM_DARK, true)
 	draw_rect(Rect2(1640, 900, 385, 310), COLOR_ROOM_RUG, true)
 	draw_circle(Vector2(1833, 1059), 110.0, Color(0.85, 0.72, 0.25, 0.35))
-	draw_circle(Vector2(1833, 1059), 85.0, Color(0.12, 0.13, 0.16, 1.0))
+	draw_circle(Vector2(1833, 1059), 85.0, Color(0.12, 0.13, 1.0, 1.0))
 	draw_circle(Vector2(1833, 1059), 80.0, Color(0.85, 0.72, 0.25, 0.8))
 	draw_circle(Vector2(1833, 1059), 74.0, Color(0.12, 0.13, 0.16, 1.0))
 	draw_rect(Rect2(1530, 1000, 60, 120), COLOR_ROOM_RUG, true)
@@ -447,10 +445,8 @@ func _draw() -> void:
 	_draw_asphalt_strip(Rect2(192, 786, 447, 159), true, 2)
 	_draw_asphalt_strip(Rect2(357, 945, 108, 366), false, 1)
 
-	_draw_asphalt_strip(Rect2(639, 549, 519, 141), true, 2)
-	_draw_asphalt_strip(Rect2(1050, 714, 576, 126), true, 2)
-
-	_draw_asphalt_strip(Rect2(1536, 192, 90, 522), false, 1)
+	_draw_asphalt_strip(Rect2(516, 549, 1500, 141), true, 2)
+	_draw_asphalt_strip(Rect2(1536, 192, 90, 1053), false, 1)
 
 	_draw_asphalt_strip(Rect2(2016, 192, 144, 1119), false, 2)
 
@@ -477,11 +473,9 @@ func _draw() -> void:
 
 	draw_line(Vector2(639, 324), Vector2(1000, 324), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(1060, 324), Vector2(1536, 324), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1536, 324), Vector2(1536, 480), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1536, 540), Vector2(1536, 714), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1536, 714), Vector2(1158, 714), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1158, 714), Vector2(1158, 549), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1158, 549), Vector2(639, 549), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1536, 324), Vector2(1536, 420), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1536, 480), Vector2(1536, 549), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1536, 549), Vector2(639, 549), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(639, 549), Vector2(639, 440), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(639, 380), Vector2(639, 324), COLOR_WALL_LINE, WT)
 
@@ -494,18 +488,17 @@ func _draw() -> void:
 	draw_line(Vector2(639, 945), Vector2(639, 810), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(639, 750), Vector2(639, 690), COLOR_WALL_LINE, WT)
 
-	draw_line(Vector2(1158, 840), Vector2(1260, 840), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1320, 840), Vector2(1428, 840), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1428, 840), Vector2(1428, 1050), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1428, 1050), Vector2(1158, 1050), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1158, 1050), Vector2(1158, 840), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1158, 730), Vector2(1260, 730), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1320, 730), Vector2(1428, 730), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1428, 730), Vector2(1428, 940), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1428, 940), Vector2(1158, 940), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1158, 940), Vector2(1158, 730), COLOR_WALL_LINE, WT)
 
 	draw_line(Vector2(1626, 324), Vector2(2016, 324), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(2016, 324), Vector2(2016, 480), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(2016, 540), Vector2(2016, 714), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(2016, 714), Vector2(1626, 714), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1626, 714), Vector2(1626, 540), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1626, 480), Vector2(1626, 324), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(2016, 324), Vector2(2016, 549), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(2016, 549), Vector2(1626, 549), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1626, 549), Vector2(1626, 480), COLOR_WALL_LINE, WT)
+	draw_line(Vector2(1626, 420), Vector2(1626, 324), COLOR_WALL_LINE, WT)
 
 	draw_line(Vector2(1581, 849), Vector2(1770, 849), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(1890, 849), Vector2(2085, 849), COLOR_WALL_LINE, WT)
@@ -715,19 +708,17 @@ func _build_all_colliders() -> void:
 
 	_create_segment_collider(Vector2(639, 324), Vector2(1000, 324))
 	_create_segment_collider(Vector2(1060, 324), Vector2(1536, 324))
-	_create_segment_collider(Vector2(1536, 324), Vector2(1536, 480))
-	_create_segment_collider(Vector2(1536, 540), Vector2(1536, 714))
-	_create_segment_collider(Vector2(1536, 714), Vector2(1158, 714))
-	_create_segment_collider(Vector2(1158, 714), Vector2(1158, 549))
-	_create_segment_collider(Vector2(1158, 549), Vector2(639, 549))
+	_create_segment_collider(Vector2(1536, 324), Vector2(1536, 420))
+	_create_segment_collider(Vector2(1536, 480), Vector2(1536, 549))
+	_create_segment_collider(Vector2(1536, 549), Vector2(639, 549))
 	_create_segment_collider(Vector2(639, 549), Vector2(639, 440))
 	_create_segment_collider(Vector2(639, 380), Vector2(639, 324))
 
-	_create_box_collider(Rect2(672, 360, 378, 150))
-	_create_box_collider(Rect2(1191, 354, 120, 120))
-	_create_box_collider(Rect2(1341, 354, 120, 120))
-	_create_box_collider(Rect2(1191, 585, 120, 120))
-	_create_box_collider(Rect2(1341, 585, 120, 120))
+	_create_box_collider(Rect2(672, 360, 340, 150))
+	_create_box_collider(Rect2(1180, 350, 110, 75))
+	_create_box_collider(Rect2(1330, 350, 110, 75))
+	_create_box_collider(Rect2(1180, 445, 110, 75))
+	_create_box_collider(Rect2(1330, 445, 110, 75))
 
 	_create_segment_collider(Vector2(639, 690), Vector2(1050, 690))
 	_create_segment_collider(Vector2(1050, 690), Vector2(1050, 900))
@@ -742,24 +733,19 @@ func _build_all_colliders() -> void:
 	_create_box_collider(Rect2(510, 990, 490, 100))
 	_create_box_collider(Rect2(510, 1120, 490, 100))
 
-	_create_segment_collider(Vector2(1158, 840), Vector2(1260, 840))
-	_create_segment_collider(Vector2(1320, 840), Vector2(1428, 840))
-	_create_segment_collider(Vector2(1428, 840), Vector2(1428, 1050))
-	_create_segment_collider(Vector2(1428, 1050), Vector2(1158, 1050))
-	_create_segment_collider(Vector2(1158, 1050), Vector2(1158, 840))
-	_create_box_collider(Rect2(1190, 880, 205, 120))
+	_create_segment_collider(Vector2(1158, 730), Vector2(1260, 730))
+	_create_segment_collider(Vector2(1320, 730), Vector2(1428, 730))
+	_create_segment_collider(Vector2(1428, 730), Vector2(1428, 940))
+	_create_segment_collider(Vector2(1428, 940), Vector2(1158, 940))
+	_create_segment_collider(Vector2(1158, 940), Vector2(1158, 730))
+	_create_box_collider(Rect2(1190, 760, 205, 150))
 
 	_create_segment_collider(Vector2(1626, 324), Vector2(2016, 324))
-	_create_segment_collider(Vector2(2016, 324), Vector2(2016, 480))
-	_create_segment_collider(Vector2(2016, 540), Vector2(2016, 714))
-	_create_segment_collider(Vector2(2016, 714), Vector2(1626, 714))
-	_create_segment_collider(Vector2(1626, 714), Vector2(1626, 540))
-	_create_segment_collider(Vector2(1626, 480), Vector2(1626, 324))
-
-	_create_box_collider(Rect2(1656, 354, 120, 120))
-	_create_box_collider(Rect2(1812, 354, 120, 120))
-	_create_box_collider(Rect2(1656, 585, 120, 120))
-	_create_box_collider(Rect2(1812, 585, 120, 120))
+	_create_segment_collider(Vector2(2016, 324), Vector2(2016, 549))
+	_create_segment_collider(Vector2(2016, 549), Vector2(1626, 549))
+	_create_segment_collider(Vector2(1626, 549), Vector2(1626, 480))
+	_create_segment_collider(Vector2(1626, 420), Vector2(1626, 324))
+	_create_box_collider(Rect2(1656, 350, 330, 175))
 
 	_create_segment_collider(Vector2(1581, 849), Vector2(1770, 849))
 	_create_segment_collider(Vector2(1890, 849), Vector2(2085, 849))
