@@ -349,9 +349,9 @@ func _draw() -> void:
 			var side_y = 32 + pagar_samping_geser_y + gap_sudut_atas_samping
 			var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 12.0)
 			var side_total_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 146.0)
-			var n_panels = max(1, pagar_samping_jumlah_panel if pagar_samping_jumlah_panel != null else 2)
+			var n_panels = max(1, 2 if (pagar_samping_jumlah_panel == null or pagar_samping_jumlah_panel <= 0) else int(pagar_samping_jumlah_panel))
 			var panel_h = side_total_h / float(n_panels)
-			var side_gap = pagar_samping_gap_panel if pagar_samping_gap_panel != null else 0.0
+			var side_gap = 0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel)
 
 			for p in range(n_panels):
 				var py = side_y + p * (panel_h + side_gap)

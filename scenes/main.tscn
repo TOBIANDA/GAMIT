@@ -56,11 +56,10 @@ pagar_belakang_gap_panel = -7.0
 pagar_belakang_skala = 1.05
 pagar_samping_kiri_geser_x = 1.0
 pagar_samping_kanan_geser_x = 1.0
-pagar_samping_geser_y = 1.0
+pagar_samping_geser_y = 5.0
 gap_sudut_atas_samping = 1.0
-pagar_samping_tinggi = 146.0
-pagar_samping_lebar = 12.0
-pagar_samping_skala = 1.0
+pagar_samping_jumlah_panel = 2
+pagar_samping_gap_panel = 0.0
 
 [node name="DeathGodShrine" parent="." unique_id=2034711455 instance=ExtResource("4_shrine_scene")]
 position = Vector2(1833, 1059)
