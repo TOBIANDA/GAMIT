@@ -418,12 +418,14 @@ func _draw() -> void:
 		Vector2(465, 1245), Vector2(465, 945), Vector2(639, 945)
 	])
 	draw_colored_polygon(bot_complex_pts, COLOR_ROOM_STONE_B)
-	_draw_tile_pattern(Rect2(465, 945, 585, 300), COLOR_PLAZA_TILE_LINE)
+	_draw_tile_pattern(Rect2(639, 690, 411, 255), COLOR_PLAZA_TILE_LINE)
 
+	# Taman & Plaza Utara Kompleks
 	_draw_desk(Rect2(672, 730, 340, 170))
-	_draw_desk(Rect2(510, 990, 490, 100))
-	_draw_desk(Rect2(510, 1120, 490, 100))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
+
+	# Gedung Utama Rumah Sakit (Area Lingkaran Biru)
+	_draw_hospital_main_building(Rect2(480, 955, 555, 275))
 
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
 	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
@@ -503,8 +505,18 @@ func _draw() -> void:
 	_draw_poi_badge(Vector2(350, 258),  "Kantor Polisi",  Color(0.25, 0.50, 0.85))
 	_draw_poi_badge(Vector2(2088, 550), "Stasiun Kereta", Color(0.95, 0.70, 0.20))
 	_draw_poi_badge(Vector2(594, 550),  "Kamar Jenazah",  Color(0.85, 0.35, 0.35))
+	_draw_poi_badge(Vector2(750, 1095), "Rumah Sakit",    Color(0.85, 0.25, 0.25))
 	_draw_poi_badge(Vector2(180, 1050), "Brankas Ibu",    Color(0.80, 0.50, 0.90))
 	_draw_poi_badge(Vector2(1833, 1059),"Altar Dewa",     Color(0.70, 0.25, 0.95))
+
+func _draw_hospital_main_building(rect: Rect2) -> void:
+	draw_rect(rect, COLOR_HOSPITAL_TILE, true)
+	for tx in range(int(rect.position.x) + 28, int(rect.end.x), 28):
+		draw_line(Vector2(tx, rect.position.y), Vector2(tx, rect.end.y), COLOR_HOSPITAL_GROUT, 1.0)
+	for ty in range(int(rect.position.y) + 28, int(rect.end.y), 28):
+		draw_line(Vector2(rect.position.x, ty), Vector2(rect.end.x, ty), COLOR_HOSPITAL_GROUT, 1.0)
+
+	_draw_texture_fit(tex_hospital, Rect2(rect.position.x + 8, rect.position.y + 8, rect.size.x - 16, rect.size.y - 16))
 
 func _draw_detective_house(rect: Rect2) -> void:
 	draw_rect(rect, COLOR_PARQUET_WOOD, true)
@@ -825,8 +837,7 @@ func _build_all_colliders() -> void:
 	_create_segment_collider(Vector2(639, 750), Vector2(639, 690))
 
 	_create_box_collider(Rect2(672, 730, 340, 170))
-	_create_box_collider(Rect2(510, 990, 490, 100))
-	_create_box_collider(Rect2(510, 1120, 490, 100))
+	_create_box_collider(Rect2(480, 955, 555, 275))
 
 	_create_segment_collider(Vector2(1158, 730), Vector2(1260, 730))
 	_create_segment_collider(Vector2(1320, 730), Vector2(1428, 730))
