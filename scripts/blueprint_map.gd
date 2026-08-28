@@ -239,13 +239,13 @@ var tex_station: Texture2D
 	set(val):
 		stasiun_geser_y = 0.0 if val == null else float(val)
 		queue_redraw()
-@export var stasiun_lebar: float = 290.0:
+@export var stasiun_lebar: float = 300.0:
 	set(val):
-		stasiun_lebar = 290.0 if (val == null or val <= 0.0) else float(val)
+		stasiun_lebar = 300.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var stasiun_tinggi: float = 280.0:
+@export var stasiun_tinggi: float = 320.0:
 	set(val):
-		stasiun_tinggi = 280.0 if (val == null or val <= 0.0) else float(val)
+		stasiun_tinggi = 320.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 @export var stasiun_skala: float = 1.0:
 	set(val):
@@ -610,28 +610,30 @@ func _draw_fences_for_house(sq_x: float, sq_y: float) -> void:
 	_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, sq_y + 130 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)
 
 func _draw_train_station(rect: Rect2) -> void:
-	# Lantai Peron Stasiun
+	# Lantai Peron Stasiun (Menempel langsung ke Rel Kereta di x=2160)
 	draw_rect(rect, COLOR_ROOM_STONE_A, true)
 	_draw_tile_pattern(rect, COLOR_PLAZA_TILE_LINE)
 
-	# Garis Kuning Peringatan Tepi Rel Kereta
-	draw_line(Vector2(rect.end.x - 15, rect.position.y), Vector2(rect.end.x - 15, rect.end.y), Color(0.95, 0.82, 0.15), 4.0)
+	# Garis Kuning Peringatan Tepi Rel Kereta (Tepat di Tepi Rel x=2148..2158)
+	draw_line(Vector2(rect.end.x - 12, rect.position.y), Vector2(rect.end.x - 12, rect.end.y), Color(0.96, 0.84, 0.15), 4.5)
 	for dy in range(int(rect.position.y) + 10, int(rect.end.y), 24):
-		draw_line(Vector2(rect.end.x - 15, dy), Vector2(rect.end.x - 2, dy), Color(0.12, 0.13, 0.15), 2.0)
+		draw_line(Vector2(rect.end.x - 12, dy), Vector2(rect.end.x, dy), Color(0.12, 0.13, 0.15), 2.0)
 
-	# Gedung Seni Stasiun Kereta Api (Custom Pixel Art Sprite)
+	# Gedung Seni Stasiun Kereta Api (Custom Pixel Art Sprite - Nempel ke peron & rel kereta)
 	var st_sk = 1.0 if (stasiun_skala == null or stasiun_skala <= 0.0) else float(stasiun_skala)
-	var st_w = (stasiun_lebar if (stasiun_lebar != null and stasiun_lebar > 0.0) else 290.0) * st_sk
-	var st_h = (stasiun_tinggi if (stasiun_tinggi != null and stasiun_tinggi > 0.0) else 280.0) * st_sk
-	_draw_texture_fit(tex_station, Rect2(rect.position.x + 5 + stasiun_geser_x, rect.position.y + 25 + stasiun_geser_y, st_w, st_h))
+	var st_w = (stasiun_lebar if (stasiun_lebar != null and stasiun_lebar > 0.0) else 300.0) * st_sk
+	var st_h = (stasiun_tinggi if (stasiun_tinggi != null and stasiun_tinggi > 0.0) else 320.0) * st_sk
+	var draw_x = rect.end.x - st_w + stasiun_geser_x
+	var draw_y = rect.position.y + 25 + stasiun_geser_y
+	_draw_texture_fit(tex_station, Rect2(draw_x, draw_y, st_w, st_h))
 
 	# Kursi / Bangku Tunggu Penumpang Stasiun
-	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 350, 120, 45))
-	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 420, 120, 45))
-	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 490, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 380, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 450, 120, 45))
+	_draw_desk(Rect2(rect.position.x + 30, rect.position.y + 520, 120, 45))
 
 	# Bilik Telepon Stasiun
-	_draw_phone_booth(Rect2(rect.position.x + 15, rect.position.y + 550, 48, 72))
+	_draw_phone_booth(Rect2(rect.position.x + 15, rect.position.y + 580, 48, 72))
 
 func _draw_hospital_main_building(rect: Rect2) -> void:
 	draw_rect(rect, COLOR_ROOM_STONE_B, true)
@@ -783,11 +785,11 @@ func _draw_city_road_network() -> void:
 	draw_line(Vector2(1540, 690), Vector2(1540, 1245), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(1622, 690), Vector2(1622, 849), COLOR_CURB_LINE, 2.0)
 
-	# South-West L-Turn (Jalan Nyiku di dekat Kantor Polisi)
-	draw_line(Vector2(192, 790), Vector2(516, 790), COLOR_CURB_LINE, 2.0)
+	# South-West Street (Jalan antara Kantor Polisi dan Rumah Sakit)
+	draw_line(Vector2(361, 951), Vector2(361, 1245), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(461, 945), Vector2(461, 1245), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(192, 790), Vector2(516, 790), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(192, 941), Vector2(361, 941), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(361, 941), Vector2(361, 1245), COLOR_CURB_LINE, 2.0)
 
 	# South Ring Road Bottom
 	draw_line(Vector2(0, 1307), Vector2(1860, 1307), COLOR_CURB_LINE, 2.0)
@@ -811,9 +813,11 @@ func _draw_city_road_network() -> void:
 	_draw_lane_dashes(Vector2(1581, 344), Vector2(1581, 529), 20.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 	_draw_lane_dashes(Vector2(1581, 710), Vector2(1581, 1225), 20.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 
-	# Mid-West L-Turn Alley (y = 865, x = 411)
-	_draw_lane_dashes(Vector2(212, 865), Vector2(390, 865), 18.0, 14.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.5), 1.5)
-	_draw_lane_dashes(Vector2(411, 965), Vector2(411, 1225), 18.0, 14.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.5), 1.5)
+	# Mid-West Street (y = 865)
+	_draw_lane_dashes(Vector2(212, 865), Vector2(496, 865), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
+
+	# South-West Street antara Polisi & Rumah Sakit (x = 411)
+	_draw_lane_dashes(Vector2(411, 965), Vector2(411, 1225), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# Far-East Highway (x = 2088)
 	_draw_lane_dashes(Vector2(2088, 344), Vector2(2088, 529), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
@@ -842,6 +846,11 @@ func _draw_city_road_network() -> void:
 	_draw_stop_bar(Vector2(1542, 694), Vector2(1620, 694))
 	_draw_stop_bar(Vector2(1532, 557), Vector2(1532, 682))
 	_draw_stop_bar(Vector2(1630, 557), Vector2(1630, 682))
+
+	# Persimpangan Jalan Polisi & Rumah Sakit (South-West Street)
+	_draw_stop_bar(Vector2(361, 945), Vector2(461, 945))
+	_draw_stop_bar(Vector2(361, 1245), Vector2(461, 1245))
+	_draw_stop_bar(Vector2(512, 790), Vector2(512, 940))
 
 	# Persimpangan Far-East Highway
 	_draw_stop_bar(Vector2(2012, 200), Vector2(2012, 316))
