@@ -408,17 +408,20 @@ func _draw() -> void:
 			_draw_civilian_fenced_house(Vector2(sq_x, 36), tex_rumah_depan)
 
 	# ── Ruang Gedung Barat Laut (North-West Complex) ─────────────────────────
-	draw_rect(Rect2(0, 324, 516, 225), COLOR_ROOM_STONE_A, true)
-	_draw_tile_pattern(Rect2(0, 324, 516, 225), COLOR_PLAZA_TILE_LINE)
+	var l_pts = PackedVector2Array([
+		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
+		Vector2(192, 786), Vector2(192, 933), Vector2(0, 933)
+	])
+	draw_colored_polygon(l_pts, COLOR_ROOM_STONE_A)
+	_draw_tile_pattern(Rect2(0, 324, 516, 462), COLOR_PLAZA_TILE_LINE)
+	_draw_tile_pattern(Rect2(0, 786, 192, 147), COLOR_PLAZA_TILE_LINE)
+
 	_draw_desk(Rect2(9, 324, 156, 156))
 	_draw_desk(Rect2(195, 324, 156, 156))
 	_draw_desk(Rect2(411, 324, 105, 156))
-
-	# Ruang Kantor Barat Daya
-	draw_rect(Rect2(0, 690, 192, 243), COLOR_ROOM_STONE_A, true)
-	_draw_tile_pattern(Rect2(0, 690, 192, 243), COLOR_PLAZA_TILE_LINE)
-	_draw_desk(Rect2(25, 710, 140, 100))
-	_draw_desk(Rect2(25, 820, 140, 100))
+	_draw_desk(Rect2(411, 495, 105, 156))
+	_draw_desk(Rect2(411, 666, 105, 120))
+	_draw_desk(Rect2(25, 800, 140, 100))
 
 	# Kompleks Rumah Sakit Atas (Kamar Jenazah & Plaza)
 	var top_complex_pts = PackedVector2Array([
@@ -641,8 +644,6 @@ func _draw_train_station(rect: Rect2) -> void:
 	_draw_phone_booth(Rect2(rect.position.x + 15, rect.position.y + 560, 48, 72))
 
 func _draw_hospital_main_building(rect: Rect2) -> void:
-	draw_rect(rect, COLOR_ROOM_STONE_B, true)
-	_draw_tile_pattern(rect, COLOR_PLAZA_TILE_LINE)
 	_draw_texture_fit(tex_hospital, Rect2(rect.position.x + 4, rect.position.y + 4, rect.size.x - 8, rect.size.y - 8))
 
 func _draw_detective_house(rect: Rect2) -> void:
@@ -714,24 +715,25 @@ func _draw_hospital_morgue(rect: Rect2) -> void:
 func _draw_city_road_network() -> void:
 	# ── 1. Trotoar & Lapisan Dasar Aspal (Seamless Asphalt Base) ─────────────
 	var road_polys = [
-		Rect2(-2, 190, 2164, 136),     # North Blvd
-		Rect2(514, 190, 127, 759),     # West Vertical Road (y=190..949)
-		Rect2(190, 784, 451, 169),     # Mid-West Plaza Road in front of Police (x=190..641, y=784..953)
-		Rect2(355, 1000, 355, 529),     # South-West Street between Police & Hospital (x=355..467, y=784..1313)
-		Rect2(-2, 547, 2020, 145),     # Central Blvd
-		Rect2(1534, 190, 94, 1057),    # East Vertical Avenue
-		Rect2(2014, 190, 148, 502),    # Far-East Highway
-		Rect2(-2, 1243, 1864, 70),     # South Ring Road
+		Rect2(-2,   190, 2164, 136),  # North Blvd
+		Rect2(514,  190,  127, 598),  # West Vertical Road (y=190..788)
+		Rect2(190,  784,  451, 169),  # Mid-West Plaza Road in front of Police (x=190..641, y=784..953)
+		Rect2(355,  949,  112, 364),  # South-West Street between Police & Hospital (x=355..467, y=949..1313)
+		Rect2(514,  547, 1504, 145),  # Central Blvd (x=514..2018, y=547..692)
+		Rect2(1534, 190,   94, 1057), # East Vertical Avenue
+		Rect2(2014, 190,  148, 502),  # Far-East Highway
+		Rect2(-2,   1243, 1864, 70),  # South Ring Road
 	]
 	for r in road_polys:
 		draw_rect(r, COLOR_SIDEWALK_BEVEL, true)
 
 	var asphalts: Array[Rect2] = [
 		Rect2(0,    192,  2160, 132),  # North Blvd         (y=192..324)
-		Rect2(516,  192,   123, 753),  # West Vertical       (x=516..639, y=192..945)
-		Rect2(357,  690,   108, 555),  # SW Street Polisi-RS (x=357..465, y=690..1245)
-		Rect2(0,    549,  2016, 141),  # Central Blvd        (x=0..2016, y=549..690)
-		Rect2(1536, 192,    90, 1053), # East Vertical       (x=1536..1626, y=192..1245)
+		Rect2(516,  192,   123, 594),  # West Vertical       (x=516..639, y=192..786)
+		Rect2(192,  786,   447, 165),  # Mid-West Plaza Road in front of Police (x=192..639, y=786..951)
+		Rect2(357,  951,   108, 360),  # SW Street Polisi-RS (x=357..465, y=951..1311)
+		Rect2(516,  549,  1500, 141),  # Central Blvd        (x=516..2016, y=549..690)
+		Rect2(1536, 192,    90, 1053), # East Vertical Avenue (x=1536..1626, y=192..1245)
 		Rect2(2016, 192,   144, 498),  # Far-East Highway    (x=2016..2160, y=192..690)
 		Rect2(0,    1245, 1860, 66),   # South Ring Road     (x=0..1860, y=1245..1311)
 	]
@@ -746,13 +748,12 @@ func _draw_city_road_network() -> void:
 	draw_line(Vector2(1626, 320), Vector2(2016, 320), COLOR_CURB_LINE, 2.0)
 
 	# Central Boulevard
-	draw_line(Vector2(0, 553), Vector2(2016, 553), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(0, 686), Vector2(516, 686), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(516, 553), Vector2(2016, 553), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(639, 686), Vector2(1536, 686), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(1626, 686), Vector2(1792, 686), COLOR_CURB_LINE, 2.0)
 
 	# West Vertical Road
-	draw_line(Vector2(520, 324), Vector2(520, 549), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(520, 324), Vector2(520, 786), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(635, 324), Vector2(635, 549), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(635, 690), Vector2(635, 947), COLOR_CURB_LINE, 2.0)
 
@@ -780,7 +781,6 @@ func _draw_city_road_network() -> void:
 	_draw_lane_dashes(Vector2(2036, 258), Vector2(2140, 258), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# Central Boulevard (y = 619)
-	_draw_lane_dashes(Vector2(20, 619), Vector2(496, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 	_draw_lane_dashes(Vector2(659, 619), Vector2(1516, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 	_draw_lane_dashes(Vector2(1646, 619), Vector2(1996, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
@@ -793,7 +793,7 @@ func _draw_city_road_network() -> void:
 	_draw_lane_dashes(Vector2(485, 865), Vector2(619, 865), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# South-West Street (x = 411 antara Polisi & RS)
-	_draw_lane_dashes(Vector2(411, 796), Vector2(411, 1225), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
+	_draw_lane_dashes(Vector2(411, 965), Vector2(411, 1225), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# East Vertical Avenue (x = 1581)
 	_draw_lane_dashes(Vector2(1581, 344), Vector2(1581, 529), 20.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
