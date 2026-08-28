@@ -740,11 +740,11 @@ func _draw_city_road_network() -> void:
 		Rect2(-2, 190, 2164, 136),     # North Blvd
 		Rect2(514, 190, 127, 598),     # West Vertical Road
 		Rect2(190, 784, 451, 163),     # Mid-West Plaza Road
-		Rect2(355, 943, 112, 370),     # South-West Street (Police alley)
-		Rect2(514, 547, 1504, 145),    # Central Blvd
+		Rect2(355, 688, 112, 625),     # South-West Street (Police-Hospital street: y=688..1313)
+		Rect2(-2, 547, 2020, 145),     # Central Blvd (x=-2..2018, y=547..692)
 		Rect2(1534, 190, 94, 1057),    # East Vertical Avenue
 		Rect2(2014, 190, 148, 502),    # Far-East Highway (Utara saja: y=190..692)
-		Rect2(355, 1243, 1507, 70),    # South Ring Road (Berhenti di x=1862 sebelum stasiun)
+		Rect2(-2, 1243, 1864, 70),     # South Ring Road (x=-2..1862, y=1243..1313)
 	]
 	for r in road_polys:
 		draw_rect(r, COLOR_SIDEWALK_BEVEL, true)
@@ -753,11 +753,11 @@ func _draw_city_road_network() -> void:
 		Rect2(0, 192, 2160, 132),      # North Blvd (y=192..324)
 		Rect2(516, 192, 123, 594),     # West Vertical (x=516..639, y=192..786)
 		Rect2(192, 786, 447, 159),     # Mid-West Plaza (x=192..639, y=786..945)
-		Rect2(357, 945, 108, 366),     # South-West Street (x=357..465, y=945..1311)
-		Rect2(516, 549, 1500, 141),    # Central Blvd (x=516..2016, y=549..690)
+		Rect2(357, 690, 108, 621),     # South-West Street (x=357..465, y=690..1311)
+		Rect2(0, 549, 2016, 141),      # Central Blvd (x=0..2016, y=549..690)
 		Rect2(1536, 192, 90, 1053),    # East Vertical Avenue (x=1536..1626, y=192..1245)
 		Rect2(2016, 192, 144, 498),    # Far-East Highway (x=2016..2160, y=192..690)
-		Rect2(357, 1245, 1503, 66),    # South Ring Road (x=357..1860, y=1245..1311)
+		Rect2(0, 1245, 1860, 66),      # South Ring Road (x=0..1860, y=1245..1311)
 	]
 	for r in asphalts:
 		draw_rect(r, COLOR_ASPHALT, true)
@@ -770,9 +770,9 @@ func _draw_city_road_network() -> void:
 	draw_line(Vector2(1626, 320), Vector2(2016, 320), COLOR_CURB_LINE, 2.0)
 
 	# Central Boulevard
-	draw_line(Vector2(639, 553), Vector2(1536, 553), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(1626, 553), Vector2(2016, 553), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(639, 686), Vector2(1536, 686), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(0, 553), Vector2(2016, 553), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(0, 686), Vector2(357, 686), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(465, 686), Vector2(1536, 686), COLOR_CURB_LINE, 2.0)
 	draw_line(Vector2(1626, 686), Vector2(1792, 686), COLOR_CURB_LINE, 2.0)
 
 	# West Vertical Road
@@ -786,10 +786,9 @@ func _draw_city_road_network() -> void:
 	draw_line(Vector2(1622, 690), Vector2(1622, 849), COLOR_CURB_LINE, 2.0)
 
 	# South-West Street (Jalan antara Kantor Polisi dan Rumah Sakit)
-	draw_line(Vector2(361, 951), Vector2(361, 1245), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(461, 945), Vector2(461, 1245), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(192, 790), Vector2(516, 790), COLOR_CURB_LINE, 2.0)
-	draw_line(Vector2(192, 941), Vector2(361, 941), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(361, 690), Vector2(361, 1080), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(361, 1150), Vector2(361, 1245), COLOR_CURB_LINE, 2.0)
+	draw_line(Vector2(461, 690), Vector2(461, 1245), COLOR_CURB_LINE, 2.0)
 
 	# South Ring Road Bottom
 	draw_line(Vector2(0, 1307), Vector2(1860, 1307), COLOR_CURB_LINE, 2.0)
@@ -802,7 +801,8 @@ func _draw_city_road_network() -> void:
 	_draw_lane_dashes(Vector2(2036, 258), Vector2(2140, 258), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# Central Boulevard (y = 619)
-	_draw_lane_dashes(Vector2(659, 619), Vector2(1516, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
+	_draw_lane_dashes(Vector2(20, 619), Vector2(337, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
+	_draw_lane_dashes(Vector2(485, 619), Vector2(1516, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 	_draw_lane_dashes(Vector2(1646, 619), Vector2(1996, 619), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# West Vertical Road (x = 577)
@@ -813,16 +813,14 @@ func _draw_city_road_network() -> void:
 	_draw_lane_dashes(Vector2(1581, 344), Vector2(1581, 529), 20.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 	_draw_lane_dashes(Vector2(1581, 710), Vector2(1581, 1225), 20.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 
-	# Mid-West Street (y = 865)
-	_draw_lane_dashes(Vector2(212, 865), Vector2(496, 865), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
-
 	# South-West Street antara Polisi & Rumah Sakit (x = 411)
-	_draw_lane_dashes(Vector2(411, 965), Vector2(411, 1225), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
+	_draw_lane_dashes(Vector2(411, 710), Vector2(411, 1225), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# Far-East Highway (x = 2088)
 	_draw_lane_dashes(Vector2(2088, 344), Vector2(2088, 529), 24.0, 16.0, COLOR_LANE_DASH, 2.0)
 
 	# South Ring Road (y = 1278)
+	_draw_lane_dashes(Vector2(20, 1278), Vector2(337, 1278), 24.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 	_draw_lane_dashes(Vector2(485, 1278), Vector2(1516, 1278), 24.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 	_draw_lane_dashes(Vector2(1646, 1278), Vector2(1840, 1278), 24.0, 16.0, Color(COLOR_LANE_DASH.r, COLOR_LANE_DASH.g, COLOR_LANE_DASH.b, 0.6), 1.5)
 
@@ -848,9 +846,10 @@ func _draw_city_road_network() -> void:
 	_draw_stop_bar(Vector2(1630, 557), Vector2(1630, 682))
 
 	# Persimpangan Jalan Polisi & Rumah Sakit (South-West Street)
-	_draw_stop_bar(Vector2(361, 945), Vector2(461, 945))
-	_draw_stop_bar(Vector2(361, 1245), Vector2(461, 1245))
-	_draw_stop_bar(Vector2(512, 790), Vector2(512, 940))
+	_draw_stop_bar(Vector2(361, 692), Vector2(461, 692))
+	_draw_stop_bar(Vector2(361, 1243), Vector2(461, 1243))
+	_draw_stop_bar(Vector2(355, 557), Vector2(355, 682))
+	_draw_stop_bar(Vector2(467, 557), Vector2(467, 682))
 
 	# Persimpangan Far-East Highway
 	_draw_stop_bar(Vector2(2012, 200), Vector2(2012, 316))
