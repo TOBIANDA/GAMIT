@@ -717,7 +717,7 @@ func _draw_city_road_network() -> void:
 		Rect2(-2, 190, 2164, 136),     # North Blvd
 		Rect2(514, 190, 127, 759),     # West Vertical Road (y=190..949)
 		Rect2(190, 784, 451, 169),     # Mid-West Plaza Road in front of Police (x=190..641, y=784..953)
-		Rect2(355, 784, 112, 529),     # South-West Street between Police & Hospital (x=355..467, y=784..1313)
+		Rect2(355, 1000, 355, 529),     # South-West Street between Police & Hospital (x=355..467, y=784..1313)
 		Rect2(-2, 547, 2020, 145),     # Central Blvd
 		Rect2(1534, 190, 94, 1057),    # East Vertical Avenue
 		Rect2(2014, 190, 148, 502),    # Far-East Highway
@@ -726,15 +726,14 @@ func _draw_city_road_network() -> void:
 	for r in road_polys:
 		draw_rect(r, COLOR_SIDEWALK_BEVEL, true)
 
-	var asphalts = [
-		Rect2(0, 192, 2160, 132),      # North Blvd (y=192..324)
-		Rect2(516, 192, 123, 753),     # West Vertical (x=516..639, y=192..945)
-		Rect2(192, 786, 447, 165),     # Mid-West Plaza Road in front of Police (x=192..639, y=786..951)
-		Rect2(357, 786, 108, 525),     # South-West Street between Police & Hospital (x=357..465, y=786..1311)
-		Rect2(0, 549, 2016, 141),      # Central Blvd (x=0..2016, y=549..690)
-		Rect2(1536, 192, 90, 1053),    # East Vertical Avenue (x=1536..1626, y=192..1245)
-		Rect2(2016, 192, 144, 498),    # Far-East Highway (x=2016..2160, y=192..690)
-		Rect2(0, 1245, 1860, 66),      # South Ring Road (x=0..1860, y=1245..1311)
+	var asphalts: Array[Rect2] = [
+		Rect2(0,    192,  2160, 132),  # North Blvd         (y=192..324)
+		Rect2(516,  192,   123, 753),  # West Vertical       (x=516..639, y=192..945)
+		Rect2(357,  690,   108, 555),  # SW Street Polisi-RS (x=357..465, y=690..1245)
+		Rect2(0,    549,  2016, 141),  # Central Blvd        (x=0..2016, y=549..690)
+		Rect2(1536, 192,    90, 1053), # East Vertical       (x=1536..1626, y=192..1245)
+		Rect2(2016, 192,   144, 498),  # Far-East Highway    (x=2016..2160, y=192..690)
+		Rect2(0,    1245, 1860, 66),   # South Ring Road     (x=0..1860, y=1245..1311)
 	]
 	for r in asphalts:
 		draw_rect(r, COLOR_ASPHALT, true)
