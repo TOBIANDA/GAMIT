@@ -618,116 +618,18 @@ func _draw_station_bench(pos: Vector2, w: float = 80.0, h: float = 24.0) -> void
 	draw_line(Vector2(pos.x + 4, pos.y + 16), Vector2(pos.x + w - 4, pos.y + 16), Color(0.60, 0.42, 0.25), 1.0)
 
 func _draw_train_station(rect: Rect2) -> void:
-	var x  := rect.position.x
-	var y  := rect.position.y
-	var rw := rect.size.x   # 300
-	var rh := rect.size.y   # 621
-
-	# ── Lantai dasar peron (keramik terang) ────────────────────────────────
+	# Lantai Peron Stasiun (Keramik Dasar)
 	draw_rect(rect, COLOR_ROOM_STONE_A, true)
 	_draw_tile_pattern(rect, COLOR_PLAZA_TILE_LINE)
 
-	# ── Gedung Stasiun (bagian atas blok, ~40% tinggi) ─────────────────────
-	var building_h := rh * 0.42
-	var building_rect := Rect2(x, y, rw, building_h)
+	# Sprite Stasiun — menutupi SELURUH blok (tampak atas)
+	_draw_texture_fit(tex_station, rect)
 
-	# Atap gedung (warna coklat tua, tampak atas)
-	draw_rect(building_rect, Color(0.32, 0.22, 0.14), true)
-
-	# Struktur genteng: garis-garis horizontal tipis memberikan kesan atap
-	for ry in range(int(y) + 6, int(y + building_h), 12):
-		draw_line(Vector2(x + 4, ry), Vector2(x + rw - 4, ry), Color(0.24, 0.16, 0.10), 2.0)
-
-	# Tepi / border atap
-	draw_rect(building_rect, Color(0.20, 0.13, 0.08), false, 3.0)
-
-	# Garis batas antara gedung dan peron
-	draw_line(Vector2(x, y + building_h), Vector2(x + rw, y + building_h), Color(0.18, 0.19, 0.22), 4.0)
-
-	# ── Hall Tunggu (dalam gedung, tepi kiri) ──────────────────────────────
-	var hall_rect := Rect2(x + 8, y + 8, rw * 0.48, building_h - 24)
-	draw_rect(hall_rect, Color(0.52, 0.44, 0.34), true)
-	# Motif lantai parket kayu
-	for hy in range(int(hall_rect.position.y) + 10, int(hall_rect.end.y), 18):
-		draw_line(Vector2(hall_rect.position.x + 4, hy), Vector2(hall_rect.end.x - 4, hy), Color(0.42, 0.34, 0.26), 1.5)
-
-	# ── Loket / Ticket Counter (tengah gedung) ─────────────────────────────
-	var counter_x := x + rw * 0.52
-	var counter_w := rw * 0.42
-	var counter_y := y + 20.0
-	var counter_h := building_h - 36
-	draw_rect(Rect2(counter_x, counter_y, counter_w, counter_h), Color(0.60, 0.50, 0.38), true)
-	# Meja loket
-	for ci in range(2):
-		var lx := counter_x + 10 + ci * (counter_w * 0.5)
-		var ly := counter_y + 12
-		var lw := counter_w * 0.42
-		var lh := counter_h * 0.38
-		draw_rect(Rect2(lx, ly, lw, lh), Color(0.30, 0.24, 0.18), true)
-		draw_rect(Rect2(lx, ly, lw, lh), Color(0.18, 0.14, 0.10), false, 1.5)
-		# Layar monitor loket
-		draw_rect(Rect2(lx + 4, ly + 6, lw - 8, lh * 0.50), Color(0.12, 0.30, 0.50), true)
-		draw_rect(Rect2(lx + 4, ly + 6, lw - 8, lh * 0.50), Color(0.08, 0.60, 0.90, 0.60), false, 1.0)
-		# Keyboard
-		draw_rect(Rect2(lx + 6, ly + lh * 0.62, lw - 12, lh * 0.28), Color(0.20, 0.20, 0.22), true)
-
-	# ── Area Peron (bagian bawah blok, sisa ~58%) ──────────────────────────
-	var platform_y  := y + building_h + 4
-	var platform_h  := rh - building_h - 4
-	var platform_rect := Rect2(x, platform_y, rw, platform_h)
-
-	# Lantai peron beton terang
-	draw_rect(platform_rect, Color(0.62, 0.60, 0.57), true)
-	# Garis pola keramik peron
-	for px in range(int(x) + 40, int(x + rw), 40):
-		draw_line(Vector2(px, platform_y), Vector2(px, platform_y + platform_h), Color(0.50, 0.48, 0.46, 0.50), 1.0)
-	for py in range(int(platform_y) + 40, int(platform_y + platform_h), 40):
-		draw_line(Vector2(x, py), Vector2(x + rw, py), Color(0.50, 0.48, 0.46, 0.50), 1.0)
-
-	# Garis Kuning Keselamatan (tepat di tepi kanan, sebelum rel)
-	draw_line(Vector2(x + rw - 14, platform_y), Vector2(x + rw - 14, platform_y + platform_h),
-		Color(0.96, 0.84, 0.15), 6.0)
-	# Strip diagonal hitam-kuning (zebra safety)
-	for dy in range(int(platform_y) + 8, int(platform_y + platform_h), 20):
-		draw_line(Vector2(x + rw - 14, dy), Vector2(x + rw, dy), Color(0.10, 0.11, 0.13), 2.0)
-
-	# ── Kanopi / Atap Peron (tampak bayangan dari atas) ────────────────────
-	var canopy_w := rw * 0.35
-	var canopy_x := x + (rw - canopy_w) * 0.5
-	draw_rect(Rect2(canopy_x, platform_y + 10, canopy_w, platform_h - 20), Color(0.28, 0.24, 0.20, 0.55), true)
-	draw_rect(Rect2(canopy_x, platform_y + 10, canopy_w, platform_h - 20), Color(0.20, 0.18, 0.16, 0.80), false, 2.0)
-
-	# Tiang-tiang penyangga kanopi (bulat)
-	for ti in range(4):
-		var ty := platform_y + 30 + ti * (platform_h - 60) / 3.0
-		draw_circle(Vector2(canopy_x + 8, ty), 5.0, Color(0.50, 0.46, 0.42))
-		draw_circle(Vector2(canopy_x + canopy_w - 8, ty), 5.0, Color(0.50, 0.46, 0.42))
-
-	# ── Bangku Tunggu (di peron, sisi kiri kanopi) ─────────────────────────
-	var bench_x := x + 12.0
-	for bi in range(4):
-		var bny := platform_y + 30 + bi * (platform_h - 60) / 3.5
-		_draw_station_bench(Vector2(bench_x, bny), 55.0, 18.0)
-
-	# ── Papan Informasi Jadwal ──────────────────────────────────────────────
-	var board_x := x + rw * 0.62
-	var board_y := platform_y + 18.0
-	draw_rect(Rect2(board_x, board_y, 60, 36), Color(0.10, 0.14, 0.22), true)
-	draw_rect(Rect2(board_x, board_y, 60, 36), Color(0.30, 0.40, 0.60), false, 2.0)
-	# Teks simulasi (garis-garis kecil)
-	for li in range(4):
-		draw_line(Vector2(board_x + 5, board_y + 7 + li * 7),
-			Vector2(board_x + 55, board_y + 7 + li * 7), Color(0.70, 0.90, 1.0), 1.0)
-
-	# ── Tempat Sampah Peron ─────────────────────────────────────────────────
-	draw_circle(Vector2(x + 20, platform_y + platform_h - 22), 8.0, Color(0.24, 0.24, 0.26))
-	draw_circle(Vector2(x + 20, platform_y + platform_h - 22), 6.0, Color(0.14, 0.14, 0.16))
-
-	# ── Bilik Telepon Umum ──────────────────────────────────────────────────
-	_draw_phone_booth(Rect2(x + rw * 0.78, platform_y + platform_h - 85, 40, 60))
-
-	# ── Garis Tepi Keseluruhan Blok Stasiun ────────────────────────────────
-	draw_rect(rect, Color(0.18, 0.19, 0.22), false, 3.0)
+	# Garis Kuning Keselamatan Tepi Rel (di sisi kanan, sebelum rel)
+	draw_line(Vector2(rect.end.x - 12, rect.position.y),
+		Vector2(rect.end.x - 12, rect.end.y), Color(0.96, 0.84, 0.15), 4.5)
+	for dy in range(int(rect.position.y) + 10, int(rect.end.y), 24):
+		draw_line(Vector2(rect.end.x - 12, dy), Vector2(rect.end.x, dy), Color(0.12, 0.13, 0.15), 2.0)
 
 
 func _draw_hospital_main_building(rect: Rect2) -> void:
