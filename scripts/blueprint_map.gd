@@ -288,28 +288,28 @@ func _process(delta: float) -> void:
 
 	# Update posisi geser pintu pagar 11 Rumah Atas
 	for i in range(11):
-		var sq_x := (13.0 + i * 62.0) * 3.0
-		var sq_y := 36.0
+		var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
+		var sq_y: float = 36.0
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "top_%d" % i
 		var dist := p_pos.distance_to(gate_center)
 		var target := 24.0 if dist < 48.0 else 0.0
-		var cur := gate_slide_offsets.get(key, 0.0)
+		var cur: float = gate_slide_offsets.get(key, 0.0)
 		var next_val := move_toward(cur, target, delta * 95.0)
 		if abs(cur - next_val) > 0.01:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
 
 	# Update posisi geser pintu pagar 3 Rumah Tenggara
-	var hy_list := [705.0, 880.0, 1055.0]
+	var hy_list: Array[float] = [705.0, 880.0, 1055.0]
 	for idx in range(3):
-		var sq_x := 1636.0
-		var sq_y := hy_list[idx]
+		var sq_x: float = 1636.0
+		var sq_y: float = hy_list[idx]
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "se_%d" % idx
 		var dist := p_pos.distance_to(gate_center)
 		var target := 24.0 if dist < 48.0 else 0.0
-		var cur := gate_slide_offsets.get(key, 0.0)
+		var cur: float = gate_slide_offsets.get(key, 0.0)
 		var next_val := move_toward(cur, target, delta * 95.0)
 		if abs(cur - next_val) > 0.01:
 			gate_slide_offsets[key] = next_val
