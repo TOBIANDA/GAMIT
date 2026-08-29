@@ -722,85 +722,58 @@ func _draw_parking_lot(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR GEDUNG UTAMA STASIUN TAMPAK ATAS (Station Terminal Building)
+# HELPER GAMBAR GEDUNG UTAMA STASIUN MURNI TAMPAK ATAS (Pure Top-Down Station)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_station_building(rect: Rect2) -> void:
 	var bx := rect.position.x
 	var by := rect.position.y
-	var bw := rect.size.x   # e.g. 140
-	var bh := rect.size.y   # e.g. 265
+	var bw := rect.size.x   # e.g. 142
+	var bh := rect.size.y   # e.g. 275
 
-	# 1. Bayangan Jatuh Gedung ke Tanah (Cast Shadow)
-	draw_rect(Rect2(bx - 12, by + 12, bw + 8, bh), Color(0.06, 0.07, 0.10, 0.38), true)
+	# 1. Bayangan Jatuh Gedung ke Tanah (Elevated Drop Shadow 14px ke Kiri)
+	var shadow_rect := Rect2(bx - 14, by + 12, bw + 6, bh)
+	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
-	# 2. Dinding Fondasi Gedung
-	draw_rect(rect, COLOR_ROOM_STONE_B, true)
+	# 2. Atap Utama Gedung Utuh Murni Tampak Atas (Pitched Roof)
+	var slope_w := bw * 0.50
 
-	# 3. Fasad Depan & Pintu Masuk Stasiun (Bagian Bawah: by + 140 .. by + bh)
-	var facade_y := by + 140.0
-	var facade_h := bh - 140.0
-	draw_rect(Rect2(bx, facade_y, bw, facade_h), COLOR_ROOM_STONE_B, true)
-	draw_rect(Rect2(bx, by + bh - 6, bw, 6), COLOR_PARQUET_DARK, true) # Plinth kayu
+	# Kemiringan Sisi Barat (Terpapar Sinar Matahari - Warna Terakota Terang)
+	draw_rect(Rect2(bx, by, slope_w, bh), Color(0.68, 0.38, 0.24), true)
 
-	# Papan Nama Besar: "STASIUN KOTA"
-	var sign_x := bx + 16.0
-	var sign_w := bw - 32.0
-	var sign_y := facade_y + 12.0
-	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), Color(0.12, 0.25, 0.45), true)
-	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), COLOR_HELIPAD_RING, false, 1.5)
-	draw_line(Vector2(sign_x + 6, sign_y + 10), Vector2(sign_x + sign_w - 6, sign_y + 10), Color(0.95, 0.95, 0.95), 2.0)
+	# Kemiringan Sisi Timur (Sisi Bayangan - Warna Terakota Gelap)
+	draw_rect(Rect2(bx + slope_w, by, slope_w, bh), Color(0.50, 0.26, 0.15), true)
 
-	# Jam Stasiun Besar Bundar di Fasad Depan
-	var clock_center := Vector2(bx + bw - 20, facade_y + 55)
-	draw_circle(clock_center, 8.5, Color(0.95, 0.95, 0.95))
-	draw_circle(clock_center, 8.5, COLOR_WALL_LINE, false, 1.5)
-	draw_line(clock_center, clock_center + Vector2(0, -5), COLOR_WALL_LINE, 1.5)
-	draw_line(clock_center, clock_center + Vector2(4, 0), COLOR_WALL_LINE, 1.5)
+	# Bubungan Puncak Tengah Atap (Center Ridge Line)
+	draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + bh), Color(0.88, 0.74, 0.58), 2.5)
 
-	# Pintu Utama Stasiun (Pintu Kaca Sliding Geser Ganda)
-	var door_x := bx + 36.0
-	var door_w := 54.0
-	var door_h := 55.0
-	var door_y := by + bh - door_h
-	draw_rect(Rect2(door_x - 3, door_y - 3, door_w + 6, door_h + 3), COLOR_PARQUET_DARK, true)
-	draw_rect(Rect2(door_x, door_y, door_w, door_h), Color(0.12, 0.14, 0.18), true) # Lorong dalam gelap
-	# Kaca geser biru
-	draw_rect(Rect2(door_x + 3, door_y + 12, door_w * 0.5 - 4, door_h - 14), Color(0.25, 0.40, 0.55), true)
-	draw_rect(Rect2(door_x + door_w * 0.5 + 1, door_y + 12, door_w * 0.5 - 4, door_h - 14), Color(0.25, 0.40, 0.55), true)
-	draw_line(Vector2(door_x + door_w * 0.5, door_y), Vector2(door_x + door_w * 0.5, door_y + door_h), COLOR_PARQUET_DARK, 2.0)
-
-	# Pintu Kayu Staf / Ruang Tiket di Samping Kiri
-	draw_rect(Rect2(bx + 8, door_y + 8, 20, door_h - 8), COLOR_PARQUET_WOOD, true)
-	draw_rect(Rect2(bx + 8, door_y + 8, 20, door_h - 8), COLOR_PARQUET_DARK, false, 1.5)
-
-	# Tanaman Pot Hijau di Samping Pintu Masuk
-	draw_rect(Rect2(door_x - 14, by + bh - 16, 9, 9), COLOR_ROOM_OCHRE, true)
-	draw_circle(Vector2(door_x - 9, by + bh - 18), 7.0, COLOR_TREE_DARK)
-	draw_circle(Vector2(door_x - 9, by + bh - 18), 5.0, COLOR_TREE_LIGHT)
-
-	# 4. Atap Utama Genteng Terakota Tampak Atas (by .. by + 140)
-	var roof_h := 140.0
-	draw_rect(Rect2(bx, by, bw, roof_h), Color(0.68, 0.38, 0.24), true) # Sisi terang
-	draw_rect(Rect2(bx + bw * 0.5, by, bw * 0.5, roof_h), Color(0.52, 0.26, 0.16), true) # Sisi bayangan
-	draw_line(Vector2(bx + bw * 0.5, by), Vector2(bx + bw * 0.5, by + roof_h), Color(0.88, 0.72, 0.55), 2.5) # Bubungan ridge
-
-	# 2 Jendela Skylight Kaca Loteng
-	for sx_pos in [bx + 20.0, bx + bw - 44.0]:
-		var sl_rect := Rect2(sx_pos, by + 45.0, 24, 32)
+	# 3. Jendela Atap Kaca Skylight Tampak Atas (4 Unit Simetris)
+	var skylight_positions := [
+		Vector2(bx + 16, by + 40),
+		Vector2(bx + bw - 42, by + 40),
+		Vector2(bx + 16, by + 180),
+		Vector2(bx + bw - 42, by + 180)
+	]
+	for sl_pos in skylight_positions:
+		var sl_rect := Rect2(sl_pos.x, sl_pos.y, 26, 34)
 		draw_rect(sl_rect, Color(0.18, 0.20, 0.24), true)
 		draw_rect(Rect2(sl_rect.position.x + 2, sl_rect.position.y + 2, sl_rect.size.x - 4, sl_rect.size.y - 4), Color(0.40, 0.58, 0.72), true)
 		draw_line(Vector2(sl_rect.position.x + 4, sl_rect.position.y + 6), Vector2(sl_rect.end.x - 6, sl_rect.end.y - 6), Color(0.85, 0.94, 1.0, 0.70), 1.5)
 
-	# Gable Atap Segitiga Pintu Masuk
-	var gable_pts := PackedVector2Array([
-		Vector2(door_x - 6, by + roof_h + 2),
-		Vector2(door_x + door_w * 0.5, by + roof_h - 22),
-		Vector2(door_x + door_w + 6, by + roof_h + 2)
-	])
-	draw_colored_polygon(gable_pts, Color(0.72, 0.40, 0.26))
-	draw_polyline(gable_pts, COLOR_WALL_LINE, 2.0)
+	# 4. Unit Ventilasi AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
+	var hvac_rect := Rect2(bx + slope_w - 14, by + 110, 28, 28)
+	draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
+	draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
+	draw_line(Vector2(hvac_rect.position.x + 4, by + 124), Vector2(hvac_rect.end.x - 4, by + 124), COLOR_STEEL_DARK, 1.5)
 
-	# Border Luar Gedung Stasiun
+	# 5. Papan Nama & Kanopi Kanopi Serambi Ujung Atap: "STASIUN KOTA"
+	var sign_x := bx + 14.0
+	var sign_w := bw - 28.0
+	var sign_y := by + bh - 24.0
+	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), Color(0.12, 0.25, 0.45), true)
+	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), COLOR_HELIPAD_RING, false, 1.5)
+	draw_line(Vector2(sign_x + 6, sign_y + 10), Vector2(sign_x + sign_w - 6, sign_y + 10), Color(0.95, 0.95, 0.95), 2.0)
+
+	# 6. Border Lisplang Luar Gedung Stasiun
 	draw_rect(rect, COLOR_WALL_LINE, false, 2.5)
 
 
