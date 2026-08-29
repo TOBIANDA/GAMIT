@@ -857,14 +857,15 @@ func _draw_train_station(rect: Rect2) -> void:
 
 	# C. Papan Jadwal Digital Gantung LED (PIDS Board - "NEXT TRAINS")
 	var pids_x := x + 122.0
+	var pids_y := pz_y + 8.0
 	var pids_w := 90.0
 	var pids_h := 38.0
 	draw_rect(Rect2(pids_x, pids_y, pids_w, pids_h), Color(0.08, 0.10, 0.14), true)
 	draw_rect(Rect2(pids_x, pids_y, pids_w, pids_h), Color(0.25, 0.45, 0.70), false, 2.0)
-	draw_line(Vector2(pids_x + 4, pz_y + 14), Vector2(pids_x + pids_w - 4, pz_y + 14), Color(0.30, 0.85, 0.95), 2.0)
-	draw_line(Vector2(pids_x + 4, pz_y + 23), Vector2(pids_x + pids_w - 8, pz_y + 23), COLOR_RUG_GOLD, 1.8)
-	draw_line(Vector2(pids_x + 4, pz_y + 31), Vector2(pids_x + pids_w - 12, pz_y + 31), COLOR_RUG_GOLD, 1.8)
-	draw_line(Vector2(pids_x + 4, pz_y + 39), Vector2(pids_x + pids_w - 6, pz_y + 39), Color(0.30, 0.85, 0.95), 1.8)
+	draw_line(Vector2(pids_x + 4, pids_y + 8), Vector2(pids_x + pids_w - 4, pids_y + 8), Color(0.30, 0.85, 0.95), 2.0)
+	draw_line(Vector2(pids_x + 4, pids_y + 16), Vector2(pids_x + pids_w - 8, pids_y + 16), COLOR_RUG_GOLD, 1.8)
+	draw_line(Vector2(pids_x + 4, pids_y + 24), Vector2(pids_x + pids_w - 12, pids_y + 24), COLOR_RUG_GOLD, 1.8)
+	draw_line(Vector2(pids_x + 4, pids_y + 32), Vector2(pids_x + pids_w - 6, pids_y + 32), Color(0.30, 0.85, 0.95), 1.8)
 
 	# ═══════════════════════════════════════════════════════════════════════════
 	# 4. KANOPI PAVILION PENEDUH 3D ELEVASI TINGGI (3D Elevated Shelters)
