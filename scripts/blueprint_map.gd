@@ -805,6 +805,35 @@ func _draw_station_building(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# HELPER GAMBAR KANOPI PENEDUH VERTIKAL TAMPAK ATAS (Clean Flat Art Style)
+# ═══════════════════════════════════════════════════════════════════════════════
+func _draw_vertical_canopy(rect: Rect2) -> void:
+	var cx := rect.position.x
+	var cy := rect.position.y
+	var cw := rect.size.x   # e.g. 68
+	var ch := rect.size.y   # e.g. 571
+
+	# 1. Bayangan Jatuh Atap ke Lantai (Elevated Drop Shadow 12px ke Kiri)
+	var shadow_rect := Rect2(cx - 12, cy + 10, cw + 6, ch)
+	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.35), true)
+
+	# 2. Struktur Atap Bersih 2-Tone (Solid Tanpa Garis-Garis Rumit)
+	var slope_w := cw * 0.50
+
+	# Kemiringan Sisi Barat (Terang)
+	draw_rect(Rect2(cx, cy, slope_w, ch), Color(0.52, 0.50, 0.47), true)
+
+	# Kemiringan Sisi Timur (Gelap)
+	draw_rect(Rect2(cx + slope_w, cy, slope_w, ch), Color(0.35, 0.33, 0.30), true)
+
+	# Bubungan Puncak Tengah Atap (Center Ridge)
+	draw_line(Vector2(cx + slope_w, cy), Vector2(cx + slope_w, cy + ch), Color(0.88, 0.86, 0.84), 2.0)
+
+	# Border Lisplang Luar Atap
+	draw_rect(Rect2(cx, cy, cw, ch), COLOR_WALL_LINE, false, 2.0)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # FUNGSI UTAMA: KOMPLEKS STASIUN KERETA API (Parkiran + Gedung Stasiun + Peron 2)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_train_station(rect: Rect2) -> void:
