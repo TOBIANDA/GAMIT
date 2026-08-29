@@ -1,14 +1,30 @@
 extends Node2D
 
 const RAIL_CENTER_X: float = 2240.0
-const TRAIN_SPEED: float = 620.0
+const TRAIN_MAX_SPEED: float = 620.0
 const TRAIN_START_Y: float = -950.0
+const STATION_STOP_Y: float = 1150.0 # Posisi lokomotif berhenti pas di sepanjang peron stasiun
 const TRAIN_END_Y: float = 2200.0
+const STATION_STOP_DURATION: float = 5.5 # Berhenti 5.5 detik di stasiun
 
-@export var spawn_interval: float = 15.0
+enum TrainState {
+	INACTIVE,
+	APPROACHING,
+	DECELERATING,
+	STOPPED_AT_STATION,
+	ACCELERATING,
+	RUNNING_FAST
+}
+
+@export var spawn_interval: float = 16.0
 var spawn_timer: float = 4.0
 var is_train_running: bool = false
 var train_y: float = TRAIN_START_Y
+var current_speed: float = TRAIN_MAX_SPEED
+var train_state: TrainState = TrainState.INACTIVE
+var station_wait_timer: float = 0.0
+var accel_timer: float = 0.0
+var has_blown_departure_whistle: bool = false
 
 var audio_player_chug: AudioStreamPlayer
 var playback_chug: AudioStreamGeneratorPlayback
@@ -97,11 +113,10 @@ func _process(delta: float) -> void:
 		if spawn_timer <= 0.0:
 			_start_passing_train()
 	else:
-		train_y += delta * TRAIN_SPEED
+		_update_train_movement(delta)
 		position = Vector2(RAIL_CENTER_X, train_y)
 
 		_handle_horn_and_bell(delta, spatial_vol)
-
 		_synthesize_track_rumble(delta, spatial_vol)
 
 		if train_y >= TRAIN_END_Y:
@@ -109,18 +124,83 @@ func _process(delta: float) -> void:
 
 		queue_redraw()
 
+func _update_train_movement(delta: float) -> void:
+	match train_state:
+		TrainState.APPROACHING:
+			current_speed = TRAIN_MAX_SPEED
+			train_y += delta * current_speed
+			# Mulai melambat ketika mendekati stasiun (y >= 250)
+			if train_y >= 250.0:
+				train_state = TrainState.DECELERATING
+
+		TrainState.DECELERATING:
+			# Deselerasi halus menuju titik berhenti peron (STATION_STOP_Y)
+			var dist_remaining := maxf(0.0, STATION_STOP_Y - train_y)
+			var decel_ratio := clampf(dist_remaining / (STATION_STOP_Y - 250.0), 0.0, 1.0)
+			current_speed = clampf(sqrt(decel_ratio) * TRAIN_MAX_SPEED, 30.0, TRAIN_MAX_SPEED)
+			train_y += delta * current_speed
+
+			if train_y >= STATION_STOP_Y - 3.0:
+				train_y = STATION_STOP_Y
+				current_speed = 0.0
+				train_state = TrainState.STOPPED_AT_STATION
+				station_wait_timer = STATION_STOP_DURATION
+				has_blown_departure_whistle = false
+				if is_instance_valid(smoke_particles):
+					smoke_particles.initial_velocity_min = 10.0
+					smoke_particles.initial_velocity_max = 25.0
+					smoke_particles.gravity = Vector2(0, -25)
+				print("[TrainSystem] 🛑 Kereta api berhenti di stasiun untuk naik-turun penumpang!")
+
+		TrainState.STOPPED_AT_STATION:
+			current_speed = 0.0
+			station_wait_timer -= delta
+
+			# Bunyikan peluit stasiun 1.5 detik sebelum berangkat
+			if station_wait_timer <= 1.5 and not has_blown_departure_whistle:
+				has_blown_departure_whistle = true
+				_trigger_horn(1.0)
+
+			if station_wait_timer <= 0.0:
+				train_state = TrainState.ACCELERATING
+				accel_timer = 0.0
+				if is_instance_valid(smoke_particles):
+					smoke_particles.initial_velocity_min = 30.0
+					smoke_particles.initial_velocity_max = 70.0
+					smoke_particles.gravity = Vector2(0, -60)
+				print("[TrainSystem] 🟢 Kereta api berangkat melanjutkan perjalanan!")
+
+		TrainState.ACCELERATING:
+			# Akselerasi halus dari berhenti menuju kecepatan penuh
+			accel_timer += delta * 0.45
+			current_speed = lerpf(0.0, TRAIN_MAX_SPEED, clampf(accel_timer, 0.0, 1.0))
+			train_y += delta * current_speed
+			if accel_timer >= 1.0:
+				current_speed = TRAIN_MAX_SPEED
+				train_state = TrainState.RUNNING_FAST
+
+		TrainState.RUNNING_FAST:
+			current_speed = TRAIN_MAX_SPEED
+			train_y += delta * current_speed
+
 func _start_passing_train() -> void:
 	is_train_running = true
+	train_state = TrainState.APPROACHING
+	current_speed = TRAIN_MAX_SPEED
 	train_y = TRAIN_START_Y
 	position = Vector2(RAIL_CENTER_X, train_y)
 	if is_instance_valid(smoke_particles):
 		smoke_particles.emitting = true
+		smoke_particles.initial_velocity_min = 30.0
+		smoke_particles.initial_velocity_max = 70.0
+		smoke_particles.gravity = Vector2(0, -60)
 	horn_sequence_step = 0
 	horn_cooldown = 0.5
-	print("[TrainSystem] 🚂 Kereta api mulai melintas di jalur rel timur!")
+	print("[TrainSystem] 🚂 Kereta api mulai melintas mendekati stasiun!")
 
 func _end_passing_train() -> void:
 	is_train_running = false
+	train_state = TrainState.INACTIVE
 	train_y = TRAIN_START_Y
 	position = Vector2(RAIL_CENTER_X, train_y)
 	if is_instance_valid(smoke_particles):
@@ -131,17 +211,15 @@ func _end_passing_train() -> void:
 func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 	horn_cooldown -= delta
 
+	# Klakson saat mendekati stasiun
 	if horn_sequence_step == 0 and train_y > -400.0 and horn_cooldown <= 0.0:
 		_trigger_horn(1.4)
 		horn_sequence_step = 1
 		horn_cooldown = 1.9
-	elif horn_sequence_step == 1 and horn_cooldown <= 0.0:
-		_trigger_horn(1.2)
+	elif horn_sequence_step == 1 and horn_cooldown <= 0.0 and train_y < 200.0:
+		_trigger_horn(1.0)
 		horn_sequence_step = 2
 		horn_cooldown = 2.5
-	elif horn_sequence_step == 2 and train_y > 400.0 and train_y < 700.0 and horn_cooldown <= 0.0:
-		_trigger_horn(0.8)
-		horn_sequence_step = 3
 
 	if is_horn_blowing:
 		horn_timer -= delta
@@ -149,9 +227,11 @@ func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 		if horn_timer <= 0.0:
 			is_horn_blowing = false
 
-	if train_y >= -200.0 and train_y <= 1100.0:
+	# Lonceng peringatan penyeberangan berbunyi saat kereta berada di sekitar stasiun & penyeberangan
+	if train_y >= -200.0 and train_y <= 1600.0:
 		bell_timer += delta
-		if bell_timer >= 0.55:
+		var interval := 0.55 if train_state != TrainState.STOPPED_AT_STATION else 1.1
+		if bell_timer >= interval:
 			bell_timer = 0.0
 			_synthesize_crossing_bell(spatial_vol)
 
@@ -167,13 +247,16 @@ func _synthesize_track_rumble(delta: float, spatial_vol: float) -> void:
 	if frames_to_push <= 0:
 		return
 
+	var speed_ratio := current_speed / TRAIN_MAX_SPEED
 	for i in range(frames_to_push):
 		chug_phase += 1.0 / 22050.0
-		var beat = fmod(chug_phase * 6.5, 1.0)
-		var pulse = pow(sin(beat * PI), 8.0) * 0.45
 		
-		var rumble = sin(chug_phase * 65.0 * TAU) * 0.3 + sin(chug_phase * 130.0 * TAU) * 0.2
-		var hiss = (randf() * 2.0 - 1.0) * 0.12
+		# Saat berjalan: suara chug ritmik sesuai kecepatan. Saat berhenti: desis uap idle mesin
+		var beat := fmod(chug_phase * (1.5 + 5.0 * speed_ratio), 1.0)
+		var pulse := pow(sin(beat * PI), 8.0) * 0.45 * speed_ratio
+		
+		var rumble := (sin(chug_phase * 65.0 * TAU) * 0.3 + sin(chug_phase * 130.0 * TAU) * 0.2) * maxf(0.15, speed_ratio)
+		var hiss := (randf() * 2.0 - 1.0) * (0.06 + 0.08 * speed_ratio)
 
 		var total_sample = (rumble + hiss + pulse) * 0.38 * spatial_vol
 		playback_chug.push_frame(Vector2(total_sample, total_sample))
