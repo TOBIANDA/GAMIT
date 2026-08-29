@@ -899,7 +899,7 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_circle(Vector2(2145, cross_y - 10), 5.0, COLOR_STEEL_DARK)
 	draw_circle(Vector2(2145, cross_y - 10), 3.0, COLOR_ECG_GREEN)
 	draw_circle(Vector2(2295, cross_y - 10), 5.0, COLOR_STEEL_DARK)
-	draw_circle(Vector2(2295, cross_y - 10), COLOR_ECG_GREEN)
+	draw_circle(Vector2(2295, cross_y - 10), 3.0, COLOR_ECG_GREEN)
 
 	# Border Dinding Pembatas Blok Barat Stasiun
 	draw_rect(rect, COLOR_WALL_LINE, false, 3.0)
