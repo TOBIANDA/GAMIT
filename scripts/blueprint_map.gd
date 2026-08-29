@@ -615,6 +615,103 @@ func _draw_station_bench(pos: Vector2, w: float = 80.0, h: float = 24.0) -> void
 	draw_line(Vector2(pos.x + 4, pos.y + 6), Vector2(pos.x + w - 4, pos.y + 6), Color(0.60, 0.42, 0.25), 1.0)
 	draw_line(Vector2(pos.x + 4, pos.y + 16), Vector2(pos.x + w - 4, pos.y + 16), Color(0.60, 0.42, 0.25), 1.0)
 
+func _draw_elevated_platform_shelter(rect: Rect2) -> void:
+	var sx := rect.position.x
+	var sy := rect.position.y
+	var sw := rect.size.x   # e.g. 210
+	var sh := rect.size.y   # e.g. 85
+
+	# ── 1. BAYANGAN JATUH KE LANTAI (Elevated Ground Drop Shadow) ───────────
+	# Bayangan offset 16px ke kiri-bawah membuktikan atap berada tinggi melayang
+	var shadow_rect := Rect2(sx - 12, sy + 18, sw + 12, sh + 6)
+	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.42), true)
+
+	# ── 2. TIANG KOLOM BAJA DI LANTAI (Ground Footings & Vertical Posts) ───
+	var col_x_left  := sx + 16.0
+	var col_x_right := sx + sw - 16.0
+	var col_y_top   := sy + 18.0
+	var col_y_bot   := sy + sh - 14.0
+
+	var pillar_points := [
+		Vector2(col_x_left,  col_y_top),
+		Vector2(col_x_right, col_y_top),
+		Vector2(col_x_left,  col_y_bot),
+		Vector2(col_x_right, col_y_bot)
+	]
+
+	# Base plate & pondasi tiang di lantai
+	for pt in pillar_points:
+		draw_circle(pt + Vector2(-3, 4), 6.0, Color(0.08, 0.09, 0.12, 0.40)) # Bayangan alas
+		draw_rect(Rect2(pt.x - 7, pt.y - 7, 14, 14), Color(0.24, 0.25, 0.28), true)
+		draw_circle(pt, 5.0, COLOR_STEEL_DARK)
+		draw_circle(pt, 3.0, COLOR_STEEL_LIGHT)
+
+	# ── 3. FASILITAS TERLINDUNGI DI BAWAH KANOPI (Sheltered Furniture) ──────
+	# Bangku tunggu kayu panjang di bawah atap
+	var bench_w := sw - 64.0
+	var bench_x := sx + 32.0
+	var bench_y := sy + (sh - 22.0) * 0.5
+	_draw_station_bench(Vector2(bench_x, bench_y), bench_w, 22.0)
+
+	# Penumpang mini berteduh di bangku
+	for p_offset in [bench_x + 24.0, bench_x + bench_w - 32.0]:
+		draw_circle(Vector2(p_offset, bench_y + 10), 4.5, Color(0.85, 0.65, 0.45)) # Kepala
+		draw_circle(Vector2(p_offset, bench_y + 8), 4.5, COLOR_PARQUET_DARK) # Rambut
+		draw_rect(Rect2(p_offset - 4, bench_y + 12, 8, 8), Color(0.25, 0.45, 0.75), true) # Baju
+
+	# ── 4. RANGKA BAJA TRUSS & BRACKET KANTILEVER (Structural Trusses) ───────
+	# Balok baja melintang penyangga atap
+	draw_line(Vector2(col_x_left, col_y_top), Vector2(col_x_right, col_y_top), Color(0.18, 0.20, 0.24), 4.0)
+	draw_line(Vector2(col_x_left, col_y_bot), Vector2(col_x_right, col_y_bot), Color(0.18, 0.20, 0.24), 4.0)
+	# Rangka silang diagonal (Gusset brackets)
+	for pt in pillar_points:
+		draw_line(pt, pt + Vector2(14, -8), Color(0.35, 0.38, 0.44), 2.0)
+		draw_line(pt, pt + Vector2(-14, -8), Color(0.35, 0.38, 0.44), 2.0)
+
+	# ── 5. STRUKTUR ATAP 3D MELAYANG (Elevated 3D Pitched Canopy Roof) ───────
+	var roof_overhang := 6.0
+	var rx := sx - roof_overhang
+	var ry := sy - roof_overhang
+	var rw := sw + roof_overhang * 2.0
+	var rh := sh + roof_overhang * 2.0
+
+	# A. Langit-langit bawah / Underside Eaves
+	draw_rect(Rect2(rx, ry, rw, rh), Color(0.16, 0.17, 0.20), true)
+
+	# B. Kemiringan Atap Atas (Top Slope in Sunlight)
+	var slope_h := rh * 0.45
+	draw_rect(Rect2(rx, ry, rw, slope_h), Color(0.54, 0.50, 0.46), true)
+
+	# C. Kemiringan Atap Bawah (Bottom Slope in Slight Shade)
+	draw_rect(Rect2(rx, ry + slope_h, rw, rh - slope_h - 12), Color(0.38, 0.35, 0.32), true)
+
+	# D. Bubungan Puncak Atap Tengah (Center Ridge Line with Bright Sunlight Highlight)
+	draw_line(Vector2(rx + 2, ry + slope_h), Vector2(rx + rw - 2, ry + slope_h), Color(0.82, 0.78, 0.74), 3.0)
+
+	# E. Garis-garis Panel Seng Gelombang / Standing Seam Roof Ribs
+	for px in range(int(rx) + 12, int(rx + rw), 16):
+		# Sisi atas terang
+		draw_line(Vector2(px, ry + 2), Vector2(px, ry + slope_h - 1), Color(0.44, 0.40, 0.36), 1.5)
+		# Sisi bawah gelap
+		draw_line(Vector2(px, ry + slope_h + 1), Vector2(px, ry + rh - 14), Color(0.26, 0.24, 0.22), 1.5)
+
+	# F. TEPI DEPAN / LISPLANG GANTUNG ATAP 3D (Thick Front Fascia Drop Edge)
+	# Garis lisplang depan setebal 12px memberikan bukti fisik ketinggian atap
+	var fascia_y := ry + rh - 12.0
+	draw_rect(Rect2(rx, fascia_y, rw, 12), Color(0.20, 0.18, 0.16), true) # Dinding lisplang depan gelap
+	draw_line(Vector2(rx, fascia_y), Vector2(rx + rw, fascia_y), Color(0.68, 0.64, 0.60), 2.0) # Bevel highlight atas
+	draw_line(Vector2(rx, fascia_y + 12), Vector2(rx + rw, fascia_y + 12), Color(0.10, 0.09, 0.08), 2.5) # Drop shadow bawah
+
+	# G. Border & Talang Air Atap 3D
+	draw_rect(Rect2(rx, ry, rw, rh), Color(0.14, 0.13, 0.12), false, 2.5)
+
+	# H. Lampu Penerangan Gantung Bawah Kanopi (Glowing Pendant Lanterns)
+	draw_circle(Vector2(sx + sw * 0.30, ry + slope_h), 5.0, Color(0.98, 0.90, 0.40))
+	draw_circle(Vector2(sx + sw * 0.30, ry + slope_h), 3.0, Color(1.0, 1.0, 0.90))
+	draw_circle(Vector2(sx + sw * 0.70, ry + slope_h), 5.0, Color(0.98, 0.90, 0.40))
+	draw_circle(Vector2(sx + sw * 0.70, ry + slope_h), 3.0, Color(1.0, 1.0, 0.90))
+
+
 func _draw_train_station(rect: Rect2) -> void:
 	var x  := rect.position.x
 	var y  := rect.position.y
@@ -730,163 +827,86 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_rect(Rect2(x, y, b_w, roof_h), Color(0.22, 0.10, 0.05), false, 2.5)
 
 	# ═══════════════════════════════════════════════════════════════════════════
-	# 3. KANOPI PERON 3D ELEVASI TINGGI (High-Elevation Canopies with 3D Depth)
+	# 3. PLAZA ATAS & AMENITAS (Upper Open Plaza: y + 185 .. y + 270)
 	# ═══════════════════════════════════════════════════════════════════════════
-	var c_y  := y + 195.0
-	var c_h  := rh - 205.0
-	var c_w  := 52.0
-	var lc_x := x + 6.0
-	var rc_x := x + 162.0
-
-	# ── STEP A: Rangka Baja & Tiang Kolom di Lantai Bawah (Ground Level) ─────
-	for cx_pos in [lc_x, rc_x]:
-		for pi in range(4):
-			var py_pos := c_y + 35.0 + pi * (c_h - 60.0) / 3.0
-			var col_center := Vector2(cx_pos + c_w * 0.5, py_pos)
-			# Bayangan tiang di lantai
-			draw_circle(col_center + Vector2(-3, 4), 6.0, Color(0.08, 0.09, 0.12, 0.40))
-			# Base plate tiang baja
-			draw_rect(Rect2(col_center.x - 7, col_center.y - 7, 14, 14), Color(0.28, 0.30, 0.34), true)
-			draw_circle(col_center, 5.0, COLOR_STEEL_DARK)
-			draw_circle(col_center, 3.0, COLOR_STEEL_LIGHT)
-
-	# Rangka Balok Baja Melintang (Overhead Steel Trusses) di Bawah Atap
-	var truss_y1 := c_y + 20.0
-	var truss_y2 := c_y + 160.0
-	var truss_y3 := c_y + 300.0
-	for ty_pos in [truss_y1, truss_y2, truss_y3]:
-		# Bayangan truss di lantai
-		draw_line(Vector2(lc_x + c_w - 6, ty_pos + 12), Vector2(rc_x + 6, ty_pos + 12), Color(0.08, 0.09, 0.12, 0.30), 4.0)
-		# Balok ganda
-		draw_line(Vector2(lc_x + c_w - 6, ty_pos), Vector2(rc_x + 6, ty_pos), Color(0.22, 0.24, 0.28), 3.5)
-		draw_line(Vector2(lc_x + c_w - 6, ty_pos + 8), Vector2(rc_x + 6, ty_pos + 8), Color(0.22, 0.24, 0.28), 3.5)
-		# Rangka silang X (cross bracing)
-		for zx in range(int(lc_x + c_w), int(rc_x) - 15, 20):
-			draw_line(Vector2(zx, ty_pos), Vector2(zx + 10, ty_pos + 8), Color(0.38, 0.42, 0.48), 1.5)
-			draw_line(Vector2(zx + 10, ty_pos + 8), Vector2(zx + 20, ty_pos), Color(0.38, 0.42, 0.48), 1.5)
-
-	# ── STEP B: Bayangan Jatuh Atap Kanopi (Heavy Elevated Drop Shadow) ──────
-	# Bayangan offset 14px ke kiri-bawah membuktikan atap melayang tinggi di atas lantai
-	var shadow_offset := Vector2(-12.0, 14.0)
-	for cx_pos in [lc_x, rc_x]:
-		var s_rect := Rect2(cx_pos + shadow_offset.x, c_y + shadow_offset.y, c_w + 6, c_h)
-		draw_rect(s_rect, Color(0.06, 0.07, 0.09, 0.38), true)
-
-	# ── STEP C: Struktur Atap Kanopi 3D (3D Pitched Architectural Canopy) ───
-	for cx_pos in [lc_x, rc_x]:
-		var c_rect := Rect2(cx_pos, c_y, c_w, c_h)
-		
-		# 1. Lisplang Bawah / Fascia Overhang (Tepi luar atap dengan ketebalan 3D)
-		draw_rect(Rect2(cx_pos - 2, c_y - 2, c_w + 4, c_h + 4), Color(0.18, 0.19, 0.22), true)
-
-		# 2. Kemiringan Sisi Kiri (Terpapar Cahaya Matahari - Warna Slate Warm Terang)
-		var slope_w := c_w * 0.50
-		draw_rect(Rect2(cx_pos, c_y, slope_w, c_h), Color(0.48, 0.46, 0.44), true)
-
-		# 3. Kemiringan Sisi Kanan (Sisi Bayangan - Warna Slate Dark)
-		draw_rect(Rect2(cx_pos + slope_w, c_y, slope_w, c_h), Color(0.30, 0.28, 0.26), true)
-
-		# 4. Bubungan Puncak Atap (Center Ridge Highlight)
-		draw_line(Vector2(cx_pos + slope_w, c_y), Vector2(cx_pos + slope_w, c_y + c_h), Color(0.72, 0.70, 0.68), 2.5)
-
-		# 5. Panel Garis Sambungan Seng / Genteng Arsitektural Atap
-		for cy_pos in range(int(c_y) + 10, int(c_y + c_h), 14):
-			# Sisi terang
-			draw_line(Vector2(cx_pos + 1, cy_pos), Vector2(cx_pos + slope_w - 1, cy_pos), Color(0.38, 0.36, 0.34, 0.70), 1.2)
-			# Sisi gelap
-			draw_line(Vector2(cx_pos + slope_w + 1, cy_pos), Vector2(cx_pos + c_w - 1, cy_pos), Color(0.20, 0.18, 0.16, 0.80), 1.2)
-
-		# 6. Talang Air / Bevel Highlight Tepi Luar Atap
-		draw_line(Vector2(cx_pos, c_y), Vector2(cx_pos, c_y + c_h), Color(0.65, 0.62, 0.60), 1.5)
-		draw_line(Vector2(cx_pos + c_w, c_y), Vector2(cx_pos + c_w, c_y + c_h), Color(0.14, 0.13, 0.12), 2.0)
-		draw_rect(c_rect, Color(0.16, 0.15, 0.14), false, 2.0)
-
-		# 7. Lampu Gantung Bawah Atap yang Terpancar
-		for pi in range(4):
-			var py_pos := c_y + 35.0 + pi * (c_h - 60.0) / 3.0
-			draw_circle(Vector2(cx_pos + slope_w, py_pos), 4.0, Color(0.98, 0.90, 0.40))
-			draw_circle(Vector2(cx_pos + slope_w, py_pos), 2.0, Color(1.0, 1.0, 0.90))
-
-	# ═══════════════════════════════════════════════════════════════════════════
-	# 4. AMENITAS & FASILITAS PERON TENGAH (Central Walkway)
-	# ═══════════════════════════════════════════════════════════════════════════
+	var pz_y := y + 190.0
 
 	# A. Peta Transit & Jam Gantung di Dinding Atas Walkway
-	var map_x := x + 70.0
-	var map_y := c_y + 15.0
-	draw_rect(Rect2(map_x, map_y, 30, 22), COLOR_ROOM_STONE_A, true)
-	draw_rect(Rect2(map_x, map_y, 30, 22), COLOR_PARQUET_DARK, false, 1.5)
-	draw_line(Vector2(map_x + 4, map_y + 8), Vector2(map_x + 26, map_y + 14), COLOR_ECG_GREEN, 2.0)
-	draw_line(Vector2(map_x + 8, map_y + 16), Vector2(map_x + 24, map_y + 6), Color(0.20, 0.50, 0.85), 2.0)
+	var map_x := x + 16.0
+	draw_rect(Rect2(map_x, pz_y + 10, 34, 24), COLOR_ROOM_STONE_A, true)
+	draw_rect(Rect2(map_x, pz_y + 10, 34, 24), COLOR_PARQUET_DARK, false, 1.5)
+	draw_line(Vector2(map_x + 4, pz_y + 18), Vector2(map_x + 30, pz_y + 24), COLOR_ECG_GREEN, 2.0)
+	draw_line(Vector2(map_x + 8, pz_y + 26), Vector2(map_x + 28, pz_y + 16), Color(0.20, 0.50, 0.85), 2.0)
 
 	# Jam stasiun tiang gantung
-	var clock_x := x + 114.0
-	draw_circle(Vector2(clock_x, map_y + 11), 8.0, Color(0.95, 0.95, 0.95))
-	draw_circle(Vector2(clock_x, map_y + 11), 8.0, COLOR_WALL_LINE, false, 2.0)
-	draw_line(Vector2(clock_x, map_y + 11), Vector2(clock_x, map_y + 6), COLOR_WALL_LINE, 1.5)
-	draw_line(Vector2(clock_x, map_y + 11), Vector2(clock_x + 4, map_y + 11), COLOR_WALL_LINE, 1.5)
+	var clock_x := x + 62.0
+	draw_circle(Vector2(clock_x, pz_y + 22), 8.0, Color(0.95, 0.95, 0.95))
+	draw_circle(Vector2(clock_x, pz_y + 22), 8.0, COLOR_WALL_LINE, false, 2.0)
+	draw_line(Vector2(clock_x, pz_y + 22), Vector2(clock_x, pz_y + 17), COLOR_WALL_LINE, 1.5)
+	draw_line(Vector2(clock_x, pz_y + 22), Vector2(clock_x + 4, pz_y + 22), COLOR_WALL_LINE, 1.5)
 
 	# B. Mesin Minuman Otomatis (Red Vending Machine)
-	var vm_x := x + 128.0
-	var vm_y := c_y + 10.0
-	draw_rect(Rect2(vm_x, vm_y, 28, 42), COLOR_MED_RED, true)
-	draw_rect(Rect2(vm_x, vm_y, 28, 42), Color(0.18, 0.12, 0.12), false, 2.0)
-	draw_rect(Rect2(vm_x + 3, vm_y + 4, 22, 20), Color(0.10, 0.12, 0.16), true)
+	var vm_x := x + 82.0
+	draw_rect(Rect2(vm_x, pz_y + 5, 28, 42), COLOR_MED_RED, true)
+	draw_rect(Rect2(vm_x, pz_y + 5, 28, 42), Color(0.18, 0.12, 0.12), false, 2.0)
+	draw_rect(Rect2(vm_x + 3, pz_y + 9, 22, 20), Color(0.10, 0.12, 0.16), true)
 	for vi in range(3):
-		draw_rect(Rect2(vm_x + 5 + vi * 6, vm_y + 6, 4, 7), Color(0.20, 0.80, 0.40) if vi==0 else (Color(0.20, 0.60, 0.95) if vi==1 else Color(0.95, 0.80, 0.20)), true)
-		draw_rect(Rect2(vm_x + 5 + vi * 6, vm_y + 15, 4, 7), Color(0.95, 0.40, 0.20) if vi==0 else (Color(0.80, 0.30, 0.80) if vi==1 else Color(0.95, 0.95, 0.95)), true)
-	draw_rect(Rect2(vm_x + 4, vm_y + 28, 20, 10), Color(0.25, 0.25, 0.28), true)
+		draw_rect(Rect2(vm_x + 5 + vi * 6, pz_y + 11, 4, 7), Color(0.20, 0.80, 0.40) if vi==0 else (Color(0.20, 0.60, 0.95) if vi==1 else Color(0.95, 0.80, 0.20)), true)
+		draw_rect(Rect2(vm_x + 5 + vi * 6, pz_y + 20, 4, 7), Color(0.95, 0.40, 0.20) if vi==0 else (Color(0.80, 0.30, 0.80) if vi==1 else Color(0.95, 0.95, 0.95)), true)
+	draw_rect(Rect2(vm_x + 4, pz_y + 33, 20, 10), Color(0.25, 0.25, 0.28), true)
 
 	# C. Papan Jadwal Digital Gantung LED (PIDS Board - "NEXT TRAINS")
-	var pids_x := x + 72.0
-	var pids_y := c_y + 55.0
-	var pids_w := 74.0
-	var pids_h := 36.0
+	var pids_x := x + 122.0
+	var pids_w := 90.0
+	var pids_h := 38.0
 	draw_rect(Rect2(pids_x, pids_y, pids_w, pids_h), Color(0.08, 0.10, 0.14), true)
 	draw_rect(Rect2(pids_x, pids_y, pids_w, pids_h), Color(0.25, 0.45, 0.70), false, 2.0)
-	draw_line(Vector2(pids_x + 4, pids_y + 8), Vector2(pids_x + pids_w - 4, pids_y + 8), Color(0.30, 0.85, 0.95), 2.0)
-	draw_line(Vector2(pids_x + 4, pids_y + 16), Vector2(pids_x + pids_w - 8, pids_y + 16), COLOR_RUG_GOLD, 1.8)
-	draw_line(Vector2(pids_x + 4, pids_y + 23), Vector2(pids_x + pids_w - 12, pids_y + 23), COLOR_RUG_GOLD, 1.8)
-	draw_line(Vector2(pids_x + 4, pids_y + 30), Vector2(pids_x + pids_w - 6, pids_y + 30), Color(0.30, 0.85, 0.95), 1.8)
-
-	# D. Bangku Tunggu Kayu & Penumpang Santai
-	var b1_y := y + 335.0
-	_draw_station_bench(Vector2(x + 88, b1_y), 42.0, 18.0)
-	_draw_station_bench(Vector2(x + 88, b1_y + 28), 42.0, 18.0)
-	draw_circle(Vector2(x + 98, b1_y + 8), 4.0, Color(0.85, 0.65, 0.45))
-	draw_circle(Vector2(x + 98, b1_y + 6), 4.0, COLOR_PARQUET_DARK)
-	draw_rect(Rect2(x + 94, b1_y + 10, 8, 7), Color(0.25, 0.45, 0.75), true)
-
-	var b2_y := y + 445.0
-	_draw_station_bench(Vector2(x + 88, b2_y), 42.0, 18.0)
-	_draw_station_bench(Vector2(x + 88, b2_y + 28), 42.0, 18.0)
-	draw_circle(Vector2(x + 118, b2_y + 8), 4.0, Color(0.85, 0.65, 0.45))
-	draw_circle(Vector2(x + 118, b2_y + 6), 4.0, COLOR_WALL_LINE)
-	draw_rect(Rect2(x + 114, b2_y + 10, 8, 7), COLOR_RUG_RED, true)
-
-	# E. Tanaman Hias Pot Tengah (Central Planter)
-	var pl_y := y + 395.0
-	draw_rect(Rect2(x + 98, pl_y, 22, 22), COLOR_ROOM_OCHRE, true)
-	draw_rect(Rect2(x + 98, pl_y, 22, 22), COLOR_PARQUET_DARK, false, 1.5)
-	draw_circle(Vector2(x + 109, pl_y + 11), 12.0, COLOR_TREE_DARK)
-	draw_circle(Vector2(x + 109, pl_y + 11), 8.0, COLOR_TREE_LIGHT)
-
-	# F. Mesin Tiket Otomatis (TVM Kiosk) & Tempat Sampah
-	var tvm_x := x + 102.0
-	var tvm_y := y + 535.0
-	draw_rect(Rect2(tvm_x, tvm_y, 16, 26), COLOR_STEEL_LIGHT, true)
-	draw_rect(Rect2(tvm_x, tvm_y, 16, 26), COLOR_STEEL_DARK, false, 1.5)
-	draw_rect(Rect2(tvm_x + 2, tvm_y + 3, 12, 10), Color(0.20, 0.55, 0.85), true)
-	draw_rect(Rect2(tvm_x + 2, tvm_y + 18, 12, 6), COLOR_MED_RED, true)
-
-	# Tempat Sampah Terpilah (Di samping tiang kanopi)
-	draw_rect(Rect2(x + 38, y + 540, 10, 14), Color(0.22, 0.58, 0.28), true) # Hijau
-	draw_rect(Rect2(x + 38, y + 540, 10, 14), COLOR_WALL_LINE, false, 1.5)
-	draw_rect(Rect2(x + 168, y + 540, 10, 14), Color(0.25, 0.45, 0.75), true) # Biru
-	draw_rect(Rect2(x + 168, y + 540, 10, 14), COLOR_WALL_LINE, false, 1.5)
+	draw_line(Vector2(pids_x + 4, pz_y + 14), Vector2(pids_x + pids_w - 4, pz_y + 14), Color(0.30, 0.85, 0.95), 2.0)
+	draw_line(Vector2(pids_x + 4, pz_y + 23), Vector2(pids_x + pids_w - 8, pz_y + 23), COLOR_RUG_GOLD, 1.8)
+	draw_line(Vector2(pids_x + 4, pz_y + 31), Vector2(pids_x + pids_w - 12, pz_y + 31), COLOR_RUG_GOLD, 1.8)
+	draw_line(Vector2(pids_x + 4, pz_y + 39), Vector2(pids_x + pids_w - 6, pz_y + 39), Color(0.30, 0.85, 0.95), 1.8)
 
 	# ═══════════════════════════════════════════════════════════════════════════
-	# 5. ZONA KESELAMATAN & TEPI REL KERETA (Sisi Kanan: x+220 .. x+300)
+	# 4. KANOPI PAVILION PENEDUH 3D ELEVASI TINGGI (3D Elevated Shelters)
+	# ═══════════════════════════════════════════════════════════════════════════
+	# Paviliun 1: Area Tunggu Atas (y + 255 .. y + 360)
+	var shelter1_rect := Rect2(x + 12.0, y + 255.0, 205.0, 95.0)
+	_draw_elevated_platform_shelter(shelter1_rect)
+
+	# Area Terbuka Tengah (Central Plaza Walkway with Planter & TVM)
+	var mid_y := y + 365.0
+	# Tanaman Pot Besar di Tengah
+	draw_rect(Rect2(x + 48, mid_y + 12, 22, 22), COLOR_ROOM_OCHRE, true)
+	draw_rect(Rect2(x + 48, mid_y + 12, 22, 22), COLOR_PARQUET_DARK, false, 1.5)
+	draw_circle(Vector2(x + 59, mid_y + 23), 14.0, COLOR_TREE_DARK)
+	draw_circle(Vector2(x + 59, mid_y + 23), 9.0, COLOR_TREE_LIGHT)
+
+	# Mesin Tiket Otomatis (TVM Kiosk)
+	var tvm_x := x + 150.0
+	draw_rect(Rect2(tvm_x, mid_y + 10, 18, 28), COLOR_STEEL_LIGHT, true)
+	draw_rect(Rect2(tvm_x, mid_y + 10, 18, 28), COLOR_STEEL_DARK, false, 1.5)
+	draw_rect(Rect2(tvm_x + 2, mid_y + 13, 14, 11), Color(0.20, 0.55, 0.85), true)
+	draw_rect(Rect2(tvm_x + 2, mid_y + 28, 14, 6), COLOR_MED_RED, true)
+
+	# Paviliun 2: Area Tunggu Bawah (y + 420 .. y + 525)
+	var shelter2_rect := Rect2(x + 12.0, y + 420.0, 205.0, 95.0)
+	_draw_elevated_platform_shelter(shelter2_rect)
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 5. AMENITAS UJUNG SELATAN (South Exit & Bins: y + 535 .. y + 610)
+	# ═══════════════════════════════════════════════════════════════════════════
+	var south_y := y + 540.0
+	# Tempat Sampah Terpilah
+	draw_rect(Rect2(x + 24, south_y + 10, 12, 16), Color(0.22, 0.58, 0.28), true) # Hijau
+	draw_rect(Rect2(x + 24, south_y + 10, 12, 16), COLOR_WALL_LINE, false, 1.5)
+	draw_rect(Rect2(x + 42, south_y + 10, 12, 16), Color(0.25, 0.45, 0.75), true) # Biru
+	draw_rect(Rect2(x + 42, south_y + 10, 12, 16), COLOR_WALL_LINE, false, 1.5)
+
+	# Bilik Telepon Stasiun di Ujung Selatan
+	_draw_phone_booth(Rect2(x + 160, south_y, 48, 64))
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 6. ZONA KESELAMATAN & TEPI REL KERETA (Sisi Kanan: x+225 .. x+300)
 	# ═══════════════════════════════════════════════════════════════════════════
 	var track_edge_x := rect.end.x # 2160
 
@@ -917,7 +937,7 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_line(Vector2(rail_x2, y), Vector2(rail_x2, y + rh), COLOR_TRACK_RAIL, 3.5)
 
 	# ═══════════════════════════════════════════════════════════════════════════
-	# 6. BORDER DINDING PEMBATAS BLOK STASIUN
+	# 7. BORDER DINDING PEMBATAS BLOK STASIUN
 	# ═══════════════════════════════════════════════════════════════════════════
 	draw_rect(rect, COLOR_WALL_LINE, false, 3.0)
 
