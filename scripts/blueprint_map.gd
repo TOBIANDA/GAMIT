@@ -722,7 +722,7 @@ func _draw_parking_lot(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR GEDUNG UTAMA STASIUN ATAP SEGITIGA TUNGGAL (Single Top Hip Roof)
+# HELPER GAMBAR GEDUNG UTAMA STASIUN 3/4 TOP-DOWN (3/4 Perspective Station)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_station_building(rect: Rect2) -> void:
 	var bx := rect.position.x
@@ -734,47 +734,74 @@ func _draw_station_building(rect: Rect2) -> void:
 	var shadow_rect := Rect2(bx - 14, by + 12, bw + 6, bh)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
-	# 2. Geometri Atap dengan Segitiga Tunggal di Bagian Atas
-	var hip_offset := 36.0
-	var mid_x := bx + bw * 0.5
-	var r_top := Vector2(mid_x, by + hip_offset)
-	var r_bot := Vector2(mid_x, by + bh)
+	# 2. Dinding Dasar & Fasad Depan (Bagian Bawah: by + 145 .. by + bh)
+	var roof_h := 148.0
+	var facade_y := by + roof_h
+	var facade_h := bh - roof_h
 
-	var p_tl := Vector2(bx, by)
-	var p_tr := Vector2(bx + bw, by)
-	var p_br := Vector2(bx + bw, by + bh)
-	var p_bl := Vector2(bx, by + bh)
+	draw_rect(Rect2(bx, facade_y, bw, facade_h), COLOR_ROOM_STONE_B, true)
+	draw_rect(Rect2(bx, by + bh - 6, bw, 6), COLOR_PARQUET_DARK, true) # Lis plinth bawah
 
-	# A. Segitiga Tunggal di Atas (Menghadap Utara / Jalan)
-	var poly_north := PackedVector2Array([p_tl, p_tr, r_top])
-	draw_colored_polygon(poly_north, Color(0.78, 0.46, 0.30))
+	# Papan Nama Besar Stasiun di Fasad: "STASIUN KOTA"
+	var sign_x := bx + 16.0
+	var sign_w := bw - 32.0
+	var sign_y := facade_y + 10.0
+	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), Color(0.12, 0.25, 0.45), true)
+	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), COLOR_HELIPAD_RING, false, 1.5)
+	draw_line(Vector2(sign_x + 6, sign_y + 10), Vector2(sign_x + sign_w - 6, sign_y + 10), Color(0.95, 0.95, 0.95), 2.0)
 
-	# B. Kemiringan Sisi Barat (Terakota Terang)
-	var poly_west := PackedVector2Array([p_tl, r_top, r_bot, p_bl])
-	draw_colored_polygon(poly_west, Color(0.68, 0.38, 0.24))
+	# Jam Dinding Stasiun Bundar di Fasad
+	var clock_center := Vector2(bx + bw - 20, facade_y + 52)
+	draw_circle(clock_center, 8.5, Color(0.95, 0.95, 0.95))
+	draw_circle(clock_center, 8.5, COLOR_WALL_LINE, false, 1.5)
+	draw_line(clock_center, clock_center + Vector2(0, -5), COLOR_WALL_LINE, 1.5)
+	draw_line(clock_center, clock_center + Vector2(4, 0), COLOR_WALL_LINE, 1.5)
 
-	# C. Kemiringan Sisi Timur (Terakota Gelap / Sisi Bayangan)
-	var poly_east := PackedVector2Array([p_tr, p_br, r_bot, r_top])
-	draw_colored_polygon(poly_east, Color(0.48, 0.24, 0.14))
+	# Pintu Masuk Utama Kaca Geser Ganda (Double Sliding Glass Doors)
+	var door_x := bx + 36.0
+	var door_w := 54.0
+	var door_h := 58.0
+	var door_y := by + bh - door_h
+	draw_rect(Rect2(door_x - 3, door_y - 3, door_w + 6, door_h + 3), COLOR_PARQUET_DARK, true)
+	draw_rect(Rect2(door_x, door_y, door_w, door_h), Color(0.12, 0.14, 0.18), true) # Lorong dalam
+	# Kaca geser biru
+	draw_rect(Rect2(door_x + 3, door_y + 14, door_w * 0.5 - 4, door_h - 16), Color(0.25, 0.42, 0.58), true)
+	draw_rect(Rect2(door_x + door_w * 0.5 + 1, door_y + 14, door_w * 0.5 - 4, door_h - 16), Color(0.25, 0.42, 0.58), true)
+	draw_line(Vector2(door_x + 6, door_y + 20), Vector2(door_x + door_w * 0.5 - 6, door_y + 36), Color(0.85, 0.94, 1.0, 0.70), 1.5)
+	draw_line(Vector2(door_x + door_w * 0.5 + 4, door_y + 20), Vector2(door_x + door_w - 6, door_y + 36), Color(0.85, 0.94, 1.0, 0.70), 1.5)
+	draw_line(Vector2(door_x + door_w * 0.5, door_y), Vector2(door_x + door_w * 0.5, door_y + door_h), COLOR_PARQUET_DARK, 2.0)
 
-	# 3. Garis Lapisan Susunan Genteng (Stepped Tile Seams)
-	for ty in range(int(by + hip_offset + 14), int(by + bh - 10), 22):
-		draw_line(Vector2(bx + 4, ty), Vector2(mid_x - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
-		draw_line(Vector2(mid_x + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
+	# Pintu Kayu Staf / Tiket di Samping Kiri
+	draw_rect(Rect2(bx + 8, door_y + 10, 20, door_h - 10), COLOR_PARQUET_WOOD, true)
+	draw_rect(Rect2(bx + 8, door_y + 10, 20, door_h - 10), COLOR_PARQUET_DARK, false, 1.5)
 
-	# 4. Bubungan Puncak & 2 Garis Rusuk Nok Segitiga Atas
-	draw_line(r_top, r_bot, Color(0.92, 0.80, 0.65), 2.5) # Bubungan tengah ke bawah
-	draw_line(r_top, p_tl, Color(0.90, 0.78, 0.62), 2.2)  # Rusuk miring ke barat laut
-	draw_line(r_top, p_tr, Color(0.68, 0.38, 0.22), 2.0)  # Rusuk miring ke timur laut
+	# Pot Tanaman Hijau di Kiri Pintu Masuk
+	draw_rect(Rect2(door_x - 14, by + bh - 16, 9, 9), COLOR_ROOM_OCHRE, true)
+	draw_circle(Vector2(door_x - 9, by + bh - 18), 7.0, COLOR_TREE_DARK)
+	draw_circle(Vector2(door_x - 9, by + bh - 18), 5.0, COLOR_TREE_LIGHT)
 
-	# 5. Unit Pendingin AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
-	var hvac_rect := Rect2(mid_x - 14, by + 115, 28, 28)
-	draw_rect(Rect2(hvac_rect.position.x - 2, hvac_rect.position.y + 2, 30, 30), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan HVAC
-	draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
-	draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
-	draw_line(Vector2(hvac_rect.position.x + 4, by + 129), Vector2(hvac_rect.end.x - 4, by + 129), COLOR_STEEL_DARK, 1.5)
+	# 3. Atap Lurus Bagian Atas (Straight Pitched Roof: by .. by + roof_h)
+	var slope_w := bw * 0.50
 
-	# 6. Lisplang Luar Keliling Gedung
+	# Kemiringan Sisi Barat (Terakota Terang)
+	draw_rect(Rect2(bx, by, slope_w, roof_h), Color(0.68, 0.38, 0.24), true)
+
+	# Kemiringan Sisi Timur (Terakota Gelap / Sisi Bayangan)
+	draw_rect(Rect2(bx + slope_w, by, slope_w, roof_h), Color(0.48, 0.24, 0.14), true)
+
+	# Garis Lapisan Susunan Genteng (Stepped Tile Seams)
+	for ty in range(int(by) + 20, int(by + roof_h) - 10, 22):
+		draw_line(Vector2(bx + 4, ty), Vector2(bx + slope_w - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
+		draw_line(Vector2(bx + slope_w + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
+
+	# Bubungan Puncak Utama Lurus (Center Ridge Line)
+	draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + roof_h), Color(0.92, 0.80, 0.65), 2.5)
+
+	# Lisplang Tepi Bawah Atap & Bayangan Overhang ke Dinding Fasad
+	draw_line(Vector2(bx, by + roof_h), Vector2(bx + bw, by + roof_h), COLOR_WALL_LINE, 2.5)
+	draw_rect(Rect2(bx, by + roof_h, bw, 6), Color(0.08, 0.09, 0.12, 0.35), true)
+
+	# 4. Lisplang Luar Keliling Gedung
 	draw_rect(rect, COLOR_WALL_LINE, false, 2.5)
 
 
