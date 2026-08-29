@@ -338,34 +338,29 @@ class RoofOverlayNode extends Node2D:
 		if not is_instance_valid(map):
 			return
 
-		# ── 1. Atap 11 Rumah Atas (hanya bagian atap, bukan dinding depan) ──
+		# ── 1. Atap 11 Rumah Atas ──────────────────────────────────────────────
+		# Hanya 72% atas (genteng) yang menutupi karakter.
+		# 28% bawah (dinding depan/jendela) TIDAK digambar di sini supaya
+		# karakter yang berdiri di depan rumah TIDAK tertutup.
 		for i in range(11):
 			var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
 			var h_tex: Texture2D = map.tex_rumah_mc if i == 6 else map.tex_rumah_depan
 			_draw_house_roof(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116))
 
-		# ── 2. Atap 3 Rumah Tenggara (hanya bagian atap) ──
+		# ── 2. Atap 3 Rumah Tenggara ───────────────────────────────────────────
 		for hy in [705.0, 880.0, 1055.0]:
 			_draw_house_roof(map.tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116))
 
-		# ── 3. Rumah Belakang & Samping (hanya bagian atap) ──
+		# ── 3. Rumah Belakang & Samping ────────────────────────────────────────
 		_draw_house_roof(map.tex_rumah_belakang, Rect2(1180, 745, 220, 175))
 		_draw_house_roof(map.tex_rumah_samping, Rect2(1650, 335, 340, 205))
 
-		# ── 4. Gedung besar FULL COVER (solid top-down: Police, RS, Stasiun, Kanopi) ──
-		var pol_sk = 1.0 if (map.polisi_skala == null or map.polisi_skala <= 0.0) else float(map.polisi_skala)
-		var pol_w = (map.polisi_lebar if (map.polisi_lebar != null and map.polisi_lebar > 0.0) else 341.0) * pol_sk
-		var pol_h = (map.polisi_tinggi if (map.polisi_tinggi != null and map.polisi_tinggi > 0.0) else 350.0) * pol_sk
-		if map.tex_police != null:
-			draw_texture_rect(map.tex_police, Rect2(8 + (map.polisi_geser_x if map.polisi_geser_x != null else 0.0), 955 + (map.polisi_geser_y if map.polisi_geser_y != null else 0.0), pol_w, pol_h), false)
-
-		var r_sk = 1.0 if (map.rs_skala == null or map.rs_skala <= 0.0) else float(map.rs_skala)
-		var r_w = (map.rs_lebar if (map.rs_lebar != null and map.rs_lebar > 0.0) else 585.0) * r_sk
-		var r_h = (map.rs_tinggi if (map.rs_tinggi != null and map.rs_tinggi > 0.0) else 300.0) * r_sk
-		if map.tex_hospital != null:
-			draw_texture_rect(map.tex_hospital, Rect2(465 + 4 + (map.rs_geser_x if map.rs_geser_x != null else 0.0), 945 + 4 + (map.rs_geser_y if map.rs_geser_y != null else 0.0), r_w - 8, r_h - 8), false)
-
-		# ── 5. Gedung Stasiun & Kanopi (full cover: penumpang di bawah kanopi) ──
+		# ── 4. Kanopi Peron Stasiun (FULL COVER) ──────────────────────────────
+		# Kanopi peron adalah struktur yang pemain BERJALAN DI BAWAHNYA,
+		# jadi full cover di overlay sudah benar.
+		# Gedung polisi & RS TIDAK dimasukkan di sini karena:
+		#   a) Sudah digambar di base layer (tidak perlu double-draw)
+		#   b) Ada collider solid → pemain tidak bisa berjalan di baliknya
 		var p1_x := 1860.0 + 125.0
 		var warn1_x := 2140.0
 		var b_w := 142.0
@@ -383,6 +378,7 @@ class RoofOverlayNode extends Node2D:
 		var c2_x := 2280.0 + 38.0
 		var c2_y := 690.0 + 25.0
 		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
+
 
 func _setup_roof_overlay() -> void:
 	if is_instance_valid(roof_overlay_node):
