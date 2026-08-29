@@ -332,7 +332,7 @@ class RoofOverlayNode extends Node2D:
 		var roof_h_px := dest.size.y * ROOF_RATIO
 		var tex_size := tex.get_size()
 		var src := Rect2(0.0, 0.0, tex_size.x, tex_size.y * ROOF_RATIO)
-		draw_texture_rect_region(tex, Rect2(dest.position, Vector2(dest.size.x, roof_h_px)), src, false)
+		draw_texture_rect_region(tex, Rect2(dest.position, Vector2(dest.size.x, roof_h_px)), src, Color.WHITE)
 
 	func _draw() -> void:
 		if not is_instance_valid(map):
