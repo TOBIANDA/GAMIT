@@ -722,7 +722,7 @@ func _draw_parking_lot(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR KANOPI PENEDUH VERTIKAL 3D (Vertical 3D Elevated Canopy)
+# HELPER GAMBAR KANOPI PENEDUH VERTIKAL TAMPAK ATAS 3D (Clean Top-Down Canopy)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_vertical_canopy(rect: Rect2) -> void:
 	var cx := rect.position.x
@@ -730,47 +730,33 @@ func _draw_vertical_canopy(rect: Rect2) -> void:
 	var cw := rect.size.x   # e.g. 70
 	var ch := rect.size.y   # e.g. 550
 
-	# 1. Bayangan Jatuh Atap (Elevated Drop Shadow 14px ke Kiri)
-	var shadow_rect := Rect2(cx - 14, cy + 12, cw + 8, ch)
+	# 1. Bayangan Jatuh Atap ke Lantai (Elevated Drop Shadow 14px ke Kiri-Bawah)
+	# Memberikan efek ketinggian melayang nyata di atas peron
+	var shadow_rect := Rect2(cx - 14, cy + 10, cw + 8, ch)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
-	# 2. Tiang Kolom Baja Silinder Menjulang dari Lantai
-	for pi in range(6):
-		var py_pos := cy + 30.0 + pi * (ch - 60.0) / 5.0
-		var col_pt := Vector2(cx + cw * 0.5, py_pos)
-		# Base plate tiang
-		draw_circle(col_pt + Vector2(-3, 3), 6.0, Color(0.08, 0.09, 0.12, 0.40))
-		draw_rect(Rect2(col_pt.x - 6, col_pt.y - 6, 12, 12), Color(0.24, 0.25, 0.28), true)
-		draw_circle(col_pt, 5.0, COLOR_STEEL_DARK)
-		draw_circle(col_pt, 3.0, COLOR_STEEL_LIGHT)
+	# 2. Struktur Atap Kanopi Bersih Tampak Atas (Clean Pitched Roof)
+	# A. Lisplang Bawah / Underside Bevel
+	draw_rect(Rect2(cx - 2, cy - 2, cw + 4, ch + 4), Color(0.18, 0.17, 0.16), true)
 
-	# 3. Struktur Atap Kanopi 3D Memanjang Vertikal
-	# A. Lisplang Bawah / Underside
-	draw_rect(Rect2(cx - 2, cy - 2, cw + 4, ch + 4), Color(0.16, 0.17, 0.20), true)
-
-	# B. Kemiringan Sisi Barat (Terpapar Sinar Matahari)
+	# B. Kemiringan Sisi Barat (Terpapar Sinar Matahari - Warna Slate Terang)
 	var slope_w := cw * 0.50
-	draw_rect(Rect2(cx, cy, slope_w, ch), Color(0.50, 0.47, 0.44), true)
+	draw_rect(Rect2(cx, cy, slope_w, ch), Color(0.54, 0.51, 0.47), true)
 
-	# C. Kemiringan Sisi Timur (Sisi Bayangan)
-	draw_rect(Rect2(cx + slope_w, cy, slope_w, ch), Color(0.32, 0.30, 0.28), true)
+	# C. Kemiringan Sisi Timur (Sisi Bayangan - Warna Slate Gelap)
+	draw_rect(Rect2(cx + slope_w, cy, slope_w, ch), Color(0.35, 0.33, 0.30), true)
 
-	# D. Bubungan Tengah Atap (Center Ridge Highlight)
-	draw_line(Vector2(cx + slope_w, cy), Vector2(cx + slope_w, cy + ch), Color(0.80, 0.77, 0.74), 2.5)
+	# D. Bubungan Puncak Atap Tengah (Center Ridge Line dengan Kilau Cahaya)
+	draw_line(Vector2(cx + slope_w, cy), Vector2(cx + slope_w, cy + ch), Color(0.88, 0.86, 0.84), 2.5)
 
-	# E. Garis-Garis Panel Seng Gelombang / Standing Seams
-	for py_pos in range(int(cy) + 12, int(cy + ch), 14):
-		draw_line(Vector2(cx + 2, py_pos), Vector2(cx + slope_w - 1, py_pos), Color(0.40, 0.37, 0.34), 1.2)
-		draw_line(Vector2(cx + slope_w + 1, py_pos), Vector2(cx + cw - 2, py_pos), Color(0.22, 0.20, 0.18), 1.2)
+	# E. Garis-Garis Panel Sambungan Seng Gelombang / Standing Seams Minimalis
+	for py_pos in range(int(cy) + 20, int(cy + ch), 24):
+		draw_line(Vector2(cx + 2, py_pos), Vector2(cx + slope_w - 1, py_pos), Color(0.44, 0.41, 0.38), 1.2)
+		draw_line(Vector2(cx + slope_w + 1, py_pos), Vector2(cx + cw - 2, py_pos), Color(0.24, 0.22, 0.20), 1.2)
 
-	# F. Lisplang Tepi Atap 3D
-	draw_rect(Rect2(cx, cy, cw, ch), Color(0.14, 0.13, 0.12), false, 2.0)
-
-	# G. Lampu-Lampu Gantung Stasiun di Bawah Atap
-	for pi in range(5):
-		var py_pos := cy + 50.0 + pi * (ch - 100.0) / 4.0
-		draw_circle(Vector2(cx + slope_w, py_pos), 4.5, Color(0.98, 0.90, 0.40))
-		draw_circle(Vector2(cx + slope_w, py_pos), 2.5, Color(1.0, 1.0, 0.90))
+	# F. Lisplang Tepi Luar Atap & Talang Air
+	draw_rect(Rect2(cx, cy, cw, ch), Color(0.12, 0.11, 0.10), false, 2.0)
+	draw_line(Vector2(cx, cy), Vector2(cx, cy + ch), Color(0.70, 0.67, 0.64), 1.5) # Bevel kiri
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -799,43 +785,6 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_rect(p1_rect, COLOR_ROOM_STONE_A, true)
 	_draw_tile_pattern(p1_rect, COLOR_PLAZA_TILE_LINE)
 
-	# Kanopi Peneduh Vertikal Peron 1
-	_draw_vertical_canopy(Rect2(p1_x + 14, y + 25, 75, rh - 50))
-
-	# Papan Nama Besar: "STASIUN KOTA - PERON 1" (Utara)
-	var sign1_x := p1_x + 20.0
-	var sign1_y := y + 35.0
-	draw_rect(Rect2(sign1_x, sign1_y, 65, 20), Color(0.12, 0.25, 0.45), true)
-	draw_rect(Rect2(sign1_x, sign1_y, 65, 20), COLOR_HELIPAD_RING, false, 1.5)
-	draw_line(Vector2(sign1_x + 4, sign1_y + 10), Vector2(sign1_x + 61, sign1_y + 10), Color(0.95, 0.95, 0.95), 2.0)
-
-	# Papan Jadwal Digital LED (PIDS Screen)
-	var pids1_y := y + 140.0
-	draw_rect(Rect2(sign1_x, pids1_y, 65, 28), Color(0.08, 0.10, 0.14), true)
-	draw_rect(Rect2(sign1_x, pids1_y, 65, 28), Color(0.25, 0.45, 0.70), false, 1.5)
-	draw_line(Vector2(sign1_x + 4, pids1_y + 8), Vector2(sign1_x + 61, pids1_y + 8), Color(0.30, 0.85, 0.95), 1.8)
-	draw_line(Vector2(sign1_x + 4, pids1_y + 16), Vector2(sign1_x + 55, pids1_y + 16), COLOR_RUG_GOLD, 1.5)
-	draw_line(Vector2(sign1_x + 4, pids1_y + 22), Vector2(sign1_x + 48, pids1_y + 22), COLOR_RUG_GOLD, 1.5)
-
-	# Bangku Tunggu Kayu & Penumpang di Bawah Kanopi Peron 1
-	var bench_spots_p1 := [y + 220.0, y + 320.0, y + 420.0]
-	for by_pos in bench_spots_p1:
-		_draw_station_bench(Vector2(p1_x + 26, by_pos), 50.0, 18.0)
-		# Penumpang mini
-		draw_circle(Vector2(p1_x + 51, by_pos + 8), 4.5, Color(0.85, 0.65, 0.45))
-		draw_circle(Vector2(p1_x + 51, by_pos + 6), 4.5, COLOR_PARQUET_DARK)
-		draw_rect(Rect2(p1_x + 47, by_pos + 10, 8, 7), Color(0.25, 0.45, 0.75), true)
-
-	# Vending Machine Minuman Merah di Peron 1
-	draw_rect(Rect2(p1_x + 28, y + 480, 24, 38), COLOR_MED_RED, true)
-	draw_rect(Rect2(p1_x + 28, y + 480, 24, 38), Color(0.18, 0.12, 0.12), false, 1.5)
-	draw_rect(Rect2(p1_x + 31, y + 484, 18, 16), Color(0.10, 0.12, 0.16), true)
-
-	# Bilik Telepon Stasiun & Tempat Sampah di Selatan
-	_draw_phone_booth(Rect2(p1_x + 20, y + 545, 42, 60))
-	draw_rect(Rect2(p1_x + 70, y + 555, 10, 14), Color(0.22, 0.58, 0.28), true) # Hijau
-	draw_rect(Rect2(p1_x + 70, y + 555, 10, 14), COLOR_WALL_LINE, false, 1.5)
-
 	# Garis Kuning Pemandu / Tactile Warning Strip Peron 1 (Tepat di Tepi Rel x=2138..2160)
 	var warn_w := 22.0
 	var warn1_x := rect.end.x - warn_w # 2138
@@ -844,6 +793,23 @@ func _draw_train_station(rect: Rect2) -> void:
 		draw_circle(Vector2(warn1_x + 5, ty), 1.4, Color(0.70, 0.58, 0.12))
 		draw_circle(Vector2(warn1_x + 16, ty), 1.4, Color(0.70, 0.58, 0.12))
 	draw_line(Vector2(rect.end.x, y), Vector2(rect.end.x, y + rh), COLOR_WALL_LINE, 3.0)
+
+	# Fasilitas Lantai di Ujung Selatan Peron 1 (Bilik Telepon & Tempat Sampah)
+	_draw_phone_booth(Rect2(p1_x + 15, y + rh - 68, 42, 58))
+	draw_rect(Rect2(p1_x + 65, y + rh - 40, 10, 14), Color(0.22, 0.58, 0.28), true) # Hijau
+	draw_rect(Rect2(p1_x + 65, y + rh - 40, 10, 14), COLOR_WALL_LINE, false, 1.5)
+	draw_rect(Rect2(p1_x + 80, y + rh - 40, 10, 14), Color(0.25, 0.45, 0.75), true) # Biru
+	draw_rect(Rect2(p1_x + 80, y + rh - 40, 10, 14), COLOR_WALL_LINE, false, 1.5)
+
+	# Kanopi Peneduh Vertikal Bersih Tampak Atas (Peron 1)
+	_draw_vertical_canopy(Rect2(p1_x + 18, y + 25, 78, rh - 110))
+
+	# Papan Nama Elegan di Ujung Atap: "PERON 1" (Utara)
+	var sign1_x := p1_x + 24.0
+	var sign1_y := y + 32.0
+	draw_rect(Rect2(sign1_x, sign1_y, 66, 18), Color(0.12, 0.25, 0.45), true)
+	draw_rect(Rect2(sign1_x, sign1_y, 66, 18), COLOR_HELIPAD_RING, false, 1.5)
+	draw_line(Vector2(sign1_x + 6, sign1_y + 9), Vector2(sign1_x + 60, sign1_y + 9), Color(0.95, 0.95, 0.95), 2.0)
 
 	# ─────────────────────────────────────────────────────────────────────────
 	# 3. PERON 2 TIMUR (Seberang Rel Kereta: x = 2280 .. 2420)
@@ -863,21 +829,14 @@ func _draw_train_station(rect: Rect2) -> void:
 		draw_circle(Vector2(p2_x + 16, ty), 1.4, Color(0.70, 0.58, 0.12))
 	draw_line(Vector2(p2_x, y), Vector2(p2_x, y + rh), COLOR_WALL_LINE, 3.0)
 
-	# Kanopi Peneduh Vertikal Peron 2
-	_draw_vertical_canopy(Rect2(p2_x + 40, y + 25, 65, rh - 50))
+	# Kanopi Peneduh Vertikal Bersih Tampak Atas (Peron 2)
+	_draw_vertical_canopy(Rect2(p2_x + 38, y + 25, 68, rh - 50))
 
-	# Papan Nama "PERON 2 - JALUR TIMUR"
-	var sign2_x := p2_x + 45.0
-	draw_rect(Rect2(sign2_x, sign1_y, 55, 20), Color(0.12, 0.25, 0.45), true)
-	draw_rect(Rect2(sign2_x, sign1_y, 55, 20), COLOR_HELIPAD_RING, false, 1.5)
-	draw_line(Vector2(sign2_x + 4, sign1_y + 10), Vector2(sign2_x + 51, sign1_y + 10), Color(0.95, 0.95, 0.95), 2.0)
-
-	# Bangku Tunggu Kayu & Tempat Sampah di Peron 2
-	for by_pos in [y + 180.0, y + 320.0, y + 460.0]:
-		_draw_station_bench(Vector2(p2_x + 48, by_pos), 48.0, 18.0)
-		draw_circle(Vector2(p2_x + 72, by_pos + 8), 4.5, Color(0.85, 0.65, 0.45))
-		draw_circle(Vector2(p2_x + 72, by_pos + 6), 4.5, COLOR_PARQUET_DARK)
-		draw_rect(Rect2(p2_x + 68, by_pos + 10, 8, 7), Color(0.75, 0.25, 0.35), true) # Baju merah
+	# Papan Nama "PERON 2" di Ujung Atap
+	var sign2_x := p2_x + 44.0
+	draw_rect(Rect2(sign2_x, sign1_y, 56, 18), Color(0.12, 0.25, 0.45), true)
+	draw_rect(Rect2(sign2_x, sign1_y, 56, 18), COLOR_HELIPAD_RING, false, 1.5)
+	draw_line(Vector2(sign2_x + 5, sign1_y + 9), Vector2(sign2_x + 51, sign1_y + 9), Color(0.95, 0.95, 0.95), 2.0)
 
 	# Pagar Pembatas Ujung Timur Stasiun
 	draw_line(Vector2(p2_x + p2_w, y), Vector2(p2_x + p2_w, y + rh), COLOR_WALL_LINE, 3.5)
@@ -894,6 +853,12 @@ func _draw_train_station(rect: Rect2) -> void:
 	# Strip kuning penyeberangan
 	draw_line(Vector2(2138, cross_y), Vector2(2302, cross_y), COLOR_HELIPAD_RING, 3.0)
 	draw_line(Vector2(2138, cross_y + cross_h), Vector2(2302, cross_y + cross_h), COLOR_HELIPAD_RING, 3.0)
+
+	# Rel baja abu-abu vertikal tetap tampak jelas & tembus memotong jalan penyeberangan kayu
+	draw_line(Vector2(2185, cross_y), Vector2(2185, cross_y + cross_h), COLOR_TRACK_RAIL, 4.5)
+	draw_line(Vector2(2185, cross_y), Vector2(2185, cross_y + cross_h), Color(0.85, 0.90, 0.98), 1.5) # Kilau baja
+	draw_line(Vector2(2255, cross_y), Vector2(2255, cross_y + cross_h), COLOR_TRACK_RAIL, 4.5)
+	draw_line(Vector2(2255, cross_y), Vector2(2255, cross_y + cross_h), Color(0.85, 0.90, 0.98), 1.5) # Kilau baja
 
 	# Lampu Sinyal Penyeberangan Peron (Platform Crossing Signal Light)
 	draw_circle(Vector2(2145, cross_y - 10), 5.0, COLOR_STEEL_DARK)
