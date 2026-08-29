@@ -267,10 +267,10 @@ var player_cached: CharacterBody2D = null
 func _ready() -> void:
 	z_index = -1
 	_load_textures()
+	_setup_roof_overlay()  # Dipanggil selalu agar preview editor & in-game sama
 	if not Engine.is_editor_hint():
 		_build_all_colliders()
 		_setup_navigation_region()
-		_setup_roof_overlay()
 		_spawn_interactive_cars()
 	queue_redraw()
 
@@ -321,29 +321,38 @@ func _process(delta: float) -> void:
 class RoofOverlayNode extends Node2D:
 	var map: Node2D = null
 
+	# Rasio area atap (bagian atas) vs dinding depan pada perspektif 3/4 top-down.
+	# Karakter di depan rumah TIDAK tertutup — hanya yang di belakang/di bawah atap.
+	const ROOF_RATIO := 0.72  # 72% atas = atap, 28% bawah = dinding depan (tidak menutup karakter depan)
+
+	func _draw_house_roof(tex: Texture2D, dest: Rect2) -> void:
+		if tex == null:
+			return
+		# Hanya gambar bagian atas (atap) dari tekstur, bukan seluruh tinggi
+		var roof_h_px := dest.size.y * ROOF_RATIO
+		var tex_size := tex.get_size()
+		var src := Rect2(0.0, 0.0, tex_size.x, tex_size.y * ROOF_RATIO)
+		draw_texture_rect_region(tex, Rect2(dest.position, Vector2(dest.size.x, roof_h_px)), src, false)
+
 	func _draw() -> void:
 		if not is_instance_valid(map):
 			return
-		
-		# 1. Atap 11 Rumah Atas
+
+		# ── 1. Atap 11 Rumah Atas (hanya bagian atap, bukan dinding depan) ──
 		for i in range(11):
 			var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
-			var h_tex = map.tex_rumah_mc if i == 6 else map.tex_rumah_depan
-			if h_tex != null:
-				draw_texture_rect(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116), false)
+			var h_tex: Texture2D = map.tex_rumah_mc if i == 6 else map.tex_rumah_depan
+			_draw_house_roof(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116))
 
-		# 2. Atap 3 Rumah Tenggara
+		# ── 2. Atap 3 Rumah Tenggara (hanya bagian atap) ──
 		for hy in [705.0, 880.0, 1055.0]:
-			if map.tex_rumah_depan != null:
-				draw_texture_rect(map.tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116), false)
+			_draw_house_roof(map.tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116))
 
-		# 3. Rumah Belakang & Samping
-		if map.tex_rumah_belakang != null:
-			draw_texture_rect(map.tex_rumah_belakang, Rect2(1180, 745, 220, 175), false)
-		if map.tex_rumah_samping != null:
-			draw_texture_rect(map.tex_rumah_samping, Rect2(1650, 335, 340, 205), false)
+		# ── 3. Rumah Belakang & Samping (hanya bagian atap) ──
+		_draw_house_roof(map.tex_rumah_belakang, Rect2(1180, 745, 220, 175))
+		_draw_house_roof(map.tex_rumah_samping, Rect2(1650, 335, 340, 205))
 
-		# 4. Gedung Kantor Polisi & Rumah Sakit
+		# ── 4. Gedung besar FULL COVER (solid top-down: Police, RS, Stasiun, Kanopi) ──
 		var pol_sk = 1.0 if (map.polisi_skala == null or map.polisi_skala <= 0.0) else float(map.polisi_skala)
 		var pol_w = (map.polisi_lebar if (map.polisi_lebar != null and map.polisi_lebar > 0.0) else 341.0) * pol_sk
 		var pol_h = (map.polisi_tinggi if (map.polisi_tinggi != null and map.polisi_tinggi > 0.0) else 350.0) * pol_sk
@@ -356,7 +365,7 @@ class RoofOverlayNode extends Node2D:
 		if map.tex_hospital != null:
 			draw_texture_rect(map.tex_hospital, Rect2(465 + 4 + (map.rs_geser_x if map.rs_geser_x != null else 0.0), 945 + 4 + (map.rs_geser_y if map.rs_geser_y != null else 0.0), r_w - 8, r_h - 8), false)
 
-		# 5. Gedung Stasiun & Kanopi Stasiun
+		# ── 5. Gedung Stasiun & Kanopi (full cover: penumpang di bawah kanopi) ──
 		var p1_x := 1860.0 + 125.0
 		var warn1_x := 2140.0
 		var b_w := 142.0
