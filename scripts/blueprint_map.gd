@@ -722,65 +722,20 @@ func _draw_parking_lot(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR GEDUNG UTAMA STASIUN 3/4 TOP-DOWN (3/4 Perspective Station)
+# HELPER GAMBAR GEDUNG UTAMA STASIUN TAMPAK ATAS (True Top-Down Station)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_station_building(rect: Rect2) -> void:
 	var bx := rect.position.x
 	var by := rect.position.y
 	var bw := rect.size.x   # e.g. 142
-	var bh := rect.size.y   # e.g. 275
+	var bh := rect.size.y   # e.g. 240
 
 	# 1. Bayangan Jatuh Gedung ke Lantai (Elevated Drop Shadow 14px ke Kiri)
 	var shadow_rect := Rect2(bx - 14, by + 12, bw + 6, bh)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
-	# 2. Dinding Dasar & Fasad Depan (Bagian Bawah: by + 145 .. by + bh)
-	var roof_h := 148.0
-	var facade_y := by + roof_h
-	var facade_h := bh - roof_h
-
-	draw_rect(Rect2(bx, facade_y, bw, facade_h), COLOR_ROOM_STONE_B, true)
-	draw_rect(Rect2(bx, by + bh - 6, bw, 6), COLOR_PARQUET_DARK, true) # Lis plinth bawah
-
-	# Papan Nama Besar Stasiun di Fasad: "STASIUN KOTA"
-	var sign_x := bx + 16.0
-	var sign_w := bw - 32.0
-	var sign_y := facade_y + 10.0
-	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), Color(0.12, 0.25, 0.45), true)
-	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), COLOR_HELIPAD_RING, false, 1.5)
-	draw_line(Vector2(sign_x + 6, sign_y + 10), Vector2(sign_x + sign_w - 6, sign_y + 10), Color(0.95, 0.95, 0.95), 2.0)
-
-	# Jam Dinding Stasiun Bundar di Fasad
-	var clock_center := Vector2(bx + bw - 20, facade_y + 52)
-	draw_circle(clock_center, 8.5, Color(0.95, 0.95, 0.95))
-	draw_circle(clock_center, 8.5, COLOR_WALL_LINE, false, 1.5)
-	draw_line(clock_center, clock_center + Vector2(0, -5), COLOR_WALL_LINE, 1.5)
-	draw_line(clock_center, clock_center + Vector2(4, 0), COLOR_WALL_LINE, 1.5)
-
-	# Pintu Masuk Utama Kaca Geser Ganda (Double Sliding Glass Doors)
-	var door_x := bx + 36.0
-	var door_w := 54.0
-	var door_h := 58.0
-	var door_y := by + bh - door_h
-	draw_rect(Rect2(door_x - 3, door_y - 3, door_w + 6, door_h + 3), COLOR_PARQUET_DARK, true)
-	draw_rect(Rect2(door_x, door_y, door_w, door_h), Color(0.12, 0.14, 0.18), true) # Lorong dalam
-	# Kaca geser biru
-	draw_rect(Rect2(door_x + 3, door_y + 14, door_w * 0.5 - 4, door_h - 16), Color(0.25, 0.42, 0.58), true)
-	draw_rect(Rect2(door_x + door_w * 0.5 + 1, door_y + 14, door_w * 0.5 - 4, door_h - 16), Color(0.25, 0.42, 0.58), true)
-	draw_line(Vector2(door_x + 6, door_y + 20), Vector2(door_x + door_w * 0.5 - 6, door_y + 36), Color(0.85, 0.94, 1.0, 0.70), 1.5)
-	draw_line(Vector2(door_x + door_w * 0.5 + 4, door_y + 20), Vector2(door_x + door_w - 6, door_y + 36), Color(0.85, 0.94, 1.0, 0.70), 1.5)
-	draw_line(Vector2(door_x + door_w * 0.5, door_y), Vector2(door_x + door_w * 0.5, door_y + door_h), COLOR_PARQUET_DARK, 2.0)
-
-	# Pintu Kayu Staf / Tiket di Samping Kiri
-	draw_rect(Rect2(bx + 8, door_y + 10, 20, door_h - 10), COLOR_PARQUET_WOOD, true)
-	draw_rect(Rect2(bx + 8, door_y + 10, 20, door_h - 10), COLOR_PARQUET_DARK, false, 1.5)
-
-	# Pot Tanaman Hijau di Kiri Pintu Masuk
-	draw_rect(Rect2(door_x - 14, by + bh - 16, 9, 9), COLOR_ROOM_OCHRE, true)
-	draw_circle(Vector2(door_x - 9, by + bh - 18), 7.0, COLOR_TREE_DARK)
-	draw_circle(Vector2(door_x - 9, by + bh - 18), 5.0, COLOR_TREE_LIGHT)
-
-	# 3. Atap Lurus Bagian Atas (Straight Pitched Roof: by .. by + roof_h)
+	# 2. Atap Utama Mendominasi Tampak Atas (Roof: ~90% dari tinggi gedung)
+	var roof_h := bh - 26.0 # Atap memenuhi hampir seluruh luas tampak atas
 	var slope_w := bw * 0.50
 
 	# Kemiringan Sisi Barat (Terakota Terang)
@@ -790,16 +745,34 @@ func _draw_station_building(rect: Rect2) -> void:
 	draw_rect(Rect2(bx + slope_w, by, slope_w, roof_h), Color(0.48, 0.24, 0.14), true)
 
 	# Garis Lapisan Susunan Genteng (Stepped Tile Seams)
-	for ty in range(int(by) + 20, int(by + roof_h) - 10, 22):
+	for ty in range(int(by) + 18, int(by + roof_h) - 8, 22):
 		draw_line(Vector2(bx + 4, ty), Vector2(bx + slope_w - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
 		draw_line(Vector2(bx + slope_w + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
 
 	# Bubungan Puncak Utama Lurus (Center Ridge Line)
 	draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + roof_h), Color(0.92, 0.80, 0.65), 2.5)
 
-	# Lisplang Tepi Bawah Atap & Bayangan Overhang ke Dinding Fasad
-	draw_line(Vector2(bx, by + roof_h), Vector2(bx + bw, by + roof_h), COLOR_WALL_LINE, 2.5)
-	draw_rect(Rect2(bx, by + roof_h, bw, 6), Color(0.08, 0.09, 0.12, 0.35), true)
+	# Unit Pendingin AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
+	var hvac_rect := Rect2(bx + slope_w - 14, by + roof_h * 0.45, 28, 28)
+	draw_rect(Rect2(hvac_rect.position.x - 2, hvac_rect.position.y + 2, 30, 30), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan HVAC
+	draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
+	draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
+	draw_line(Vector2(hvac_rect.position.x + 4, by + roof_h * 0.45 + 14), Vector2(hvac_rect.end.x - 4, by + roof_h * 0.45 + 14), COLOR_STEEL_DARK, 1.5)
+
+	# 3. Kanopi Serambi & Pintu Masuk Bawah yang Proporsional (Hanya 26px di bagian bawah)
+	var portico_y := by + roof_h
+	draw_rect(Rect2(bx, portico_y, bw, 26), COLOR_ROOM_STONE_B, true)
+	# Bayangan overhanging atap ke serambi
+	draw_rect(Rect2(bx, portico_y, bw, 5), Color(0.08, 0.09, 0.12, 0.35), true)
+	draw_line(Vector2(bx, portico_y), Vector2(bx + bw, portico_y), COLOR_WALL_LINE, 2.0)
+
+	# Pintu Masuk Stasiun Proporsional Tampak Atas
+	var door_x := bx + bw * 0.5 - 24.0
+	var door_w := 48.0
+	var door_y := portico_y + 6.0
+	draw_rect(Rect2(door_x, door_y, door_w, 20), Color(0.12, 0.14, 0.18), true) # Pintu masuk
+	draw_rect(Rect2(door_x + 2, door_y + 2, door_w * 0.5 - 3, 16), Color(0.25, 0.42, 0.58), true)
+	draw_rect(Rect2(door_x + door_w * 0.5 + 1, door_y + 2, door_w * 0.5 - 3, 16), Color(0.25, 0.42, 0.58), true)
 
 	# 4. Lisplang Luar Keliling Gedung
 	draw_rect(rect, COLOR_WALL_LINE, false, 2.5)
@@ -818,7 +791,7 @@ func _draw_vertical_canopy(rect: Rect2) -> void:
 	var shadow_rect := Rect2(cx - 12, cy + 10, cw + 6, ch)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.35), true)
 
-	# 2. Struktur Atap Bersih 2-Tone (Lurus Tanpa Segitiga Penutup Atas)
+	# 2. Struktur Atap Bersih 2-Tone (Lurus Murni Tampak Atas)
 	var slope_w := cw * 0.50
 
 	# Kemiringan Sisi Barat (Terang)
@@ -867,20 +840,20 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_line(Vector2(warn1_x, y), Vector2(warn1_x, y + rh), COLOR_WALL_LINE, 1.5)
 	draw_line(Vector2(rect.end.x, y), Vector2(rect.end.x, y + rh), COLOR_WALL_LINE, 3.0)
 
-	# GEDUNG UTAMA STASIUN (Di Bagian Atas: y = 690 .. 965)
+	# GEDUNG UTAMA STASIUN (Di Bagian Atas: y = 690 .. 935)
 	var b_w := 142.0
-	var b_h := 275.0
+	var b_h := 245.0
 	_draw_station_building(Rect2(p1_x + 6, y + 8, b_w, b_h))
 
-	# KANOPI PERON SELATAN (Area Terbuka / Perpanjangan Peron: y = 990 .. 1280)
-	var c1_y := y + b_h + 20.0 # ~985
-	var c1_h := rh - b_h - 40.0 # ~306
+	# KANOPI PERON SELATAN (Area Terbuka / Perpanjangan Peron: y = 960 .. 1280)
+	var c1_y := y + b_h + 20.0 # ~955
+	var c1_h := rh - b_h - 40.0 # ~336
 	var c1_w := 68.0
 	var c1_x := warn1_x - c1_w - 16.0 # 2056
 	_draw_vertical_canopy(Rect2(c1_x, c1_y, c1_w, c1_h))
 
 	# Bangku Tunggu Kayu di Bawah Kanopi Selatan
-	_draw_station_bench(Vector2(p1_x + 14, y + b_h + 60), 46.0, 18.0)
+	_draw_station_bench(Vector2(p1_x + 14, y + b_h + 50), 46.0, 18.0)
 
 	# Fasilitas di Lantai Selatan (Bilik Telepon & Tempat Sampah)
 	_draw_phone_booth(Rect2(p1_x + 12, y + rh - 72, 42, 60))
