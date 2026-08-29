@@ -722,7 +722,7 @@ func _draw_parking_lot(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR GEDUNG UTAMA STASIUN MURNI TAMPAK ATAS (Pure Top-Down Station)
+# HELPER GAMBAR GEDUNG UTAMA STASIUN ATAP PERISAI 3D (3D Hipped Station Roof)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_station_building(rect: Rect2) -> void:
 	var bx := rect.position.x
@@ -730,28 +730,58 @@ func _draw_station_building(rect: Rect2) -> void:
 	var bw := rect.size.x   # e.g. 142
 	var bh := rect.size.y   # e.g. 275
 
-	# 1. Bayangan Jatuh Gedung ke Tanah (Elevated Drop Shadow 14px ke Kiri)
+	# 1. Bayangan Jatuh Gedung ke Lantai (Elevated Drop Shadow 14px ke Kiri)
 	var shadow_rect := Rect2(bx - 14, by + 12, bw + 6, bh)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
-	# 2. Atap Utama Gedung Utuh Murni Tampak Atas (Pitched Roof)
-	var slope_w := bw * 0.50
+	# 2. Geometri Atap Perisai 3D (4 Kemiringan Sisi: Utara, Barat, Timur, Selatan)
+	var hip_offset := 38.0
+	var mid_x := bx + bw * 0.5
+	var r_top := Vector2(mid_x, by + hip_offset)
+	var r_bot := Vector2(mid_x, by + bh - hip_offset)
 
-	# Kemiringan Sisi Barat (Terpapar Sinar Matahari - Warna Terakota Terang)
-	draw_rect(Rect2(bx, by, slope_w, bh), Color(0.68, 0.38, 0.24), true)
+	var p_tl := Vector2(bx, by)
+	var p_tr := Vector2(bx + bw, by)
+	var p_br := Vector2(bx + bw, by + bh)
+	var p_bl := Vector2(bx, by + bh)
 
-	# Kemiringan Sisi Timur (Sisi Bayangan - Warna Terakota Gelap)
-	draw_rect(Rect2(bx + slope_w, by, slope_w, bh), Color(0.50, 0.26, 0.15), true)
+	# A. Kemiringan Sisi Utara (Terpapar Sinar Matahari Paling Terang)
+	var poly_north := PackedVector2Array([p_tl, p_tr, r_top])
+	draw_colored_polygon(poly_north, Color(0.78, 0.46, 0.30))
 
-	# Bubungan Puncak Tengah Atap (Center Ridge Line)
-	draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + bh), Color(0.88, 0.74, 0.58), 2.5)
+	# B. Kemiringan Sisi Barat (Sisi Terang Utama - Terakota Hangat)
+	var poly_west := PackedVector2Array([p_tl, r_top, r_bot, p_bl])
+	draw_colored_polygon(poly_west, Color(0.66, 0.36, 0.22))
 
-	# 3. Jendela Atap Kaca Skylight Tampak Atas (4 Unit Simetris)
+	# C. Kemiringan Sisi Timur (Sisi Bayangan Menghadap Rel Kereta)
+	var poly_east := PackedVector2Array([p_tr, p_br, r_bot, r_top])
+	draw_colored_polygon(poly_east, Color(0.46, 0.22, 0.12))
+
+	# D. Kemiringan Sisi Selatan (Sisi Bayangan Bawah)
+	var poly_south := PackedVector2Array([p_bl, r_bot, p_br])
+	draw_colored_polygon(poly_south, Color(0.36, 0.16, 0.08))
+
+	# 3. Garis Lapisan Susunan Genteng 3D (Stepped Tile Seams)
+	for ty in range(int(by + hip_offset + 14), int(by + bh - hip_offset - 4), 22):
+		draw_line(Vector2(bx + 4, ty), Vector2(mid_x - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
+		draw_line(Vector2(mid_x + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
+
+	# 4. Bubungan Puncak Utama & Rusuk Nok Miring (3D Hip & Ridge Lines)
+	# Bubungan tengah (Ridge line)
+	draw_line(r_top, r_bot, Color(0.94, 0.82, 0.68), 3.0)
+
+	# 4 Garis Rusuk Nok Menuju 4 Sudut (Diagonal Hip Ridges)
+	draw_line(r_top, p_tl, Color(0.90, 0.78, 0.62), 2.5) # Ke barat laut
+	draw_line(r_top, p_tr, Color(0.68, 0.38, 0.22), 2.0) # Ke timur laut
+	draw_line(r_bot, p_bl, Color(0.86, 0.72, 0.56), 2.5) # Ke barat daya
+	draw_line(r_bot, p_br, Color(0.55, 0.28, 0.16), 2.0) # Ke tenggara
+
+	# 5. Jendela Atap Kaca Skylight Tampak Atas (4 Unit Simetris)
 	var skylight_positions := [
-		Vector2(bx + 16, by + 40),
-		Vector2(bx + bw - 42, by + 40),
-		Vector2(bx + 16, by + 180),
-		Vector2(bx + bw - 42, by + 180)
+		Vector2(bx + 16, by + 56),
+		Vector2(bx + bw - 42, by + 56),
+		Vector2(bx + 16, by + 164),
+		Vector2(bx + bw - 42, by + 164)
 	]
 	for sl_pos in skylight_positions:
 		var sl_rect := Rect2(sl_pos.x, sl_pos.y, 26, 34)
@@ -759,26 +789,28 @@ func _draw_station_building(rect: Rect2) -> void:
 		draw_rect(Rect2(sl_rect.position.x + 2, sl_rect.position.y + 2, sl_rect.size.x - 4, sl_rect.size.y - 4), Color(0.40, 0.58, 0.72), true)
 		draw_line(Vector2(sl_rect.position.x + 4, sl_rect.position.y + 6), Vector2(sl_rect.end.x - 6, sl_rect.end.y - 6), Color(0.85, 0.94, 1.0, 0.70), 1.5)
 
-	# 4. Unit Ventilasi AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
-	var hvac_rect := Rect2(bx + slope_w - 14, by + 110, 28, 28)
+	# 6. Unit Pendingin AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
+	var hvac_rect := Rect2(mid_x - 14, by + 108, 28, 28)
+	draw_rect(Rect2(hvac_rect.position.x - 2, hvac_rect.position.y + 2, 30, 30), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan HVAC
 	draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
 	draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
-	draw_line(Vector2(hvac_rect.position.x + 4, by + 124), Vector2(hvac_rect.end.x - 4, by + 124), COLOR_STEEL_DARK, 1.5)
+	draw_line(Vector2(hvac_rect.position.x + 4, by + 122), Vector2(hvac_rect.end.x - 4, by + 122), COLOR_STEEL_DARK, 1.5)
 
-	# 5. Papan Nama & Kanopi Kanopi Serambi Ujung Atap: "STASIUN KOTA"
+	# 7. Papan Nama & Kanopi Serambi Ujung Atap: "STASIUN KOTA"
 	var sign_x := bx + 14.0
 	var sign_w := bw - 28.0
 	var sign_y := by + bh - 24.0
+	draw_rect(Rect2(sign_x - 2, sign_y + 2, sign_w + 4, 22), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan kanopi nama
 	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), Color(0.12, 0.25, 0.45), true)
 	draw_rect(Rect2(sign_x, sign_y, sign_w, 20), COLOR_HELIPAD_RING, false, 1.5)
 	draw_line(Vector2(sign_x + 6, sign_y + 10), Vector2(sign_x + sign_w - 6, sign_y + 10), Color(0.95, 0.95, 0.95), 2.0)
 
-	# 6. Border Lisplang Luar Gedung Stasiun
+	# 8. Lisplang Luar Keliling Gedung
 	draw_rect(rect, COLOR_WALL_LINE, false, 2.5)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR KANOPI PENEDUH VERTIKAL TAMPAK ATAS (Clean Flat Art Style)
+# HELPER GAMBAR KANOPI PENEDUH VERTIKAL ATAP 3D (3D Platform Canopy)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_vertical_canopy(rect: Rect2) -> void:
 	var cx := rect.position.x
@@ -790,19 +822,34 @@ func _draw_vertical_canopy(rect: Rect2) -> void:
 	var shadow_rect := Rect2(cx - 12, cy + 10, cw + 6, ch)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.35), true)
 
-	# 2. Struktur Atap Bersih 2-Tone (Solid Tanpa Garis-Garis Rumit)
-	var slope_w := cw * 0.50
+	# 2. Geometri Atap Perisai Memanjang 3D (4 Sisi Kemiringan)
+	var hip_offset := 16.0
+	var mid_x := cx + cw * 0.5
+	var r_top := Vector2(mid_x, cy + hip_offset)
+	var r_bot := Vector2(mid_x, cy + ch - hip_offset)
 
-	# Kemiringan Sisi Barat (Terang)
-	draw_rect(Rect2(cx, cy, slope_w, ch), Color(0.52, 0.50, 0.47), true)
+	var p_tl := Vector2(cx, cy)
+	var p_tr := Vector2(cx + cw, cy)
+	var p_br := Vector2(cx + cw, cy + ch)
+	var p_bl := Vector2(cx, cy + ch)
 
-	# Kemiringan Sisi Timur (Gelap)
-	draw_rect(Rect2(cx + slope_w, cy, slope_w, ch), Color(0.35, 0.33, 0.30), true)
+	# Kemiringan Utara
+	draw_colored_polygon(PackedVector2Array([p_tl, p_tr, r_top]), Color(0.62, 0.60, 0.57))
+	# Kemiringan Barat (Terang)
+	draw_colored_polygon(PackedVector2Array([p_tl, r_top, r_bot, p_bl]), Color(0.52, 0.50, 0.47))
+	# Kemiringan Timur (Gelap)
+	draw_colored_polygon(PackedVector2Array([p_tr, p_br, r_bot, r_top]), Color(0.35, 0.33, 0.30))
+	# Kemiringan Selatan
+	draw_colored_polygon(PackedVector2Array([p_bl, r_bot, p_br]), Color(0.25, 0.23, 0.21))
 
-	# Bubungan Puncak Tengah Atap (Center Ridge)
-	draw_line(Vector2(cx + slope_w, cy), Vector2(cx + slope_w, cy + ch), Color(0.88, 0.86, 0.84), 2.0)
+	# 3. Bubungan Puncak & Rusuk Nok 3D
+	draw_line(r_top, r_bot, Color(0.88, 0.86, 0.84), 2.0)
+	draw_line(r_top, p_tl, Color(0.80, 0.78, 0.75), 1.5)
+	draw_line(r_top, p_tr, Color(0.50, 0.48, 0.45), 1.5)
+	draw_line(r_bot, p_bl, Color(0.75, 0.73, 0.70), 1.5)
+	draw_line(r_bot, p_br, Color(0.40, 0.38, 0.35), 1.5)
 
-	# Border Lisplang Luar Atap
+	# 4. Border Lisplang Luar Atap
 	draw_rect(Rect2(cx, cy, cw, ch), COLOR_WALL_LINE, false, 2.0)
 
 
