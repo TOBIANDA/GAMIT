@@ -318,60 +318,74 @@ func _process(delta: float) -> void:
 	if needs_redraw:
 		queue_redraw()
 
+class RoofOverlayNode extends Node2D:
+	var map: Node2D = null
+
+	func _draw() -> void:
+		if not is_instance_valid(map):
+			return
+		
+		# 1. Atap 11 Rumah Atas
+		for i in range(11):
+			var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
+			var h_tex = map.tex_rumah_mc if i == 6 else map.tex_rumah_depan
+			if h_tex != null:
+				draw_texture_rect(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116), false)
+
+		# 2. Atap 3 Rumah Tenggara
+		for hy in [705.0, 880.0, 1055.0]:
+			if map.tex_rumah_depan != null:
+				draw_texture_rect(map.tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116), false)
+
+		# 3. Rumah Belakang & Samping
+		if map.tex_rumah_belakang != null:
+			draw_texture_rect(map.tex_rumah_belakang, Rect2(1180, 745, 220, 175), false)
+		if map.tex_rumah_samping != null:
+			draw_texture_rect(map.tex_rumah_samping, Rect2(1650, 335, 340, 205), false)
+
+		# 4. Gedung Kantor Polisi & Rumah Sakit
+		var pol_sk = 1.0 if (map.polisi_skala == null or map.polisi_skala <= 0.0) else float(map.polisi_skala)
+		var pol_w = (map.polisi_lebar if (map.polisi_lebar != null and map.polisi_lebar > 0.0) else 341.0) * pol_sk
+		var pol_h = (map.polisi_tinggi if (map.polisi_tinggi != null and map.polisi_tinggi > 0.0) else 350.0) * pol_sk
+		if map.tex_police != null:
+			draw_texture_rect(map.tex_police, Rect2(8 + (map.polisi_geser_x if map.polisi_geser_x != null else 0.0), 955 + (map.polisi_geser_y if map.polisi_geser_y != null else 0.0), pol_w, pol_h), false)
+
+		var r_sk = 1.0 if (map.rs_skala == null or map.rs_skala <= 0.0) else float(map.rs_skala)
+		var r_w = (map.rs_lebar if (map.rs_lebar != null and map.rs_lebar > 0.0) else 585.0) * r_sk
+		var r_h = (map.rs_tinggi if (map.rs_tinggi != null and map.rs_tinggi > 0.0) else 300.0) * r_sk
+		if map.tex_hospital != null:
+			draw_texture_rect(map.tex_hospital, Rect2(465 + 4 + (map.rs_geser_x if map.rs_geser_x != null else 0.0), 945 + 4 + (map.rs_geser_y if map.rs_geser_y != null else 0.0), r_w - 8, r_h - 8), false)
+
+		# 5. Gedung Stasiun & Kanopi Stasiun
+		var p1_x := 1860.0 + 125.0
+		var warn1_x := 2140.0
+		var b_w := 142.0
+		var b_h := 245.0
+		map._draw_station_building_to(self, Rect2(p1_x + 6, 690 + 8, b_w, b_h))
+
+		var c1_y := 690 + b_h + 20.0
+		var c1_h := 621 - b_h - 40.0
+		var c1_w := 68.0
+		var c1_x := warn1_x - c1_w - 16.0
+		map._draw_vertical_canopy_to(self, Rect2(c1_x, c1_y, c1_w, c1_h))
+
+		var c2_w := 68.0
+		var c2_h := 571.0
+		var c2_x := 2280.0 + 38.0
+		var c2_y := 690.0 + 25.0
+		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
+
 func _setup_roof_overlay() -> void:
 	if is_instance_valid(roof_overlay_node):
 		roof_overlay_node.queue_free()
-	roof_overlay_node = Node2D.new()
-	roof_overlay_node.name = "BuildingRoofsOverlay"
-	roof_overlay_node.z_index = 1 # Digambar di atas karakter saat berada di belakang/area gedung
-	add_child(roof_overlay_node)
-	roof_overlay_node.draw.connect(_draw_roof_overlays)
-
-func _draw_roof_overlays() -> void:
-	# 11 Rumah Atas
-	for i in range(11):
-		var sq_x = (13.0 + i * 62.0) * 3.0
-		var h_tex = tex_rumah_mc if i == 6 else tex_rumah_depan
-		_draw_texture_fit(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116))
-
-	# 3 Rumah Tenggara
-	for hy in [705.0, 880.0, 1055.0]:
-		_draw_texture_fit(tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116))
-
-	# Rumah Lainnya
-	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
-	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
-
-	# Gedung Utama (Police, Hospital, Station)
-	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
-	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
-	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
-	_draw_texture_fit(tex_police, Rect2(8 + polisi_geser_x, 955 + polisi_geser_y, pol_w, pol_h))
-
-	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
-	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
-	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
-	_draw_hospital_main_building(Rect2(465 + rs_geser_x, 945 + rs_geser_y, r_w, r_h))
-	_draw_hospital_morgue(Rect2(639, 324, 380, 225))
-
-	# Gedung Stasiun & Kanopi
-	var p1_x := 1860.0 + 125.0
-	var warn1_x := 2140.0
-	var b_w := 142.0
-	var b_h := 245.0
-	_draw_station_building(Rect2(p1_x + 6, 690 + 8, b_w, b_h))
-
-	var c1_y := 690 + b_h + 20.0
-	var c1_h := 621 - b_h - 40.0
-	var c1_w := 68.0
-	var c1_x := warn1_x - c1_w - 16.0
-	_draw_vertical_canopy(Rect2(c1_x, c1_y, c1_w, c1_h))
-
-	var c2_w := 68.0
-	var c2_h := 571.0
-	var c2_x := 2280.0 + 38.0
-	var c2_y := 690.0 + 25.0
-	_draw_vertical_canopy(Rect2(c2_x, c2_y, c2_w, c2_h))
+	var overlay = RoofOverlayNode.new()
+	overlay.name = "BuildingRoofsOverlay"
+	overlay.map = self
+	overlay.z_as_relative = false
+	overlay.z_index = 8 # Render di atas Player (z=0) dan Train (z=5)
+	add_child(overlay)
+	roof_overlay_node = overlay
+	overlay.queue_redraw()
 
 func _spawn_interactive_cars() -> void:
 	var car_scene = load("res://scenes/drivable_car.tscn")
@@ -874,6 +888,9 @@ func _draw_parking_lot(rect: Rect2) -> void:
 # HELPER GAMBAR GEDUNG UTAMA STASIUN TAMPAK ATAS (True Top-Down Station)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_station_building(rect: Rect2) -> void:
+	_draw_station_building_to(self, rect)
+
+func _draw_station_building_to(ci: CanvasItem, rect: Rect2) -> void:
 	var bx := rect.position.x
 	var by := rect.position.y
 	var bw := rect.size.x   # e.g. 142
@@ -881,56 +898,59 @@ func _draw_station_building(rect: Rect2) -> void:
 
 	# 1. Bayangan Jatuh Gedung ke Lantai (Elevated Drop Shadow 14px ke Kiri)
 	var shadow_rect := Rect2(bx - 14, by + 12, bw + 6, bh)
-	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
+	ci.draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
 	# 2. Atap Utama Mendominasi Tampak Atas (Roof: ~90% dari tinggi gedung)
 	var roof_h := bh - 26.0 # Atap memenuhi hampir seluruh luas tampak atas
 	var slope_w := bw * 0.50
 
 	# Kemiringan Sisi Barat (Terakota Terang)
-	draw_rect(Rect2(bx, by, slope_w, roof_h), Color(0.68, 0.38, 0.24), true)
+	ci.draw_rect(Rect2(bx, by, slope_w, roof_h), Color(0.68, 0.38, 0.24), true)
 
 	# Kemiringan Sisi Timur (Terakota Gelap / Sisi Bayangan)
-	draw_rect(Rect2(bx + slope_w, by, slope_w, roof_h), Color(0.48, 0.24, 0.14), true)
+	ci.draw_rect(Rect2(bx + slope_w, by, slope_w, roof_h), Color(0.48, 0.24, 0.14), true)
 
 	# Garis Lapisan Susunan Genteng (Stepped Tile Seams)
 	for ty in range(int(by) + 18, int(by + roof_h) - 8, 22):
-		draw_line(Vector2(bx + 4, ty), Vector2(bx + slope_w - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
-		draw_line(Vector2(bx + slope_w + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
+		ci.draw_line(Vector2(bx + 4, ty), Vector2(bx + slope_w - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
+		ci.draw_line(Vector2(bx + slope_w + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
 
 	# Bubungan Puncak Utama Lurus (Center Ridge Line)
-	draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + roof_h), Color(0.92, 0.80, 0.65), 2.5)
+	ci.draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + roof_h), Color(0.92, 0.80, 0.65), 2.5)
 
 	# Unit Pendingin AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
 	var hvac_rect := Rect2(bx + slope_w - 14, by + roof_h * 0.45, 28, 28)
-	draw_rect(Rect2(hvac_rect.position.x - 2, hvac_rect.position.y + 2, 30, 30), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan HVAC
-	draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
-	draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
-	draw_line(Vector2(hvac_rect.position.x + 4, by + roof_h * 0.45 + 14), Vector2(hvac_rect.end.x - 4, by + roof_h * 0.45 + 14), COLOR_STEEL_DARK, 1.5)
+	ci.draw_rect(Rect2(hvac_rect.position.x - 2, hvac_rect.position.y + 2, 30, 30), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan HVAC
+	ci.draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
+	ci.draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
+	ci.draw_line(Vector2(hvac_rect.position.x + 4, by + roof_h * 0.45 + 14), Vector2(hvac_rect.end.x - 4, by + roof_h * 0.45 + 14), COLOR_STEEL_DARK, 1.5)
 
 	# 3. Kanopi Serambi & Pintu Masuk Bawah yang Proporsional (Hanya 26px di bagian bawah)
 	var portico_y := by + roof_h
-	draw_rect(Rect2(bx, portico_y, bw, 26), COLOR_ROOM_STONE_B, true)
+	ci.draw_rect(Rect2(bx, portico_y, bw, 26), COLOR_ROOM_STONE_B, true)
 	# Bayangan overhanging atap ke serambi
-	draw_rect(Rect2(bx, portico_y, bw, 5), Color(0.08, 0.09, 0.12, 0.35), true)
-	draw_line(Vector2(bx, portico_y), Vector2(bx + bw, portico_y), COLOR_WALL_LINE, 2.0)
+	ci.draw_rect(Rect2(bx, portico_y, bw, 5), Color(0.08, 0.09, 0.12, 0.35), true)
+	ci.draw_line(Vector2(bx, portico_y), Vector2(bx + bw, portico_y), COLOR_WALL_LINE, 2.0)
 
 	# Pintu Masuk Stasiun Proporsional Tampak Atas
 	var door_x := bx + bw * 0.5 - 24.0
 	var door_w := 48.0
 	var door_y := portico_y + 6.0
-	draw_rect(Rect2(door_x, door_y, door_w, 20), Color(0.12, 0.14, 0.18), true) # Pintu masuk
-	draw_rect(Rect2(door_x + 2, door_y + 2, door_w * 0.5 - 3, 16), Color(0.25, 0.42, 0.58), true)
-	draw_rect(Rect2(door_x + door_w * 0.5 + 1, door_y + 2, door_w * 0.5 - 3, 16), Color(0.25, 0.42, 0.58), true)
+	ci.draw_rect(Rect2(door_x, door_y, door_w, 20), Color(0.12, 0.14, 0.18), true) # Pintu masuk
+	ci.draw_rect(Rect2(door_x + 2, door_y + 2, door_w * 0.5 - 3, 16), Color(0.25, 0.42, 0.58), true)
+	ci.draw_rect(Rect2(door_x + door_w * 0.5 + 1, door_y + 2, door_w * 0.5 - 3, 16), Color(0.25, 0.42, 0.58), true)
 
 	# 4. Lisplang Luar Keliling Gedung
-	draw_rect(rect, COLOR_WALL_LINE, false, 2.5)
+	ci.draw_rect(rect, COLOR_WALL_LINE, false, 2.5)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER GAMBAR KANOPI PENEDUH VERTIKAL ATAP BERSIH (Clean Platform Canopy)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_vertical_canopy(rect: Rect2) -> void:
+	_draw_vertical_canopy_to(self, rect)
+
+func _draw_vertical_canopy_to(ci: CanvasItem, rect: Rect2) -> void:
 	var cx := rect.position.x
 	var cy := rect.position.y
 	var cw := rect.size.x   # e.g. 68
@@ -938,22 +958,22 @@ func _draw_vertical_canopy(rect: Rect2) -> void:
 
 	# 1. Bayangan Jatuh Atap ke Lantai (Elevated Drop Shadow 12px ke Kiri)
 	var shadow_rect := Rect2(cx - 12, cy + 10, cw + 6, ch)
-	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.35), true)
+	ci.draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.35), true)
 
 	# 2. Struktur Atap Bersih 2-Tone (Lurus Murni Tampak Atas)
 	var slope_w := cw * 0.50
 
 	# Kemiringan Sisi Barat (Terang)
-	draw_rect(Rect2(cx, cy, slope_w, ch), Color(0.52, 0.50, 0.47), true)
+	ci.draw_rect(Rect2(cx, cy, slope_w, ch), Color(0.52, 0.50, 0.47), true)
 
 	# Kemiringan Sisi Timur (Gelap)
-	draw_rect(Rect2(cx + slope_w, cy, slope_w, ch), Color(0.35, 0.33, 0.30), true)
+	ci.draw_rect(Rect2(cx + slope_w, cy, slope_w, ch), Color(0.35, 0.33, 0.30), true)
 
 	# Bubungan Puncak Tengah Atap (Center Ridge)
-	draw_line(Vector2(cx + slope_w, cy), Vector2(cx + slope_w, cy + ch), Color(0.88, 0.86, 0.84), 2.0)
+	ci.draw_line(Vector2(cx + slope_w, cy), Vector2(cx + slope_w, cy + ch), Color(0.88, 0.86, 0.84), 2.0)
 
 	# Border Lisplang Luar Atap
-	draw_rect(Rect2(cx, cy, cw, ch), COLOR_WALL_LINE, false, 2.0)
+	ci.draw_rect(Rect2(cx, cy, cw, ch), COLOR_WALL_LINE, false, 2.0)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
