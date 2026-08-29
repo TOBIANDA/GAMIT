@@ -17,7 +17,7 @@ var max_reverse_speed: float = 190.0
 var acceleration: float = 1250.0
 var brake_decel: float = 1800.0
 var friction: float = 700.0
-var steer_speed: float = 4.6
+var steer_speed: float = 14.0
 
 var is_player_nearby: bool = false
 var is_braking: bool = false
@@ -141,44 +141,37 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _process_driving(delta: float) -> void:
-	var forward_input := 0.0
+	var input_vector := Vector2.ZERO
 	if Input.is_key_pressed(KEY_W) or Input.is_action_pressed("ui_up"):
-		forward_input += 1.0
+		input_vector.y -= 1.0
 	if Input.is_key_pressed(KEY_S) or Input.is_action_pressed("ui_down"):
-		forward_input -= 1.0
-
-	var steer_input := 0.0
-	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
-		steer_input += 1.0
+		input_vector.y += 1.0
 	if Input.is_key_pressed(KEY_A) or Input.is_action_pressed("ui_left"):
-		steer_input -= 1.0
+		input_vector.x -= 1.0
+	if Input.is_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"):
+		input_vector.x += 1.0
 
-	# Kemudi sangat responsif (bisa berbelok cepat saat bergerak ataupun mulai jalan)
-	if steer_input != 0.0:
-		var steer_mult = 1.0
-		if abs(current_speed) < 20.0 and forward_input != 0.0:
-			steer_mult = 1.2
-		var reverse_mult = -1.0 if current_speed < -5.0 else 1.0
-		car_heading += steer_input * steer_speed * steer_mult * reverse_mult * delta
-		rotation = car_heading
-
-	# Akselerasi & Pengereman Instan & Responsif
 	is_braking = false
-	if forward_input > 0.0:
-		if current_speed < 0.0:
-			# Pengereman tajam saat mundur
+
+	if input_vector != Vector2.ZERO:
+		input_vector = input_vector.normalized()
+		var target_heading = input_vector.angle()
+		
+		# Hitung selisih sudut untuk pengereman tajam saat berbalik arah
+		var angle_diff = abs(angle_difference(car_heading, target_heading))
+		
+		# Putar arah moncong mobil langsung ke arah tombol yang ditekan (W=Atas, S=Bawah, A=Kiri, D=Kanan)
+		car_heading = rotate_toward(car_heading, target_heading, steer_speed * delta)
+		rotation = car_heading
+		
+		# Jika membalik arah tajam (> 110 derajat), aktifkan efek rem/drift sebelum melaju kencang
+		if angle_diff > 2.0 and current_speed > 80.0:
 			is_braking = true
-			current_speed = move_toward(current_speed, 0.0, brake_decel * delta)
+			current_speed = move_toward(current_speed, 50.0, brake_decel * delta)
 		else:
 			current_speed = move_toward(current_speed, max_forward_speed, acceleration * delta)
-	elif forward_input < 0.0:
-		if current_speed > 0.0:
-			# Pengereman tajam saat maju
-			is_braking = true
-			current_speed = move_toward(current_speed, 0.0, brake_decel * delta)
-		else:
-			current_speed = move_toward(current_speed, -max_reverse_speed, acceleration * 0.9 * delta)
 	else:
+		# Tanpa input: mobil meluncur melambat dengan gesekan
 		current_speed = move_toward(current_speed, 0.0, friction * delta)
 
 	velocity = Vector2(cos(car_heading), sin(car_heading)) * current_speed
@@ -291,11 +284,15 @@ func _draw() -> void:
 		draw_rect(Rect2(hx + 18, hy + 8, 8, 8), Color(0.1, 0.1, 0.1), false, 1.0)
 		draw_line(Vector2(hx + 20, hy + 12), Vector2(hx + 24, hy + 12), Color(0.1, 0.1, 0.1), 1.5)
 
-	# 13. Floating Interaction Tooltip
+	# 13. Floating Interaction Tooltip (Selalu tegak terhadap layar)
 	if is_player_nearby and not is_being_driven:
+		draw_set_transform(Vector2.ZERO, -rotation, Vector2.ONE)
 		_draw_tooltip_badge(Vector2(0, -28), "[E] Kendarai " + car_name)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	elif is_being_driven:
-		_draw_tooltip_badge(Vector2(0, -28), "[WASD] Kemudi  •  [E] Keluar  •  [H] Klakson")
+		draw_set_transform(Vector2.ZERO, -rotation, Vector2.ONE)
+		_draw_tooltip_badge(Vector2(0, -32), "[WASD] Kemudi  •  [E] Keluar  •  [H] Klakson")
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_tooltip_badge(pos: Vector2, text: String) -> void:
 	var font = ThemeDB.fallback_font
