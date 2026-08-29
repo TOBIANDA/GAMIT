@@ -286,21 +286,21 @@ func _process(delta: float) -> void:
 	var needs_redraw := false
 	var p_pos := player_cached.global_position if is_instance_valid(player_cached) else Vector2(-9999, -9999)
 
-	# Update posisi geser pintu pagar 11 Rumah Atas
+	# Update rotasi ayun buka pintu pagar 11 Rumah Atas (Buka Nyiku 90 Derajat ke Depan)
 	for i in range(11):
 		var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
 		var sq_y: float = 36.0
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "top_%d" % i
 		var dist := p_pos.distance_to(gate_center)
-		var target := 24.0 if dist < 48.0 else 0.0
+		var target_angle: float = 1.570796 if dist < 48.0 else 0.0 # 90 derajat nyiku ke depan
 		var cur: float = gate_slide_offsets.get(key, 0.0)
-		var next_val := move_toward(cur, target, delta * 95.0)
-		if abs(cur - next_val) > 0.01:
+		var next_val := move_toward(cur, target_angle, delta * 4.8)
+		if abs(cur - next_val) > 0.005:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
 
-	# Update posisi geser pintu pagar 3 Rumah Tenggara
+	# Update rotasi ayun buka pintu pagar 3 Rumah Tenggara
 	var hy_list: Array[float] = [705.0, 880.0, 1055.0]
 	for idx in range(3):
 		var sq_x: float = 1636.0
@@ -308,10 +308,10 @@ func _process(delta: float) -> void:
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "se_%d" % idx
 		var dist := p_pos.distance_to(gate_center)
-		var target := 24.0 if dist < 48.0 else 0.0
+		var target_angle: float = 1.570796 if dist < 48.0 else 0.0 # 90 derajat nyiku ke depan
 		var cur: float = gate_slide_offsets.get(key, 0.0)
-		var next_val := move_toward(cur, target, delta * 95.0)
-		if abs(cur - next_val) > 0.01:
+		var next_val := move_toward(cur, target_angle, delta * 4.8)
+		if abs(cur - next_val) > 0.005:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
 
@@ -799,9 +799,15 @@ func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> 
 	# Pagar Depan Kiri
 	draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, sq_y + 130 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
 	
-	# Pintu Pagar Tengah (Bergeser otomatis saat player mendekat!)
-	var slide_off = gate_slide_offsets.get(gate_key, 0.0)
-	draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x + slide_off, sq_y + 126 + pintu_pagar_geser_y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
+	# Pintu Pagar Tengah (Ayun Buka Nyiku 90 Derajat ke Depan saat player mendekat!)
+	var gate_angle: float = gate_slide_offsets.get(gate_key, 0.0)
+	var hinge_pos := Vector2(sq_x + 62 + pintu_pagar_geser_x, sq_y + 126 + pintu_pagar_geser_y)
+	if abs(gate_angle) > 0.005:
+		draw_set_transform(hinge_pos, gate_angle, Vector2(sk_pintu, sk_pintu))
+		draw_texture_rect(tex_pintu_pagar, Rect2(0, 0, pintu_pagar_lebar, 30), false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		draw_texture_rect(tex_pintu_pagar, Rect2(hinge_pos.x, hinge_pos.y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
 	
 	# Pagar Depan Kanan
 	_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, sq_y + 130 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)

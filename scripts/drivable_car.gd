@@ -12,12 +12,12 @@ var player_ref: CharacterBody2D = null
 var current_speed: float = 0.0
 var car_heading: float = 0.0 # radians (0 = menghadap kanan, PI/2 = bawah, PI = kiri, -PI/2 = atas)
 
-var max_forward_speed: float = 340.0
-var max_reverse_speed: float = 140.0
-var acceleration: float = 720.0
-var brake_decel: float = 950.0
-var friction: float = 450.0
-var steer_speed: float = 3.3
+var max_forward_speed: float = 460.0
+var max_reverse_speed: float = 190.0
+var acceleration: float = 1250.0
+var brake_decel: float = 1800.0
+var friction: float = 700.0
+var steer_speed: float = 4.6
 
 var is_player_nearby: bool = false
 var is_braking: bool = false
@@ -84,7 +84,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif is_player_nearby and is_instance_valid(player_ref):
 				_enter_car()
 				get_viewport().set_input_as_handled()
-		elif is_being_driven and event.keycode == KEY_H:
+		elif is_being_driven and (event.keycode == KEY_H or event.keycode == KEY_SPACE):
 			_trigger_horn(0.4)
 			get_viewport().set_input_as_handled()
 
@@ -153,29 +153,31 @@ func _process_driving(delta: float) -> void:
 	if Input.is_key_pressed(KEY_A) or Input.is_action_pressed("ui_left"):
 		steer_input -= 1.0
 
-	# Kemudi hanya berfungsi efektif saat mobil bergerak
-	if abs(current_speed) > 5.0:
-		var speed_factor = clampf(abs(current_speed) / max_forward_speed, 0.35, 1.0)
-		var reverse_mult = -1.0 if current_speed < 0.0 else 1.0
-		car_heading += steer_input * steer_speed * speed_factor * reverse_mult * delta
+	# Kemudi sangat responsif (bisa berbelok cepat saat bergerak ataupun mulai jalan)
+	if steer_input != 0.0:
+		var steer_mult = 1.0
+		if abs(current_speed) < 20.0 and forward_input != 0.0:
+			steer_mult = 1.2
+		var reverse_mult = -1.0 if current_speed < -5.0 else 1.0
+		car_heading += steer_input * steer_speed * steer_mult * reverse_mult * delta
 		rotation = car_heading
 
-	# Akselerasi & Pengereman
+	# Akselerasi & Pengereman Instan & Responsif
 	is_braking = false
 	if forward_input > 0.0:
 		if current_speed < 0.0:
-			# Mengerem saat mundur
+			# Pengereman tajam saat mundur
 			is_braking = true
 			current_speed = move_toward(current_speed, 0.0, brake_decel * delta)
 		else:
 			current_speed = move_toward(current_speed, max_forward_speed, acceleration * delta)
 	elif forward_input < 0.0:
 		if current_speed > 0.0:
-			# Mengerem saat maju
+			# Pengereman tajam saat maju
 			is_braking = true
 			current_speed = move_toward(current_speed, 0.0, brake_decel * delta)
 		else:
-			current_speed = move_toward(current_speed, -max_reverse_speed, acceleration * 0.7 * delta)
+			current_speed = move_toward(current_speed, -max_reverse_speed, acceleration * 0.9 * delta)
 	else:
 		current_speed = move_toward(current_speed, 0.0, friction * delta)
 
