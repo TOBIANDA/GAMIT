@@ -260,6 +260,9 @@ var tex_baskom: Texture2D
 var tex_surat: Texture2D
 var collision_bodies: Array[StaticBody2D] = []
 var nav_region: NavigationRegion2D
+var roof_overlay_node: Node2D
+var gate_slide_offsets: Dictionary = {}
+var player_cached: CharacterBody2D = null
 
 func _ready() -> void:
 	z_index = -1
@@ -267,7 +270,196 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		_build_all_colliders()
 		_setup_navigation_region()
+		_setup_roof_overlay()
+		_spawn_interactive_cars()
 	queue_redraw()
+
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+
+	if not is_instance_valid(player_cached):
+		player_cached = get_tree().get_first_node_in_group("player") as CharacterBody2D
+		if not is_instance_valid(player_cached):
+			player_cached = get_node_or_null("../Player") as CharacterBody2D
+
+	var needs_redraw := false
+	var p_pos := player_cached.global_position if is_instance_valid(player_cached) else Vector2(-9999, -9999)
+
+	# Update posisi geser pintu pagar 11 Rumah Atas
+	for i in range(11):
+		var sq_x := (13.0 + i * 62.0) * 3.0
+		var sq_y := 36.0
+		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
+		var key := "top_%d" % i
+		var dist := p_pos.distance_to(gate_center)
+		var target := 24.0 if dist < 48.0 else 0.0
+		var cur := gate_slide_offsets.get(key, 0.0)
+		var next_val := move_toward(cur, target, delta * 95.0)
+		if abs(cur - next_val) > 0.01:
+			gate_slide_offsets[key] = next_val
+			needs_redraw = true
+
+	# Update posisi geser pintu pagar 3 Rumah Tenggara
+	var hy_list := [705.0, 880.0, 1055.0]
+	for idx in range(3):
+		var sq_x := 1636.0
+		var sq_y := hy_list[idx]
+		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
+		var key := "se_%d" % idx
+		var dist := p_pos.distance_to(gate_center)
+		var target := 24.0 if dist < 48.0 else 0.0
+		var cur := gate_slide_offsets.get(key, 0.0)
+		var next_val := move_toward(cur, target, delta * 95.0)
+		if abs(cur - next_val) > 0.01:
+			gate_slide_offsets[key] = next_val
+			needs_redraw = true
+
+	if needs_redraw:
+		queue_redraw()
+
+func _setup_roof_overlay() -> void:
+	if is_instance_valid(roof_overlay_node):
+		roof_overlay_node.queue_free()
+	roof_overlay_node = Node2D.new()
+	roof_overlay_node.name = "BuildingRoofsOverlay"
+	roof_overlay_node.z_index = 1 # Digambar di atas karakter saat berada di belakang/area gedung
+	add_child(roof_overlay_node)
+	roof_overlay_node.draw.connect(_draw_roof_overlays)
+
+func _draw_roof_overlays() -> void:
+	# 11 Rumah Atas
+	for i in range(11):
+		var sq_x = (13.0 + i * 62.0) * 3.0
+		var h_tex = tex_rumah_mc if i == 6 else tex_rumah_depan
+		_draw_texture_fit(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116))
+
+	# 3 Rumah Tenggara
+	for hy in [705.0, 880.0, 1055.0]:
+		_draw_texture_fit(tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116))
+
+	# Rumah Lainnya
+	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
+	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
+
+	# Gedung Utama (Police, Hospital, Station)
+	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
+	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
+	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
+	_draw_texture_fit(tex_police, Rect2(8 + polisi_geser_x, 955 + polisi_geser_y, pol_w, pol_h))
+
+	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
+	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
+	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
+	_draw_hospital_main_building(Rect2(465 + rs_geser_x, 945 + rs_geser_y, r_w, r_h))
+	_draw_hospital_morgue(Rect2(639, 324, 380, 225))
+
+	# Gedung Stasiun & Kanopi
+	var p1_x := 1860.0 + 125.0
+	var warn1_x := 2140.0
+	var b_w := 142.0
+	var b_h := 245.0
+	_draw_station_building(Rect2(p1_x + 6, 690 + 8, b_w, b_h))
+
+	var c1_y := 690 + b_h + 20.0
+	var c1_h := 621 - b_h - 40.0
+	var c1_w := 68.0
+	var c1_x := warn1_x - c1_w - 16.0
+	_draw_vertical_canopy(Rect2(c1_x, c1_y, c1_w, c1_h))
+
+	var c2_w := 68.0
+	var c2_h := 571.0
+	var c2_x := 2280.0 + 38.0
+	var c2_y := 690.0 + 25.0
+	_draw_vertical_canopy(Rect2(c2_x, c2_y, c2_w, c2_h))
+
+func _spawn_interactive_cars() -> void:
+	var car_scene = load("res://scenes/drivable_car.tscn")
+	if not is_instance_valid(car_scene):
+		return
+	
+	var car_configs = [
+		{"pos": Vector2(1908, 728), "color": Color(0.20, 0.45, 0.78), "is_taxi": false, "name": "Sedan Biru"},
+		{"pos": Vector2(1908, 793), "color": Color(0.95, 0.78, 0.15), "is_taxi": true,  "name": "Taksi Kuning"},
+		{"pos": Vector2(1908, 858), "color": Color(0.78, 0.80, 0.84), "is_taxi": false, "name": "Sedan Silver"},
+		{"pos": Vector2(1908, 1108), "color": Color(0.85, 0.22, 0.20), "is_taxi": false, "name": "Coupe Merah"},
+		{"pos": Vector2(1908, 1173), "color": Color(0.18, 0.58, 0.35), "is_taxi": false, "name": "Hatchback Hijau"}
+	]
+	
+	for cfg in car_configs:
+		var car = car_scene.instantiate()
+		car.position = cfg["pos"]
+		car.car_color = cfg["color"]
+		car.is_taxi = cfg["is_taxi"]
+		car.car_name = cfg["name"]
+		get_parent().call_deferred("add_child", car)
+
+func _build_all_colliders() -> void:
+	var sb = StaticBody2D.new()
+	sb.name = "WorldCollisionBody"
+	sb.collision_layer = 1
+	sb.collision_mask = 0
+	add_child(sb)
+	collision_bodies.append(sb)
+
+	# 1. Batas Luar Peta (World Boundaries)
+	_add_box_collider(sb, Rect2(-40, -40, 2500, 40))
+	_add_box_collider(sb, Rect2(-40, 1311, 2500, 40))
+	_add_box_collider(sb, Rect2(-40, -40, 40, 1400))
+	_add_box_collider(sb, Rect2(2420, -40, 40, 1400))
+
+	# 2. Gedung-Gedung Utama (Solid Building Colliders)
+	_add_box_collider(sb, Rect2(8, 955, 340, 350))
+	_add_box_collider(sb, Rect2(639, 324, 897, 225))
+	_add_box_collider(sb, Rect2(465, 945, 585, 300))
+	_add_box_collider(sb, Rect2(1991, 698, 142, 245))
+	_add_box_collider(sb, Rect2(0, 324, 516, 462))
+	_add_box_collider(sb, Rect2(1158, 730, 270, 210))
+	_add_box_collider(sb, Rect2(1626, 324, 390, 225))
+
+	# 3. Rumah Warga & Pagar Halaman (11 Rumah Atas)
+	for i in range(11):
+		var sq_x = (13.0 + i * 62.0) * 3.0
+		var sq_y = 36.0
+		# Bodi Rumah Utama (Solid)
+		_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 90))
+		# Pagar Belakang
+		_add_box_collider(sb, Rect2(sq_x, sq_y - 6, 156, 8))
+		# Pagar Samping Kiri
+		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 6, 8, 146))
+		# Pagar Samping Kanan
+		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 8, 146))
+		# Pagar Depan Kiri
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 132, 62, 10))
+		# Pagar Depan Kanan
+		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 132, 62, 10))
+		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
+
+	# 3 Rumah Tenggara
+	for hy in [705.0, 880.0, 1055.0]:
+		var sq_x = 1636.0
+		var sq_y = hy
+		# Bodi Rumah Utama (Solid)
+		_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 90))
+		# Pagar Belakang
+		_add_box_collider(sb, Rect2(sq_x, sq_y - 6, 156, 8))
+		# Pagar Samping Kiri
+		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 6, 8, 146))
+		# Pagar Samping Kanan
+		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 8, 146))
+		# Pagar Depan Kiri
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 132, 62, 10))
+		# Pagar Depan Kanan
+		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 132, 62, 10))
+		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
+
+func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
+	var shape = CollisionShape2D.new()
+	var box = RectangleShape2D.new()
+	box.size = rect.size
+	shape.shape = box
+	shape.position = rect.position + rect.size * 0.5
+	body.add_child(shape)
 
 func _load_textures() -> void:
 	tex_hospital = load("res://Bangunan/Hospital.png")
@@ -392,14 +584,15 @@ func _draw() -> void:
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var r_rect = Rect2(sq_x, 36, 156, 156)
+		var g_key = "top_%d" % i
 		
 		if i == 6:
 			draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
 			draw_rect(Rect2(sq_x + 64, 130, 28, 62), Color(0.70, 0.68, 0.62), true)
 			_draw_detective_house(r_rect)
-			_draw_fences_for_house(sq_x, 36)
+			_draw_fences_for_house(sq_x, 36, g_key)
 		else:
-			_draw_civilian_fenced_house(Vector2(sq_x, 36), tex_rumah_depan)
+			_draw_civilian_fenced_house(Vector2(sq_x, 36), tex_rumah_depan, g_key)
 
 	# ── Ruang Gedung Barat Laut (North-West Complex) ─────────────────────────
 	var l_pts = PackedVector2Array([
@@ -478,9 +671,9 @@ func _draw() -> void:
 
 	# ── Area Tenggara: Tiga Rumah Warga, Gang Kecil, dan Stasiun Kereta ───────
 	# 1. Tiga Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
-	_draw_civilian_fenced_house(Vector2(1636, 705), tex_rumah_depan)
-	_draw_civilian_fenced_house(Vector2(1636, 880), tex_rumah_depan)
-	_draw_civilian_fenced_house(Vector2(1636, 1055), tex_rumah_depan)
+	_draw_civilian_fenced_house(Vector2(1636, 705), tex_rumah_depan, "se_0")
+	_draw_civilian_fenced_house(Vector2(1636, 880), tex_rumah_depan, "se_1")
+	_draw_civilian_fenced_house(Vector2(1636, 1055), tex_rumah_depan, "se_2")
 
 	# 2. Gang Kecil Penghubung Jalan Tengah & Jalan Selatan
 	draw_rect(Rect2(1792, 690, 68, 621), COLOR_SIDEWALK, true)
@@ -561,7 +754,7 @@ func _draw() -> void:
 	_draw_poi_badge(Vector2(750, 1095), "Rumah Sakit",    Color(0.85, 0.25, 0.25))
 	_draw_poi_badge(Vector2(180, 1050), "Brankas Ibu",    Color(0.80, 0.50, 0.90))
 
-func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null) -> void:
+func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null, gate_key: String = "") -> void:
 	var sq_x = pos.x
 	var sq_y = pos.y
 	var r_rect = Rect2(sq_x, sq_y, 156, 156)
@@ -572,9 +765,9 @@ func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null) -> v
 	var h_tex = tex_rumah_depan if house_tex == null else house_tex
 	_draw_texture_fit(h_tex, Rect2(sq_x + 12, sq_y + 6, 132, 116))
 
-	_draw_fences_for_house(sq_x, sq_y)
+	_draw_fences_for_house(sq_x, sq_y, gate_key)
 
-func _draw_fences_for_house(sq_x: float, sq_y: float) -> void:
+func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> void:
 	var sk_kiri = 1.0 if (pagar_kiri_skala == null or pagar_kiri_skala <= 0.0) else float(pagar_kiri_skala)
 	var sk_pintu = 1.0 if (pintu_pagar_skala == null or pintu_pagar_skala <= 0.0) else float(pintu_pagar_skala)
 	var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
@@ -602,10 +795,14 @@ func _draw_fences_for_house(sq_x: float, sq_y: float) -> void:
 		_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, py, side_w, panel_h), true)
 		# Pagar Samping Kanan
 		_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
+	
 	# Pagar Depan Kiri
 	draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, sq_y + 130 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
-	# Pintu Pagar Tengah
-	draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x, sq_y + 126 + pintu_pagar_geser_y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
+	
+	# Pintu Pagar Tengah (Bergeser otomatis saat player mendekat!)
+	var slide_off = gate_slide_offsets.get(gate_key, 0.0)
+	draw_texture_rect(tex_pintu_pagar, Rect2(sq_x + 62 + pintu_pagar_geser_x + slide_off, sq_y + 126 + pintu_pagar_geser_y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
+	
 	# Pagar Depan Kanan
 	_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, sq_y + 130 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)
 
@@ -614,54 +811,6 @@ func _draw_station_bench(pos: Vector2, w: float = 80.0, h: float = 24.0) -> void
 	draw_rect(Rect2(pos.x, pos.y, w, h), Color(0.25, 0.16, 0.08), false, 1.5)
 	draw_line(Vector2(pos.x + 4, pos.y + 6), Vector2(pos.x + w - 4, pos.y + 6), Color(0.60, 0.42, 0.25), 1.0)
 	draw_line(Vector2(pos.x + 4, pos.y + 16), Vector2(pos.x + w - 4, pos.y + 16), Color(0.60, 0.42, 0.25), 1.0)
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR MOBIL TOP-DOWN
-# ═══════════════════════════════════════════════════════════════════════════════
-func _draw_topdown_car(pos: Vector2, color: Color, is_vertical: bool = false, is_taxi: bool = false) -> void:
-	var cw := 24.0 if is_vertical else 46.0
-	var ch := 46.0 if is_vertical else 24.0
-
-	# Bayangan jatuh mobil
-	draw_rect(Rect2(pos.x - 3, pos.y + 4, cw + 2, ch), Color(0.06, 0.07, 0.09, 0.40), true)
-
-	# Bodi Utama Mobil (Chassis)
-	draw_rect(Rect2(pos.x, pos.y, cw, ch), color, true)
-	draw_rect(Rect2(pos.x, pos.y, cw, ch), color.darkened(0.35), false, 1.5) # Border bodi
-
-	if not is_vertical:
-		# Mobil Horizontal (Menghadap Kanan)
-		# Kaca Depan (Kanan)
-		draw_rect(Rect2(pos.x + 30, pos.y + 3, 6, 18), Color(0.14, 0.18, 0.24), true)
-		draw_line(Vector2(pos.x + 31, pos.y + 5), Vector2(pos.x + 35, pos.y + 9), Color(0.75, 0.90, 1.0, 0.70), 1.2)
-		# Kaca Belakang (Kiri)
-		draw_rect(Rect2(pos.x + 10, pos.y + 3, 5, 18), Color(0.14, 0.18, 0.24), true)
-		# Atap Mobil (Roof)
-		draw_rect(Rect2(pos.x + 15, pos.y + 3, 15, 18), color.darkened(0.15), true)
-		# Lampu Depan (Kuning Terang di Kanan)
-		draw_rect(Rect2(pos.x + 44, pos.y + 2, 2, 4), Color(0.98, 0.95, 0.50), true)
-		draw_rect(Rect2(pos.x + 44, pos.y + 18, 2, 4), Color(0.98, 0.95, 0.50), true)
-		# Lampu Belakang (Merah di Kiri)
-		draw_rect(Rect2(pos.x, pos.y + 2, 2, 4), Color(0.95, 0.20, 0.20), true)
-		draw_rect(Rect2(pos.x, pos.y + 18, 2, 4), Color(0.95, 0.20, 0.20), true)
-		# Spion
-		draw_rect(Rect2(pos.x + 29, pos.y - 2, 3, 2), color.darkened(0.25), true)
-		draw_rect(Rect2(pos.x + 29, pos.y + 24, 3, 2), color.darkened(0.25), true)
-		# Atap Taksi (Jika Taksi)
-		if is_taxi:
-			draw_rect(Rect2(pos.x + 20, pos.y + 8, 8, 8), Color(0.98, 0.95, 0.20), true)
-			draw_rect(Rect2(pos.x + 20, pos.y + 8, 8, 8), COLOR_WALL_LINE, false, 1.0)
-			draw_line(Vector2(pos.x + 22, pos.y + 12), Vector2(pos.x + 26, pos.y + 12), COLOR_WALL_LINE, 1.5)
-	else:
-		# Mobil Vertikal (Menghadap Bawah)
-		draw_rect(Rect2(pos.x + 3, pos.y + 30, 18, 6), Color(0.14, 0.18, 0.24), true) # Kaca depan
-		draw_rect(Rect2(pos.x + 3, pos.y + 10, 18, 5), Color(0.14, 0.18, 0.24), true) # Kaca belakang
-		draw_rect(Rect2(pos.x + 3, pos.y + 15, 18, 15), color.darkened(0.15), true) # Atap
-		draw_rect(Rect2(pos.x + 2, pos.y + 44, 4, 2), Color(0.98, 0.95, 0.50), true) # Lampu depan
-		draw_rect(Rect2(pos.x + 18, pos.y + 44, 4, 2), Color(0.98, 0.95, 0.50), true)
-		draw_rect(Rect2(pos.x + 2, pos.y, 4, 2), Color(0.95, 0.20, 0.20), true) # Lampu belakang
-		draw_rect(Rect2(pos.x + 18, pos.y, 4, 2), Color(0.95, 0.20, 0.20), true)
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER GAMBAR TEMPAT PARKIR STASIUN (Parking Lot)
@@ -687,13 +836,6 @@ func _draw_parking_lot(rect: Rect2) -> void:
 		# Pembatas ban / Wheel stop beton
 		draw_rect(Rect2(px + 12, sy + 16, 6, 32), Color(0.70, 0.72, 0.76), true)
 		draw_rect(Rect2(px + 12, sy + 16, 6, 32), Color(0.35, 0.38, 0.42), false, 1.0)
-
-	# Mobil-Mobil yang Sedang Terparkir
-	_draw_topdown_car(Vector2(px + 24, py + 38), Color(0.20, 0.45, 0.78), false, false) # Sedan Biru
-	_draw_topdown_car(Vector2(px + 24, py + 103), Color(0.92, 0.75, 0.15), false, true)  # Taksi Kuning
-	_draw_topdown_car(Vector2(px + 24, py + 168), Color(0.78, 0.80, 0.84), false, false) # Mobil Silver
-	_draw_topdown_car(Vector2(px + 24, py + 418), Color(0.85, 0.22, 0.20), false, false) # Mobil Merah
-	_draw_topdown_car(Vector2(px + 24, py + 483), Color(0.18, 0.58, 0.35), false, false) # Mobil Hijau
 
 	# Area Parkir Sepeda / Motor di Tengah (y + 350)
 	var bike_y := py + 350.0
