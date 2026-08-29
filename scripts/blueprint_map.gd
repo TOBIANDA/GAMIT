@@ -722,7 +722,7 @@ func _draw_parking_lot(rect: Rect2) -> void:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HELPER GAMBAR GEDUNG UTAMA STASIUN TAMPAK ATAS (Clean Top-Down Pitched Roof)
+# HELPER GAMBAR GEDUNG UTAMA STASIUN ATAP SEGITIGA TUNGGAL (Single Top Hip Roof)
 # ═══════════════════════════════════════════════════════════════════════════════
 func _draw_station_building(rect: Rect2) -> void:
 	var bx := rect.position.x
@@ -734,25 +734,41 @@ func _draw_station_building(rect: Rect2) -> void:
 	var shadow_rect := Rect2(bx - 14, by + 12, bw + 6, bh)
 	draw_rect(shadow_rect, Color(0.06, 0.07, 0.10, 0.38), true)
 
-	# 2. Atap Utama Lurus Murni Tampak Atas (Straight Pitched Roof)
-	var slope_w := bw * 0.50
+	# 2. Geometri Atap dengan Segitiga Tunggal di Bagian Atas
+	var hip_offset := 36.0
+	var mid_x := bx + bw * 0.5
+	var r_top := Vector2(mid_x, by + hip_offset)
+	var r_bot := Vector2(mid_x, by + bh)
 
-	# Kemiringan Sisi Barat (Terang Terakota)
-	draw_rect(Rect2(bx, by, slope_w, bh), Color(0.68, 0.38, 0.24), true)
+	var p_tl := Vector2(bx, by)
+	var p_tr := Vector2(bx + bw, by)
+	var p_br := Vector2(bx + bw, by + bh)
+	var p_bl := Vector2(bx, by + bh)
 
-	# Kemiringan Sisi Timur (Gelap Terakota)
-	draw_rect(Rect2(bx + slope_w, by, slope_w, bh), Color(0.48, 0.24, 0.14), true)
+	# A. Segitiga Tunggal di Atas (Menghadap Utara / Jalan)
+	var poly_north := PackedVector2Array([p_tl, p_tr, r_top])
+	draw_colored_polygon(poly_north, Color(0.78, 0.46, 0.30))
+
+	# B. Kemiringan Sisi Barat (Terakota Terang)
+	var poly_west := PackedVector2Array([p_tl, r_top, r_bot, p_bl])
+	draw_colored_polygon(poly_west, Color(0.68, 0.38, 0.24))
+
+	# C. Kemiringan Sisi Timur (Terakota Gelap / Sisi Bayangan)
+	var poly_east := PackedVector2Array([p_tr, p_br, r_bot, r_top])
+	draw_colored_polygon(poly_east, Color(0.48, 0.24, 0.14))
 
 	# 3. Garis Lapisan Susunan Genteng (Stepped Tile Seams)
-	for ty in range(int(by) + 20, int(by + bh) - 15, 24):
-		draw_line(Vector2(bx + 4, ty), Vector2(bx + slope_w - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
-		draw_line(Vector2(bx + slope_w + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
+	for ty in range(int(by + hip_offset + 14), int(by + bh - 10), 22):
+		draw_line(Vector2(bx + 4, ty), Vector2(mid_x - 2, ty), Color(0.56, 0.28, 0.16), 1.5)
+		draw_line(Vector2(mid_x + 2, ty), Vector2(bx + bw - 4, ty), Color(0.34, 0.14, 0.07), 1.5)
 
-	# 4. Bubungan Puncak Utama Lurus (Center Ridge Line)
-	draw_line(Vector2(bx + slope_w, by), Vector2(bx + slope_w, by + bh), Color(0.92, 0.80, 0.65), 2.5)
+	# 4. Bubungan Puncak & 2 Garis Rusuk Nok Segitiga Atas
+	draw_line(r_top, r_bot, Color(0.92, 0.80, 0.65), 2.5) # Bubungan tengah ke bawah
+	draw_line(r_top, p_tl, Color(0.90, 0.78, 0.62), 2.2)  # Rusuk miring ke barat laut
+	draw_line(r_top, p_tr, Color(0.68, 0.38, 0.22), 2.0)  # Rusuk miring ke timur laut
 
 	# 5. Unit Pendingin AC Atap Stasiun Tampak Atas (Rooftop HVAC Unit)
-	var hvac_rect := Rect2(bx + slope_w - 14, by + 115, 28, 28)
+	var hvac_rect := Rect2(mid_x - 14, by + 115, 28, 28)
 	draw_rect(Rect2(hvac_rect.position.x - 2, hvac_rect.position.y + 2, 30, 30), Color(0.06, 0.07, 0.10, 0.30), true) # Bayangan HVAC
 	draw_rect(hvac_rect, COLOR_STEEL_LIGHT, true)
 	draw_rect(hvac_rect, COLOR_STEEL_DARK, false, 1.5)
