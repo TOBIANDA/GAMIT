@@ -794,22 +794,24 @@ func _draw_train_station(rect: Rect2) -> void:
 		draw_circle(Vector2(warn1_x + 16, ty), 1.4, Color(0.70, 0.58, 0.12))
 	draw_line(Vector2(rect.end.x, y), Vector2(rect.end.x, y + rh), COLOR_WALL_LINE, 3.0)
 
-	# Fasilitas Lantai di Ujung Selatan Peron 1 (Bilik Telepon & Tempat Sampah)
-	_draw_phone_booth(Rect2(p1_x + 15, y + rh - 68, 42, 58))
-	draw_rect(Rect2(p1_x + 65, y + rh - 40, 10, 14), Color(0.22, 0.58, 0.28), true) # Hijau
-	draw_rect(Rect2(p1_x + 65, y + rh - 40, 10, 14), COLOR_WALL_LINE, false, 1.5)
-	draw_rect(Rect2(p1_x + 80, y + rh - 40, 10, 14), Color(0.25, 0.45, 0.75), true) # Biru
-	draw_rect(Rect2(p1_x + 80, y + rh - 40, 10, 14), COLOR_WALL_LINE, false, 1.5)
+	# Fasilitas Lantai di Sisi Kiri Peron 1 (Bilik Telepon & Tempat Sampah di Walkway Terbuka)
+	_draw_phone_booth(Rect2(p1_x + 12, y + rh - 72, 42, 60))
+	draw_rect(Rect2(p1_x + 14, y + rh - 100, 10, 14), Color(0.22, 0.58, 0.28), true) # Hijau
+	draw_rect(Rect2(p1_x + 14, y + rh - 100, 10, 14), COLOR_WALL_LINE, false, 1.5)
+	draw_rect(Rect2(p1_x + 28, y + rh - 100, 10, 14), Color(0.25, 0.45, 0.75), true) # Biru
+	draw_rect(Rect2(p1_x + 28, y + rh - 100, 10, 14), COLOR_WALL_LINE, false, 1.5)
 
-	# Kanopi Peneduh Vertikal Bersih Tampak Atas (Peron 1)
-	_draw_vertical_canopy(Rect2(p1_x + 18, y + 25, 78, rh - 110))
+	# Kanopi Peneduh Vertikal Bersih Tampak Atas (Peron 1 - Digeser Maju Menghadap Rel)
+	var c1_w := 68.0
+	var c1_x := warn1_x - c1_w - 16.0 # 2054 (16px dari garis kuning, simetris dengan Peron 2)
+	_draw_vertical_canopy(Rect2(c1_x, y + 25, c1_w, rh - 50))
 
 	# Papan Nama Elegan di Ujung Atap: "PERON 1" (Utara)
-	var sign1_x := p1_x + 24.0
+	var sign1_x := c1_x + 6.0
 	var sign1_y := y + 32.0
-	draw_rect(Rect2(sign1_x, sign1_y, 66, 18), Color(0.12, 0.25, 0.45), true)
-	draw_rect(Rect2(sign1_x, sign1_y, 66, 18), COLOR_HELIPAD_RING, false, 1.5)
-	draw_line(Vector2(sign1_x + 6, sign1_y + 9), Vector2(sign1_x + 60, sign1_y + 9), Color(0.95, 0.95, 0.95), 2.0)
+	draw_rect(Rect2(sign1_x, sign1_y, 56, 18), Color(0.12, 0.25, 0.45), true)
+	draw_rect(Rect2(sign1_x, sign1_y, 56, 18), COLOR_HELIPAD_RING, false, 1.5)
+	draw_line(Vector2(sign1_x + 5, sign1_y + 9), Vector2(sign1_x + 51, sign1_y + 9), Color(0.95, 0.95, 0.95), 2.0)
 
 	# ─────────────────────────────────────────────────────────────────────────
 	# 3. PERON 2 TIMUR (Seberang Rel Kereta: x = 2280 .. 2420)
