@@ -286,21 +286,21 @@ func _process(delta: float) -> void:
 	var needs_redraw := false
 	var p_pos := player_cached.global_position if is_instance_valid(player_cached) else Vector2(-9999, -9999)
 
-	# Update rotasi ayun buka pintu pagar 11 Rumah Atas (Buka Nyiku 90 Derajat ke Depan)
+	# Update animasi dorong buka pintu pagar 11 Rumah Atas (Membuka ke Dalam Halaman 2.5D)
 	for i in range(11):
 		var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
 		var sq_y: float = 36.0
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "top_%d" % i
 		var dist := p_pos.distance_to(gate_center)
-		var target_angle: float = 1.570796 if dist < 48.0 else 0.0 # 90 derajat nyiku ke depan
+		var target_ratio: float = 1.0 if dist < 50.0 else 0.0 # 1.0 = terdorong terbuka ke dalam halaman
 		var cur: float = gate_slide_offsets.get(key, 0.0)
-		var next_val := move_toward(cur, target_angle, delta * 4.8)
+		var next_val := move_toward(cur, target_ratio, delta * 4.5)
 		if abs(cur - next_val) > 0.005:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
 
-	# Update rotasi ayun buka pintu pagar 3 Rumah Tenggara
+	# Update animasi dorong buka pintu pagar 3 Rumah Tenggara
 	var hy_list: Array[float] = [705.0, 880.0, 1055.0]
 	for idx in range(3):
 		var sq_x: float = 1636.0
@@ -308,9 +308,9 @@ func _process(delta: float) -> void:
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "se_%d" % idx
 		var dist := p_pos.distance_to(gate_center)
-		var target_angle: float = 1.570796 if dist < 48.0 else 0.0 # 90 derajat nyiku ke depan
+		var target_ratio: float = 1.0 if dist < 50.0 else 0.0 # 1.0 = terdorong terbuka ke dalam halaman
 		var cur: float = gate_slide_offsets.get(key, 0.0)
-		var next_val := move_toward(cur, target_angle, delta * 4.8)
+		var next_val := move_toward(cur, target_ratio, delta * 4.5)
 		if abs(cur - next_val) > 0.005:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
@@ -799,18 +799,56 @@ func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> 
 	# Pagar Depan Kiri
 	draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, sq_y + 130 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
 	
-	# Pintu Pagar Tengah (Ayun Buka Nyiku 90 Derajat ke Depan saat player mendekat!)
-	var gate_angle: float = gate_slide_offsets.get(gate_key, 0.0)
-	var hinge_pos := Vector2(sq_x + 62 + pintu_pagar_geser_x, sq_y + 126 + pintu_pagar_geser_y)
-	if abs(gate_angle) > 0.005:
-		draw_set_transform(hinge_pos, gate_angle, Vector2(sk_pintu, sk_pintu))
-		draw_texture_rect(tex_pintu_pagar, Rect2(0, 0, pintu_pagar_lebar, 30), false)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	else:
-		draw_texture_rect(tex_pintu_pagar, Rect2(hinge_pos.x, hinge_pos.y, pintu_pagar_lebar * sk_pintu, 30 * sk_pintu), false)
+	# Pintu Pagar Tengah (Membuka terdorong ke dalam halaman secara alami 2.5D)
+	var open_ratio: float = gate_slide_offsets.get(gate_key, 0.0)
+	var hinge_x := sq_x + 62.0 + (pintu_pagar_geser_x if pintu_pagar_geser_x != null else 0.0)
+	var hinge_y := sq_y + 126.0 + (pintu_pagar_geser_y if pintu_pagar_geser_y != null else 0.0)
+	_draw_swinging_gate(hinge_x, hinge_y, open_ratio, sk_pintu)
 	
 	# Pagar Depan Kanan
 	_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94 + pagar_kanan_geser_x, sq_y + 130 + pagar_kanan_geser_y, pagar_kanan_lebar * sk_kanan, 26 * sk_kanan), true, false)
+
+func _draw_swinging_gate(hinge_x: float, hinge_y: float, open_t: float, sk: float) -> void:
+	var full_w = (pintu_pagar_lebar if (pintu_pagar_lebar != null and pintu_pagar_lebar > 0.0) else 32.0) * sk
+	var h = 30.0 * sk
+	
+	if open_t <= 0.005:
+		draw_texture_rect(tex_pintu_pagar, Rect2(hinge_x, hinge_y, full_w, h), false)
+		return
+	
+	# Saat didorong terbuka ke dalam halaman (Inward 2.5D Door Push Swing):
+	# - Engsel tetap berpusat di tiang kiri (hinge_x, hinge_y)
+	# - Ujung kanan pintu terdorong berayun ke arah dalam halaman (-Y)
+	# - Lebar tampak daun pintu mengecil mengikuti sudut perspektif 2.5D
+	var swing_depth = open_t * 22.0 * sk
+	var current_w = full_w * max(0.12, 1.0 - open_t * 0.86)
+	
+	var p_top_left = Vector2(hinge_x, hinge_y)
+	var p_bottom_left = Vector2(hinge_x, hinge_y + h)
+	var p_top_right = Vector2(hinge_x + current_w, hinge_y - swing_depth)
+	var p_bottom_right = Vector2(hinge_x + current_w, hinge_y + h - swing_depth)
+	
+	# Bayangan jatuh daun pintu di atas lantai setapak
+	var shadow_poly = PackedVector2Array([
+		Vector2(hinge_x + 2, hinge_y + h),
+		Vector2(hinge_x + current_w + 4, hinge_y + h - swing_depth * 0.4),
+		Vector2(hinge_x + current_w, hinge_y + h - swing_depth),
+		Vector2(hinge_x, hinge_y + h)
+	])
+	draw_colored_polygon(shadow_poly, Color(0.08, 0.08, 0.08, 0.35))
+	
+	# Daun Pintu Kayu dengan Tekstur Terpetakan Perspektif
+	var door_poly = PackedVector2Array([p_top_left, p_top_right, p_bottom_right, p_bottom_left])
+	var uvs = PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)])
+	
+	if tex_pintu_pagar != null:
+		draw_polygon(door_poly, PackedColorArray([Color.WHITE, Color(0.85, 0.85, 0.85), Color(0.75, 0.75, 0.75), Color.WHITE]), uvs, tex_pintu_pagar)
+	else:
+		draw_colored_polygon(door_poly, Color(0.45, 0.30, 0.18))
+	
+	# Garis bingkai / rangka kayu tepi pintu
+	draw_polyline(PackedVector2Array([p_top_left, p_top_right, p_bottom_right, p_bottom_left, p_top_left]), Color(0.22, 0.14, 0.08, 0.9), 1.2)
+	draw_line(p_top_left, p_bottom_right, Color(0.22, 0.14, 0.08, 0.8), 1.0)
 
 func _draw_station_bench(pos: Vector2, w: float = 80.0, h: float = 24.0) -> void:
 	draw_rect(Rect2(pos.x, pos.y, w, h), Color(0.48, 0.32, 0.18), true)
