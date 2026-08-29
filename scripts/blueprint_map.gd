@@ -281,7 +281,12 @@ func _load_textures() -> void:
 	tex_pagar_samping = load("res://Bangunan/pagar samping.png")
 	tex_pintu_pagar = load("res://Bangunan/pintuPagar.png")
 	tex_telepon = load("res://Bangunan/stasiun telepon.png")
-	tex_station = load("res://Bangunan/stasiun.png")
+	if ResourceLoader.exists("res://Bangunan/stasiun.png"):
+		tex_station = load("res://Bangunan/stasiun.png")
+	if tex_station == null:
+		var img = Image.load_from_file("res://Bangunan/stasiun.png")
+		if img != null and not img.is_empty():
+			tex_station = ImageTexture.create_from_image(img)
 
 	tex_bed = load("res://kamar/bed.png")
 	tex_karpet = load("res://kamar/karpet.png")
