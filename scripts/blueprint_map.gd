@@ -871,7 +871,7 @@ func _draw_train_station(rect: Rect2) -> void:
 	# 4. KANOPI PAVILION PENEDUH 3D ELEVASI TINGGI (3D Elevated Shelters)
 	# ═══════════════════════════════════════════════════════════════════════════
 	# Paviliun 1: Area Tunggu Atas (y + 255 .. y + 360)
-	var shelter1_rect := Rect2(x + 12.0, y + 255.0, 205.0, 95.0)
+	var shelter1_rect := Rect2(x + 12.0, y + 255.0, 240.0, 95.0)
 	_draw_elevated_platform_shelter(shelter1_rect)
 
 	# Area Terbuka Tengah (Central Plaza Walkway with Planter & TVM)
@@ -890,7 +890,7 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_rect(Rect2(tvm_x + 2, mid_y + 28, 14, 6), COLOR_MED_RED, true)
 
 	# Paviliun 2: Area Tunggu Bawah (y + 420 .. y + 525)
-	var shelter2_rect := Rect2(x + 12.0, y + 420.0, 205.0, 95.0)
+	var shelter2_rect := Rect2(x + 12.0, y + 420.0, 240.0, 95.0)
 	_draw_elevated_platform_shelter(shelter2_rect)
 
 	# ═══════════════════════════════════════════════════════════════════════════
@@ -907,13 +907,13 @@ func _draw_train_station(rect: Rect2) -> void:
 	_draw_phone_booth(Rect2(x + 160, south_y, 48, 64))
 
 	# ═══════════════════════════════════════════════════════════════════════════
-	# 6. ZONA KESELAMATAN & TEPI REL KERETA (Sisi Kanan: x+225 .. x+300)
+	# 6. ZONA KESELAMATAN TEPI PERON (Menempel Langsung ke Rel Kereta Utama di x=2160)
 	# ═══════════════════════════════════════════════════════════════════════════
 	var track_edge_x := rect.end.x # 2160
 
-	# Garis Kuning Keselamatan / Tactile Warning Strip (Lebar 24px)
+	# Garis Kuning Pemandu / Tactile Warning Strip (Lebar 24px tepat di tepi rel)
 	var warn_w := 24.0
-	var warn_x := track_edge_x - warn_w - 38.0
+	var warn_x := track_edge_x - warn_w
 	draw_rect(Rect2(warn_x, y, warn_w, rh), COLOR_HELIPAD_RING, true)
 
 	# Pola titik timbul tactile studs (Grid titik-titik kecil)
@@ -921,21 +921,8 @@ func _draw_train_station(rect: Rect2) -> void:
 		for tx_offset in [4.0, 12.0, 20.0]:
 			draw_circle(Vector2(warn_x + tx_offset, ty), 1.4, Color(0.70, 0.58, 0.12))
 
-	# Tepi peron platform edge line
-	draw_line(Vector2(warn_x + warn_w, y), Vector2(warn_x + warn_w, y + rh), COLOR_WALL_LINE, 3.0)
-
-	# Area Rel Kereta Api Sisi Kanan Stasiun (Ballast & Rel)
-	var rail_area_x := warn_x + warn_w + 3.0
-	var rail_area_w := track_edge_x - rail_area_x
-	draw_rect(Rect2(rail_area_x, y, rail_area_w, rh), COLOR_TRACK_BALLAST, true)
-
-	# Batang Rel Baja & Bantalan Kayu
-	var rail_x1 := rail_area_x + 6.0
-	var rail_x2 := rail_area_x + rail_area_w - 6.0
-	for ry_pos in range(int(y) + 6, int(y + rh), 14):
-		draw_line(Vector2(rail_area_x + 2, ry_pos), Vector2(rail_area_x + rail_area_w - 2, ry_pos), COLOR_TRACK_TIE, 3.0)
-	draw_line(Vector2(rail_x1, y), Vector2(rail_x1, y + rh), COLOR_TRACK_RAIL, 3.5)
-	draw_line(Vector2(rail_x2, y), Vector2(rail_x2, y + rh), COLOR_TRACK_RAIL, 3.5)
+	# Tepi peron platform edge line (Garis pembatas peron & rel)
+	draw_line(Vector2(track_edge_x, y), Vector2(track_edge_x, y + rh), COLOR_WALL_LINE, 3.0)
 
 	# ═══════════════════════════════════════════════════════════════════════════
 	# 7. BORDER DINDING PEMBATAS BLOK STASIUN
