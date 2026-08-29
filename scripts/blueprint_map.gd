@@ -598,7 +598,10 @@ func _draw_fences_for_house(sq_x: float, sq_y: float) -> void:
 
 	for p in range(n_panels):
 		var py = side_y + p * step_y
+		# Pagar Samping Kiri
 		_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, py, side_w, panel_h), true)
+		# Pagar Samping Kanan
+		_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
 	# Pagar Depan Kiri
 	draw_texture_rect(tex_pagar, Rect2(sq_x + pagar_kiri_geser_x, sq_y + 130 + pagar_kiri_geser_y, pagar_kiri_lebar * sk_kiri, 26 * sk_kiri), false)
 	# Pintu Pagar Tengah
