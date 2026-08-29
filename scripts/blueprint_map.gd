@@ -56,7 +56,6 @@ var tex_pagar: Texture2D
 var tex_pagar_samping: Texture2D
 var tex_pintu_pagar: Texture2D
 var tex_telepon: Texture2D
-var tex_station: Texture2D
 
 @export_group("1. Pagar Depan Kiri")
 @export var pagar_kiri_geser_x: float = 0.0:
@@ -281,12 +280,6 @@ func _load_textures() -> void:
 	tex_pagar_samping = load("res://Bangunan/pagar samping.png")
 	tex_pintu_pagar = load("res://Bangunan/pintuPagar.png")
 	tex_telepon = load("res://Bangunan/stasiun telepon.png")
-	if ResourceLoader.exists("res://Bangunan/stasiun.png"):
-		tex_station = load("res://Bangunan/stasiun.png")
-	if tex_station == null:
-		var img = Image.load_from_file("res://Bangunan/stasiun.png")
-		if img != null and not img.is_empty():
-			tex_station = ImageTexture.create_from_image(img)
 
 	tex_bed = load("res://kamar/bed.png")
 	tex_karpet = load("res://kamar/karpet.png")
@@ -623,23 +616,290 @@ func _draw_station_bench(pos: Vector2, w: float = 80.0, h: float = 24.0) -> void
 	draw_line(Vector2(pos.x + 4, pos.y + 16), Vector2(pos.x + w - 4, pos.y + 16), Color(0.60, 0.42, 0.25), 1.0)
 
 func _draw_train_station(rect: Rect2) -> void:
-	# Lantai Dasar Peron (Keramik di bawah sprite)
-	draw_rect(rect, COLOR_ROOM_STONE_A, true)
-	_draw_tile_pattern(rect, COLOR_PLAZA_TILE_LINE)
+	var x  := rect.position.x
+	var y  := rect.position.y
+	var rw := rect.size.x   # 300
+	var rh := rect.size.y   # 621
 
-	# Sprite Stasiun Tampak Atas — Memenuhi Seluruh Blok
-	var st_sk = 1.0 if (stasiun_skala == null or stasiun_skala <= 0.0) else float(stasiun_skala)
-	var st_w = (stasiun_lebar if (stasiun_lebar != null and stasiun_lebar > 0.0) else rect.size.x) * st_sk
-	var st_h = (stasiun_tinggi if (stasiun_tinggi != null and stasiun_tinggi > 0.0) else rect.size.y) * st_sk
-	var draw_x = rect.position.x + stasiun_geser_x
-	var draw_y = rect.position.y + stasiun_geser_y
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 1. LANTAI DASAR PERON (Warm Light Stone Tile Floor)
+	# ═══════════════════════════════════════════════════════════════════════════
+	draw_rect(rect, Color(0.80, 0.78, 0.74), true)
 	
-	if is_instance_valid(tex_station):
-		draw_texture_rect(tex_station, Rect2(draw_x, draw_y, st_w, st_h), false)
-	else:
-		_draw_texture_fit(tex_station, Rect2(draw_x, draw_y, st_w, st_h))
+	# Pola keramik ubin peron
+	for tx in range(int(x), int(x + rw), 20):
+		draw_line(Vector2(tx, y), Vector2(tx, y + rh), Color(0.66, 0.64, 0.60, 0.55), 1.0)
+	for ty in range(int(y), int(y + rh), 20):
+		draw_line(Vector2(x, ty), Vector2(x + rw, ty), Color(0.66, 0.64, 0.60, 0.55), 1.0)
 
-	# Border Dinding Luar Blok Stasiun
+	# Jalur ubin pemandu tuna netra (Tactile Walkway) dari pintu masuk ke peron
+	var guide_x := x + 64.0
+	draw_rect(Rect2(guide_x, y + 175, 12, rh - 185), Color(0.95, 0.82, 0.18, 0.85), true)
+	for gy in range(int(y) + 180, int(y + rh) - 10, 8):
+		draw_line(Vector2(guide_x + 2, gy), Vector2(guide_x + 10, gy), Color(0.78, 0.65, 0.10), 1.0)
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 2. GEDUNG UTAMA STASIUN (Bagian Atas: y = y .. y + 175)
+	# ═══════════════════════════════════════════════════════════════════════════
+	var b_w := rw - 65.0 # Sisakan ruang untuk jalur keselamatan kanan
+	var b_h := 175.0
+	var b_rect := Rect2(x, y, b_w, b_h)
+
+	# Fasad Dinding Bawah Gedung (Tampak Depan Pintu Masuk: y + 100 .. y + 175)
+	var facade_y := y + 100.0
+	var facade_h := 75.0
+	draw_rect(Rect2(x, facade_y, b_w, facade_h), Color(0.90, 0.87, 0.82), true) # Dinding krem
+	draw_rect(Rect2(x, facade_y + facade_h - 10, b_w, 10), Color(0.55, 0.42, 0.32), true) # Plinth kayu bawah
+
+	# Pintu Utama Stasiun (Entrance Archway / Portal)
+	var door_x := x + 84.0
+	var door_w := 42.0
+	var door_h := 50.0
+	var door_y := facade_y + 25.0
+	draw_rect(Rect2(door_x - 3, door_y - 3, door_w + 6, door_h + 3), Color(0.40, 0.30, 0.22), true) # Kusen
+	draw_rect(Rect2(door_x, door_y, door_w, door_h), Color(0.12, 0.12, 0.15), true) # Lorong dalam gelap
+	# Lantai lorong pintu masuk
+	draw_rect(Rect2(door_x + 4, door_y + 12, door_w - 8, door_h - 12), Color(0.25, 0.24, 0.22), true)
+
+	# Papan Nama "STATION ENTRY"
+	var sign_x := door_x - 6.0
+	var sign_w := door_w + 12.0
+	var sign_y := door_y - 18.0
+	draw_rect(Rect2(sign_x, sign_y, sign_w, 14), Color(0.15, 0.22, 0.30), true)
+	draw_rect(Rect2(sign_x, sign_y, sign_w, 14), Color(0.85, 0.85, 0.85), false, 1.5)
+	draw_line(Vector2(sign_x + 4, sign_y + 7), Vector2(sign_x + sign_w - 4, sign_y + 7), Color(0.98, 0.95, 0.80), 2.0)
+
+	# Pintu Kaca & Jendela Samping Kanan
+	var rdoor_x := x + 162.0
+	var rdoor_y := facade_y + 25.0
+	draw_rect(Rect2(rdoor_x, rdoor_y, 32, 45), Color(0.35, 0.48, 0.62), true)
+	draw_rect(Rect2(rdoor_x, rdoor_y, 32, 45), Color(0.20, 0.28, 0.38), false, 2.0)
+	draw_line(Vector2(rdoor_x + 16, rdoor_y), Vector2(rdoor_x + 16, rdoor_y + 45), Color(0.20, 0.28, 0.38), 1.5)
+	# Gagang pintu emas
+	draw_circle(Vector2(rdoor_x + 13, rdoor_y + 24), 2.0, Color(0.95, 0.80, 0.20))
+	draw_circle(Vector2(rdoor_x + 19, rdoor_y + 24), 2.0, Color(0.95, 0.80, 0.20))
+
+	# Pintu Kayu Samping Kiri
+	var ldoor_x := x + 28.0
+	draw_rect(Rect2(ldoor_x, rdoor_y + 4, 24, 41), Color(0.52, 0.36, 0.22), true)
+	draw_rect(Rect2(ldoor_x, rdoor_y + 4, 24, 41), Color(0.28, 0.18, 0.10), false, 2.0)
+	draw_circle(Vector2(ldoor_x + 19, rdoor_y + 24), 2.0, Color(0.95, 0.80, 0.20))
+
+	# Jam Dinding Stasiun Bundar di Fasad
+	draw_circle(Vector2(x + 204, facade_y + 25), 7.0, Color(0.95, 0.95, 0.95))
+	draw_circle(Vector2(x + 204, facade_y + 25), 7.0, Color(0.20, 0.20, 0.25), false, 1.5)
+	draw_line(Vector2(x + 204, facade_y + 25), Vector2(x + 204, facade_y + 21), Color(0.10, 0.10, 0.10), 1.2)
+	draw_line(Vector2(x + 204, facade_y + 25), Vector2(x + 207, facade_y + 25), Color(0.10, 0.10, 0.10), 1.2)
+
+	# Simbol Bus/Transit Sign
+	draw_rect(Rect2(x + 218, facade_y + 18, 14, 14), Color(0.15, 0.35, 0.65), true)
+	draw_rect(Rect2(x + 221, facade_y + 22, 8, 6), Color(0.95, 0.95, 0.95), true)
+
+	# Tanaman Pot Hijau di Samping Pintu Utama
+	for px_offset in [door_x - 14, door_x + door_w + 4]:
+		draw_rect(Rect2(px_offset, facade_y + 42, 10, 10), Color(0.68, 0.38, 0.22), true)
+		draw_circle(Vector2(px_offset + 5, facade_y + 40), 7.0, Color(0.22, 0.58, 0.20))
+		draw_circle(Vector2(px_offset + 5, facade_y + 40), 5.0, Color(0.35, 0.72, 0.25))
+
+	# ── Atap Utama Genteng Terakota (Tampak Atas: y .. y + 105) ─────────────
+	var roof_h := 105.0
+	draw_rect(Rect2(x, y, b_w, roof_h), Color(0.78, 0.42, 0.24), true) # Terrakotta cerah
+	# Shading atap sisi bawah
+	draw_rect(Rect2(x, y + roof_h * 0.55, b_w, roof_h * 0.45), Color(0.62, 0.30, 0.16), true)
+	# Bubungan tengah atap (Ridge Cap)
+	draw_rect(Rect2(x, y + roof_h * 0.52, b_w, 5), Color(0.42, 0.18, 0.08), true)
+
+	# Tekstur genteng berulang
+	for ry in range(int(y) + 6, int(y + roof_h), 8):
+		draw_line(Vector2(x + 2, ry), Vector2(x + b_w - 2, ry), Color(0.35, 0.14, 0.06, 0.65), 1.0)
+
+	# 4 Jendela Skylight / Loteng Kaca Biru di Atap
+	var skylights := [
+		Rect2(x + 28,  y + 18, 22, 32),
+		Rect2(x + 72,  y + 24, 20, 26),
+		Rect2(x + 115, y + 24, 20, 26),
+		Rect2(x + 158, y + 18, 22, 32)
+	]
+	for sl in skylights:
+		draw_rect(sl, Color(0.20, 0.22, 0.28), true) # Frame gelap
+		draw_rect(Rect2(sl.position.x + 2, sl.position.y + 2, sl.size.x - 4, sl.size.y - 4), Color(0.38, 0.65, 0.88), true) # Kaca biru
+		draw_line(Vector2(sl.position.x + 4, sl.position.y + 6), Vector2(sl.end.x - 6, sl.end.y - 6), Color(0.90, 0.96, 1.0, 0.75), 1.5) # Refleksi
+
+	# Gable Atap Segitiga di Atas Pintu Masuk
+	var gable_pts := PackedVector2Array([
+		Vector2(door_x - 10, y + roof_h + 4),
+		Vector2(door_x + door_w * 0.5, y + 45),
+		Vector2(door_x + door_w + 10, y + roof_h + 4)
+	])
+	draw_colored_polygon(gable_pts, Color(0.82, 0.44, 0.25))
+	draw_polyline(gable_pts, Color(0.32, 0.14, 0.06), 2.5)
+
+	# Border atap gedung stasiun
+	draw_rect(Rect2(x, y, b_w, roof_h), Color(0.25, 0.10, 0.05), false, 2.5)
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 3. KANOPI KEMBAR PERON (Twin Platform Canopies: Kiri & Kanan)
+	# ═══════════════════════════════════════════════════════════════════════════
+	var c_y  := y + 185.0
+	var c_h  := rh - 195.0
+	var c_w  := 48.0
+	var lc_x := x + 6.0
+	var rc_x := x + 164.0
+
+	for cx_pos in [lc_x, rc_x]:
+		var c_rect := Rect2(cx_pos, c_y, c_w, c_h)
+		# Bayangan kanopi
+		draw_rect(Rect2(cx_pos - 4, c_y + 6, c_w + 8, c_h), Color(0.15, 0.16, 0.18, 0.22), true)
+		# Atap kanopi seng bergelombang (Abu-abu kebiruan)
+		draw_rect(c_rect, Color(0.46, 0.52, 0.58), true)
+		draw_rect(Rect2(cx_pos + c_w * 0.45, c_y, c_w * 0.15, c_h), Color(0.32, 0.36, 0.42), true) # Ridge tengah
+		draw_rect(c_rect, Color(0.22, 0.25, 0.30), false, 2.0) # Border
+
+		# Garis-garis seng bergelombang
+		for cy_pos in range(int(c_y) + 8, int(c_y + c_h), 12):
+			draw_line(Vector2(cx_pos + 2, cy_pos), Vector2(cx_pos + c_w - 2, cy_pos), Color(0.30, 0.35, 0.42, 0.50), 1.0)
+
+		# Tiang penyangga baja silinder & lampu
+		for pi in range(4):
+			var py_pos := c_y + 35.0 + pi * (c_h - 60.0) / 3.0
+			draw_circle(Vector2(cx_pos + c_w * 0.5, py_pos), 5.5, Color(0.32, 0.35, 0.40))
+			draw_circle(Vector2(cx_pos + c_w * 0.5, py_pos), 3.5, Color(0.18, 0.20, 0.24))
+			# Lampu bulat kuning
+			draw_circle(Vector2(cx_pos + c_w * 0.5, py_pos + 8), 3.0, Color(0.98, 0.92, 0.55))
+
+	# Rangka Baja Penghubung (Truss Beams) antara Kanopi Kiri & Kanan
+	var truss_y1 := c_y + 15.0
+	var truss_y2 := c_y + 155.0
+	for ty_pos in [truss_y1, truss_y2]:
+		draw_line(Vector2(lc_x + c_w, ty_pos), Vector2(rc_x, ty_pos), Color(0.25, 0.28, 0.34), 3.0)
+		draw_line(Vector2(lc_x + c_w, ty_pos + 8), Vector2(rc_x, ty_pos + 8), Color(0.25, 0.28, 0.34), 3.0)
+		# Rangka silang zig-zag
+		for zx in range(int(lc_x + c_w), int(rc_x) - 15, 20):
+			draw_line(Vector2(zx, ty_pos), Vector2(zx + 10, ty_pos + 8), Color(0.35, 0.38, 0.45), 1.5)
+			draw_line(Vector2(zx + 10, ty_pos + 8), Vector2(zx + 20, ty_pos), Color(0.35, 0.38, 0.45), 1.5)
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 4. AMENITAS & FASILITAS PERON TENGAH (Central Walkway: x+54 .. x+164)
+	# ═══════════════════════════════════════════════════════════════════════════
+
+	# A. Peta Transit & Jam Gantung di Dinding Atas Walkway
+	var map_x := x + 68.0
+	var map_y := c_y + 15.0
+	draw_rect(Rect2(map_x, map_y, 32, 22), Color(0.92, 0.90, 0.85), true) # Kertas peta
+	draw_rect(Rect2(map_x, map_y, 32, 22), Color(0.30, 0.32, 0.36), false, 1.5)
+	# Garis rute peta (hijau & biru)
+	draw_line(Vector2(map_x + 4, map_y + 8), Vector2(map_x + 28, map_y + 14), Color(0.25, 0.65, 0.30), 2.0)
+	draw_line(Vector2(map_x + 8, map_y + 16), Vector2(map_x + 26, map_y + 6), Color(0.20, 0.50, 0.85), 2.0)
+
+	# Jam stasiun tiang gantung
+	var clock_x := x + 114.0
+	draw_circle(Vector2(clock_x, map_y + 11), 8.0, Color(0.95, 0.95, 0.95))
+	draw_circle(Vector2(clock_x, map_y + 11), 8.0, Color(0.18, 0.20, 0.24), false, 2.0)
+	draw_line(Vector2(clock_x, map_y + 11), Vector2(clock_x, map_y + 6), Color(0.10, 0.10, 0.10), 1.5)
+	draw_line(Vector2(clock_x, map_y + 11), Vector2(clock_x + 4, map_y + 11), Color(0.10, 0.10, 0.10), 1.5)
+
+	# B. Mesin Minuman Otomatis (Red Vending Machine)
+	var vm_x := x + 130.0
+	var vm_y := c_y + 10.0
+	draw_rect(Rect2(vm_x, vm_y, 28, 42), Color(0.85, 0.20, 0.18), true) # Merah mencolok
+	draw_rect(Rect2(vm_x, vm_y, 28, 42), Color(0.20, 0.15, 0.15), false, 2.0)
+	# Display kaca minuman
+	draw_rect(Rect2(vm_x + 3, vm_y + 4, 22, 20), Color(0.10, 0.12, 0.16), true)
+	# Kaleng minuman warna-warni
+	for vi in range(3):
+		draw_rect(Rect2(vm_x + 5 + vi * 6, vm_y + 6, 4, 7), Color(0.20, 0.80, 0.40) if vi==0 else (Color(0.20, 0.60, 0.95) if vi==1 else Color(0.95, 0.80, 0.20)), true)
+		draw_rect(Rect2(vm_x + 5 + vi * 6, vm_y + 15, 4, 7), Color(0.95, 0.40, 0.20) if vi==0 else (Color(0.80, 0.30, 0.80) if vi==1 else Color(0.95, 0.95, 0.95)), true)
+	# Slot pengeluaran minuman
+	draw_rect(Rect2(vm_x + 4, vm_y + 28, 20, 10), Color(0.25, 0.25, 0.28), true)
+
+	# C. Papan Jadwal Digital Gantung LED (PIDS Board - "NEXT TRAINS")
+	var pids_x := x + 72.0
+	var pids_y := c_y + 55.0
+	var pids_w := 74.0
+	var pids_h := 36.0
+	draw_rect(Rect2(pids_x, pids_y, pids_w, pids_h), Color(0.08, 0.10, 0.14), true)
+	draw_rect(Rect2(pids_x, pids_y, pids_w, pids_h), Color(0.30, 0.70, 0.95), false, 2.0)
+	# Header cyan
+	draw_line(Vector2(pids_x + 4, pids_y + 8), Vector2(pids_x + pids_w - 4, pids_y + 8), Color(0.30, 0.85, 0.95), 2.0)
+	# Baris jadwal amber/kuning
+	draw_line(Vector2(pids_x + 4, pids_y + 16), Vector2(pids_x + pids_w - 8, pids_y + 16), Color(0.98, 0.75, 0.15), 1.8)
+	draw_line(Vector2(pids_x + 4, pids_y + 23), Vector2(pids_x + pids_w - 12, pids_y + 23), Color(0.98, 0.75, 0.15), 1.8)
+	draw_line(Vector2(pids_x + 4, pids_y + 30), Vector2(pids_x + pids_w - 6, pids_y + 30), Color(0.30, 0.85, 0.95), 1.8)
+
+	# D. Bangku Tunggu Kayu & Penumpang Santai (Benches & Passengers)
+	# Set Bangku 1: y + 330
+	var b1_y := y + 335.0
+	_draw_station_bench(Vector2(x + 88, b1_y), 42.0, 18.0)
+	_draw_station_bench(Vector2(x + 88, b1_y + 28), 42.0, 18.0)
+	# Penumpang mini (top-down heads & torso)
+	draw_circle(Vector2(x + 98, b1_y + 8), 4.0, Color(0.85, 0.65, 0.45)) # Kepala
+	draw_circle(Vector2(x + 98, b1_y + 6), 4.0, Color(0.35, 0.20, 0.12)) # Rambut
+	draw_rect(Rect2(x + 94, b1_y + 10, 8, 7), Color(0.25, 0.45, 0.75), true) # Baju biru
+
+	# Set Bangku 2: y + 440
+	var b2_y := y + 445.0
+	_draw_station_bench(Vector2(x + 88, b2_y), 42.0, 18.0)
+	_draw_station_bench(Vector2(x + 88, b2_y + 28), 42.0, 18.0)
+	# Penumpang mini 2
+	draw_circle(Vector2(x + 118, b2_y + 8), 4.0, Color(0.85, 0.65, 0.45))
+	draw_circle(Vector2(x + 118, b2_y + 6), 4.0, Color(0.18, 0.18, 0.20))
+	draw_rect(Rect2(x + 114, b2_y + 10, 8, 7), Color(0.75, 0.25, 0.35), true) # Baju merah
+
+	# E. Tanaman Hias Pot Tengah (Central Planter)
+	var pl_y := y + 395.0
+	draw_rect(Rect2(x + 98, pl_y, 22, 22), Color(0.58, 0.36, 0.22), true) # Pot terrakotta
+	draw_rect(Rect2(x + 98, pl_y, 22, 22), Color(0.30, 0.18, 0.10), false, 1.5)
+	draw_circle(Vector2(x + 109, pl_y + 11), 12.0, Color(0.20, 0.55, 0.18)) # Daun rimbun
+	draw_circle(Vector2(x + 109, pl_y + 11), 8.0, Color(0.32, 0.72, 0.24))
+
+	# F. Mesin Tiket Otomatis (TVM Kiosk) & Tempat Sampah di Bagian Bawah
+	var tvm_x := x + 102.0
+	var tvm_y := y + 535.0
+	draw_rect(Rect2(tvm_x, tvm_y, 16, 26), Color(0.75, 0.78, 0.82), true) # Body abu-abu
+	draw_rect(Rect2(tvm_x, tvm_y, 16, 26), Color(0.25, 0.28, 0.32), false, 1.5)
+	draw_rect(Rect2(tvm_x + 2, tvm_y + 3, 12, 10), Color(0.20, 0.55, 0.85), true) # Layar biru
+	draw_rect(Rect2(tvm_x + 2, tvm_y + 18, 12, 6), Color(0.85, 0.20, 0.20), true) # Panel bawah merah
+
+	# Tempat Sampah Terpilah (Bawah Kanopi)
+	draw_rect(Rect2(x + 36, y + 540, 10, 14), Color(0.22, 0.65, 0.32), true) # Hijau
+	draw_rect(Rect2(x + 36, y + 540, 10, 14), Color(0.12, 0.35, 0.18), false, 1.5)
+	draw_rect(Rect2(x + 172, y + 540, 10, 14), Color(0.25, 0.50, 0.85), true) # Biru
+	draw_rect(Rect2(x + 172, y + 540, 10, 14), Color(0.12, 0.25, 0.45), false, 1.5)
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 5. ZONA KESELAMATAN & TEPI REL KERETA (Sisi Kanan: x+220 .. x+300)
+	# ═══════════════════════════════════════════════════════════════════════════
+	var track_edge_x := rect.end.x # 2160
+
+	# Garis Kuning Keselamatan / Tactile Warning Strip (Lebar 24px)
+	var warn_w := 24.0
+	var warn_x := track_edge_x - warn_w - 38.0
+	draw_rect(Rect2(warn_x, y, warn_w, rh), Color(0.96, 0.84, 0.10), true) # Kuning cerah
+
+	# Pola titik timbul tactile studs (Grid titik-titik kecil)
+	for ty in range(int(y) + 4, int(y + rh), 8):
+		for tx_offset in [4.0, 12.0, 20.0]:
+			draw_circle(Vector2(warn_x + tx_offset, ty), 1.4, Color(0.72, 0.60, 0.05))
+
+	# Tepi peron platform edge line
+	draw_line(Vector2(warn_x + warn_w, y), Vector2(warn_x + warn_w, y + rh), Color(0.15, 0.16, 0.18), 3.0)
+
+	# Area Rel Kereta Api Sisi Kanan Stasiun (Ballast & Rel)
+	var rail_area_x := warn_x + warn_w + 3.0
+	var rail_area_w := track_edge_x - rail_area_x
+	draw_rect(Rect2(rail_area_x, y, rail_area_w, rh), Color(0.22, 0.23, 0.25), true) # Ballast kerikil gelap
+
+	# Batang Rel Baja & Bantalan Kayu
+	var rail_x1 := rail_area_x + 6.0
+	var rail_x2 := rail_area_x + rail_area_w - 6.0
+	for ry_pos in range(int(y) + 6, int(y + rh), 14):
+		draw_line(Vector2(rail_area_x + 2, ry_pos), Vector2(rail_area_x + rail_area_w - 2, ry_pos), Color(0.38, 0.32, 0.26), 3.0) # Bantalan
+	draw_line(Vector2(rail_x1, y), Vector2(rail_x1, y + rh), Color(0.75, 0.78, 0.82), 3.5) # Rel baja 1
+	draw_line(Vector2(rail_x2, y), Vector2(rail_x2, y + rh), Color(0.75, 0.78, 0.82), 3.5) # Rel baja 2
+
+	# ═══════════════════════════════════════════════════════════════════════════
+	# 6. BORDER DINDING PEMBATAS BLOK STASIUN
+	# ═══════════════════════════════════════════════════════════════════════════
 	draw_rect(rect, Color(0.15, 0.16, 0.19), false, 3.0)
 
 
