@@ -269,9 +269,9 @@ func _ready() -> void:
 	z_index = -1
 	_load_textures()
 	_setup_gate_audio()
-	_setup_roof_overlay()  # Dipanggil selalu agar preview editor & in-game sama
 	if not Engine.is_editor_hint():
-		_build_all_colliders()
+		if get_parent() and not get_parent().has_node("WorldColliders"):
+			_build_all_colliders()
 		_setup_navigation_region()
 		_spawn_interactive_cars()
 	queue_redraw()

@@ -35,9 +35,83 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b_top"]
+size = Vector2(2500, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b_bottom"]
+size = Vector2(2500, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b_left"]
+size = Vector2(40, 1400)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b_right"]
+size = Vector2(40, 1400)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_polisi"]
+size = Vector2(290, 298)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rs"]
+size = Vector2(585, 300)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_morgue"]
+size = Vector2(380, 225)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stasiun"]
+size = Vector2(142, 245)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rumah_belakang"]
+size = Vector2(220, 175)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rumah_samping"]
+size = Vector2(340, 205)
+
 [node name="Main" type="Node2D" unique_id=1989873088]
 y_sort_enabled = true
 script = ExtResource("1_main_script")
+
+[node name="WorldColliders" type="StaticBody2D" parent="." unique_id=2081940121]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Batas_Atas" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(1210, -20)
+shape = SubResource("RectangleShape2D_b_top")
+
+[node name="Batas_Bawah" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(1210, 1331)
+shape = SubResource("RectangleShape2D_b_bottom")
+
+[node name="Batas_Kiri" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(-20, 660)
+shape = SubResource("RectangleShape2D_b_left")
+
+[node name="Batas_Kanan" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(2440, 660)
+shape = SubResource("RectangleShape2D_b_right")
+
+[node name="Gedung_Polisi" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(163, 1084)
+shape = SubResource("RectangleShape2D_polisi")
+
+[node name="Gedung_RumahSakit" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(617, 1083)
+shape = SubResource("RectangleShape2D_rs")
+
+[node name="Gedung_KamarJenazah" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(829, 436)
+shape = SubResource("RectangleShape2D_morgue")
+
+[node name="Gedung_Stasiun" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(2062, 820)
+shape = SubResource("RectangleShape2D_stasiun")
+
+[node name="Gedung_RumahBelakang" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(1290, 832)
+shape = SubResource("RectangleShape2D_rumah_belakang")
+
+[node name="Gedung_RumahSamping" type="CollisionShape2D" parent="WorldColliders"]
+position = Vector2(1820, 437)
+shape = SubResource("RectangleShape2D_rumah_samping")
 
 [node name="BlueprintMap" type="Node2D" parent="." unique_id=1843604719]
 z_index = -1
@@ -60,10 +134,9 @@ pagar_samping_geser_y = 5.0
 gap_sudut_atas_samping = 1.0
 polisi_geser_x = 10.0
 polisi_geser_y = -20.0
-polisi_lebar = null
-polisi_tinggi = null
-rs_geser_x = 0.0
-rs_geser_y = 0.0
+polisi_skala = 0.85
+rs_geser_x = -140.0
+rs_geser_y = -12.0
 rs_lebar = null
 rs_tinggi = null
 [node name="Player" parent="." unique_id=1644102521 instance=ExtResource("3_player_scene")]
