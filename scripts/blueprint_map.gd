@@ -270,8 +270,7 @@ func _ready() -> void:
 	_load_textures()
 	_setup_gate_audio()
 	if not Engine.is_editor_hint():
-		if get_parent() and not get_parent().has_node("WorldColliders"):
-			_build_all_colliders()
+		_build_all_colliders()
 		_setup_navigation_region()
 		_spawn_interactive_cars()
 	queue_redraw()
@@ -449,63 +448,171 @@ func _build_all_colliders() -> void:
 	_add_box_collider(sb, Rect2(-40, -40, 40, 1400))
 	_add_box_collider(sb, Rect2(2420, -40, 40, 1400))
 
-	# 2. Gedung-Gedung Utama (Hanya Bodi Bangunan Asli)
+	# 2. Gedung-Gedung Utama (Otomatis Pixel-Perfect dari PNG Transparan)
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
 	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
-	_add_box_collider(sb, Rect2(8 + (polisi_geser_x if polisi_geser_x != null else 0.0), 955 + (polisi_geser_y if polisi_geser_y != null else 0.0), pol_w, pol_h))
+	var pol_rect = Rect2(8 + (polisi_geser_x if polisi_geser_x != null else 0.0), 955 + (polisi_geser_y if polisi_geser_y != null else 0.0), pol_w, pol_h)
+	_add_bitmap_collider(sb, tex_police, pol_rect)
 
 	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
 	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
 	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
-	_add_box_collider(sb, Rect2(465 + (rs_geser_x if rs_geser_x != null else 0.0), 945 + (rs_geser_y if rs_geser_y != null else 0.0), r_w, r_h))
+	var rs_rect = Rect2(465 + (rs_geser_x if rs_geser_x != null else 0.0), 945 + (rs_geser_y if rs_geser_y != null else 0.0), r_w, r_h)
+	_add_bitmap_collider(sb, tex_hospital, rs_rect)
 
-	# Kamar Jenazah (Morgue)
+	# Kamar Jenazah (Morgue) & Gedung Stasiun
 	_add_box_collider(sb, Rect2(639, 324, 380, 225))
-
-	# Gedung Utama Stasiun
 	_add_box_collider(sb, Rect2(1991, 698, 142, 245))
 
-	# Rumah Belakang & Rumah Samping
-	_add_box_collider(sb, Rect2(1180, 745, 220, 175))
-	_add_box_collider(sb, Rect2(1650, 335, 340, 205))
+	# Rumah Belakang & Rumah Samping (Otomatis dari PNG)
+	_add_bitmap_collider(sb, tex_rumah_belakang, Rect2(1180, 745, 220, 175))
+	_add_bitmap_collider(sb, tex_rumah_samping, Rect2(1650, 335, 340, 205))
+
+	var sk_kiri = (pagar_kiri_skala if (pagar_kiri_skala != null and pagar_kiri_skala > 0.0) else 1.0)
+	var sk_kanan = (pagar_kanan_skala if (pagar_kanan_skala != null and pagar_kanan_skala > 0.0) else 1.0)
+	var side_w = (pagar_samping_lebar if (pagar_samping_lebar != null and pagar_samping_lebar > 0.0) else 12.0)
+	var side_total_h = (pagar_samping_tinggi if (pagar_samping_tinggi != null and pagar_samping_tinggi > 0.0) else 148.0)
+	var n_panels = max(1, 2 if (pagar_samping_jumlah_panel == null or pagar_samping_jumlah_panel <= 0) else int(pagar_samping_jumlah_panel))
+	var overlap_px = 16.0
+	var panel_h = (side_total_h + (n_panels - 1) * overlap_px) / float(n_panels)
+	var step_y = panel_h - overlap_px + (0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel))
 
 	# 3. Rumah Warga & Pagar Halaman (11 Rumah Atas)
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var sq_y = 36.0
-		# Bodi Rumah Utama (Hanya di area rumahnya, Rumah Detektif i==6 terbuka interiornya)
+		# Bodi Rumah Utama dari PNG (Rumah Detektif i==6 terbuka interiornya)
 		if i != 6:
-			_add_box_collider(sb, Rect2(sq_x + 14, sq_y + 6, 128, 76))
+			_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12, sq_y + 6, 132, 116))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
-		# Pagar Samping Kiri
-		_add_box_collider(sb, Rect2(sq_x - 6, sq_y - 6, 10, 170))
-		# Pagar Samping Kanan
-		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 10, 170))
-		# Pagar Depan Kiri
-		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 26))
-		# Pagar Depan Kanan
-		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 26))
-		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT KELUAR-MASUK!)
+		# Pagar Samping Kiri & Kanan dari PNG
+		for p in range(n_panels):
+			var py = sq_y + p * step_y
+			_add_side_fence_bitmap_collider(sb, Rect2(sq_x - 3 + (pagar_samping_kiri_geser_x if pagar_samping_kiri_geser_x != null else 0.0), py, side_w, panel_h), true)
+			_add_side_fence_bitmap_collider(sb, Rect2(sq_x + 156 - side_w + 3 + (pagar_samping_kanan_geser_x if pagar_samping_kanan_geser_x != null else 0.0), py, side_w, panel_h), false)
+		# Pagar Depan Kiri & Kanan dari PNG
+		var f_left_rect = Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri)
+		_add_bitmap_collider(sb, tex_pagar, f_left_rect)
+		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan)
+		_add_flipped_bitmap_collider(sb, tex_pagar, f_right_rect, true, false)
 
 	# 3 Rumah Tenggara
 	for hy in [705.0, 880.0, 1055.0]:
 		var sq_x = 1636.0
 		var sq_y = hy
-		# Bodi Rumah Utama
-		_add_box_collider(sb, Rect2(sq_x + 14, sq_y + 6, 128, 76))
+		# Bodi Rumah Utama dari PNG
+		_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12, sq_y + 6, 132, 116))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
-		# Pagar Samping Kiri
-		_add_box_collider(sb, Rect2(sq_x - 6, sq_y - 6, 10, 170))
-		# Pagar Samping Kanan
-		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 10, 170))
-		# Pagar Depan Kiri
-		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 26))
-		# Pagar Depan Kanan
-		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 26))
-		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
+		# Pagar Samping Kiri & Kanan dari PNG
+		for p in range(n_panels):
+			var py = sq_y + p * step_y
+			_add_side_fence_bitmap_collider(sb, Rect2(sq_x - 3 + (pagar_samping_kiri_geser_x if pagar_samping_kiri_geser_x != null else 0.0), py, side_w, panel_h), true)
+			_add_side_fence_bitmap_collider(sb, Rect2(sq_x + 156 - side_w + 3 + (pagar_samping_kanan_geser_x if pagar_samping_kanan_geser_x != null else 0.0), py, side_w, panel_h), false)
+		# Pagar Depan Kiri & Kanan dari PNG
+		var f_left_rect = Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri)
+		_add_bitmap_collider(sb, tex_pagar, f_left_rect)
+		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan)
+		_add_flipped_bitmap_collider(sb, tex_pagar, f_right_rect, true, false)
+
+func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, alpha_threshold: float = 0.25, epsilon: float = 3.0) -> void:
+	if not is_instance_valid(tex):
+		return
+	var img: Image = tex.get_image()
+	if not img:
+		return
+	var src_w: int = img.get_width()
+	var src_h: int = img.get_height()
+	if src_w <= 0 or src_h <= 0:
+		return
+
+	var scale_factor: float = min(target_rect.size.x / float(src_w), target_rect.size.y / float(src_h))
+	var draw_size := Vector2(src_w, src_h) * scale_factor
+	var draw_pos := target_rect.position + (target_rect.size - draw_size) * 0.5
+
+	var bitmap := BitMap.new()
+	bitmap.create_from_image_alpha(img, alpha_threshold)
+	var polys: Array[PackedVector2Array] = bitmap.opaque_to_polygons(Rect2i(0, 0, src_w, src_h), epsilon)
+
+	for poly in polys:
+		if poly.size() < 3:
+			continue
+		var scaled_poly := PackedVector2Array()
+		scaled_poly.resize(poly.size())
+		for pi in range(poly.size()):
+			scaled_poly[pi] = draw_pos + poly[pi] * scale_factor
+		var col := CollisionPolygon2D.new()
+		col.polygon = scaled_poly
+		body.add_child(col)
+
+func _add_flipped_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, flip_h: bool = false, flip_v: bool = false, alpha_threshold: float = 0.25, epsilon: float = 3.0) -> void:
+	if not is_instance_valid(tex):
+		return
+	var img: Image = tex.get_image()
+	if not img:
+		return
+	if flip_h or flip_v:
+		img = img.duplicate()
+		if flip_h:
+			img.flip_x()
+		if flip_v:
+			img.flip_y()
+	var src_w: int = img.get_width()
+	var src_h: int = img.get_height()
+	if src_w <= 0 or src_h <= 0:
+		return
+
+	var scale_factor: float = min(target_rect.size.x / float(src_w), target_rect.size.y / float(src_h))
+	var draw_size := Vector2(src_w, src_h) * scale_factor
+	var draw_pos := target_rect.position + (target_rect.size - draw_size) * 0.5
+
+	var bitmap := BitMap.new()
+	bitmap.create_from_image_alpha(img, alpha_threshold)
+	var polys: Array[PackedVector2Array] = bitmap.opaque_to_polygons(Rect2i(0, 0, src_w, src_h), epsilon)
+
+	for poly in polys:
+		if poly.size() < 3:
+			continue
+		var scaled_poly := PackedVector2Array()
+		scaled_poly.resize(poly.size())
+		for pi in range(poly.size()):
+			scaled_poly[pi] = draw_pos + poly[pi] * scale_factor
+		var col := CollisionPolygon2D.new()
+		col.polygon = scaled_poly
+		body.add_child(col)
+
+func _add_side_fence_bitmap_collider(body: StaticBody2D, rect: Rect2, flip_h: bool = false) -> void:
+	if not is_instance_valid(tex_pagar_samping):
+		return
+	var img: Image = tex_pagar_samping.get_image()
+	if not img:
+		return
+	var region := Rect2i(19, 24, 31, 329)
+	var cropped := img.get_region(region)
+	if flip_h:
+		cropped.flip_x()
+	var src_w = cropped.get_width()
+	var src_h = cropped.get_height()
+	if src_w <= 0 or src_h <= 0:
+		return
+	var scale_x = rect.size.x / float(src_w)
+	var scale_y = rect.size.y / float(src_h)
+
+	var bitmap := BitMap.new()
+	bitmap.create_from_image_alpha(cropped, 0.25)
+	var polys = bitmap.opaque_to_polygons(Rect2i(0, 0, src_w, src_h), 2.0)
+	for poly in polys:
+		if poly.size() < 3:
+			continue
+		var scaled_poly := PackedVector2Array()
+		scaled_poly.resize(poly.size())
+		for pi in range(poly.size()):
+			scaled_poly[pi] = rect.position + Vector2(poly[pi].x * scale_x, poly[pi].y * scale_y)
+		var col := CollisionPolygon2D.new()
+		col.polygon = scaled_poly
+		body.add_child(col)
 
 func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
 	var shape = CollisionShape2D.new()
