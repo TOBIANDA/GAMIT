@@ -260,16 +260,46 @@ var tex_baskom: Texture2D
 var tex_surat: Texture2D
 var collision_bodies: Array[StaticBody2D] = []
 var nav_region: NavigationRegion2D
-var roof_overlay_node: Node2D
+var ysort_buildings_node: Node2D
+var canopy_overlay_node: Node2D
+var fence_nodes: Dictionary = {}
 var gate_slide_offsets: Dictionary = {}
 var player_cached: CharacterBody2D = null
 var gate_audio_player: AudioStreamPlayer2D
+
+class YSortableItem extends Node2D:
+	var draw_callable: Callable
+
+	func _draw() -> void:
+		if draw_callable.is_valid():
+			draw_callable.call(self)
+
+class CanopyOverlayNode extends Node2D:
+	var map: Node2D = null
+
+	func _draw() -> void:
+		if not is_instance_valid(map):
+			return
+		var warn1_x := 2140.0
+		var b_h := 245.0
+		var c1_y := 690 + b_h + 20.0
+		var c1_h := 621 - b_h - 40.0
+		var c1_w := 68.0
+		var c1_x := warn1_x - c1_w - 16.0
+		map._draw_vertical_canopy_to(self, Rect2(c1_x, c1_y, c1_w, c1_h))
+
+		var c2_w := 68.0
+		var c2_h := 571.0
+		var c2_x := 2280.0 + 38.0
+		var c2_y := 690.0 + 25.0
+		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
 
 func _ready() -> void:
 	z_index = -1
 	_load_textures()
 	_setup_gate_audio()
-	_setup_roof_overlay()  # Dipanggil selalu agar preview editor & in-game sama
+	_setup_ysort_buildings()
+	_setup_canopy_overlay()
 	if not Engine.is_editor_hint():
 		_build_all_colliders()
 		_setup_navigation_region()
@@ -304,7 +334,7 @@ func _process(delta: float) -> void:
 	var needs_redraw := false
 	var p_pos := player_cached.global_position if is_instance_valid(player_cached) else Vector2(-9999, -9999)
 
-	# Update posisi geser buka pintu pagar 11 Rumah Atas (Membuka Geser Mulus ke Kiri)
+	# Update posisi geser buka pintu pagar 11 Rumah Atas
 	for i in range(11):
 		var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
 		var sq_y: float = 36.0
@@ -319,6 +349,8 @@ func _process(delta: float) -> void:
 		if abs(cur - next_val) > 0.01:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
+			if fence_nodes.has(key) and is_instance_valid(fence_nodes[key]):
+				fence_nodes[key].queue_redraw()
 
 	# Update posisi geser buka pintu pagar 3 Rumah Tenggara
 	var hy_list: Array[float] = [705.0, 880.0, 1055.0]
@@ -336,83 +368,169 @@ func _process(delta: float) -> void:
 		if abs(cur - next_val) > 0.01:
 			gate_slide_offsets[key] = next_val
 			needs_redraw = true
+			if fence_nodes.has(key) and is_instance_valid(fence_nodes[key]):
+				fence_nodes[key].queue_redraw()
 
 	if needs_redraw:
 		queue_redraw()
 
-class RoofOverlayNode extends Node2D:
-	var map: Node2D = null
+func _setup_ysort_buildings() -> void:
+	if is_instance_valid(ysort_buildings_node):
+		ysort_buildings_node.queue_free()
+	fence_nodes.clear()
 
-	# Rasio area atap (bagian atas) vs dinding depan pada perspektif 3/4 top-down.
-	# Karakter di depan rumah TIDAK tertutup — hanya yang di belakang/di bawah atap.
-	const ROOF_RATIO := 0.72  # 72% atas = atap, 28% bawah = dinding depan (tidak menutup karakter depan)
+	ysort_buildings_node = Node2D.new()
+	ysort_buildings_node.name = "YSortedBuildings"
+	ysort_buildings_node.y_sort_enabled = true
+	ysort_buildings_node.z_as_relative = false
+	ysort_buildings_node.z_index = 0
+	add_child(ysort_buildings_node)
 
-	func _draw_house_roof(tex: Texture2D, dest: Rect2) -> void:
-		if tex == null:
-			return
-		# Hanya gambar bagian atas (atap) dari tekstur, bukan seluruh tinggi
-		var roof_h_px := dest.size.y * ROOF_RATIO
-		var tex_size := tex.get_size()
-		var src := Rect2(0.0, 0.0, tex_size.x, tex_size.y * ROOF_RATIO)
-		draw_texture_rect_region(tex, Rect2(dest.position, Vector2(dest.size.x, roof_h_px)), src, Color.WHITE)
+	# 1. 11 Rumah Atas (Top 11 Houses)
+	for i in range(11):
+		var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
+		var sq_y: float = 36.0
+		if i != 6: # Rumah Detektif lantai interiornya terbuka di tanah
+			var house_base_y := sq_y + 122.0
+			var house_node = YSortableItem.new()
+			house_node.position = Vector2(0, house_base_y)
+			var h_tex: Texture2D = tex_rumah_depan
+			house_node.draw_callable = func(ci: CanvasItem):
+				if h_tex:
+					ci.draw_texture_rect(h_tex, Rect2(sq_x + 12, sq_y + 6 - house_base_y, 132, 116), false)
+			ysort_buildings_node.add_child(house_node)
 
-	func _draw() -> void:
-		if not is_instance_valid(map):
-			return
+		# Pagar Depan & Pintu Pagar Rumah
+		var fence_base_y := sq_y + 148.0
+		var fence_node = YSortableItem.new()
+		fence_node.position = Vector2(0, fence_base_y)
+		var g_key := "top_%d" % i
+		fence_node.draw_callable = func(ci: CanvasItem):
+			_draw_front_fences_to(ci, sq_x, sq_y, fence_base_y, g_key)
+		ysort_buildings_node.add_child(fence_node)
+		fence_nodes[g_key] = fence_node
 
-		# ── 1. Atap 11 Rumah Atas ──────────────────────────────────────────────
-		# Hanya 72% atas (genteng) yang menutupi karakter.
-		# 28% bawah (dinding depan/jendela) TIDAK digambar di sini supaya
-		# karakter yang berdiri di depan rumah TIDAK tertutup.
-		for i in range(11):
-			var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
-			var h_tex: Texture2D = map.tex_rumah_mc if i == 6 else map.tex_rumah_depan
-			_draw_house_roof(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116))
+	# 2. 3 Rumah Tenggara (3 Southeast Houses)
+	var hy_list: Array[float] = [705.0, 880.0, 1055.0]
+	for idx in range(3):
+		var sq_x: float = 1636.0
+		var sq_y: float = hy_list[idx]
+		var house_base_y := sq_y + 122.0
+		var house_node = YSortableItem.new()
+		house_node.position = Vector2(0, house_base_y)
+		house_node.draw_callable = func(ci: CanvasItem):
+			if tex_rumah_depan:
+				ci.draw_texture_rect(tex_rumah_depan, Rect2(sq_x + 12, sq_y + 6 - house_base_y, 132, 116), false)
+		ysort_buildings_node.add_child(house_node)
 
-		# ── 2. Atap 3 Rumah Tenggara ───────────────────────────────────────────
-		for hy in [705.0, 880.0, 1055.0]:
-			_draw_house_roof(map.tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116))
+		# Pagar Depan
+		var fence_base_y := sq_y + 148.0
+		var fence_node = YSortableItem.new()
+		fence_node.position = Vector2(0, fence_base_y)
+		var g_key := "se_%d" % idx
+		fence_node.draw_callable = func(ci: CanvasItem):
+			_draw_front_fences_to(ci, sq_x, sq_y, fence_base_y, g_key)
+		ysort_buildings_node.add_child(fence_node)
+		fence_nodes[g_key] = fence_node
 
-		# ── 3. Rumah Belakang & Samping ────────────────────────────────────────
-		_draw_house_roof(map.tex_rumah_belakang, Rect2(1180, 745, 220, 175))
-		_draw_house_roof(map.tex_rumah_samping, Rect2(1650, 335, 340, 205))
+	# 3. Rumah Belakang & Samping
+	var r_belakang_base_y := 745.0 + 175.0
+	var r_belakang_node = YSortableItem.new()
+	r_belakang_node.position = Vector2(0, r_belakang_base_y)
+	r_belakang_node.draw_callable = func(ci: CanvasItem):
+		if tex_rumah_belakang:
+			ci.draw_texture_rect(tex_rumah_belakang, Rect2(1180, 745 - r_belakang_base_y, 220, 175), false)
+	ysort_buildings_node.add_child(r_belakang_node)
 
-		# ── 4. Kanopi Peron Stasiun (FULL COVER) ──────────────────────────────
-		# Kanopi peron adalah struktur yang pemain BERJALAN DI BAWAHNYA,
-		# jadi full cover di overlay sudah benar.
-		# Gedung polisi & RS TIDAK dimasukkan di sini karena:
-		#   a) Sudah digambar di base layer (tidak perlu double-draw)
-		#   b) Ada collider solid → pemain tidak bisa berjalan di baliknya
-		var p1_x := 1860.0 + 125.0
-		var warn1_x := 2140.0
-		var b_w := 142.0
-		var b_h := 245.0
-		map._draw_station_building_to(self, Rect2(p1_x + 6, 690 + 8, b_w, b_h))
+	var r_samping_base_y := 335.0 + 205.0
+	var r_samping_node = YSortableItem.new()
+	r_samping_node.position = Vector2(0, r_samping_base_y)
+	r_samping_node.draw_callable = func(ci: CanvasItem):
+		if tex_rumah_samping:
+			ci.draw_texture_rect(tex_rumah_samping, Rect2(1650, 335 - r_samping_base_y, 340, 205), false)
+	ysort_buildings_node.add_child(r_samping_node)
 
-		var c1_y := 690 + b_h + 20.0
-		var c1_h := 621 - b_h - 40.0
-		var c1_w := 68.0
-		var c1_x := warn1_x - c1_w - 16.0
-		map._draw_vertical_canopy_to(self, Rect2(c1_x, c1_y, c1_w, c1_h))
+	# 4. Kantor Polisi (Police Station)
+	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
+	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
+	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
+	var pol_base_y = 955.0 + (polisi_geser_y if polisi_geser_y != null else 0.0) + pol_h
+	var pol_node = YSortableItem.new()
+	pol_node.position = Vector2(0, pol_base_y)
+	pol_node.draw_callable = func(ci: CanvasItem):
+		if tex_police:
+			ci.draw_texture_rect(tex_police, Rect2(8 + (polisi_geser_x if polisi_geser_x != null else 0.0), 955 + (polisi_geser_y if polisi_geser_y != null else 0.0) - pol_base_y, pol_w, pol_h), false)
+	ysort_buildings_node.add_child(pol_node)
 
-		var c2_w := 68.0
-		var c2_h := 571.0
-		var c2_x := 2280.0 + 38.0
-		var c2_y := 690.0 + 25.0
-		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
+	# 5. Rumah Sakit (Hospital)
+	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
+	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
+	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
+	var rs_base_y = 945.0 + (rs_geser_y if rs_geser_y != null else 0.0) + r_h
+	var rs_node = YSortableItem.new()
+	rs_node.position = Vector2(0, rs_base_y)
+	rs_node.draw_callable = func(ci: CanvasItem):
+		if tex_hospital:
+			ci.draw_texture_rect(tex_hospital, Rect2(465 + 4 + (rs_geser_x if rs_geser_x != null else 0.0), 945 + 4 + (rs_geser_y if rs_geser_y != null else 0.0) - rs_base_y, r_w - 8, r_h - 8), false)
+	ysort_buildings_node.add_child(rs_node)
 
+	# 6. Gedung Stasiun (Station Building)
+	var p1_x := 1860.0 + 125.0
+	var b_w := 142.0
+	var b_h := 245.0
+	var station_base_y := 690.0 + 8.0 + b_h
+	var station_node = YSortableItem.new()
+	station_node.position = Vector2(0, station_base_y)
+	station_node.draw_callable = func(ci: CanvasItem):
+		_draw_station_building_to(ci, Rect2(p1_x + 6, 690 + 8 - station_base_y, b_w, b_h))
+	ysort_buildings_node.add_child(station_node)
 
-func _setup_roof_overlay() -> void:
-	if is_instance_valid(roof_overlay_node):
-		roof_overlay_node.queue_free()
-	var overlay = RoofOverlayNode.new()
-	overlay.name = "BuildingRoofsOverlay"
+func _setup_canopy_overlay() -> void:
+	if is_instance_valid(canopy_overlay_node):
+		canopy_overlay_node.queue_free()
+	var overlay = CanopyOverlayNode.new()
+	overlay.name = "StationCanopyOverlay"
 	overlay.map = self
 	overlay.z_as_relative = false
-	overlay.z_index = 8 # Render di atas Player (z=0) dan Train (z=5)
+	overlay.z_index = 8
 	add_child(overlay)
-	roof_overlay_node = overlay
+	canopy_overlay_node = overlay
 	overlay.queue_redraw()
+
+func _draw_front_fences_to(ci: CanvasItem, sq_x: float, sq_y: float, base_y: float, gate_key: String) -> void:
+	var sk_kiri = 1.0 if (pagar_kiri_skala == null or pagar_kiri_skala <= 0.0) else float(pagar_kiri_skala)
+	var sk_pintu = 1.0 if (pintu_pagar_skala == null or pintu_pagar_skala <= 0.0) else float(pintu_pagar_skala)
+	var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
+
+	# Pintu Pagar Tengah (Membuka geser mulus ke kiri saat didekati pemain)
+	var slide_off: float = gate_slide_offsets.get(gate_key, 0.0)
+	var gate_w = (pintu_pagar_lebar if (pintu_pagar_lebar != null and pintu_pagar_lebar > 0.0) else 32.0) * sk_pintu
+	var gate_h = 30.0 * sk_pintu
+	var gx = sq_x + 62.0 + (pintu_pagar_geser_x if pintu_pagar_geser_x != null else 0.0) + slide_off
+	var gy = sq_y + 126.0 + (pintu_pagar_geser_y if pintu_pagar_geser_y != null else 0.0) - base_y
+	if tex_pintu_pagar:
+		ci.draw_texture_rect(tex_pintu_pagar, Rect2(gx, gy, gate_w, gate_h), false)
+
+	# Pagar Depan Kiri (Digambar di atas pintu pagar agar pintu bergeser rapi di balik pagar kiri)
+	if tex_pagar:
+		ci.draw_texture_rect(tex_pagar, Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0) - base_y, (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri), false)
+	
+	# Pagar Depan Kanan
+	if tex_pagar:
+		_draw_texture_flipped_on(ci, tex_pagar, Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0) - base_y, (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan), true, false)
+
+func _draw_texture_flipped_on(ci: CanvasItem, tex: Texture2D, rect: Rect2, flip_h: bool = false, flip_v: bool = false) -> void:
+	if not is_instance_valid(tex):
+		return
+	if not flip_h and not flip_v:
+		ci.draw_texture_rect(tex, rect, false)
+		return
+	var scale_vec = Vector2(-1.0 if flip_h else 1.0, -1.0 if flip_v else 1.0)
+	var origin_x = rect.position.x + (rect.size.x if flip_h else 0.0)
+	var origin_y = rect.position.y + (rect.size.y if flip_v else 0.0)
+	ci.draw_set_transform(Vector2(origin_x, origin_y), 0.0, scale_vec)
+	ci.draw_texture_rect(tex, Rect2(0, 0, rect.size.x, rect.size.y), false)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _spawn_interactive_cars() -> void:
 	var car_scene = load("res://scenes/drivable_car.tscn")
@@ -674,13 +792,11 @@ func _draw() -> void:
 	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	# Bangunan Rumah Lainnya
+	# Bangunan Rumah Lainnya (Lantai / Pavement Dasar)
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
-	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
 	_draw_room_pavement(Rect2(1626, 324, 390, 225), COLOR_ROOM_STONE_A)
-	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
 
-	# Presisi Kantor Polisi
+	# Presisi Kantor Polisi (Lantai Dasar)
 	_draw_room_pavement(Rect2(0, 951, 357, 360), COLOR_ROOM_STONE_B)
 
 	# ── Jaringan Jalan Raya Kota (Digambar Di Atas Lantai & Tanah) ────────────
@@ -698,20 +814,8 @@ func _draw() -> void:
 	for p_pos in phone_spots:
 		_draw_phone_booth(Rect2(p_pos.x, p_pos.y, tw, th))
 
-	# ── Gedung Utama (Sprites) ────────────────────────────────────────────────
-	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
-	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
-	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
-	_draw_texture_fit(tex_police, Rect2(8 + polisi_geser_x, 955 + polisi_geser_y, pol_w, pol_h))
-
-	# Gedung Utama Rumah Sakit (Dapat diatur lewat Inspector)
-	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
-	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
-	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
-	_draw_hospital_main_building(Rect2(465 + rs_geser_x, 945 + rs_geser_y, r_w, r_h))
-
 	# ── Area Tenggara: Tiga Rumah Warga, Gang Kecil, dan Stasiun Kereta ───────
-	# 1. Tiga Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
+	# 1. Tiga Rumah Warga Seberang Stasiun (Halaman Rumput & Pagar Samping/Belakang)
 	_draw_civilian_fenced_house(Vector2(1636, 705), tex_rumah_depan, "se_0")
 	_draw_civilian_fenced_house(Vector2(1636, 880), tex_rumah_depan, "se_1")
 	_draw_civilian_fenced_house(Vector2(1636, 1055), tex_rumah_depan, "se_2")
@@ -795,7 +899,7 @@ func _draw() -> void:
 	_draw_poi_badge(Vector2(750, 1095), "Rumah Sakit",    Color(0.85, 0.25, 0.25))
 	_draw_poi_badge(Vector2(180, 1050), "Brankas Ibu",    Color(0.80, 0.50, 0.90))
 
-func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null, gate_key: String = "") -> void:
+func _draw_civilian_fenced_house(pos: Vector2, _house_tex: Texture2D = null, _gate_key: String = "") -> void:
 	var sq_x = pos.x
 	var sq_y = pos.y
 	var r_rect = Rect2(sq_x, sq_y, 156, 156)
@@ -803,15 +907,9 @@ func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null, gate
 	draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
 	draw_rect(Rect2(sq_x + 64, sq_y + 94, 28, 62), Color(0.70, 0.68, 0.62), true)
 
-	var h_tex = tex_rumah_depan if house_tex == null else house_tex
-	_draw_texture_fit(h_tex, Rect2(sq_x + 12, sq_y + 6, 132, 116))
+	_draw_fences_for_house(sq_x, sq_y, _gate_key)
 
-	_draw_fences_for_house(sq_x, sq_y, gate_key)
-
-func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> void:
-	var sk_kiri = 1.0 if (pagar_kiri_skala == null or pagar_kiri_skala <= 0.0) else float(pagar_kiri_skala)
-	var sk_pintu = 1.0 if (pintu_pagar_skala == null or pintu_pagar_skala <= 0.0) else float(pintu_pagar_skala)
-	var sk_kanan = 1.0 if (pagar_kanan_skala == null or pagar_kanan_skala <= 0.0) else float(pagar_kanan_skala)
+func _draw_fences_for_house(sq_x: float, sq_y: float, _gate_key: String = "") -> void:
 	var sk_belakang = 1.0 if (pagar_belakang_skala == null or pagar_belakang_skala <= 0.0) else float(pagar_belakang_skala)
 	var pw = pagar_belakang_panel_lebar * sk_belakang
 	var pg = pagar_belakang_gap_panel
@@ -836,20 +934,6 @@ func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> 
 		_draw_side_fence(Rect2(sq_x - 3 + pagar_samping_kiri_geser_x, py, side_w, panel_h), true)
 		# Pagar Samping Kanan
 		_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
-	
-	# Pintu Pagar Tengah (Membuka geser mulus ke kiri saat didekati pemain)
-	var slide_off: float = gate_slide_offsets.get(gate_key, 0.0)
-	var gate_w = (pintu_pagar_lebar if (pintu_pagar_lebar != null and pintu_pagar_lebar > 0.0) else 32.0) * sk_pintu
-	var gate_h = 30.0 * sk_pintu
-	var gx = sq_x + 62.0 + (pintu_pagar_geser_x if pintu_pagar_geser_x != null else 0.0) + slide_off
-	var gy = sq_y + 126.0 + (pintu_pagar_geser_y if pintu_pagar_geser_y != null else 0.0)
-	draw_texture_rect(tex_pintu_pagar, Rect2(gx, gy, gate_w, gate_h), false)
-
-	# Pagar Depan Kiri (Digambar di atas pintu pagar agar pintu bergeser rapi di balik pagar kiri)
-	draw_texture_rect(tex_pagar, Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri), false)
-	
-	# Pagar Depan Kanan
-	_draw_texture_flipped(tex_pagar, Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan), true, false)
 
 func _draw_station_bench(pos: Vector2, w: float = 80.0, h: float = 24.0) -> void:
 	draw_rect(Rect2(pos.x, pos.y, w, h), Color(0.48, 0.32, 0.18), true)
@@ -1036,19 +1120,7 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_line(Vector2(warn1_x, y), Vector2(warn1_x, y + rh), COLOR_WALL_LINE, 1.5)
 	draw_line(Vector2(rect.end.x, y), Vector2(rect.end.x, y + rh), COLOR_WALL_LINE, 3.0)
 
-	# GEDUNG UTAMA STASIUN (Di Bagian Atas: y = 690 .. 935)
-	var b_w := 142.0
-	var b_h := 245.0
-	_draw_station_building(Rect2(p1_x + 6, y + 8, b_w, b_h))
-
-	# KANOPI PERON SELATAN (Area Terbuka / Perpanjangan Peron: y = 960 .. 1280)
-	var c1_y := y + b_h + 20.0 # ~955
-	var c1_h := rh - b_h - 40.0 # ~336
-	var c1_w := 68.0
-	var c1_x := warn1_x - c1_w - 16.0 # 2056
-	_draw_vertical_canopy(Rect2(c1_x, c1_y, c1_w, c1_h))
-
-	# Bangku Tunggu Kayu di Bawah Kanopi Selatan
+	# Bangku Tunggu Kayu di Peron 1 Selatan
 	_draw_station_bench(Vector2(p1_x + 14, y + b_h + 50), 46.0, 18.0)
 
 	# Fasilitas di Lantai Selatan (Bilik Telepon & Tempat Sampah)
@@ -1073,9 +1145,6 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_rect(Rect2(p2_x, y, warn_w, rh), COLOR_HELIPAD_RING, true)
 	draw_line(Vector2(p2_x + warn_w, y), Vector2(p2_x + warn_w, y + rh), COLOR_WALL_LINE, 1.5)
 	draw_line(Vector2(p2_x, y), Vector2(p2_x, y + rh), COLOR_WALL_LINE, 3.0)
-
-	# Kanopi Peneduh Vertikal Bersih (Peron 2)
-	_draw_vertical_canopy(Rect2(p2_x + 38, y + 25, 68, rh - 50))
 
 	# Pagar Pembatas Ujung Timur Stasiun
 	draw_line(Vector2(p2_x + p2_w, y), Vector2(p2_x + p2_w, y + rh), COLOR_WALL_LINE, 3.5)
