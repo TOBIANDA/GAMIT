@@ -361,6 +361,86 @@ var tex_telepon: Texture2D
 		morgue_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
+@export_group("15. Pembatas Kuning Kereta (Platform Yellow Line)")
+@export var pembatas_kuning_lebar: float = 20.0:
+	set(val):
+		pembatas_kuning_lebar = 20.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var pembatas_kuning_geser_x: float = 0.0:
+	set(val):
+		pembatas_kuning_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pembatas_kuning_geser_y: float = 0.0:
+	set(val):
+		pembatas_kuning_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+
+@export_group("16. Pagar Kereta & Rel (Train / Station Fence)")
+@export var pagar_kereta_tampilkan: bool = true:
+	set(val):
+		pagar_kereta_tampilkan = val
+		queue_redraw()
+@export var pagar_kereta_geser_x: float = 0.0:
+	set(val):
+		pagar_kereta_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_kereta_geser_y: float = 0.0:
+	set(val):
+		pagar_kereta_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_kereta_tinggi: float = 621.0:
+	set(val):
+		pagar_kereta_tinggi = 621.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var pagar_kereta_skala: float = 1.0:
+	set(val):
+		pagar_kereta_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("17. Pagar Kantor Polisi (Police Fence)")
+@export var pagar_polisi_tampilkan: bool = false:
+	set(val):
+		pagar_polisi_tampilkan = val
+		queue_redraw()
+@export var pagar_polisi_geser_x: float = 0.0:
+	set(val):
+		pagar_polisi_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_polisi_geser_y: float = 0.0:
+	set(val):
+		pagar_polisi_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_polisi_lebar: float = 290.0:
+	set(val):
+		pagar_polisi_lebar = 290.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var pagar_polisi_skala: float = 1.0:
+	set(val):
+		pagar_polisi_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("18. Pagar Rumah Sakit (Hospital Fence)")
+@export var pagar_rs_tampilkan: bool = false:
+	set(val):
+		pagar_rs_tampilkan = val
+		queue_redraw()
+@export var pagar_rs_geser_x: float = 0.0:
+	set(val):
+		pagar_rs_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_rs_geser_y: float = 0.0:
+	set(val):
+		pagar_rs_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var pagar_rs_lebar: float = 585.0:
+	set(val):
+		pagar_rs_lebar = 585.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var pagar_rs_skala: float = 1.0:
+	set(val):
+		pagar_rs_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -669,6 +749,30 @@ func _build_all_colliders() -> void:
 		_add_bitmap_collider(sb, tex_pagar, f_left_rect)
 		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan)
 		_add_flipped_bitmap_collider(sb, tex_pagar, f_right_rect, true, false)
+
+	# 4. Pagar Kantor Polisi (Opsional dari Inspector)
+	if pagar_polisi_tampilkan:
+		var pp_sk = 1.0 if (pagar_polisi_skala == null or pagar_polisi_skala <= 0.0) else float(pagar_polisi_skala)
+		var pp_w = (pagar_polisi_lebar if (pagar_polisi_lebar != null and pagar_polisi_lebar > 0.0) else 290.0) * pp_sk
+		var pp_x = 8.0 + (polisi_geser_x if polisi_geser_x != null else 0.0) + (pagar_polisi_geser_x if pagar_polisi_geser_x != null else 0.0)
+		var pp_y = 955.0 + (polisi_geser_y if polisi_geser_y != null else 0.0) + (pagar_polisi_geser_y if pagar_polisi_geser_y != null else 0.0)
+		_add_bitmap_collider(sb, tex_pagar, Rect2(pp_x, pp_y, pp_w, 26.0 * pp_sk))
+
+	# 5. Pagar Rumah Sakit (Opsional dari Inspector)
+	if pagar_rs_tampilkan:
+		var prs_sk = 1.0 if (pagar_rs_skala == null or pagar_rs_skala <= 0.0) else float(pagar_rs_skala)
+		var prs_w = (pagar_rs_lebar if (pagar_rs_lebar != null and pagar_rs_lebar > 0.0) else 585.0) * prs_sk
+		var prs_x = 465.0 + (rs_geser_x if rs_geser_x != null else 0.0) + (pagar_rs_geser_x if pagar_rs_geser_x != null else 0.0)
+		var prs_y = 945.0 + (rs_geser_y if rs_geser_y != null else 0.0) + (pagar_rs_geser_y if pagar_rs_geser_y != null else 0.0)
+		_add_bitmap_collider(sb, tex_pagar, Rect2(prs_x, prs_y, prs_w, 26.0 * prs_sk))
+
+	# 6. Pagar Pembatas Ujung Timur Stasiun Kereta
+	if pagar_kereta_tampilkan:
+		var pk_sk = 1.0 if (pagar_kereta_skala == null or pagar_kereta_skala <= 0.0) else float(pagar_kereta_skala)
+		var pk_x = 2280.0 + 140.0 + (pagar_kereta_geser_x if pagar_kereta_geser_x != null else 0.0)
+		var pk_y = 690.0 + (pagar_kereta_geser_y if pagar_kereta_geser_y != null else 0.0)
+		var pk_h = (pagar_kereta_tinggi if (pagar_kereta_tinggi != null and pagar_kereta_tinggi > 0.0) else 621.0) * pk_sk
+		_add_box_collider(sb, Rect2(pk_x - 4, pk_y, 8, pk_h))
 
 func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, alpha_threshold: float = 0.25, epsilon: float = 3.0) -> void:
 	if not is_instance_valid(tex):
@@ -986,12 +1090,24 @@ func _draw() -> void:
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
 	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
 	_draw_texture_fit(tex_police, Rect2(8 + polisi_geser_x, 955 + polisi_geser_y, pol_w, pol_h))
+	if pagar_polisi_tampilkan:
+		var pp_sk = 1.0 if (pagar_polisi_skala == null or pagar_polisi_skala <= 0.0) else float(pagar_polisi_skala)
+		var pp_w = (pagar_polisi_lebar if (pagar_polisi_lebar != null and pagar_polisi_lebar > 0.0) else 290.0) * pp_sk
+		var pp_x = 8.0 + (polisi_geser_x if polisi_geser_x != null else 0.0) + (pagar_polisi_geser_x if pagar_polisi_geser_x != null else 0.0)
+		var pp_y = 955.0 + (polisi_geser_y if polisi_geser_y != null else 0.0) + (pagar_polisi_geser_y if pagar_polisi_geser_y != null else 0.0)
+		_draw_texture_fit(tex_pagar, Rect2(pp_x, pp_y, pp_w, 26.0 * pp_sk))
 
 	# Gedung Utama Rumah Sakit (Dapat diatur lewat Inspector)
 	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
 	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
 	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
 	_draw_hospital_main_building(Rect2(465 + rs_geser_x, 945 + rs_geser_y, r_w, r_h))
+	if pagar_rs_tampilkan:
+		var prs_sk = 1.0 if (pagar_rs_skala == null or pagar_rs_skala <= 0.0) else float(pagar_rs_skala)
+		var prs_w = (pagar_rs_lebar if (pagar_rs_lebar != null and pagar_rs_lebar > 0.0) else 585.0) * prs_sk
+		var prs_x = 465.0 + (rs_geser_x if rs_geser_x != null else 0.0) + (pagar_rs_geser_x if pagar_rs_geser_x != null else 0.0)
+		var prs_y = 945.0 + (rs_geser_y if rs_geser_y != null else 0.0) + (pagar_rs_geser_y if pagar_rs_geser_y != null else 0.0)
+		_draw_texture_fit(tex_pagar, Rect2(prs_x, prs_y, prs_w, 26.0 * prs_sk))
 
 	# ── Area Tenggara: Tiga Rumah Warga, Gang Kecil, dan Stasiun Kereta ───────
 	# 1. Tiga Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
@@ -1319,11 +1435,12 @@ func _draw_train_station(rect: Rect2) -> void:
 	_draw_tile_pattern(p1_rect, COLOR_PLAZA_TILE_LINE)
 
 	# Garis Kuning Pembatas Rel Peron 1 (Solid Bersih)
-	var warn_w := 20.0
-	var warn1_x := rect.end.x - warn_w # 2140
-	draw_rect(Rect2(warn1_x, y, warn_w, rh), COLOR_HELIPAD_RING, true)
-	draw_line(Vector2(warn1_x, y), Vector2(warn1_x, y + rh), COLOR_WALL_LINE, 1.5)
-	draw_line(Vector2(rect.end.x, y), Vector2(rect.end.x, y + rh), COLOR_WALL_LINE, 3.0)
+	var warn_w := (pembatas_kuning_lebar if (pembatas_kuning_lebar != null and pembatas_kuning_lebar > 0.0) else 20.0)
+	var warn1_x := rect.end.x - warn_w + (pembatas_kuning_geser_x if pembatas_kuning_geser_x != null else 0.0)
+	var warn1_y := y + (pembatas_kuning_geser_y if pembatas_kuning_geser_y != null else 0.0)
+	draw_rect(Rect2(warn1_x, warn1_y, warn_w, rh), COLOR_HELIPAD_RING, true)
+	draw_line(Vector2(warn1_x, warn1_y), Vector2(warn1_x, warn1_y + rh), COLOR_WALL_LINE, 1.5)
+	draw_line(Vector2(warn1_x + warn_w, warn1_y), Vector2(warn1_x + warn_w, warn1_y + rh), COLOR_WALL_LINE, 3.0)
 
 	# GEDUNG UTAMA STASIUN (Di Bagian Atas: y = 690 .. 935)
 	var b_w := 142.0
@@ -1359,15 +1476,22 @@ func _draw_train_station(rect: Rect2) -> void:
 	_draw_tile_pattern(p2_rect, COLOR_PLAZA_TILE_LINE)
 
 	# Garis Kuning Pembatas Rel Peron 2 (Solid Bersih)
-	draw_rect(Rect2(p2_x, y, warn_w, rh), COLOR_HELIPAD_RING, true)
-	draw_line(Vector2(p2_x + warn_w, y), Vector2(p2_x + warn_w, y + rh), COLOR_WALL_LINE, 1.5)
-	draw_line(Vector2(p2_x, y), Vector2(p2_x, y + rh), COLOR_WALL_LINE, 3.0)
+	var warn2_x := p2_x + (pembatas_kuning_geser_x if pembatas_kuning_geser_x != null else 0.0)
+	var warn2_y := y + (pembatas_kuning_geser_y if pembatas_kuning_geser_y != null else 0.0)
+	draw_rect(Rect2(warn2_x, warn2_y, warn_w, rh), COLOR_HELIPAD_RING, true)
+	draw_line(Vector2(warn2_x + warn_w, warn2_y), Vector2(warn2_x + warn_w, warn2_y + rh), COLOR_WALL_LINE, 1.5)
+	draw_line(Vector2(warn2_x, warn2_y), Vector2(warn2_x, warn2_y + rh), COLOR_WALL_LINE, 3.0)
 
 	# Kanopi Peneduh Vertikal Bersih (Peron 2)
 	_draw_vertical_canopy(Rect2(p2_x + 38, y + 25, 68, rh - 50))
 
 	# Pagar Pembatas Ujung Timur Stasiun
-	draw_line(Vector2(p2_x + p2_w, y), Vector2(p2_x + p2_w, y + rh), COLOR_WALL_LINE, 3.5)
+	if pagar_kereta_tampilkan:
+		var pk_sk = 1.0 if (pagar_kereta_skala == null or pagar_kereta_skala <= 0.0) else float(pagar_kereta_skala)
+		var pk_x = p2_x + p2_w + (pagar_kereta_geser_x if pagar_kereta_geser_x != null else 0.0)
+		var pk_y = y + (pagar_kereta_geser_y if pagar_kereta_geser_y != null else 0.0)
+		var pk_h = (pagar_kereta_tinggi if (pagar_kereta_tinggi != null and pagar_kereta_tinggi > 0.0) else rh) * pk_sk
+		draw_line(Vector2(pk_x, pk_y), Vector2(pk_x, pk_y + pk_h), COLOR_WALL_LINE, 3.5)
 
 	# ─────────────────────────────────────────────────────────────────────────
 	# 4. PENYEBERANGAN PEJALAN KAKI ANTAR PERON (Pedestrian Track Crossing)
