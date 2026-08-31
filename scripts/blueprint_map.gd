@@ -474,37 +474,37 @@ func _build_all_colliders() -> void:
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var sq_y = 36.0
-		# Bodi Rumah Utama (Solid untuk rumah sipil, Rumah Detektif i==6 interiornya terbuka)
+		# Bodi Rumah Utama (Solid untuk rumah sipil di area dinding atas, Rumah Detektif i==6 terbuka interiornya)
 		if i != 6:
-			_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 100))
+			_add_box_collider(sb, Rect2(sq_x + 14, sq_y + 6, 128, 76))
 		# Pagar Belakang (Solid - tidak bisa ditembus)
-		_add_box_collider(sb, Rect2(sq_x, sq_y - 6, 156, 8))
+		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
 		# Pagar Samping Kiri (Solid - tidak bisa ditembus)
-		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 6, 8, 146))
+		_add_box_collider(sb, Rect2(sq_x - 6, sq_y - 6, 10, 170))
 		# Pagar Samping Kanan (Solid - tidak bisa ditembus)
-		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 8, 146))
+		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 10, 170))
 		# Pagar Depan Kiri (Solid - tidak bisa ditembus)
-		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 12))
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 26))
 		# Pagar Depan Kanan (Solid - tidak bisa ditembus)
-		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 12))
+		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 26))
 		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT KELUAR-MASUK!)
 
 	# 3 Rumah Tenggara
 	for hy in [705.0, 880.0, 1055.0]:
 		var sq_x = 1636.0
 		var sq_y = hy
-		# Bodi Rumah Utama (Solid)
-		_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 100))
+		# Bodi Rumah Utama (Solid di area dinding atas)
+		_add_box_collider(sb, Rect2(sq_x + 14, sq_y + 6, 128, 76))
 		# Pagar Belakang (Solid)
-		_add_box_collider(sb, Rect2(sq_x, sq_y - 6, 156, 8))
+		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
 		# Pagar Samping Kiri (Solid)
-		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 6, 8, 146))
+		_add_box_collider(sb, Rect2(sq_x - 6, sq_y - 6, 10, 170))
 		# Pagar Samping Kanan (Solid)
-		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 8, 146))
+		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 10, 170))
 		# Pagar Depan Kiri (Solid)
-		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 12))
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 26))
 		# Pagar Depan Kanan (Solid)
-		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 12))
+		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 26))
 		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
 
 	# 4. Dinding Ruang & Kompleks Gedung (Presisi Sesuai Gambar Dinding & Pintu Terbuka)

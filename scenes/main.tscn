@@ -62,9 +62,8 @@ polisi_geser_x = 10.0
 polisi_geser_y = -20.0
 polisi_lebar = null
 polisi_tinggi = null
-polisi_skala = 0.85
-rs_geser_x = -140.0
-rs_geser_y = -12.0
+rs_geser_x = 0.0
+rs_geser_y = 0.0
 rs_lebar = null
 rs_tinggi = null
 [node name="Player" parent="." unique_id=1644102521 instance=ExtResource("3_player_scene")]
