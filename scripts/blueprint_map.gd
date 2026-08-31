@@ -449,7 +449,7 @@ func _build_all_colliders() -> void:
 	_add_box_collider(sb, Rect2(-40, -40, 40, 1400))
 	_add_box_collider(sb, Rect2(2420, -40, 40, 1400))
 
-	# 2. Gedung-Gedung Utama Tertutup (Solid Buildings Only)
+	# 2. Gedung-Gedung Utama (Hanya Bodi Bangunan Asli)
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
 	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
@@ -460,13 +460,13 @@ func _build_all_colliders() -> void:
 	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
 	_add_box_collider(sb, Rect2(465 + (rs_geser_x if rs_geser_x != null else 0.0), 945 + (rs_geser_y if rs_geser_y != null else 0.0), r_w, r_h))
 
-	# Kamar Jenazah (Hanya gedung morgue tertutup)
+	# Kamar Jenazah (Morgue)
 	_add_box_collider(sb, Rect2(639, 324, 380, 225))
 
 	# Gedung Utama Stasiun
 	_add_box_collider(sb, Rect2(1991, 698, 142, 245))
 
-	# Rumah Belakang & Rumah Samping (Hanya bodi bangunannya)
+	# Rumah Belakang & Rumah Samping
 	_add_box_collider(sb, Rect2(1180, 745, 220, 175))
 	_add_box_collider(sb, Rect2(1650, 335, 340, 205))
 
@@ -474,18 +474,18 @@ func _build_all_colliders() -> void:
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var sq_y = 36.0
-		# Bodi Rumah Utama (Solid untuk rumah sipil di area dinding atas, Rumah Detektif i==6 terbuka interiornya)
+		# Bodi Rumah Utama (Hanya di area rumahnya, Rumah Detektif i==6 terbuka interiornya)
 		if i != 6:
 			_add_box_collider(sb, Rect2(sq_x + 14, sq_y + 6, 128, 76))
-		# Pagar Belakang (Solid - tidak bisa ditembus)
+		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
-		# Pagar Samping Kiri (Solid - tidak bisa ditembus)
+		# Pagar Samping Kiri
 		_add_box_collider(sb, Rect2(sq_x - 6, sq_y - 6, 10, 170))
-		# Pagar Samping Kanan (Solid - tidak bisa ditembus)
+		# Pagar Samping Kanan
 		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 10, 170))
-		# Pagar Depan Kiri (Solid - tidak bisa ditembus)
+		# Pagar Depan Kiri
 		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 26))
-		# Pagar Depan Kanan (Solid - tidak bisa ditembus)
+		# Pagar Depan Kanan
 		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 26))
 		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT KELUAR-MASUK!)
 
@@ -493,90 +493,19 @@ func _build_all_colliders() -> void:
 	for hy in [705.0, 880.0, 1055.0]:
 		var sq_x = 1636.0
 		var sq_y = hy
-		# Bodi Rumah Utama (Solid di area dinding atas)
+		# Bodi Rumah Utama
 		_add_box_collider(sb, Rect2(sq_x + 14, sq_y + 6, 128, 76))
-		# Pagar Belakang (Solid)
+		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
-		# Pagar Samping Kiri (Solid)
+		# Pagar Samping Kiri
 		_add_box_collider(sb, Rect2(sq_x - 6, sq_y - 6, 10, 170))
-		# Pagar Samping Kanan (Solid)
+		# Pagar Samping Kanan
 		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 10, 170))
-		# Pagar Depan Kiri (Solid)
+		# Pagar Depan Kiri
 		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 26))
-		# Pagar Depan Kanan (Solid)
+		# Pagar Depan Kanan
 		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 26))
 		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
-
-	# 4. Dinding Ruang & Kompleks Gedung (Presisi Sesuai Gambar Dinding & Pintu Terbuka)
-	# Dinding Ruang Barat Laut (NW Complex)
-	_add_wall_line(sb, Vector2(0, 324), Vector2(516, 324))
-	_add_wall_line(sb, Vector2(516, 324), Vector2(516, 510))
-	_add_wall_line(sb, Vector2(516, 570), Vector2(516, 786))
-	_add_wall_line(sb, Vector2(516, 786), Vector2(380, 786))
-	_add_wall_line(sb, Vector2(320, 786), Vector2(192, 786))
-	_add_wall_line(sb, Vector2(192, 786), Vector2(192, 933))
-	_add_wall_line(sb, Vector2(192, 933), Vector2(0, 933))
-
-	# Dinding Kantor Polisi Bawah
-	_add_wall_line(sb, Vector2(0, 951), Vector2(357, 951))
-	_add_wall_line(sb, Vector2(357, 951), Vector2(357, 1080))
-	_add_wall_line(sb, Vector2(357, 1150), Vector2(357, 1311))
-	_add_wall_line(sb, Vector2(357, 1311), Vector2(0, 1311))
-
-	# Dinding Kompleks Atas (Morgue & Plaza)
-	_add_wall_line(sb, Vector2(639, 324), Vector2(1000, 324))
-	_add_wall_line(sb, Vector2(1060, 324), Vector2(1536, 324))
-	_add_wall_line(sb, Vector2(1536, 324), Vector2(1536, 420))
-	_add_wall_line(sb, Vector2(1536, 480), Vector2(1536, 549))
-	_add_wall_line(sb, Vector2(1536, 549), Vector2(639, 549))
-	_add_wall_line(sb, Vector2(639, 549), Vector2(639, 440))
-	_add_wall_line(sb, Vector2(639, 380), Vector2(639, 324))
-
-	# Dinding Kompleks Bawah (RS & Taman)
-	_add_wall_line(sb, Vector2(639, 690), Vector2(1050, 690))
-	_add_wall_line(sb, Vector2(1050, 690), Vector2(1050, 900))
-	_add_wall_line(sb, Vector2(1050, 960), Vector2(1050, 1245))
-	_add_wall_line(sb, Vector2(1050, 1245), Vector2(465, 1245))
-	_add_wall_line(sb, Vector2(465, 1245), Vector2(465, 945))
-	_add_wall_line(sb, Vector2(465, 945), Vector2(639, 945))
-	_add_wall_line(sb, Vector2(639, 945), Vector2(639, 810))
-	_add_wall_line(sb, Vector2(639, 750), Vector2(639, 690))
-
-	# Dinding Rumah Belakang
-	_add_wall_line(sb, Vector2(1158, 730), Vector2(1260, 730))
-	_add_wall_line(sb, Vector2(1320, 730), Vector2(1428, 730))
-	_add_wall_line(sb, Vector2(1428, 730), Vector2(1428, 940))
-	_add_wall_line(sb, Vector2(1428, 940), Vector2(1158, 940))
-	_add_wall_line(sb, Vector2(1158, 940), Vector2(1158, 730))
-
-	# Dinding Rumah Samping
-	_add_wall_line(sb, Vector2(1626, 324), Vector2(2016, 324))
-	_add_wall_line(sb, Vector2(2016, 324), Vector2(2016, 549))
-	_add_wall_line(sb, Vector2(2016, 549), Vector2(1626, 549))
-	_add_wall_line(sb, Vector2(1626, 549), Vector2(1626, 480))
-	_add_wall_line(sb, Vector2(1626, 420), Vector2(1626, 324))
-
-	# Batas Gang & Stasiun Kereta
-	_add_wall_line(sb, Vector2(1792, 690), Vector2(1792, 1311))
-	_add_wall_line(sb, Vector2(1860, 690), Vector2(1860, 1311))
-	_add_wall_line(sb, Vector2(1860, 690), Vector2(2160, 690))
-	_add_wall_line(sb, Vector2(1860, 1311), Vector2(2160, 1311))
-	_add_wall_line(sb, Vector2(2160, 0), Vector2(2160, 1311))
-
-func _add_wall_line(body: StaticBody2D, a: Vector2, b: Vector2, thickness: float = 6.0) -> void:
-	var min_x = min(a.x, b.x)
-	var max_x = max(a.x, b.x)
-	var min_y = min(a.y, b.y)
-	var max_y = max(a.y, b.y)
-	var is_horizontal = abs(a.y - b.y) < 0.1
-	var w = max(max_x - min_x, thickness) if not is_horizontal else (max_x - min_x)
-	var h = max(max_y - min_y, thickness) if is_horizontal else (max_y - min_y)
-	var rect: Rect2
-	if is_horizontal:
-		rect = Rect2(min_x, a.y - thickness * 0.5, w, thickness)
-	else:
-		rect = Rect2(a.x - thickness * 0.5, min_y, thickness, h)
-	_add_box_collider(body, rect)
 
 func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
 	var shape = CollisionShape2D.new()
