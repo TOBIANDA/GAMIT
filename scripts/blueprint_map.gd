@@ -251,6 +251,116 @@ var tex_telepon: Texture2D
 		stasiun_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
+@export_group("10. Rumah Atas (11 Rumah Warga)")
+@export var rumah_atas_geser_x: float = 0.0:
+	set(val):
+		rumah_atas_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_atas_geser_y: float = 0.0:
+	set(val):
+		rumah_atas_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_atas_lebar: float = 132.0:
+	set(val):
+		rumah_atas_lebar = 132.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_atas_tinggi: float = 116.0:
+	set(val):
+		rumah_atas_tinggi = 116.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_atas_skala: float = 1.0:
+	set(val):
+		rumah_atas_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("11. Rumah Tenggara (3 Rumah Warga SE)")
+@export var rumah_se_geser_x: float = 0.0:
+	set(val):
+		rumah_se_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_se_geser_y: float = 0.0:
+	set(val):
+		rumah_se_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_se_lebar: float = 132.0:
+	set(val):
+		rumah_se_lebar = 132.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_se_tinggi: float = 116.0:
+	set(val):
+		rumah_se_tinggi = 116.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_se_skala: float = 1.0:
+	set(val):
+		rumah_se_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("12. Rumah Belakang (Central South)")
+@export var rumah_belakang_geser_x: float = 0.0:
+	set(val):
+		rumah_belakang_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_belakang_geser_y: float = 0.0:
+	set(val):
+		rumah_belakang_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_belakang_lebar: float = 220.0:
+	set(val):
+		rumah_belakang_lebar = 220.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_belakang_tinggi: float = 175.0:
+	set(val):
+		rumah_belakang_tinggi = 175.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_belakang_skala: float = 1.0:
+	set(val):
+		rumah_belakang_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("13. Rumah Samping (East Complex)")
+@export var rumah_samping_geser_x: float = 0.0:
+	set(val):
+		rumah_samping_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_samping_geser_y: float = 0.0:
+	set(val):
+		rumah_samping_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var rumah_samping_lebar: float = 340.0:
+	set(val):
+		rumah_samping_lebar = 340.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_samping_tinggi: float = 205.0:
+	set(val):
+		rumah_samping_tinggi = 205.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var rumah_samping_skala: float = 1.0:
+	set(val):
+		rumah_samping_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("14. Kamar Jenazah (Morgue Plaza)")
+@export var morgue_geser_x: float = 0.0:
+	set(val):
+		morgue_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var morgue_geser_y: float = 0.0:
+	set(val):
+		morgue_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var morgue_lebar: float = 380.0:
+	set(val):
+		morgue_lebar = 380.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var morgue_tinggi: float = 225.0:
+	set(val):
+		morgue_tinggi = 225.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var morgue_skala: float = 1.0:
+	set(val):
+		morgue_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -363,18 +473,35 @@ class RoofOverlayNode extends Node2D:
 		# Hanya 72% atas (genteng) yang menutupi karakter.
 		# 28% bawah (dinding depan/jendela) TIDAK digambar di sini supaya
 		# karakter yang berdiri di depan rumah TIDAK tertutup.
+		var ra_sk = 1.0 if (map.rumah_atas_skala == null or map.rumah_atas_skala <= 0.0) else float(map.rumah_atas_skala)
+		var ra_w = (map.rumah_atas_lebar if (map.rumah_atas_lebar != null and map.rumah_atas_lebar > 0.0) else 132.0) * ra_sk
+		var ra_h = (map.rumah_atas_tinggi if (map.rumah_atas_tinggi != null and map.rumah_atas_tinggi > 0.0) else 116.0) * ra_sk
+		var ra_gx = (map.rumah_atas_geser_x if map.rumah_atas_geser_x != null else 0.0)
+		var ra_gy = (map.rumah_atas_geser_y if map.rumah_atas_geser_y != null else 0.0)
 		for i in range(11):
 			var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
 			var h_tex: Texture2D = map.tex_rumah_mc if i == 6 else map.tex_rumah_depan
-			_draw_house_roof(h_tex, Rect2(sq_x + 12, 36 + 6, 132, 116))
+			_draw_house_roof(h_tex, Rect2(sq_x + 12 + ra_gx, 36 + 6 + ra_gy, ra_w, ra_h))
 
 		# ── 2. Atap 3 Rumah Tenggara ───────────────────────────────────────────
+		var rse_sk = 1.0 if (map.rumah_se_skala == null or map.rumah_se_skala <= 0.0) else float(map.rumah_se_skala)
+		var rse_w = (map.rumah_se_lebar if (map.rumah_se_lebar != null and map.rumah_se_lebar > 0.0) else 132.0) * rse_sk
+		var rse_h = (map.rumah_se_tinggi if (map.rumah_se_tinggi != null and map.rumah_se_tinggi > 0.0) else 116.0) * rse_sk
+		var rse_gx = (map.rumah_se_geser_x if map.rumah_se_geser_x != null else 0.0)
+		var rse_gy = (map.rumah_se_geser_y if map.rumah_se_geser_y != null else 0.0)
 		for hy in [705.0, 880.0, 1055.0]:
-			_draw_house_roof(map.tex_rumah_depan, Rect2(1636 + 12, hy + 6, 132, 116))
+			_draw_house_roof(map.tex_rumah_depan, Rect2(1636 + 12 + rse_gx, hy + 6 + rse_gy, rse_w, rse_h))
 
 		# ── 3. Rumah Belakang & Samping ────────────────────────────────────────
-		_draw_house_roof(map.tex_rumah_belakang, Rect2(1180, 745, 220, 175))
-		_draw_house_roof(map.tex_rumah_samping, Rect2(1650, 335, 340, 205))
+		var rb_sk = 1.0 if (map.rumah_belakang_skala == null or map.rumah_belakang_skala <= 0.0) else float(map.rumah_belakang_skala)
+		var rb_w = (map.rumah_belakang_lebar if (map.rumah_belakang_lebar != null and map.rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
+		var rb_h = (map.rumah_belakang_tinggi if (map.rumah_belakang_tinggi != null and map.rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
+		_draw_house_roof(map.tex_rumah_belakang, Rect2(1180 + (map.rumah_belakang_geser_x if map.rumah_belakang_geser_x != null else 0.0), 745 + (map.rumah_belakang_geser_y if map.rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
+
+		var rsamp_sk = 1.0 if (map.rumah_samping_skala == null or map.rumah_samping_skala <= 0.0) else float(map.rumah_samping_skala)
+		var rsamp_w = (map.rumah_samping_lebar if (map.rumah_samping_lebar != null and map.rumah_samping_lebar > 0.0) else 340.0) * rsamp_sk
+		var rsamp_h = (map.rumah_samping_tinggi if (map.rumah_samping_tinggi != null and map.rumah_samping_tinggi > 0.0) else 205.0) * rsamp_sk
+		_draw_house_roof(map.tex_rumah_samping, Rect2(1650 + (map.rumah_samping_geser_x if map.rumah_samping_geser_x != null else 0.0), 335 + (map.rumah_samping_geser_y if map.rumah_samping_geser_y != null else 0.0), rsamp_w, rsamp_h))
 
 		# ── 4. Kanopi Peron Stasiun (FULL COVER) ──────────────────────────────
 		# Kanopi peron adalah struktur yang pemain BERJALAN DI BAWAHNYA,
@@ -462,12 +589,26 @@ func _build_all_colliders() -> void:
 	_add_bitmap_collider(sb, tex_hospital, rs_rect)
 
 	# Kamar Jenazah (Morgue) & Gedung Stasiun
-	_add_box_collider(sb, Rect2(639, 324, 380, 225))
-	_add_box_collider(sb, Rect2(1991, 698, 142, 245))
+	var m_sk = 1.0 if (morgue_skala == null or morgue_skala <= 0.0) else float(morgue_skala)
+	var m_w = (morgue_lebar if (morgue_lebar != null and morgue_lebar > 0.0) else 380.0) * m_sk
+	var m_h = (morgue_tinggi if (morgue_tinggi != null and morgue_tinggi > 0.0) else 225.0) * m_sk
+	_add_box_collider(sb, Rect2(639 + (morgue_geser_x if morgue_geser_x != null else 0.0), 324 + (morgue_geser_y if morgue_geser_y != null else 0.0), m_w, m_h))
+	
+	var st_sk = 1.0 if (stasiun_skala == null or stasiun_skala <= 0.0) else float(stasiun_skala)
+	var st_w = (stasiun_lebar if (stasiun_lebar != null and stasiun_lebar > 0.0) else 300.0) * st_sk
+	var st_h = (stasiun_tinggi if (stasiun_tinggi != null and stasiun_tinggi > 0.0) else 621.0) * st_sk
+	_add_box_collider(sb, Rect2(1991 + (stasiun_geser_x if stasiun_geser_x != null else 0.0), 698 + (stasiun_geser_y if stasiun_geser_y != null else 0.0), 142 * st_sk, 245 * st_sk))
 
 	# Rumah Belakang & Rumah Samping (Otomatis dari PNG)
-	_add_bitmap_collider(sb, tex_rumah_belakang, Rect2(1180, 745, 220, 175))
-	_add_bitmap_collider(sb, tex_rumah_samping, Rect2(1650, 335, 340, 205))
+	var rb_sk = 1.0 if (rumah_belakang_skala == null or rumah_belakang_skala <= 0.0) else float(rumah_belakang_skala)
+	var rb_w = (rumah_belakang_lebar if (rumah_belakang_lebar != null and rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
+	var rb_h = (rumah_belakang_tinggi if (rumah_belakang_tinggi != null and rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
+	_add_bitmap_collider(sb, tex_rumah_belakang, Rect2(1180 + (rumah_belakang_geser_x if rumah_belakang_geser_x != null else 0.0), 745 + (rumah_belakang_geser_y if rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
+
+	var rsamp_sk = 1.0 if (rumah_samping_skala == null or rumah_samping_skala <= 0.0) else float(rumah_samping_skala)
+	var rsamp_w = (rumah_samping_lebar if (rumah_samping_lebar != null and rumah_samping_lebar > 0.0) else 340.0) * rsamp_sk
+	var rsamp_h = (rumah_samping_tinggi if (rumah_samping_tinggi != null and rumah_samping_tinggi > 0.0) else 205.0) * rsamp_sk
+	_add_bitmap_collider(sb, tex_rumah_samping, Rect2(1650 + (rumah_samping_geser_x if rumah_samping_geser_x != null else 0.0), 335 + (rumah_samping_geser_y if rumah_samping_geser_y != null else 0.0), rsamp_w, rsamp_h))
 
 	var sk_kiri = (pagar_kiri_skala if (pagar_kiri_skala != null and pagar_kiri_skala > 0.0) else 1.0)
 	var sk_kanan = (pagar_kanan_skala if (pagar_kanan_skala != null and pagar_kanan_skala > 0.0) else 1.0)
@@ -478,13 +619,19 @@ func _build_all_colliders() -> void:
 	var panel_h = (side_total_h + (n_panels - 1) * overlap_px) / float(n_panels)
 	var step_y = panel_h - overlap_px + (0.0 if pagar_samping_gap_panel == null else float(pagar_samping_gap_panel))
 
+	var ra_sk = 1.0 if (rumah_atas_skala == null or rumah_atas_skala <= 0.0) else float(rumah_atas_skala)
+	var ra_w = (rumah_atas_lebar if (rumah_atas_lebar != null and rumah_atas_lebar > 0.0) else 132.0) * ra_sk
+	var ra_h = (rumah_atas_tinggi if (rumah_atas_tinggi != null and rumah_atas_tinggi > 0.0) else 116.0) * ra_sk
+	var ra_gx = (rumah_atas_geser_x if rumah_atas_geser_x != null else 0.0)
+	var ra_gy = (rumah_atas_geser_y if rumah_atas_geser_y != null else 0.0)
+
 	# 3. Rumah Warga & Pagar Halaman (11 Rumah Atas)
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var sq_y = 36.0
 		# Bodi Rumah Utama dari PNG (Rumah Detektif i==6 terbuka interiornya)
 		if i != 6:
-			_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12, sq_y + 6, 132, 116))
+			_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12 + ra_gx, sq_y + 6 + ra_gy, ra_w, ra_h))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
 		# Pagar Samping Kiri & Kanan dari PNG
@@ -498,12 +645,18 @@ func _build_all_colliders() -> void:
 		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan)
 		_add_flipped_bitmap_collider(sb, tex_pagar, f_right_rect, true, false)
 
+	var rse_sk = 1.0 if (rumah_se_skala == null or rumah_se_skala <= 0.0) else float(rumah_se_skala)
+	var rse_w = (rumah_se_lebar if (rumah_se_lebar != null and rumah_se_lebar > 0.0) else 132.0) * rse_sk
+	var rse_h = (rumah_se_tinggi if (rumah_se_tinggi != null and rumah_se_tinggi > 0.0) else 116.0) * rse_sk
+	var rse_gx = (rumah_se_geser_x if rumah_se_geser_x != null else 0.0)
+	var rse_gy = (rumah_se_geser_y if rumah_se_geser_y != null else 0.0)
+
 	# 3 Rumah Tenggara
 	for hy in [705.0, 880.0, 1055.0]:
 		var sq_x = 1636.0
 		var sq_y = hy
 		# Bodi Rumah Utama dari PNG
-		_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12, sq_y + 6, 132, 116))
+		_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12 + rse_gx, sq_y + 6 + rse_gy, rse_w, rse_h))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
 		# Pagar Samping Kiri & Kanan dari PNG
@@ -777,7 +930,10 @@ func _draw() -> void:
 	])
 	draw_colored_polygon(top_complex_pts, COLOR_ROOM_STONE_A)
 	_draw_tile_pattern(Rect2(639, 324, 897, 225), COLOR_PLAZA_TILE_LINE)
-	_draw_hospital_morgue(Rect2(639, 324, 380, 225))
+	var m_sk = 1.0 if (morgue_skala == null or morgue_skala <= 0.0) else float(morgue_skala)
+	var m_w = (morgue_lebar if (morgue_lebar != null and morgue_lebar > 0.0) else 380.0) * m_sk
+	var m_h = (morgue_tinggi if (morgue_tinggi != null and morgue_tinggi > 0.0) else 225.0) * m_sk
+	_draw_hospital_morgue(Rect2(639 + (morgue_geser_x if morgue_geser_x != null else 0.0), 324 + (morgue_geser_y if morgue_geser_y != null else 0.0), m_w, m_h))
 	_draw_courtyard_garden(Vector2(1090, 435), 50.0)
 	_draw_desk(Rect2(1180, 350, 110, 75))
 	_draw_desk(Rect2(1330, 350, 110, 75))
@@ -796,9 +952,16 @@ func _draw() -> void:
 
 	# Bangunan Rumah Lainnya
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
-	_draw_texture_fit(tex_rumah_belakang, Rect2(1180, 745, 220, 175))
+	var rb_sk = 1.0 if (rumah_belakang_skala == null or rumah_belakang_skala <= 0.0) else float(rumah_belakang_skala)
+	var rb_w = (rumah_belakang_lebar if (rumah_belakang_lebar != null and rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
+	var rb_h = (rumah_belakang_tinggi if (rumah_belakang_tinggi != null and rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
+	_draw_texture_fit(tex_rumah_belakang, Rect2(1180 + (rumah_belakang_geser_x if rumah_belakang_geser_x != null else 0.0), 745 + (rumah_belakang_geser_y if rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
+	
 	_draw_room_pavement(Rect2(1626, 324, 390, 225), COLOR_ROOM_STONE_A)
-	_draw_texture_fit(tex_rumah_samping, Rect2(1650, 335, 340, 205))
+	var rsamp_sk = 1.0 if (rumah_samping_skala == null or rumah_samping_skala <= 0.0) else float(rumah_samping_skala)
+	var rsamp_w = (rumah_samping_lebar if (rumah_samping_lebar != null and rumah_samping_lebar > 0.0) else 340.0) * rsamp_sk
+	var rsamp_h = (rumah_samping_tinggi if (rumah_samping_tinggi != null and rumah_samping_tinggi > 0.0) else 205.0) * rsamp_sk
+	_draw_texture_fit(tex_rumah_samping, Rect2(1650 + (rumah_samping_geser_x if rumah_samping_geser_x != null else 0.0), 335 + (rumah_samping_geser_y if rumah_samping_geser_y != null else 0.0), rsamp_w, rsamp_h))
 
 	# Presisi Kantor Polisi
 	_draw_room_pavement(Rect2(0, 951, 357, 360), COLOR_ROOM_STONE_B)
@@ -832,9 +995,9 @@ func _draw() -> void:
 
 	# ── Area Tenggara: Tiga Rumah Warga, Gang Kecil, dan Stasiun Kereta ───────
 	# 1. Tiga Rumah Warga Seberang Stasiun (Lengkap rumput & pagar sama persis seperti rumah atas)
-	_draw_civilian_fenced_house(Vector2(1636, 705), tex_rumah_depan, "se_0")
-	_draw_civilian_fenced_house(Vector2(1636, 880), tex_rumah_depan, "se_1")
-	_draw_civilian_fenced_house(Vector2(1636, 1055), tex_rumah_depan, "se_2")
+	_draw_civilian_fenced_house(Vector2(1636, 705), tex_rumah_depan, "se_0", true)
+	_draw_civilian_fenced_house(Vector2(1636, 880), tex_rumah_depan, "se_1", true)
+	_draw_civilian_fenced_house(Vector2(1636, 1055), tex_rumah_depan, "se_2", true)
 
 	# 2. Gang Kecil Penghubung Jalan Tengah & Jalan Selatan
 	draw_rect(Rect2(1792, 690, 68, 621), COLOR_SIDEWALK, true)
@@ -915,7 +1078,7 @@ func _draw() -> void:
 	_draw_poi_badge(Vector2(750, 1095), "Rumah Sakit",    Color(0.85, 0.25, 0.25))
 	_draw_poi_badge(Vector2(180, 1050), "Brankas Ibu",    Color(0.80, 0.50, 0.90))
 
-func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null, gate_key: String = "") -> void:
+func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null, gate_key: String = "", is_se: bool = false) -> void:
 	var sq_x = pos.x
 	var sq_y = pos.y
 	var r_rect = Rect2(sq_x, sq_y, 156, 156)
@@ -924,7 +1087,13 @@ func _draw_civilian_fenced_house(pos: Vector2, house_tex: Texture2D = null, gate
 	draw_rect(Rect2(sq_x + 64, sq_y + 94, 28, 62), Color(0.70, 0.68, 0.62), true)
 
 	var h_tex = tex_rumah_depan if house_tex == null else house_tex
-	_draw_texture_fit(h_tex, Rect2(sq_x + 12, sq_y + 6, 132, 116))
+	var h_sk = (rumah_se_skala if is_se else rumah_atas_skala)
+	h_sk = 1.0 if (h_sk == null or h_sk <= 0.0) else float(h_sk)
+	var h_w = (rumah_se_lebar if is_se else rumah_atas_lebar) * h_sk
+	var h_h = (rumah_se_tinggi if is_se else rumah_atas_tinggi) * h_sk
+	var h_gx = (rumah_se_geser_x if is_se else rumah_atas_geser_x)
+	var h_gy = (rumah_se_geser_y if is_se else rumah_atas_geser_y)
+	_draw_texture_fit(h_tex, Rect2(sq_x + 12 + h_gx, sq_y + 6 + h_gy, h_w, h_h))
 
 	_draw_fences_for_house(sq_x, sq_y, gate_key)
 
