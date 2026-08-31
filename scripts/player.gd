@@ -35,6 +35,9 @@ func _ready() -> void:
 	collision_layer = 2
 	collision_mask = 1
 	if is_instance_valid(camera):
+		camera.enabled = true
+		camera.make_current()
+		target_zoom_val = clampf(target_zoom_val, min_zoom_val, max_zoom_val)
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
 	_setup_footsteps_audio()
