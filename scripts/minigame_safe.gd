@@ -18,11 +18,39 @@ var status_label: Label
 var riddle_label: Label
 var unlock_btn: Button
 var close_btn: Button
+var click_player: AudioStreamPlayer
+var door_player: AudioStreamPlayer
 
 func _ready() -> void:
 	layer = 14
+	_setup_audio()
 	_build_scene_ui()
 	visible = false
+
+func _setup_audio() -> void:
+	click_player = AudioStreamPlayer.new()
+	click_player.name = "SafeClickPlayer"
+	var c_stream = load("res://sound/Click sound.mp3")
+	if c_stream:
+		click_player.stream = c_stream
+		click_player.volume_db = -4.0
+	add_child(click_player)
+
+	door_player = AudioStreamPlayer.new()
+	door_player.name = "SafeDoorPlayer"
+	var d_stream = load("res://sound/Door Open.mp3")
+	if d_stream:
+		door_player.stream = d_stream
+		door_player.volume_db = -2.0
+	add_child(door_player)
+
+func _play_click() -> void:
+	if is_instance_valid(click_player) and click_player.stream:
+		click_player.play()
+
+func _play_door() -> void:
+	if is_instance_valid(door_player) and door_player.stream:
+		door_player.play()
 
 func start_minigame() -> void:
 	is_active = true
@@ -44,6 +72,7 @@ func _update_digits_display() -> void:
 		digit3_label.text = str(digit3)
 
 func _change_digit(digit_idx: int, amount: int) -> void:
+	_play_click()
 	if digit_idx == 1:
 		digit1 = posmod(digit1 + amount, 10)
 	elif digit_idx == 2:
@@ -54,6 +83,7 @@ func _change_digit(digit_idx: int, amount: int) -> void:
 
 func _try_unlock() -> void:
 	if digit1 == CODE_1 and digit2 == CODE_2 and digit3 == CODE_3:
+		_play_door()
 		status_label.text = "🎉 KLIK! BRANKAS TERBUKA!"
 		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 		unlock_btn.disabled = true

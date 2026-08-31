@@ -20,6 +20,7 @@ var is_moving: bool = false
 var is_sprinting: bool = false
 
 var sprite_sets: Dictionary = {}
+var footsteps_player: AudioStreamPlayer2D
 
 @onready var camera: Camera2D = $Camera2D
 
@@ -36,8 +37,22 @@ func _ready() -> void:
 	if is_instance_valid(camera):
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
+	_setup_footsteps_audio()
 	_load_all_mc_sprite_sets()
 	queue_redraw()
+
+func _setup_footsteps_audio() -> void:
+	footsteps_player = AudioStreamPlayer2D.new()
+	footsteps_player.name = "FootstepsPlayer"
+	var footstep_stream = load("res://sound/Footsteps.mp3")
+	if footstep_stream:
+		footsteps_player.stream = footstep_stream
+		footsteps_player.volume_db = -6.0
+		footsteps_player.finished.connect(func():
+			if is_moving and is_instance_valid(footsteps_player):
+				footsteps_player.play()
+		)
+	add_child(footsteps_player)
 
 func _load_all_mc_sprite_sets() -> void:
 	sprite_sets[MCType.DETECTIVE_BOY] = _load_sprites_from_folder("res://posisi mc/")
@@ -98,6 +113,8 @@ func _physics_process(delta: float) -> void:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		is_moving = false
 		is_sprinting = false
+		if is_instance_valid(footsteps_player) and footsteps_player.playing:
+			footsteps_player.stop()
 		move_and_slide()
 		queue_redraw()
 		return
@@ -113,11 +130,19 @@ func _physics_process(delta: float) -> void:
 		facing_direction = input_vector.normalized()
 		velocity = velocity.move_toward(input_vector * max_speed, acceleration * delta)
 		step_cycle += delta * step_anim_speed
+
+		if is_instance_valid(footsteps_player):
+			footsteps_player.pitch_scale = 1.35 if is_sprinting else 1.0
+			if not footsteps_player.playing:
+				footsteps_player.play()
 	else:
 		is_moving = false
 		is_sprinting = false
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		step_cycle = 0.0
+
+		if is_instance_valid(footsteps_player) and footsteps_player.playing:
+			footsteps_player.stop()
 
 	move_and_slide()
 

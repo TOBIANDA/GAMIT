@@ -263,16 +263,34 @@ var nav_region: NavigationRegion2D
 var roof_overlay_node: Node2D
 var gate_slide_offsets: Dictionary = {}
 var player_cached: CharacterBody2D = null
+var gate_audio_player: AudioStreamPlayer2D
 
 func _ready() -> void:
 	z_index = -1
 	_load_textures()
+	_setup_gate_audio()
 	_setup_roof_overlay()  # Dipanggil selalu agar preview editor & in-game sama
 	if not Engine.is_editor_hint():
 		_build_all_colliders()
 		_setup_navigation_region()
 		_spawn_interactive_cars()
 	queue_redraw()
+
+func _setup_gate_audio() -> void:
+	gate_audio_player = AudioStreamPlayer2D.new()
+	gate_audio_player.name = "GateAudioPlayer"
+	var door_stream = load("res://sound/Door Open.mp3")
+	if door_stream:
+		gate_audio_player.stream = door_stream
+		gate_audio_player.max_distance = 600.0
+		gate_audio_player.volume_db = -6.0
+	add_child(gate_audio_player)
+
+func _play_gate_open_sound(pos: Vector2) -> void:
+	if is_instance_valid(gate_audio_player) and gate_audio_player.stream:
+		gate_audio_player.global_position = pos
+		if not gate_audio_player.playing:
+			gate_audio_player.play()
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -295,6 +313,8 @@ func _process(delta: float) -> void:
 		var dist := p_pos.distance_to(gate_center)
 		var target_slide: float = -28.0 if dist < 50.0 else 0.0
 		var cur: float = gate_slide_offsets.get(key, 0.0)
+		if cur == 0.0 and target_slide < 0.0:
+			_play_gate_open_sound(gate_center)
 		var next_val := move_toward(cur, target_slide, delta * 95.0)
 		if abs(cur - next_val) > 0.01:
 			gate_slide_offsets[key] = next_val
@@ -310,6 +330,8 @@ func _process(delta: float) -> void:
 		var dist := p_pos.distance_to(gate_center)
 		var target_slide: float = -28.0 if dist < 50.0 else 0.0
 		var cur: float = gate_slide_offsets.get(key, 0.0)
+		if cur == 0.0 and target_slide < 0.0:
+			_play_gate_open_sound(gate_center)
 		var next_val := move_toward(cur, target_slide, delta * 95.0)
 		if abs(cur - next_val) > 0.01:
 			gate_slide_offsets[key] = next_val

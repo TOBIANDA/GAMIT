@@ -26,17 +26,12 @@ var station_wait_timer: float = 0.0
 var accel_timer: float = 0.0
 var has_blown_departure_whistle: bool = false
 
-var audio_player_chug: AudioStreamPlayer
-var playback_chug: AudioStreamGeneratorPlayback
-var audio_player_horn: AudioStreamPlayer
-var playback_horn: AudioStreamGeneratorPlayback
-var audio_player_bell: AudioStreamPlayer
+var audio_player_train: AudioStreamPlayer2D
+var audio_player_horn: AudioStreamPlayer2D
+var audio_player_bell: AudioStreamPlayer2D
 var playback_bell: AudioStreamGeneratorPlayback
 
 var chug_phase: float = 0.0
-var chug_tick_timer: float = 0.0
-var horn_timer: float = 0.0
-var is_horn_blowing: bool = false
 var horn_sequence_step: int = 0
 var horn_cooldown: float = 0.0
 var bell_timer: float = 0.0
@@ -47,7 +42,7 @@ var player_ref: CharacterBody2D
 func _ready() -> void:
 	z_index = 5
 	position = Vector2(RAIL_CENTER_X, TRAIN_START_Y)
-	_setup_audio_synthesizers()
+	_setup_audio_players()
 	_setup_smoke_particles()
 
 func _setup_smoke_particles() -> void:
@@ -68,30 +63,41 @@ func _setup_smoke_particles() -> void:
 	smoke_particles.emitting = false
 	add_child(smoke_particles)
 
-func _setup_audio_synthesizers() -> void:
-	audio_player_chug = AudioStreamPlayer.new()
-	var gen_chug = AudioStreamGenerator.new()
-	gen_chug.mix_rate = 22050
-	gen_chug.buffer_length = 0.15
-	audio_player_chug.stream = gen_chug
-	add_child(audio_player_chug)
-	audio_player_chug.play()
-	playback_chug = audio_player_chug.get_stream_playback()
+func _setup_audio_players() -> void:
+	# 1. Suara Gerbong & Rel Kereta Berjalan (TRAIN.mp3)
+	audio_player_train = AudioStreamPlayer2D.new()
+	audio_player_train.name = "TrainSoundPlayer"
+	var train_stream = load("res://sound/TRAIN.mp3")
+	if train_stream:
+		audio_player_train.stream = train_stream
+		audio_player_train.max_distance = 2500.0
+		audio_player_train.attenuation = 1.2
+		audio_player_train.volume_db = -4.0
+		audio_player_train.finished.connect(func():
+			if is_train_running and is_instance_valid(audio_player_train):
+				audio_player_train.play()
+		)
+	add_child(audio_player_train)
 
-	audio_player_horn = AudioStreamPlayer.new()
-	var gen_horn = AudioStreamGenerator.new()
-	gen_horn.mix_rate = 22050
-	gen_horn.buffer_length = 0.15
-	audio_player_horn.stream = gen_horn
+	# 2. Suara Klakson / Peluit Kereta Api (Train Horn.mp3)
+	audio_player_horn = AudioStreamPlayer2D.new()
+	audio_player_horn.name = "TrainHornPlayer"
+	var horn_stream = load("res://sound/Train Horn.mp3")
+	if horn_stream:
+		audio_player_horn.stream = horn_stream
+		audio_player_horn.max_distance = 3200.0
+		audio_player_horn.attenuation = 1.0
+		audio_player_horn.volume_db = 0.0
 	add_child(audio_player_horn)
-	audio_player_horn.play()
-	playback_horn = audio_player_horn.get_stream_playback()
 
-	audio_player_bell = AudioStreamPlayer.new()
+	# 3. Lonceng Peringatan Penyeberangan Rel Stasiun
+	audio_player_bell = AudioStreamPlayer2D.new()
+	audio_player_bell.name = "TrainBellPlayer"
 	var gen_bell = AudioStreamGenerator.new()
 	gen_bell.mix_rate = 22050
 	gen_bell.buffer_length = 0.15
 	audio_player_bell.stream = gen_bell
+	audio_player_bell.max_distance = 1800.0
 	add_child(audio_player_bell)
 	audio_player_bell.play()
 	playback_bell = audio_player_bell.get_stream_playback()
@@ -117,7 +123,7 @@ func _process(delta: float) -> void:
 		position = Vector2(RAIL_CENTER_X, train_y)
 
 		_handle_horn_and_bell(delta, spatial_vol)
-		_synthesize_track_rumble(delta, spatial_vol)
+		_update_train_sound(spatial_vol)
 
 		if train_y >= TRAIN_END_Y:
 			_end_passing_train()
@@ -159,7 +165,7 @@ func _update_train_movement(delta: float) -> void:
 			# Bunyikan peluit stasiun 1.5 detik sebelum berangkat
 			if station_wait_timer <= 1.5 and not has_blown_departure_whistle:
 				has_blown_departure_whistle = true
-				_trigger_horn(1.0)
+				_trigger_horn()
 
 			if station_wait_timer <= 0.0:
 				train_state = TrainState.ACCELERATING
@@ -196,6 +202,8 @@ func _start_passing_train() -> void:
 		smoke_particles.gravity = Vector2(0, -60)
 	horn_sequence_step = 0
 	horn_cooldown = 0.5
+	if is_instance_valid(audio_player_train) and not audio_player_train.playing:
+		audio_player_train.play()
 	print("[TrainSystem] 🚂 Kereta api mulai melintas mendekati stasiun!")
 
 func _end_passing_train() -> void:
@@ -205,6 +213,8 @@ func _end_passing_train() -> void:
 	position = Vector2(RAIL_CENTER_X, train_y)
 	if is_instance_valid(smoke_particles):
 		smoke_particles.emitting = false
+	if is_instance_valid(audio_player_train) and audio_player_train.playing:
+		audio_player_train.stop()
 	spawn_timer = randf_range(spawn_interval * 0.8, spawn_interval * 1.3)
 	queue_redraw()
 
@@ -213,19 +223,13 @@ func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 
 	# Klakson saat mendekati stasiun
 	if horn_sequence_step == 0 and train_y > -400.0 and horn_cooldown <= 0.0:
-		_trigger_horn(1.4)
+		_trigger_horn()
 		horn_sequence_step = 1
 		horn_cooldown = 1.9
 	elif horn_sequence_step == 1 and horn_cooldown <= 0.0 and train_y < 200.0:
-		_trigger_horn(1.0)
+		_trigger_horn()
 		horn_sequence_step = 2
 		horn_cooldown = 2.5
-
-	if is_horn_blowing:
-		horn_timer -= delta
-		_synthesize_train_horn(spatial_vol)
-		if horn_timer <= 0.0:
-			is_horn_blowing = false
 
 	# Lonceng peringatan penyeberangan berbunyi saat kereta berada di sekitar stasiun & penyeberangan
 	if train_y >= -200.0 and train_y <= 1600.0:
@@ -235,50 +239,22 @@ func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 			bell_timer = 0.0
 			_synthesize_crossing_bell(spatial_vol)
 
-func _trigger_horn(duration: float) -> void:
-	is_horn_blowing = true
-	horn_timer = duration
+func _trigger_horn() -> void:
+	if is_instance_valid(audio_player_horn):
+		audio_player_horn.play()
 
-func _synthesize_track_rumble(delta: float, spatial_vol: float) -> void:
-	if playback_chug == null:
+func _update_train_sound(spatial_vol: float) -> void:
+	if not is_instance_valid(audio_player_train):
 		return
-
-	var frames_to_push = min(playback_chug.get_frames_available(), int(22050 * delta * 1.5))
-	if frames_to_push <= 0:
-		return
-
-	var speed_ratio := current_speed / TRAIN_MAX_SPEED
-	for i in range(frames_to_push):
-		chug_phase += 1.0 / 22050.0
-		
-		# Saat berjalan: suara chug ritmik sesuai kecepatan. Saat berhenti: desis uap idle mesin
-		var beat := fmod(chug_phase * (1.5 + 5.0 * speed_ratio), 1.0)
-		var pulse := pow(sin(beat * PI), 8.0) * 0.45 * speed_ratio
-		
-		var rumble := (sin(chug_phase * 65.0 * TAU) * 0.3 + sin(chug_phase * 130.0 * TAU) * 0.2) * maxf(0.15, speed_ratio)
-		var hiss := (randf() * 2.0 - 1.0) * (0.06 + 0.08 * speed_ratio)
-
-		var total_sample = (rumble + hiss + pulse) * 0.38 * spatial_vol
-		playback_chug.push_frame(Vector2(total_sample, total_sample))
-
-func _synthesize_train_horn(spatial_vol: float) -> void:
-	if playback_horn == null:
-		return
-
-	var frames = playback_horn.get_frames_available()
-	if frames <= 0:
-		return
-
-	for i in range(frames):
-		chug_phase += 1.0 / 22050.0
-		var t = chug_phase
-		var f1 = sin(t * 392.0 * TAU) * 0.35
-		var f2 = sin(t * 494.0 * TAU) * 0.30
-		var f3 = sin(t * 587.0 * TAU) * 0.25
-		var breath = (randf() * 2.0 - 1.0) * 0.08
-		
-		var sample = (f1 + f2 + f3 + breath) * 0.50 * spatial_vol
-		playback_horn.push_frame(Vector2(sample, sample))
+	if is_train_running:
+		if not audio_player_train.playing:
+			audio_player_train.play()
+		var speed_ratio := clampf(current_speed / TRAIN_MAX_SPEED, 0.2, 1.0)
+		audio_player_train.pitch_scale = lerpf(0.75, 1.15, speed_ratio)
+		audio_player_train.volume_db = linear_to_db(spatial_vol * speed_ratio)
+	else:
+		if audio_player_train.playing:
+			audio_player_train.stop()
 
 func _synthesize_crossing_bell(spatial_vol: float) -> void:
 	if playback_bell == null:

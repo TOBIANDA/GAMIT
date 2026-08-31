@@ -34,9 +34,13 @@ const POI_LOCATIONS = {
 	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 65.0}
 }
 
+var bgm_player: AudioStreamPlayer
+var click_sfx_player: AudioStreamPlayer
+
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
 
+	_setup_audio_system()
 	_setup_investigation_manager()
 	_setup_world_shader()
 	_setup_clue_journal()
@@ -52,6 +56,32 @@ func _ready() -> void:
 			dialog_box.dialog_closed.connect(_on_dialog_closed)
 
 	_update_hud_objective()
+
+func _setup_audio_system() -> void:
+	# 1. Background Music Player (BGM.mp3)
+	bgm_player = AudioStreamPlayer.new()
+	bgm_player.name = "BGMPlayer"
+	var bgm_stream = load("res://sound/BGM.mp3")
+	if bgm_stream:
+		bgm_player.stream = bgm_stream
+		bgm_player.volume_db = -10.0
+		bgm_player.finished.connect(func(): if is_instance_valid(bgm_player): bgm_player.play())
+	add_child(bgm_player)
+	if bgm_stream:
+		bgm_player.play()
+
+	# 2. Global Click SFX Player (Click sound.mp3)
+	click_sfx_player = AudioStreamPlayer.new()
+	click_sfx_player.name = "ClickSFXPlayer"
+	var click_stream = load("res://sound/Click sound.mp3")
+	if click_stream:
+		click_sfx_player.stream = click_stream
+		click_sfx_player.volume_db = -4.0
+	add_child(click_sfx_player)
+
+func play_click_sfx() -> void:
+	if is_instance_valid(click_sfx_player) and click_sfx_player.stream:
+		click_sfx_player.play()
 
 func _setup_investigation_manager() -> void:
 	inv_mgr = get_node_or_null("/root/InvestigationManager")
@@ -379,23 +409,28 @@ func _update_hud_objective() -> void:
 		hud_objective_label.text = "🎯 Target: " + inv_mgr.get_current_objective_title()
 
 func _on_journal_btn_pressed() -> void:
+	play_click_sfx()
 	if is_instance_valid(clue_journal):
 		clue_journal.toggle_journal()
 
 func _on_reset_btn_pressed() -> void:
+	play_click_sfx()
 	if is_instance_valid(player):
 		player.global_position = Vector2(1170, 270)
 		player.velocity = Vector2.ZERO
 
 func _on_zoom_in_btn_pressed() -> void:
+	play_click_sfx()
 	if is_instance_valid(player) and player.has_method("zoom_in"):
 		player.zoom_in()
 
 func _on_zoom_out_btn_pressed() -> void:
+	play_click_sfx()
 	if is_instance_valid(player) and player.has_method("zoom_out"):
 		player.zoom_out()
 
 func _on_zoom_reset_btn_pressed() -> void:
+	play_click_sfx()
 	if is_instance_valid(player) and player.has_method("reset_zoom"):
 		player.reset_zoom()
 

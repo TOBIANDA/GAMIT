@@ -25,11 +25,26 @@ var result_panel: PanelContainer
 var result_label: Label
 var photo_display: ColorRect
 var close_btn: Button
+var splash_player: AudioStreamPlayer
 
 func _ready() -> void:
 	layer = 14
+	_setup_splash_audio()
 	_build_scene_ui()
 	visible = false
+
+func _setup_splash_audio() -> void:
+	splash_player = AudioStreamPlayer.new()
+	splash_player.name = "WaterSplashPlayer"
+	var w_stream = load("res://sound/Water Splash.mp3")
+	if w_stream:
+		splash_player.stream = w_stream
+		splash_player.volume_db = -4.0
+	add_child(splash_player)
+
+func _play_splash() -> void:
+	if is_instance_valid(splash_player) and splash_player.stream:
+		splash_player.play()
 
 func start_minigame() -> void:
 	is_active = true
@@ -106,11 +121,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if current_step == 0:
 			is_mouse_holding = event.pressed
+			if event.pressed:
+				_play_splash()
 			get_viewport().set_input_as_handled()
 
 	if event is InputEventKey and event.pressed and not event.is_echo() and current_step == 1:
 		if event.keycode == qte_target_key:
 			qte_success_count += 1
+			_play_splash()
 			action_hint.text = "✨ Bilasan sempurna! (%d/%d)" % [qte_success_count, QTE_TARGET_GOAL]
 			action_hint.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 			

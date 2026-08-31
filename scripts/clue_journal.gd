@@ -14,11 +14,26 @@ var progress_percent_label: Label
 var clues_container: VBoxContainer
 var safe_hint_label: Label
 var close_btn: Button
+var click_player: AudioStreamPlayer
 
 func _ready() -> void:
 	layer = 15
+	_setup_click_audio()
 	_build_journal_ui()
 	visible = false
+
+func _setup_click_audio() -> void:
+	click_player = AudioStreamPlayer.new()
+	click_player.name = "JournalClickPlayer"
+	var c_stream = load("res://sound/Click sound.mp3")
+	if c_stream:
+		click_player.stream = c_stream
+		click_player.volume_db = -4.0
+	add_child(click_player)
+
+func _play_click() -> void:
+	if is_instance_valid(click_player) and click_player.stream:
+		click_player.play()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
@@ -36,12 +51,14 @@ func toggle_journal() -> void:
 		open_journal()
 
 func open_journal() -> void:
+	_play_click()
 	is_open = true
 	visible = true
 	_refresh_journal_data()
 	journal_opened.emit()
 
 func close_journal() -> void:
+	_play_click()
 	is_open = false
 	visible = false
 	journal_closed.emit()
@@ -102,6 +119,7 @@ func _build_journal_ui() -> void:
 
 	tab_container = TabContainer.new()
 	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tab_container.tab_changed.connect(func(_idx): _play_click())
 	main_vbox.add_child(tab_container)
 
 	var tab1 = VBoxContainer.new()

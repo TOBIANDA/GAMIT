@@ -21,16 +21,38 @@ var typing_timer: float = 0.0
 var is_typing: bool = false
 var is_active: bool = false
 var glow_timer: float = 0.0
+var click_player: AudioStreamPlayer
 
 func _ready() -> void:
 	root_control.visible = false
 	
+	click_player = AudioStreamPlayer.new()
+	click_player.name = "DialogClickPlayer"
+	var c_stream = load("res://sound/Click sound.mp3")
+	if c_stream:
+		click_player.stream = c_stream
+		click_player.volume_db = -4.0
+	add_child(click_player)
+
 	submit_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.focus_mode = Control.FOCUS_NONE
 	
-	submit_btn.pressed.connect(_on_submit_pressed)
-	close_btn.pressed.connect(close_dialog)
-	input_edit.text_submitted.connect(func(_t): _on_submit_pressed())
+	submit_btn.pressed.connect(func():
+		_play_click()
+		_on_submit_pressed()
+	)
+	close_btn.pressed.connect(func():
+		_play_click()
+		close_dialog()
+	)
+	input_edit.text_submitted.connect(func(_t):
+		_play_click()
+		_on_submit_pressed()
+	)
+
+func _play_click() -> void:
+	if is_instance_valid(click_player) and click_player.stream:
+		click_player.play()
 
 func _process(delta: float) -> void:
 	if not is_active:
