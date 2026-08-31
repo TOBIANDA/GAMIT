@@ -1121,6 +1121,7 @@ func _draw_train_station(rect: Rect2) -> void:
 	draw_line(Vector2(rect.end.x, y), Vector2(rect.end.x, y + rh), COLOR_WALL_LINE, 3.0)
 
 	# Bangku Tunggu Kayu di Peron 1 Selatan
+	var b_h := 245.0
 	_draw_station_bench(Vector2(p1_x + 14, y + b_h + 50), 46.0, 18.0)
 
 	# Fasilitas di Lantai Selatan (Bilik Telepon & Tempat Sampah)

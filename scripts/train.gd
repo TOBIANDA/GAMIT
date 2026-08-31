@@ -207,10 +207,14 @@ func _end_passing_train() -> void:
 		smoke_particles.emitting = false
 	if is_instance_valid(audio_player_train) and audio_player_train.playing:
 		audio_player_train.stop()
+	if is_instance_valid(audio_player_horn) and audio_player_horn.playing:
+		audio_player_horn.stop()
 	spawn_timer = randf_range(spawn_interval * 0.8, spawn_interval * 1.3)
 	queue_redraw()
 
 func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
+	if not is_train_running:
+		return
 	horn_cooldown -= delta
 
 	# Klakson saat mendekati stasiun
@@ -224,6 +228,8 @@ func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 		horn_cooldown = 3.0
 
 func _trigger_horn(spatial_vol: float = 1.0) -> void:
+	if not is_train_running:
+		return
 	if is_instance_valid(audio_player_horn):
 		audio_player_horn.volume_db = linear_to_db(clampf(spatial_vol * 1.2, 0.05, 1.0))
 		audio_player_horn.play()
