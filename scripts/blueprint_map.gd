@@ -443,55 +443,68 @@ func _build_all_colliders() -> void:
 	add_child(sb)
 	collision_bodies.append(sb)
 
-	# 1. Batas Luar Peta (World Boundaries)
+	# 1. Batas Luar Dunia (World Boundaries)
 	_add_box_collider(sb, Rect2(-40, -40, 2500, 40))
 	_add_box_collider(sb, Rect2(-40, 1311, 2500, 40))
 	_add_box_collider(sb, Rect2(-40, -40, 40, 1400))
 	_add_box_collider(sb, Rect2(2420, -40, 40, 1400))
 
-	# 2. Gedung-Gedung Utama (Solid Building Colliders)
-	_add_box_collider(sb, Rect2(8, 955, 340, 350))
-	_add_box_collider(sb, Rect2(639, 324, 897, 225))
-	_add_box_collider(sb, Rect2(465, 945, 585, 300))
+	# 2. Gedung-Gedung Utama Tertutup (Solid Buildings Only)
+	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
+	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
+	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
+	_add_box_collider(sb, Rect2(8 + (polisi_geser_x if polisi_geser_x != null else 0.0), 955 + (polisi_geser_y if polisi_geser_y != null else 0.0), pol_w, pol_h))
+
+	var r_sk = 1.0 if (rs_skala == null or rs_skala <= 0.0) else float(rs_skala)
+	var r_w = (rs_lebar if (rs_lebar != null and rs_lebar > 0.0) else 585.0) * r_sk
+	var r_h = (rs_tinggi if (rs_tinggi != null and rs_tinggi > 0.0) else 300.0) * r_sk
+	_add_box_collider(sb, Rect2(465 + (rs_geser_x if rs_geser_x != null else 0.0), 945 + (rs_geser_y if rs_geser_y != null else 0.0), r_w, r_h))
+
+	# Kamar Jenazah (Hanya gedung morgue tertutup, area plaza/taman di sebelahnya bebas dijelajahi)
+	_add_box_collider(sb, Rect2(639, 324, 380, 225))
+
+	# Gedung Utama Stasiun
 	_add_box_collider(sb, Rect2(1991, 698, 142, 245))
-	_add_box_collider(sb, Rect2(0, 324, 516, 462))
-	_add_box_collider(sb, Rect2(1158, 730, 270, 210))
-	_add_box_collider(sb, Rect2(1626, 324, 390, 225))
+
+	# Rumah Belakang & Rumah Samping (Hanya bodi bangunannya)
+	_add_box_collider(sb, Rect2(1180, 745, 220, 175))
+	_add_box_collider(sb, Rect2(1650, 335, 340, 205))
 
 	# 3. Rumah Warga & Pagar Halaman (11 Rumah Atas)
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var sq_y = 36.0
-		# Bodi Rumah Utama (Solid)
-		_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 90))
-		# Pagar Belakang
+		# Bodi Rumah Utama (Solid untuk rumah sipil, Rumah Detektif i==6 interiornya terbuka)
+		if i != 6:
+			_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 100))
+		# Pagar Belakang (Solid - tidak bisa ditembus)
 		_add_box_collider(sb, Rect2(sq_x, sq_y - 6, 156, 8))
-		# Pagar Samping Kiri
+		# Pagar Samping Kiri (Solid - tidak bisa ditembus)
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 6, 8, 146))
-		# Pagar Samping Kanan
+		# Pagar Samping Kanan (Solid - tidak bisa ditembus)
 		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 8, 146))
-		# Pagar Depan Kiri
-		_add_box_collider(sb, Rect2(sq_x, sq_y + 132, 62, 10))
-		# Pagar Depan Kanan
-		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 132, 62, 10))
-		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
+		# Pagar Depan Kiri (Solid - tidak bisa ditembus)
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 12))
+		# Pagar Depan Kanan (Solid - tidak bisa ditembus)
+		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 12))
+		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT KELUAR-MASUK!)
 
 	# 3 Rumah Tenggara
 	for hy in [705.0, 880.0, 1055.0]:
 		var sq_x = 1636.0
 		var sq_y = hy
 		# Bodi Rumah Utama (Solid)
-		_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 90))
-		# Pagar Belakang
+		_add_box_collider(sb, Rect2(sq_x + 12, sq_y + 6, 132, 100))
+		# Pagar Belakang (Solid)
 		_add_box_collider(sb, Rect2(sq_x, sq_y - 6, 156, 8))
-		# Pagar Samping Kiri
+		# Pagar Samping Kiri (Solid)
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 6, 8, 146))
-		# Pagar Samping Kanan
+		# Pagar Samping Kanan (Solid)
 		_add_box_collider(sb, Rect2(sq_x + 152, sq_y - 6, 8, 146))
-		# Pagar Depan Kiri
-		_add_box_collider(sb, Rect2(sq_x, sq_y + 132, 62, 10))
-		# Pagar Depan Kanan
-		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 132, 62, 10))
+		# Pagar Depan Kiri (Solid)
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 130, 62, 12))
+		# Pagar Depan Kanan (Solid)
+		_add_box_collider(sb, Rect2(sq_x + 94, sq_y + 130, 62, 12))
 		# (Celah Pintu Pagar sq_x + 62 .. sq_x + 94 DIBIARKAN TERBUKA UNTUK LEWAT!)
 
 func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
