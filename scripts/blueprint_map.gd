@@ -48,6 +48,7 @@ const COLOR_TRACK_TIE       = Color(0.38, 0.33, 0.28, 1.0)
 const WT = 6.0
 var tex_hospital: Texture2D
 var tex_police: Texture2D
+var tex_gedung: Texture2D
 var tex_rumah_mc: Texture2D
 var tex_rumah_depan: Texture2D
 var tex_rumah_belakang: Texture2D
@@ -441,6 +442,58 @@ var tex_telepon: Texture2D
 		pagar_rs_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
+@export_group("19. Gedung Blok Atas Kantor Polisi")
+@export var gedung_polisi_tampilkan: bool = true:
+	set(val):
+		gedung_polisi_tampilkan = val
+		queue_redraw()
+@export var gedung_polisi_geser_x: float = 0.0:
+	set(val):
+		gedung_polisi_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_polisi_geser_y: float = 0.0:
+	set(val):
+		gedung_polisi_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_polisi_lebar: float = 480.0:
+	set(val):
+		gedung_polisi_lebar = 480.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_polisi_tinggi: float = 440.0:
+	set(val):
+		gedung_polisi_tinggi = 440.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_polisi_skala: float = 1.0:
+	set(val):
+		gedung_polisi_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("20. Gedung Samping Rumah Sakit")
+@export var gedung_rs_tampilkan: bool = true:
+	set(val):
+		gedung_rs_tampilkan = val
+		queue_redraw()
+@export var gedung_rs_geser_x: float = 0.0:
+	set(val):
+		gedung_rs_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_rs_geser_y: float = 0.0:
+	set(val):
+		gedung_rs_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_rs_lebar: float = 380.0:
+	set(val):
+		gedung_rs_lebar = 380.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_rs_tinggi: float = 240.0:
+	set(val):
+		gedung_rs_tinggi = 240.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_rs_skala: float = 1.0:
+	set(val):
+		gedung_rs_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
 var tex_bed: Texture2D
 var tex_karpet: Texture2D
 var tex_laci: Texture2D
@@ -606,6 +659,21 @@ class RoofOverlayNode extends Node2D:
 		var c2_x := 2280.0 + 38.0
 		var c2_y := 690.0 + 25.0
 		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
+
+		# ── 5. Atap Gedung Blok Atas Polisi & Samping RS ──────────────────────
+		if map.gedung_polisi_tampilkan:
+			var gp_sk = 1.0 if (map.gedung_polisi_skala == null or map.gedung_polisi_skala <= 0.0) else float(map.gedung_polisi_skala)
+			var gp_w = (map.gedung_polisi_lebar if (map.gedung_polisi_lebar != null and map.gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
+			var gp_h = (map.gedung_polisi_tinggi if (map.gedung_polisi_tinggi != null and map.gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
+			var gp_rect = Rect2(18.0 + (map.gedung_polisi_geser_x if map.gedung_polisi_geser_x != null else 0.0), 335.0 + (map.gedung_polisi_geser_y if map.gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
+			_draw_house_roof(map.tex_gedung, gp_rect)
+
+		if map.gedung_rs_tampilkan:
+			var grs_sk = 1.0 if (map.gedung_rs_skala == null or map.gedung_rs_skala <= 0.0) else float(map.gedung_rs_skala)
+			var grs_w = (map.gedung_rs_lebar if (map.gedung_rs_lebar != null and map.gedung_rs_lebar > 0.0) else 380.0) * grs_sk
+			var grs_h = (map.gedung_rs_tinggi if (map.gedung_rs_tinggi != null and map.gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
+			var grs_rect = Rect2(655.0 + (map.gedung_rs_geser_x if map.gedung_rs_geser_x != null else 0.0), 695.0 + (map.gedung_rs_geser_y if map.gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
+			_draw_house_roof(map.tex_gedung, grs_rect)
 
 
 func _setup_roof_overlay() -> void:
@@ -774,6 +842,22 @@ func _build_all_colliders() -> void:
 		var pk_h = (pagar_kereta_tinggi if (pagar_kereta_tinggi != null and pagar_kereta_tinggi > 0.0) else 621.0) * pk_sk
 		_add_box_collider(sb, Rect2(pk_x - 4, pk_y, 8, pk_h))
 
+	# 7. Gedung di Blok Atas Kantor Polisi (Otomatis Pixel-Perfect dari PNG)
+	if gedung_polisi_tampilkan:
+		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
+		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
+		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
+		var gp_rect = Rect2(18.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 335.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
+		_add_bitmap_collider(sb, tex_gedung, gp_rect)
+
+	# 8. Gedung di Samping Rumah Sakit (Otomatis Pixel-Perfect dari PNG)
+	if gedung_rs_tampilkan:
+		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
+		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
+		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
+		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
+		_add_bitmap_collider(sb, tex_gedung, grs_rect)
+
 func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, alpha_threshold: float = 0.25, epsilon: float = 3.0) -> void:
 	if not is_instance_valid(tex):
 		return
@@ -882,6 +966,7 @@ func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
 func _load_textures() -> void:
 	tex_hospital = load("res://Bangunan/Hospital.png")
 	tex_police = load("res://Bangunan/police.png")
+	tex_gedung = load("res://Bangunan/gedung.png")
 	tex_rumah_mc = load("res://Bangunan/rumahMC.png")
 	tex_rumah_depan = load("res://Bangunan/rumahTampakDepan.png")
 	tex_rumah_belakang = load("res://Bangunan/rumahTampakBelakang.png")
@@ -1028,6 +1113,14 @@ func _draw() -> void:
 	_draw_desk(Rect2(411, 666, 105, 120))
 	_draw_desk(Rect2(25, 800, 140, 100))
 
+	# Gedung di Blok Atas Kantor Polisi (gedung.png)
+	if gedung_polisi_tampilkan:
+		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
+		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
+		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
+		var gp_rect = Rect2(18.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 335.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
+		_draw_texture_fit(tex_gedung, gp_rect)
+
 	# Kompleks Rumah Sakit Atas (Kamar Jenazah & Plaza)
 	var top_complex_pts = PackedVector2Array([
 		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 549), Vector2(639, 549)
@@ -1053,6 +1146,14 @@ func _draw() -> void:
 	_draw_tile_pattern(Rect2(639, 690, 411, 255), COLOR_PLAZA_TILE_LINE)
 	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
+
+	# Gedung di Samping Rumah Sakit (gedung.png)
+	if gedung_rs_tampilkan:
+		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
+		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
+		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
+		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
+		_draw_texture_fit(tex_gedung, grs_rect)
 
 	# Bangunan Rumah Lainnya
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
