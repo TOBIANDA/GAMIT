@@ -1145,21 +1145,19 @@ func _draw() -> void:
 	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	# Gedung di Samping Rumah Sakit (gedung.png) - digambar SETELAH lantai & taman
-	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
-		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
-		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
-		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
-		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
-		draw_texture_rect(tex_gedung, grs_rect, false)
-
 	# Bangunan Rumah Lainnya
+	# 🏗️ Gedung blok tengah besar (1050,690)→(1626,1311) - digambar sebelum rumah
+	if is_instance_valid(tex_gedung):
+		draw_texture_rect(tex_gedung, Rect2(1050, 690, 576, 621), false)
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
 	var rb_sk = 1.0 if (rumah_belakang_skala == null or rumah_belakang_skala <= 0.0) else float(rumah_belakang_skala)
 	var rb_w = (rumah_belakang_lebar if (rumah_belakang_lebar != null and rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
 	var rb_h = (rumah_belakang_tinggi if (rumah_belakang_tinggi != null and rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
 	_draw_texture_fit(tex_rumah_belakang, Rect2(1180 + (rumah_belakang_geser_x if rumah_belakang_geser_x != null else 0.0), 745 + (rumah_belakang_geser_y if rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
 	
+	# 🏢 Gedung blok NE atas (1626,324)→(2016,549) - digambar sebelum rumah samping
+	if is_instance_valid(tex_gedung):
+		draw_texture_rect(tex_gedung, Rect2(1626, 324, 390, 225), false)
 	_draw_room_pavement(Rect2(1626, 324, 390, 225), COLOR_ROOM_STONE_A)
 	var rsamp_sk = 1.0 if (rumah_samping_skala == null or rumah_samping_skala <= 0.0) else float(rumah_samping_skala)
 	var rsamp_w = (rumah_samping_lebar if (rumah_samping_lebar != null and rumah_samping_lebar > 0.0) else 340.0) * rsamp_sk
@@ -1185,21 +1183,25 @@ func _draw() -> void:
 		_draw_phone_booth(Rect2(p_pos.x, p_pos.y, tw, th))
 
 	# ── Gedung Utama (Sprites) ────────────────────────────────────────────────
-	# 🏢 Gedung blok NW (di atas kantor polisi) - digambar SETELAH jalan raya
+	# 🏢 1. Gedung NW block (0,324)→(516,786) — isi seluruh blok
 	if gedung_polisi_tampilkan and is_instance_valid(tex_gedung):
 		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
-		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
-		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
-		var gp_rect = Rect2(18.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 335.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
+		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 510.0) * gp_sk
+		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 455.0) * gp_sk
+		var gp_rect = Rect2(0.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 324.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
 		draw_texture_rect(tex_gedung, gp_rect, false)
 
-	# 🏥 Gedung samping RS - digambar SETELAH jalan raya
+	# 🏥 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) — isi seluruh blok
 	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
 		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
-		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
-		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
-		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
+		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 408.0) * grs_sk
+		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 552.0) * grs_sk
+		var grs_rect = Rect2(639.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 690.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
 		draw_texture_rect(tex_gedung, grs_rect, false)
+
+	# 🏛️ 3. Gedung blok kanan top RS (1050,324)→(1536,549)
+	if is_instance_valid(tex_gedung):
+		draw_texture_rect(tex_gedung, Rect2(1050, 324, 486, 225), false)
 
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
