@@ -1146,9 +1146,6 @@ func _draw() -> void:
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
 	# Bangunan Rumah Lainnya
-	# 🏗️ Gedung blok tengah besar (1050,690)→(1626,1311) - digambar sebelum rumah
-	if is_instance_valid(tex_gedung):
-		draw_texture_rect(tex_gedung, Rect2(1050, 690, 576, 621), false)
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
 	var rb_sk = 1.0 if (rumah_belakang_skala == null or rumah_belakang_skala <= 0.0) else float(rumah_belakang_skala)
 	var rb_w = (rumah_belakang_lebar if (rumah_belakang_lebar != null and rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
