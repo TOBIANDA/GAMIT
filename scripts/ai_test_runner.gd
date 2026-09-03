@@ -38,19 +38,23 @@ func _ready() -> void:
 	_run_test_suite()
 
 func _run_test_suite() -> void:
-	# 1. Capture Full Map Overview
-	await _capture_view(Vector2(1080, 655), Vector2(0.55, 0.55), "map_overview.png")
+	# 1. Capture Full Map Overview  
+	await _capture_view(Vector2(1080, 655), Vector2(0.5, 0.5), "map_overview.png")
 	
 	# 2. Capture Police & Hospital Complex
 	await _capture_view(Vector2(450, 1000), Vector2(1.2, 1.2), "police_hospital.png")
 	
-	# 3. Capture NW Complex (Above Police)
-	await _capture_view(Vector2(300, 550), Vector2(1.2, 1.2), "nw_building_block.png")
+	# 3. Capture NW Complex (gedung di area paling kiri: x=0..516, y=324..786)
+	# BlueprintMap ada di posisi world tertentu, arahkan ke area kiri atas
+	await _capture_view(Vector2(260, 560), Vector2(2.0, 2.0), "nw_building_block.png")
 	
-	# 4. Capture Train Station & East Fences
+	# 4. Capture Hospital lower complex (gedung samping RS, area bot_complex)
+	await _capture_view(Vector2(840, 900), Vector2(2.0, 2.0), "hospital_side_gedung.png")
+
+	# 5. Capture Train Station & East Fences
 	await _capture_view(Vector2(1950, 950), Vector2(1.1, 1.1), "train_station_peron.png")
 	
-	# 5. Capture Civilian Houses & Fences (Top)
+	# 6. Capture Civilian Houses & Fences (Top)
 	await _capture_view(Vector2(1100, 150), Vector2(1.1, 1.1), "houses_top.png")
 
 	print("[AI_RUNNER] Autonomous visual test suite completed successfully!")

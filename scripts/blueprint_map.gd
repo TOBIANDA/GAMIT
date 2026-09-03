@@ -782,16 +782,14 @@ func _build_all_colliders() -> void:
 			_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12 + ra_gx, sq_y + 6 + ra_gy, ra_w, ra_h))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
-		# Pagar Samping Kiri & Kanan dari PNG
-		for p in range(n_panels):
-			var py = sq_y + p * step_y
-			_add_side_fence_bitmap_collider(sb, Rect2(sq_x - 3 + (pagar_samping_kiri_geser_x if pagar_samping_kiri_geser_x != null else 0.0), py, side_w, panel_h), true)
-			_add_side_fence_bitmap_collider(sb, Rect2(sq_x + 156 - side_w + 3 + (pagar_samping_kanan_geser_x if pagar_samping_kanan_geser_x != null else 0.0), py, side_w, panel_h), false)
-		# Pagar Depan Kiri & Kanan dari PNG
-		var f_left_rect = Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri)
-		_add_bitmap_collider(sb, tex_pagar, f_left_rect)
-		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan)
-		_add_flipped_bitmap_collider(sb, tex_pagar, f_right_rect, true, false)
+		# Pagar Samping Kiri & Kanan - box collider sederhana (lebih stabil)
+		_add_box_collider(sb, Rect2(sq_x - 5 + (pagar_samping_kiri_geser_x if pagar_samping_kiri_geser_x != null else 0.0), sq_y, 8, 130))
+		_add_box_collider(sb, Rect2(sq_x + 155 + (pagar_samping_kanan_geser_x if pagar_samping_kanan_geser_x != null else 0.0), sq_y, 8, 130))
+		# Pagar Depan Kiri & Kanan - box collider sederhana
+		var f_left_rect = Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0), 10.0)
+		_add_box_collider(sb, f_left_rect)
+		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0), 10.0)
+		_add_box_collider(sb, f_right_rect)
 
 	var rse_sk = 1.0 if (rumah_se_skala == null or rumah_se_skala <= 0.0) else float(rumah_se_skala)
 	var rse_w = (rumah_se_lebar if (rumah_se_lebar != null and rumah_se_lebar > 0.0) else 132.0) * rse_sk
@@ -807,16 +805,12 @@ func _build_all_colliders() -> void:
 		_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12 + rse_gx, sq_y + 6 + rse_gy, rse_w, rse_h))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
-		# Pagar Samping Kiri & Kanan dari PNG
-		for p in range(n_panels):
-			var py = sq_y + p * step_y
-			_add_side_fence_bitmap_collider(sb, Rect2(sq_x - 3 + (pagar_samping_kiri_geser_x if pagar_samping_kiri_geser_x != null else 0.0), py, side_w, panel_h), true)
-			_add_side_fence_bitmap_collider(sb, Rect2(sq_x + 156 - side_w + 3 + (pagar_samping_kanan_geser_x if pagar_samping_kanan_geser_x != null else 0.0), py, side_w, panel_h), false)
-		# Pagar Depan Kiri & Kanan dari PNG
-		var f_left_rect = Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri)
-		_add_bitmap_collider(sb, tex_pagar, f_left_rect)
-		var f_right_rect = Rect2(sq_x + 94.0 + (pagar_kanan_geser_x if pagar_kanan_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kanan_geser_y if pagar_kanan_geser_y != null else 0.0), (pagar_kanan_lebar if pagar_kanan_lebar != null else 62.0) * sk_kanan, 26.0 * sk_kanan)
-		_add_flipped_bitmap_collider(sb, tex_pagar, f_right_rect, true, false)
+		# Pagar Samping Kiri & Kanan - box collider sederhana
+		_add_box_collider(sb, Rect2(sq_x - 5, sq_y, 8, 130))
+		_add_box_collider(sb, Rect2(sq_x + 155, sq_y, 8, 130))
+		# Pagar Depan
+		_add_box_collider(sb, Rect2(sq_x, sq_y + 130.0, 62.0, 10.0))
+		_add_box_collider(sb, Rect2(sq_x + 94.0, sq_y + 130.0, 62.0, 10.0))
 
 	# 4. Pagar Kantor Polisi (Opsional dari Inspector)
 	if pagar_polisi_tampilkan:
@@ -858,7 +852,7 @@ func _build_all_colliders() -> void:
 		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
 		_add_bitmap_collider(sb, tex_gedung, grs_rect)
 
-func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, alpha_threshold: float = 0.25, epsilon: float = 3.0) -> void:
+func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, alpha_threshold: float = 0.25, epsilon: float = 5.0) -> void:
 	if not is_instance_valid(tex):
 		return
 	var img: Image = tex.get_image()
@@ -888,7 +882,7 @@ func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2
 		col.polygon = scaled_poly
 		body.add_child(col)
 
-func _add_flipped_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, flip_h: bool = false, flip_v: bool = false, alpha_threshold: float = 0.25, epsilon: float = 3.0) -> void:
+func _add_flipped_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, flip_h: bool = false, flip_v: bool = false, alpha_threshold: float = 0.25, epsilon: float = 5.0) -> void:
 	if not is_instance_valid(tex):
 		return
 	var img: Image = tex.get_image()
@@ -1070,9 +1064,21 @@ func _setup_navigation_region() -> void:
 			Vector2(1636, hy), Vector2(1792, hy), Vector2(1792, hy + 156), Vector2(1636, hy + 156)
 		]))
 
-	nav_poly.make_polygons_from_outlines()
+	# Navigation baking - tambahkan ke scene tree dulu sebelum baking
 	nav_region.navigation_polygon = nav_poly
 	add_child(nav_region)
+	# Baking async setelah node masuk scene tree
+	call_deferred("_bake_nav_region", nav_region, nav_poly)
+
+func _bake_nav_region(nav_region: NavigationRegion2D, nav_poly: NavigationPolygon) -> void:
+	if not is_instance_valid(nav_region):
+		return
+	var source_data = NavigationMeshSourceGeometryData2D.new()
+	NavigationServer2D.parse_source_geometry_data(nav_poly, source_data, self)
+	NavigationServer2D.bake_from_source_geometry_data(nav_poly, source_data, func():
+		if is_instance_valid(nav_region):
+			nav_region.navigation_polygon = nav_poly
+	)
 
 func _draw() -> void:
 	draw_rect(Rect2(-200, -200, 2800, 1800), COLOR_VOID, true)
@@ -1113,14 +1119,6 @@ func _draw() -> void:
 	_draw_desk(Rect2(411, 666, 105, 120))
 	_draw_desk(Rect2(25, 800, 140, 100))
 
-	# Gedung di Blok Atas Kantor Polisi (gedung.png)
-	if gedung_polisi_tampilkan:
-		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
-		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
-		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
-		var gp_rect = Rect2(18.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 335.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
-		_draw_texture_fit(tex_gedung, gp_rect)
-
 	# Kompleks Rumah Sakit Atas (Kamar Jenazah & Plaza)
 	var top_complex_pts = PackedVector2Array([
 		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 549), Vector2(639, 549)
@@ -1147,13 +1145,13 @@ func _draw() -> void:
 	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
-	# Gedung di Samping Rumah Sakit (gedung.png)
-	if gedung_rs_tampilkan:
+	# Gedung di Samping Rumah Sakit (gedung.png) - digambar SETELAH lantai & taman
+	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
 		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
 		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
 		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
 		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
-		_draw_texture_fit(tex_gedung, grs_rect)
+		draw_texture_rect(tex_gedung, grs_rect, false)
 
 	# Bangunan Rumah Lainnya
 	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
@@ -1187,6 +1185,22 @@ func _draw() -> void:
 		_draw_phone_booth(Rect2(p_pos.x, p_pos.y, tw, th))
 
 	# ── Gedung Utama (Sprites) ────────────────────────────────────────────────
+	# 🏢 Gedung blok NW (di atas kantor polisi) - digambar SETELAH jalan raya
+	if gedung_polisi_tampilkan and is_instance_valid(tex_gedung):
+		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
+		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
+		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
+		var gp_rect = Rect2(18.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 335.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
+		draw_texture_rect(tex_gedung, gp_rect, false)
+
+	# 🏥 Gedung samping RS - digambar SETELAH jalan raya
+	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
+		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
+		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
+		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
+		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
+		draw_texture_rect(tex_gedung, grs_rect, false)
+
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
 	var pol_h = (polisi_tinggi if (polisi_tinggi != null and polisi_tinggi > 0.0) else 350.0) * pol_sk
