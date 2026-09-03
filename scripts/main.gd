@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var player: CharacterBody2D = $Player
-@onready var shrine: Node2D = $DeathGodShrine
+@onready var shrine: Node2D = get_node_or_null("DeathGodShrine")
 @onready var dialog_box: CanvasLayer = $DialogBox
 @onready var hud_speed_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/SpeedLabel
 @onready var hud_pos_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/PosLabel
