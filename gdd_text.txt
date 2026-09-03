@@ -1,0 +1,363 @@
+ 
+DAFTAR ISI 
+SUMMARY...............................................................................................................................2 
+● Game Information.............................................................................................................2 
+● Elevator Pitch....................................................................................................................2 
+● Theme Implementation.....................................................................................................2 
+● Unique Selling Point.........................................................................................................2 
+● Game Flow........................................................................................................................3 
+SETTINGS................................................................................................................................3 
+● Worldbuilding................................................................................................................... 3 
+● Story..................................................................................................................................3 
+● Characters......................................................................................................................... 4 
+GAMEPLAY.............................................................................................................................6 
+● Core Loop......................................................................................................................... 6 
+● Game Objective................................................................................................................ 6 
+● Game Mechanics...............................................................................................................6 
+○ Movement System...................................................................................................... 6 
+● Loss Condition............................................................................................................7 
+● Mini Game Mechanics................................................................................................7 
+AESTHETICS.......................................................................................................................... 8 
+● Art Direction.....................................................................................................................8 
+● Audio Direction................................................................................................................ 9 
+● References (opsional)......................................................................................................10 
+○ Art References (contoh)............................................................................................10 
+○ UI References (contoh).............................................................................................10 
+○ Gameplay References (contoh).................................................................................10 
+○ Audio References (contoh)....................................................................................... 10 
+ 
+ 
+ 
+SUMMARY 
+●​ Game Information 
+Title 
+: (judul game kalian) 
+Developer 
+: 4 ayam 1 immo 
+Genre 
+: Misteri, Kriminalitas, Narrative Adventure 
+Platform 
+: PC 
+Game Engine 
+: Godot 
+Target Audience : Pemain yang menyukai game bergenre misteri dan crime  
+solving 
+●​ Elevator Pitch 
+Ketertarikan Benedict terhadap surat anonim yang meminta untuk menyelidiki 
+kematian seseorang membuatnya berada di dalam investigasi yang penuh dengan 
+kejanggalan. Ditambah, semakin dalam ia hanyut dalam kasus ini, semakin ia sadar 
+bahwa setiap petunjuk yang ia temukan selalu mengarah ke dirinya sendiri. 
+●​ Theme Implementation 
+Tema After the End ini bukan hanya di plot [Judul Game] melainkan langsung ada 
+di semua elemen game. Dunia sudah berhenti sejak detik pertama, terlihat dari jam 
+yang membeku, hujan yang tak jatuh, warna yang memudar. Pemain menjelajahinya 
+dalam sudut pandang seorang detektif yang, tanpa ia sadari, justru sedang menyelidiki 
+kematiannya sendiri. Bahkan mekanik inti berbicara mengenai tema ini dimana 
+kehadirannya membuat orang-orang di sekitarnya merinding lalu lari ketakutan, 
+sebuah dunia yang perlahan menolak eksistensinya sendiri. Setiap petunjuk yang ia 
+temukan seperti jam tangan yang berhenti, pesan yang tak sempat terkirim, 
+penyesalan yang tertinggal ditulis seolah milik orang lain padahal semuanya adalah 
+miliknya. Semakin dalam ia menyelidiki, semakin runtuh dunia ini hingga 
+membawanya pada kebenaran yang sudah dirasakan pemain jauh sebelum 
+dikonfirmasi, bahwa yang ia selidiki adalah dirinya sendiri. Pada akhirnya, game ini 
+bukan tentang mengungkap siapa yang mati, melainkan tentang bagaimana seseorang 
+menerima bahwa hidupnya, hubungannya, dan segala yang belum selesai telah benar 
+benar berakhir. 
+●​ Unique Selling Point 
+-​
+Dunia dalam game berubah seiring berjalannya investigasi 
+ 
+ 
+-​
+Ending bersifat personal karena diketik oleh player sendiri 
+-​
+Environmental storytelling 
+ 
+●​ Game Flow 
+https://drive.google.com/file/d/1BxovlmF0h5vWUvadMxlJg6vbCPKjGW2j/view?us
+p=drive_link 
+ 
+SETTINGS 
+●​ Worldbuilding 
+Game berlokasi di afterlife namun menyimpan tempat tempat dan bekas-bekas dari 
+kehidupan di dunia. Karena berlatar di afterlife, maka terdapat keanehan-keanehan 
+seperti glitch di sepanjang dunia game. 
+●​ Story  
+Seorang detektif, Benedict, berjalan tertatih keluar dari sebuah gang sempit. Jam 
+menunjukkan pukul 16.04 namun anehnya, jam sudah berhenti bergerak. Benedict 
+merasa lelah luar biasa dan memutuskan untuk pulang ke rumah. Anehnya, saat ia 
+menyapa tetangganya di jalan pulang, tetangganya tidak menyapa balik seperti 
+biasanya.  
+Sesampainya di rumah, ia mendapatkan surat tugas yang memintanya untuk 
+menyelidiki kematian seseorang. Clue pertama yang ia terima dari surat adalah untuk 
+bertanya ke Inspektur Marcus di kantor Polisi. Sesampainya di kantor polisi, ia 
+menguping percakapan Inspektur Marcus dan seorang polisi yang membahas korban. 
+Marcus mengatakan bahwa korban terakhir terlihat berjalan ke arah stasiun kereta api 
+karna ia mau ke luar kota untuk berlibur.  
+Benedict bergegas menuju ke stasiun untuk mencari petunjuk. Disana, ia menemukan 
+beberapa barang namun yang paling krusial adalah sebuah amplop berisi foto-foto 
+korban sebelum meninggal. Ia kemudian membawa pulang amplop untuk dicuci.​
+​
+Setelah mencuci foto, ia merasa aneh karena di foto terakhir, korban memiliki 
+wajahnya. Ia kemudian menyelinap ke rumah sakit untuk memeriksa korban. Setelah 
+melewati keamanan rumah sakit, sampailah ia ke mayat korban dan ternyata, korban 
+adalah dirinya sendiri.  
+ 
+ 
+Ia kemudian langsung dibawa ke alam kematian dan bertemu dengan dewa kematian. 
+Disana, dewa kematian menanyakan apa saja yang ia temukan sepanjang 
+investigasinya. Ia menjawab pertanyaan dengan lengkap dan kemudian naik ke 
+afterlife. 
+●​ Exploration Story 
+Saat Benedict pulang ke rumah untuk pertama kalinya, ia menemukan sebuah foto 
+dirinya bersama sang Ibu, Medeline, di depan rumah ibunya. Ia seketika teringat akan 
+kematian ibunya saat ia masih kecil. Ia kemudian membalik foto itu dan baru 
+menyadari bahwa ada pesan yang ditulis sang ibu dibalik foto itu dengan memintanya 
+untuk menjemput hadiah sang ibu. Benedict bergegas menuju ke rumah ibunya dan 
+mendapatkan ada sebuah brankas dengan 3 kode yang harus dimasukkan. Di samping 
+brankas, terdapat note dari sang ibu mengenai teka teki yang harus dipecahkan 
+Benedict untuk membuka brankas.  
+●​ Characters 
+Nama karakter 
+Sifat 
+Gambar konsep 
+Benedict (MC) 
+Detektif yang tenang dan 
+observatif, tipe orang yang 
+memerhatikan detail kecil di 
+sekitarnya. Memiliki tampilan 
+sebagai pekerja overworked yang 
+terlihat dari raut wajahnya dan 
+pakaian yang tidak rapi. Ia lebih 
+mengutamakan pekerjaan daripada 
+dirinya sendiri, sehingga banyak 
+hal-hal personal yang ia hindari dan 
+lupakan ketika sudah terlarut dalam 
+pekerjaannya. 
+ 
+ 
+ 
+Inspektur 
+Marcus 
+Rekan kerja lama Benedict. Ia 
+adalah sosok yang tegas dan 
+berwibawa di lingkungan 
+pekerjaannya, serta mampu bekerja 
+dengan efisien. Dia menghormati 
+Benedict sama seperti sebaliknya. 
+Sikapnya terlihat dingin tapi 
+sebenarnya dia peduli dengan 
+rekan-rekannya, terutama Benedict. 
+ 
+Dokter 
+Dokter dan Benedict sudah kenal 
+ 
+ 
+ 
+sebelumnya dari kasus-kasus yang 
+pernah dikerjakan Benedict. Dokter 
+adalah orang yang profesional dan 
+teliti. Kematian adalah hal yang 
+biasa ia tangani sehari-hari, 
+sehingga caranya bicara juga 
+tenang dan terkesan acuh tak acuh. 
+Sikap tenangnya ini juga 
+memengaruhi suasana rumah sakit 
+terasa semakin dingin dan janggal. 
+NPC  
+Warga-warga yang terdapat di kota 
+tersebut. Masing-masing memiliki 
+sifat dan pribadi yang berbeda, tapi 
+satu hal yang sama, mereka 
+cenderung menghindar begitu 
+Benedict mendekat. 
+ 
+Dewa Kematian 
+Makhluk yang menguasai dunia 
+kematian. Dia menjadi orang yang 
+ditemui oleh jiwa jiwa yang turun 
+ke alam maut 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+GAMEPLAY 
+●​ Core Loop 
+1. Buka lead baru (awal investigasi/hasil clue sebelumnya) 
+        ↓ 
+2. Pergi ke lokasi yang baru ter-unlock 
+        ↓ 
+3. Selesaikan minigame di lokasi itu 
+        ↓ 
+4. Dapat clue utama  
+        ↓ 
+5. Journal update + dunia makin terdistorsi (visual feedback progresif) 
+        ↓ 
+6. Lead baru terbuka → kembali ke langkah 1 
+Selama bermain, pemain bebas melakukan eksplorasi untuk mencari barang 
+emosional yang dapat dipakai untuk mencapai true ending 
+●​ Game Objective 
+-​
+Untuk menyelesaikan kasus ini, player harus mengumpulkan bukti-bukti 
+mengenai identitas korban dengan cara menyelesaikan berbagai mini game 
+yang ada untuk mendapatkan clue yang kemudian akan diceritakan ke dewa 
+kematian di akhir game. 
+-​
+Untuk mencapai true ending, pemain harus melakukan eksplorasi dan mencari 
+benda yang memiliki nilai emosional, yang nantinya dapat digunakan di fase 
+terakhir game. 
+●​ Game Mechanics 
+○​ Movement System  
+W: Gerak ke atas 
+A: Gerak ke kiri 
+S: Gerak ke bawah 
+ 
+ 
+D: Gerak ke kanan 
+F: Interaksi 
+Shift + W: Lari ke atas 
+Shift + A: Lari ke kiri 
+Shift + S: Lari ke bawah 
+Shift + D: Lari ke kanan 
+●​ Loss Condition 
+Di game ini, tidak ada loss condition yang menyebabkan pemain untuk mati. 
+Namun, di beberapa stage, jika pemain gagal memenuhi objektif tertentu sesuai 
+dengan syarat yang diberikan, maka game akan mengulang progress menurut 
+checkpoint terakhir. 
+●​ Mini Game Mechanics 
+Ada 3 buah mini game dan 1 mini game opsional di dalam game ini. 
+●​ Mini Game 1 (Investigasi 1): 
+Tailgating: Benedict harus mengikuti Inspektur Marcus sembari 
+menghindari keramaian agar tidak menciptakan kepanikan massal. 
+Benedict juga tidak boleh terlalu jauh dari Inspektur Marcus dan juga 
+tidak boleh terlalu dekat 
+Di sepanjang mini game ini, Benedict harus menghindari keramaian 
+dan tetap menjaga jarak dengan Inspektur Marcus 
+Kontrol: WASD 
+●​ Mini Game 2 (Investigasi 2): 
+Hidden Objects: Benedict harus mencari beberapa objek tersembunyi 
+dengan cepat karena jadwal kereta yang sudah dekat dan 
+keberadaannya dapat memicu kepanikan massal 
+Di mini game ini, lokasi akan dipenuhi dengan barang barang dan 
+Benedict harus teliti dalam mencari barang barang yang diperlukan 
+Kontrol: klik kiri pada objek yang ditemukan 
+●​ Mini Game 3 (Investigasi 3): 
+ 
+ 
+Forensic Cleaning: Benedict harus membersihkan dan mencuci foto 
+foto clue yang didapatkan dari stasiun untuk diteliti agar identitas 
+korban dapat diketahui 
+Di mini game ini, Benedict harus dengan hati hati mencuci foto foto 
+yang ada agar tidak merusak foto 
+kontrol: 
+merendam foto: klik dan tahan kiri 
+membilas foto: QTE (dalam waktu singkat, tekan key yang keluar di 
+layar) 
+ 
+AESTHETICS 
+●​ Art Direction 
+Artstyle 
+Game menggunakan artstyle 2d chibi untuk para karakternya. MC digambarkan 
+dengan penampilan detektif overworked yang menggunakan setelan kemeja putih dan 
+dasi yang sedikit berantakan. Dewa kematian didesain sebagai sosok bertudung yang 
+memiliki sayap dan halo di atas kepalanya sehingga memancarkan aura yang berbeda 
+dari karakter lainnya di dalam game. NPC digambarkan berdasarkan pekerjaannya, 
+bisa seperti orang biasa atau memiliki pekerjaan seperti polisi atau dokter. 
+Environment 
+Untuk area lingkungan menggunakan artstyle 2d semi-realistis, sehingga memperkuat 
+atmosfer investigasi, ditambah dengan detail dari jam, hujan, hingga bayangan 
+sebagai clue dari plot secara visual.  
+Color tone 
+Warna yang digunakan dominan menggunakan tone abu-abu, biru gelap, dan 
+warna-warna desaturated untuk menciptakan suasana yang suram, dingin, dan 
+janggal. Pada awal game, lingkungan sekitar masih memiliki warna-warna yang sama 
+dan muncul seluruhnya dengan normal. Namun, seiring berjalannya progres dalam 
+game, color tone yang digunakan berubah secara bertahap, mulai dari warna normal 
+ke monokrom hingga pucat secara keseluruhan.  
+UI 
+ 
+ 
+Elemen UI dalam game simple dan minimalis, selaras dengan color tone gelap dari 
+lingkungan in-game nya. Warnayang dipakai di UI juga mengikuti palet utama game 
+dengan sedikit warna kontras. Beberapa elemen UI utama: 
+-​
+Kotak dialog 
+-​
+Main menu (Play, settings, quit) 
+-​
+Pause  
+-​
+Clue log 
+●​ Audio Direction 
+Aset Suara/Sfx 
+-​
+Interaksi 
+Suara klik yang muncul ketika pemain berinteraksi dengan UI dalam game 
+(tombol play, pause, settings, quit, dsb). 
+ 
+-​
+Lingkungan 
+Suara yang berkaitan dengan lingkungan untuk menciptakan suasana yang 
+imersif di dalam game. 
+-​
+Suara hujan 
+-​
+Suara pintu terbuka 
+-​
+Suara pintu tertutup 
+-​
+Suara kertas diremas 
+-​
+ 
+ 
+-​
+Karakter 
+Suara yang dibuat oleh pergerakan dari karakter-karakter dalam game. 
+-​
+Suara jalan kaki/berlari di tanah 
+-​
+Suara jalan kaki/berlari di lantai 
+-​
+Suara jalan kaki/berlari di aspal 
+-​
+Suara mengambil barang 
+-​
+Suara berbincang (untuk NPC) 
+ 
+-​
+Box dialog 
+Suara ketikan keyboard yang muncul ketika teks dalam box dialog muncul. 
+ 
+Aset Musik 
+-​
+BGM 
+Audio yang digunakan sebagai background theme sepanjang game berjalan. 
+Nada yang menciptakan suspensi, ketegangan, dan sedikit hening untuk 
+menggambarkan nuansa dinginnya dan kejanggalan suasana di lingkungan 
+dalam game. Selain audio utama yang telah disebutkan, akan beberapa 
+backsound tambahan yang muncul di saat tertentu,  
+-​
+Backsound rumah sakit, bernuansa hening dan samar-samar terdengar 
+suara berdengung dari mesin 
+-​
+Backsound pada cutscene kilas balik, bernuansa sedikit emosional 
+-​
+Backsound pada akhir game ketika [mc] akhirnya pergi ke alam baka 
+ 
+ 
+●​ References 
+(cantum referensi-referensi yang menjadi sumber inspirasi game design kalian. 
+Cantum gambar screenshot game, judul game, beserta developer-nya. Silakan bagi 
+menjadi beberapa subpoin seperti contoh di bawah ini bila perlu) 
+○​ Gameplay References (contoh) 
+○​ Stardew Valley 
+○​ Criminal Case 
+○​ Assassin’s Creed: Blackflag 
+○​ Among Us 
+○​ 
+(daftar referensi) 
+ 
+ 
