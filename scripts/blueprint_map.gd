@@ -488,9 +488,29 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 	set(val):
 		gedung_nw_jarak_x = 28.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_nw_jarak_y: float = 110.0:
+@export var gedung_nw_jarak_y: float = 62.0:
 	set(val):
-		gedung_nw_jarak_y = 110.0 if val == null else float(val)
+		gedung_nw_jarak_y = 62.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_nw_zigzag: bool = true:
+	set(val):
+		gedung_nw_zigzag = val
+		queue_redraw()
+@export var gedung_nw_zigzag_offset: float = 16.0:
+	set(val):
+		gedung_nw_zigzag_offset = 16.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_nw_depth_tint: bool = true:
+	set(val):
+		gedung_nw_depth_tint = val
+		queue_redraw()
+@export var gedung_nw_depth_shadow: bool = true:
+	set(val):
+		gedung_nw_depth_shadow = val
+		queue_redraw()
+@export var gedung_nw_rooftop_props: bool = true:
+	set(val):
+		gedung_nw_rooftop_props = val
 		queue_redraw()
 @export var gedung_nw_geser_x: float = 0.0:
 	set(val):
@@ -499,6 +519,50 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 @export var gedung_nw_geser_y: float = 0.0:
 	set(val):
 		gedung_nw_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+
+@export_group("19b. Halaman Rumput & Kolam Renang NW")
+@export var gedung_nw_rumput_tampilkan: bool = true:
+	set(val):
+		gedung_nw_rumput_tampilkan = val
+		queue_redraw()
+@export var gedung_nw_kolam_tampilkan: bool = true:
+	set(val):
+		gedung_nw_kolam_tampilkan = val
+		queue_redraw()
+@export var gedung_nw_kolam_x: float = 168.0:
+	set(val):
+		gedung_nw_kolam_x = 168.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_nw_kolam_y: float = 665.0:
+	set(val):
+		gedung_nw_kolam_y = 665.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_nw_kolam_lebar: float = 180.0:
+	set(val):
+		gedung_nw_kolam_lebar = 180.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_nw_kolam_tinggi: float = 90.0:
+	set(val):
+		gedung_nw_kolam_tinggi = 90.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+
+@export_group("19c. Gedung Benjolan Persegi NW")
+@export var gedung_benjolan_tampilkan: bool = true:
+	set(val):
+		gedung_benjolan_tampilkan = val
+		queue_redraw()
+@export var gedung_benjolan_skala: float = 1.0:
+	set(val):
+		gedung_benjolan_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_benjolan_geser_x: float = 0.0:
+	set(val):
+		gedung_benjolan_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_benjolan_geser_y: float = 0.0:
+	set(val):
+		gedung_benjolan_geser_y = 0.0 if val == null else float(val)
 		queue_redraw()
 
 # Backward compatibility alias
@@ -527,20 +591,20 @@ func get_nw_gedung_rects() -> Array[Rect2]:
 	
 	var total_area_w: float = 516.0
 	var step_x: float = (gedung_nw_jarak_x if gedung_nw_jarak_x != null else 28.0) * sk
-	var step_y: float = (gedung_nw_jarak_y if gedung_nw_jarak_y != null else 110.0) * sk
+	var step_y: float = (gedung_nw_jarak_y if gedung_nw_jarak_y != null else 62.0) * sk
 	
-	# Pusatkan grid horizontal secara simetris di area lebar 516
 	var total_grid_w: float = float(cols) * base_w + float(cols - 1) * step_x
 	var start_x: float = (total_area_w - total_grid_w) * 0.5
-	var start_y: float = 330.0
+	var start_y: float = 328.0
+	
+	var stagger: float = (gedung_nw_zigzag_offset if (gedung_nw_zigzag and gedung_nw_zigzag_offset != null) else 0.0) * sk * 0.5
 	
 	var rects: Array[Rect2] = []
-	# Urutan dari baris belakang (row 0) ke baris depan (row rows - 1)
-	# sehingga gedung depan menggambar menutupi sebagian gedung di belakangnya
 	for r in range(rows):
 		var cur_y: float = start_y + float(r) * step_y + gy
+		var row_offset_x: float = (-stagger if (r % 2 == 0) else stagger)
 		for c in range(cols):
-			var cur_x: float = start_x + float(c) * (base_w + step_x) + gx
+			var cur_x: float = start_x + float(c) * (base_w + step_x) + gx + row_offset_x
 			rects.append(Rect2(cur_x, cur_y, base_w, base_h))
 	return rects
 
@@ -555,17 +619,147 @@ func get_nw_gedung_columns() -> Array[Rect2]:
 	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
 	var total_area_w: float = 516.0
 	var step_x: float = (gedung_nw_jarak_x if gedung_nw_jarak_x != null else 28.0) * sk
-	var step_y: float = (gedung_nw_jarak_y if gedung_nw_jarak_y != null else 110.0) * sk
+	var step_y: float = (gedung_nw_jarak_y if gedung_nw_jarak_y != null else 62.0) * sk
 	var total_grid_w: float = float(cols) * base_w + float(cols - 1) * step_x
 	var start_x: float = (total_area_w - total_grid_w) * 0.5
-	var start_y: float = 330.0
+	var start_y: float = 328.0
 	var total_col_h: float = float(rows - 1) * step_y + base_h
+	
+	var stagger: float = (gedung_nw_zigzag_offset if (gedung_nw_zigzag and gedung_nw_zigzag_offset != null) else 0.0) * sk * 0.5
 	
 	var col_rects: Array[Rect2] = []
 	for c in range(cols):
-		var cur_x: float = start_x + float(c) * (base_w + step_x) + gx
-		col_rects.append(Rect2(cur_x, start_y + gy, base_w, total_col_h))
+		var cur_x: float = start_x + float(c) * (base_w + step_x) + gx - stagger
+		var col_w: float = base_w + stagger * 2.0
+		col_rects.append(Rect2(cur_x, start_y + gy, col_w, total_col_h))
 	return col_rects
+
+func get_benjolan_gedung_rect() -> Rect2:
+	var sk: float = 1.0 if (gedung_benjolan_skala == null or gedung_benjolan_skala <= 0.0) else float(gedung_benjolan_skala)
+	var gx: float = (gedung_benjolan_geser_x if gedung_benjolan_geser_x != null else 0.0)
+	var gy: float = (gedung_benjolan_geser_y if gedung_benjolan_geser_y != null else 0.0)
+	var base_w: float = (gedung_nw_lebar_dasar if (gedung_nw_lebar_dasar != null and gedung_nw_lebar_dasar > 0.0) else 96.0) * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	var bx: float = (192.0 - base_w) * 0.5 + gx
+	var by: float = 926.0 - base_h + gy
+	return Rect2(bx, by, base_w, base_h)
+
+func get_nw_kolam_water_rect() -> Rect2:
+	var kx: float = (gedung_nw_kolam_x if gedung_nw_kolam_x != null else 168.0)
+	var ky: float = (gedung_nw_kolam_y if gedung_nw_kolam_y != null else 665.0)
+	var kw: float = (gedung_nw_kolam_lebar if (gedung_nw_kolam_lebar != null and gedung_nw_kolam_lebar > 0.0) else 180.0)
+	var kh: float = (gedung_nw_kolam_tinggi if (gedung_nw_kolam_tinggi != null and gedung_nw_kolam_tinggi > 0.0) else 90.0)
+	return Rect2(kx, ky, kw, kh)
+
+func _draw_swimming_pool(rect: Rect2) -> void:
+	# 1. Dek / Teras Paving Sekitar Kolam (Pool Deck)
+	var deck_pad_x := 18.0
+	var deck_pad_y := 14.0
+	var deck_rect := Rect2(rect.position.x - deck_pad_x, rect.position.y - deck_pad_y, rect.size.x + deck_pad_x * 2.0, rect.size.y + deck_pad_y * 2.0)
+	
+	# Bayangan jatuh dek kolam di atas rumput
+	draw_rect(Rect2(deck_rect.position.x - 2, deck_rect.position.y - 2, deck_rect.size.x + 4, deck_rect.size.y + 6), Color(0, 0, 0, 0.22), true)
+	# Lantai batu travertine/sandstone
+	draw_rect(deck_rect, Color(0.86, 0.84, 0.78), true)
+	
+	# Garis paving kotak-kotak halus di dek
+	var grid_step := 16.0
+	for px in range(int(deck_rect.position.x), int(deck_rect.end.x), int(grid_step)):
+		draw_line(Vector2(px, deck_rect.position.y), Vector2(px, deck_rect.end.y), Color(0.76, 0.74, 0.68, 0.6), 1.0)
+	for py in range(int(deck_rect.position.y), int(deck_rect.end.y), int(grid_step)):
+		draw_line(Vector2(deck_rect.position.x, py), Vector2(deck_rect.end.x, py), Color(0.76, 0.74, 0.68, 0.6), 1.0)
+
+	# 2. Batu Coping / Tepi Kolam (Pool Coping Border)
+	var coping_rect := Rect2(rect.position.x - 4, rect.position.y - 4, rect.size.x + 8, rect.size.y + 8)
+	draw_rect(coping_rect, Color(0.95, 0.94, 0.90), true)
+	draw_rect(coping_rect, Color(0.68, 0.66, 0.62), false, 1.5)
+
+	# 3. Bayangan Kedalaman Dinding Kolam
+	draw_rect(rect, Color(0.12, 0.40, 0.58), true)
+
+	# 4. Air Kolam (Gradien Kedalaman: Dangkal Cyan -> Dalam Biru Tua)
+	var water_h := rect.size.y
+	draw_rect(Rect2(rect.position.x + 2, rect.position.y + 2, rect.size.x - 4, water_h * 0.45), Color(0.24, 0.68, 0.86), true)
+	draw_rect(Rect2(rect.position.x + 2, rect.position.y + water_h * 0.45, rect.size.x - 4, water_h * 0.55 - 2), Color(0.16, 0.54, 0.74), true)
+
+	# 5. Garis Jalur Renang / Tegel Kolam
+	var lane_y1 := rect.position.y + water_h * 0.33
+	var lane_y2 := rect.position.y + water_h * 0.66
+	for lx in range(int(rect.position.x + 12), int(rect.end.x - 12), 16):
+		draw_line(Vector2(lx, lane_y1), Vector2(lx + 8, lane_y1), Color(0.12, 0.38, 0.55, 0.5), 2.0)
+		draw_line(Vector2(lx, lane_y2), Vector2(lx + 8, lane_y2), Color(0.12, 0.38, 0.55, 0.5), 2.0)
+
+	# 6. Gelombang / Kilauan Cahaya Air (Water Shimmer)
+	draw_line(Vector2(rect.position.x + 20, rect.position.y + 14), Vector2(rect.position.x + 55, rect.position.y + 14), Color(1.0, 1.0, 1.0, 0.38), 1.5)
+	draw_line(Vector2(rect.position.x + 80, rect.position.y + 24), Vector2(rect.position.x + 130, rect.position.y + 24), Color(1.0, 1.0, 1.0, 0.35), 1.5)
+	draw_line(Vector2(rect.position.x + 40, rect.position.y + 45), Vector2(rect.position.x + 90, rect.position.y + 45), Color(1.0, 1.0, 1.0, 0.28), 1.5)
+	draw_line(Vector2(rect.position.x + 110, rect.position.y + 60), Vector2(rect.position.x + 155, rect.position.y + 60), Color(1.0, 1.0, 1.0, 0.32), 1.5)
+
+	# 7. Tangga Stainless Kolam Renang (Pool Ladder di pojok kanan atas)
+	var lad_x := rect.end.x - 22.0
+	var lad_y := rect.position.y - 4.0
+	draw_line(Vector2(lad_x, lad_y), Vector2(lad_x, lad_y + 14), Color(0.92, 0.94, 0.98), 2.0)
+	draw_line(Vector2(lad_x + 8, lad_y), Vector2(lad_x + 8, lad_y + 14), Color(0.92, 0.94, 0.98), 2.0)
+	draw_line(Vector2(lad_x, lad_y + 6), Vector2(lad_x + 8, lad_y + 6), Color(0.80, 0.85, 0.90), 1.5)
+	draw_line(Vector2(lad_x, lad_y + 11), Vector2(lad_x + 8, lad_y + 11), Color(0.80, 0.85, 0.90), 1.5)
+
+	# 8. Kursi Santai Kolam (Sun Loungers di sisi kanan dek)
+	var chair_x := deck_rect.end.x - 14.0
+	for ci_idx in range(2):
+		var chair_y := deck_rect.position.y + 14.0 + float(ci_idx) * 30.0
+		draw_rect(Rect2(chair_x - 8, chair_y, 10, 22), Color(0.55, 0.38, 0.22), true)
+		draw_rect(Rect2(chair_x - 7, chair_y + 1, 8, 20), Color(0.96, 0.96, 0.96), true)
+		draw_line(Vector2(chair_x - 7, chair_y + 6), Vector2(chair_x + 1, chair_y + 6), Color(0.2, 0.55, 0.8), 2.0)
+		draw_line(Vector2(chair_x - 7, chair_y + 14), Vector2(chair_x + 1, chair_y + 14), Color(0.2, 0.55, 0.8), 2.0)
+		draw_rect(Rect2(chair_x - 6, chair_y + 2, 6, 5), Color(0.2, 0.55, 0.8), true)
+
+	# 9. Payung Pantai / Peneduh (Beach Umbrella di pojok bawah kanan dek)
+	var umb_center := Vector2(deck_rect.end.x - 8.0, deck_rect.end.y - 12.0)
+	draw_circle(umb_center + Vector2(2, 3), 10.0, Color(0, 0, 0, 0.22))
+	draw_circle(umb_center, 10.0, Color(0.96, 0.82, 0.20))
+	for w_angle in range(0, 360, 90):
+		var rad := deg_to_rad(float(w_angle))
+		draw_line(umb_center, umb_center + Vector2(cos(rad), sin(rad)) * 10.0, Color(0.96, 0.96, 0.96), 2.5)
+	draw_circle(umb_center, 2.5, Color(0.85, 0.45, 0.15))
+
+func _draw_rooftop_props_to(ci: CanvasItem, b_rect: Rect2, seed_idx: int) -> void:
+	if not is_instance_valid(ci):
+		return
+	var roof_top: float = b_rect.position.y
+	var roof_w: float = b_rect.size.x
+	
+	# 1. AC Outdoor Unit (di sisi kiri atap)
+	var ac_x: float = b_rect.position.x + 12.0
+	var ac_y: float = roof_top + 12.0
+	var ac_w: float = 20.0
+	var ac_h: float = 14.0
+	ci.draw_rect(Rect2(ac_x, ac_y, ac_w, ac_h), Color(0.76, 0.78, 0.80), true)
+	ci.draw_rect(Rect2(ac_x, ac_y, ac_w, ac_h), Color(0.35, 0.38, 0.42), false, 1.0)
+	ci.draw_line(Vector2(ac_x + 3, ac_y + 4), Vector2(ac_x + 12, ac_y + 4), Color(0.40, 0.42, 0.45), 1.0)
+	ci.draw_line(Vector2(ac_x + 3, ac_y + 7), Vector2(ac_x + 12, ac_y + 7), Color(0.40, 0.42, 0.45), 1.0)
+	ci.draw_line(Vector2(ac_x + 3, ac_y + 10), Vector2(ac_x + 12, ac_y + 10), Color(0.40, 0.42, 0.45), 1.0)
+	ci.draw_circle(Vector2(ac_x + 15, ac_y + 7), 3.0, Color(0.45, 0.48, 0.50))
+
+	# 2. Water Tank / Toren Air (pada gedung indeks ganjil)
+	if seed_idx % 2 == 1:
+		var tank_x: float = b_rect.position.x + roof_w - 30.0
+		var tank_y: float = roof_top + 8.0
+		var tank_w: float = 18.0
+		var tank_h: float = 22.0
+		ci.draw_line(Vector2(tank_x + 3, tank_y + tank_h), Vector2(tank_x + 3, tank_y + tank_h + 4), Color(0.3, 0.3, 0.35), 1.5)
+		ci.draw_line(Vector2(tank_x + tank_w - 3, tank_y + tank_h), Vector2(tank_x + tank_w - 3, tank_y + tank_h + 4), Color(0.3, 0.3, 0.35), 1.5)
+		ci.draw_rect(Rect2(tank_x, tank_y, tank_w, tank_h), Color(0.38, 0.58, 0.76), true)
+		ci.draw_rect(Rect2(tank_x, tank_y, tank_w, tank_h), Color(0.20, 0.35, 0.50), false, 1.0)
+		ci.draw_line(Vector2(tank_x, tank_y + 7), Vector2(tank_x + tank_w, tank_y + 7), Color(0.25, 0.45, 0.60), 1.0)
+		ci.draw_line(Vector2(tank_x, tank_y + 14), Vector2(tank_x + tank_w, tank_y + 14), Color(0.25, 0.45, 0.60), 1.0)
+
+	# 3. Tiang Antena Komunikasi + Lampu Merah (pada gedung indeks kelipatan 3)
+	if seed_idx % 3 == 0:
+		var ant_x: float = b_rect.position.x + roof_w * 0.5
+		var ant_y: float = roof_top + 10.0
+		ci.draw_line(Vector2(ant_x, ant_y), Vector2(ant_x, ant_y - 14), Color(0.25, 0.28, 0.30), 1.5)
+		ci.draw_line(Vector2(ant_x - 4, ant_y - 8), Vector2(ant_x + 4, ant_y - 8), Color(0.25, 0.28, 0.30), 1.0)
+		ci.draw_circle(Vector2(ant_x, ant_y - 14), 2.0, Color(1.0, 0.22, 0.22))
 
 @export_group("20. Gedung Samping Rumah Sakit")
 @export var gedung_rs_tampilkan: bool = true:
@@ -615,6 +809,7 @@ func _ready() -> void:
 		_build_all_colliders()
 		_setup_navigation_region()
 		_spawn_interactive_cars()
+		_setup_roof_overlay()
 	queue_redraw()
 
 func _setup_gate_audio() -> void:
@@ -779,13 +974,33 @@ class RoofOverlayNode extends Node2D:
 		var c2_y := 690.0 + 25.0
 		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
 
-		# ── 5. Atap Gedung-Gedung Blok NW & Samping RS ─────────────────────────
+		# ── 5. Atap Gedung-Gedung Blok NW, Benjolan, & Samping RS ──────────────────
 		if map.gedung_nw_tampilkan and is_instance_valid(map.tex_gedung):
-			for b_rect in map.get_nw_gedung_rects():
+			var nw_rects: Array[Rect2] = map.get_nw_gedung_rects()
+			for idx in range(nw_rects.size()):
+				var b_rect: Rect2 = nw_rects[idx]
+				var r: int = int(floor(float(idx) / float(max(1, map.gedung_nw_kolom))))
+				var tint: Color = Color.WHITE
+				if map.gedung_nw_depth_tint:
+					if r == 0:
+						tint = Color(0.82, 0.85, 0.92, 1.0)
+					elif r == 1:
+						tint = Color(0.92, 0.94, 0.97, 1.0)
 				var roof_h: float = b_rect.size.y * 0.35
 				var src_h: float = 2031.0 * 0.35
 				var src := Rect2(1620.0, 822.0, 951.0, src_h)
-				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src)
+				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src, tint)
+				if map.gedung_nw_rooftop_props:
+					map._draw_rooftop_props_to(self, b_rect, idx)
+
+		if map.gedung_benjolan_tampilkan and is_instance_valid(map.tex_gedung):
+			var bg_rect: Rect2 = map.get_benjolan_gedung_rect()
+			var roof_h: float = bg_rect.size.y * 0.35
+			var src_h: float = 2031.0 * 0.35
+			var src := Rect2(1620.0, 822.0, 951.0, src_h)
+			draw_texture_rect_region(map.tex_gedung, Rect2(bg_rect.position, Vector2(bg_rect.size.x, roof_h)), src, Color.WHITE)
+			if map.gedung_nw_rooftop_props:
+				map._draw_rooftop_props_to(self, bg_rect, 99)
 
 		if map.gedung_rs_tampilkan:
 			var grs_sk = 1.0 if (map.gedung_rs_skala == null or map.gedung_rs_skala <= 0.0) else float(map.gedung_rs_skala)
@@ -975,6 +1190,14 @@ func _build_all_colliders() -> void:
 	if gedung_nw_tampilkan:
 		for col_rect in get_nw_gedung_columns():
 			_add_box_collider(sb, col_rect)
+
+	# 7b. Gedung Benjolan Persegi NW
+	if gedung_benjolan_tampilkan:
+		_add_box_collider(sb, get_benjolan_gedung_rect())
+
+	# 7c. Kolam Renang NW (Hanya air kolam yang memiliki kolisi solid agar pemain bisa jalan di dek)
+	if gedung_nw_kolam_tampilkan:
+		_add_box_collider(sb, get_nw_kolam_water_rect())
 
 	# 8. Gedung di Samping Rumah Sakit (Otomatis Pixel-Perfect dari PNG)
 	if gedung_rs_tampilkan:
@@ -1173,6 +1396,26 @@ func _setup_navigation_region() -> void:
 				col_rect.end,
 				Vector2(col_rect.position.x, col_rect.end.y)
 			]))
+
+	# Gedung Benjolan Persegi NW
+	if gedung_benjolan_tampilkan:
+		var bg_rect := get_benjolan_gedung_rect()
+		nav_poly.add_outline(PackedVector2Array([
+			bg_rect.position,
+			Vector2(bg_rect.end.x, bg_rect.position.y),
+			bg_rect.end,
+			Vector2(bg_rect.position.x, bg_rect.end.y)
+		]))
+
+	# Kolam Renang NW (Lubang Navmesh di Air agar karakter jalan di dek)
+	if gedung_nw_kolam_tampilkan:
+		var kw_rect := get_nw_kolam_water_rect()
+		nav_poly.add_outline(PackedVector2Array([
+			kw_rect.position,
+			Vector2(kw_rect.end.x, kw_rect.position.y),
+			kw_rect.end,
+			Vector2(kw_rect.position.x, kw_rect.end.y)
+		]))
 	
 	nav_poly.add_outline(PackedVector2Array([
 		Vector2(10, 961), Vector2(347, 961), Vector2(347, 1301), Vector2(10, 1301)
@@ -1248,9 +1491,35 @@ func _draw() -> void:
 		Vector2(0, 324), Vector2(516, 324), Vector2(516, 786),
 		Vector2(192, 786), Vector2(192, 933), Vector2(0, 933)
 	])
-	draw_colored_polygon(l_pts, COLOR_ROOM_STONE_A)
-	_draw_tile_pattern(Rect2(0, 324, 516, 462), COLOR_PLAZA_TILE_LINE)
-	_draw_tile_pattern(Rect2(0, 786, 192, 147), COLOR_PLAZA_TILE_LINE)
+	if gedung_nw_rumput_tampilkan:
+		# Lapisan Rumput Hijau Segar
+		draw_colored_polygon(l_pts, Color(0.33, 0.52, 0.22))
+		# Tekstur Rumput (Bercak rumput halus)
+		for gx in range(30, 500, 52):
+			for gy in range(340, 770, 52):
+				var offset_hash: float = float((gx * 73 + gy * 37) % 17) - 8.0
+				draw_line(Vector2(gx + offset_hash, gy), Vector2(gx + offset_hash + 4, gy - 6), Color(0.27, 0.44, 0.18, 0.6), 1.5)
+				draw_line(Vector2(gx + offset_hash + 4, gy - 6), Vector2(gx + offset_hash + 8, gy), Color(0.27, 0.44, 0.18, 0.6), 1.5)
+		for gx in range(20, 180, 40):
+			for gy in range(790, 920, 40):
+				draw_line(Vector2(gx, gy), Vector2(gx + 4, gy - 5), Color(0.27, 0.44, 0.18, 0.6), 1.5)
+
+		# Jalur Setapak Batu (Stone Walkway) menghubungkan pintu timur, selatan, dan kolam
+		var kw_rect := get_nw_kolam_water_rect()
+		var deck_right: float = kw_rect.end.x + 18.0
+		var deck_bot: float = kw_rect.end.y + 14.0
+		# Path dari pintu timur (516, 540) ke dek kolam
+		if deck_right < 516.0:
+			draw_rect(Rect2(deck_right, 532, 516.0 - deck_right, 18), Color(0.82, 0.80, 0.74), true)
+			draw_rect(Rect2(deck_right, 532, 516.0 - deck_right, 18), Color(0.68, 0.66, 0.60), false, 1.0)
+		# Path dari pintu selatan (350, 786) ke dek kolam
+		if deck_bot < 786.0:
+			draw_rect(Rect2(342, deck_bot, 20, 786.0 - deck_bot), Color(0.82, 0.80, 0.74), true)
+			draw_rect(Rect2(342, deck_bot, 20, 786.0 - deck_bot), Color(0.68, 0.66, 0.60), false, 1.0)
+	else:
+		draw_colored_polygon(l_pts, COLOR_ROOM_STONE_A)
+		_draw_tile_pattern(Rect2(0, 324, 516, 462), COLOR_PLAZA_TILE_LINE)
+		_draw_tile_pattern(Rect2(0, 786, 192, 147), COLOR_PLAZA_TILE_LINE)
 
 
 	# Kompleks Rumah Sakit Atas (Kamar Jenazah & Plaza)
@@ -1311,8 +1580,37 @@ func _draw() -> void:
 
 	# 🏢 1. Gedung-Gedung Blok NW (North-West Complex) — proporsi asli, skala seragam
 	if gedung_nw_tampilkan and is_instance_valid(tex_gedung):
-		for b_rect in get_nw_gedung_rects():
-			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT)
+		var nw_rects := get_nw_gedung_rects()
+		for idx in range(nw_rects.size()):
+			var b_rect: Rect2 = nw_rects[idx]
+			var r: int = int(floor(float(idx) / float(max(1, gedung_nw_kolom))))
+			# Bayangan jatuh (Drop Shadow) di bawah tumpukan gedung
+			if gedung_nw_depth_shadow:
+				draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 8, b_rect.size.x + 6, 12), Color(0, 0, 0, 0.22), true)
+				draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.22), true)
+			# Atmospheric Depth Tinting
+			var tint := Color.WHITE
+			if gedung_nw_depth_tint:
+				if r == 0:
+					tint = Color(0.82, 0.85, 0.92, 1.0)
+				elif r == 1:
+					tint = Color(0.92, 0.94, 0.97, 1.0)
+			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, tint)
+			if gedung_nw_rooftop_props:
+				_draw_rooftop_props_to(self, b_rect, idx)
+
+	# 🏢 1b. Gedung Benjolan Persegi NW (Menempati area benjolan x=0..192, y=786..933)
+	if gedung_benjolan_tampilkan and is_instance_valid(tex_gedung):
+		var bg_rect := get_benjolan_gedung_rect()
+		if gedung_nw_depth_shadow:
+			draw_rect(Rect2(bg_rect.position.x - 4, bg_rect.end.y - 4, bg_rect.size.x + 8, 8), Color(0, 0, 0, 0.25), true)
+		draw_texture_rect_region(tex_gedung, bg_rect, GEDUNG_SRC_RECT, Color.WHITE)
+		if gedung_nw_rooftop_props:
+			_draw_rooftop_props_to(self, bg_rect, 99)
+
+	# 🏊 Kolam Renang Mewah NW (Courtyard Pool)
+	if gedung_nw_kolam_tampilkan:
+		_draw_swimming_pool(get_nw_kolam_water_rect())
 
 	# 🏥 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) — isi seluruh blok
 	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
