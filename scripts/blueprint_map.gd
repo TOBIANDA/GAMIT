@@ -460,31 +460,62 @@ func get_ne_house_positions() -> Array[Vector2]:
 		pagar_rs_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
-@export_group("19. Gedung Blok Atas Kantor Polisi")
-@export var gedung_polisi_tampilkan: bool = true:
+const GEDUNG_SRC_RECT := Rect2(1620, 822, 951, 2031)
+const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
+
+@export_group("19. Gedung-Gedung Blok NW (North-West Complex)")
+@export var gedung_nw_tampilkan: bool = true:
 	set(val):
-		gedung_polisi_tampilkan = val
+		gedung_nw_tampilkan = val
 		queue_redraw()
-@export var gedung_polisi_geser_x: float = 0.0:
+@export var gedung_nw_skala: float = 1.0:
 	set(val):
-		gedung_polisi_geser_x = 0.0 if val == null else float(val)
+		gedung_nw_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var gedung_polisi_geser_y: float = 0.0:
+@export var gedung_nw_geser_x: float = 0.0:
 	set(val):
-		gedung_polisi_geser_y = 0.0 if val == null else float(val)
+		gedung_nw_geser_x = 0.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_polisi_lebar: float = 480.0:
+@export var gedung_nw_geser_y: float = 0.0:
 	set(val):
-		gedung_polisi_lebar = 480.0 if (val == null or val <= 0.0) else float(val)
+		gedung_nw_geser_y = 0.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_polisi_tinggi: float = 440.0:
-	set(val):
-		gedung_polisi_tinggi = 440.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
-@export var gedung_polisi_skala: float = 1.0:
-	set(val):
-		gedung_polisi_skala = 1.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
+
+# Backward compatibility alias
+var gedung_polisi_tampilkan: bool:
+	get: return gedung_nw_tampilkan
+	set(val): gedung_nw_tampilkan = val
+var gedung_polisi_skala: float:
+	get: return gedung_nw_skala
+	set(val): gedung_nw_skala = val
+var gedung_polisi_geser_x: float:
+	get: return gedung_nw_geser_x
+	set(val): gedung_nw_geser_x = val
+var gedung_polisi_geser_y: float:
+	get: return gedung_nw_geser_y
+	set(val): gedung_nw_geser_y = val
+
+func get_nw_gedung_rects() -> Array[Rect2]:
+	var sk: float = 1.0 if (gedung_nw_skala == null or gedung_nw_skala <= 0.0) else float(gedung_nw_skala)
+	var gx: float = (gedung_nw_geser_x if gedung_nw_geser_x != null else 0.0)
+	var gy: float = (gedung_nw_geser_y if gedung_nw_geser_y != null else 0.0)
+	
+	var base_w: float = 64.0 * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	
+	var base_positions = [
+		Vector2(55.0, 334.0),  # Slot 1: Top-Left (dulu blok cokelat 1)
+		Vector2(241.0, 334.0), # Slot 2: Top-Middle (dulu blok cokelat 2)
+		Vector2(434.0, 334.0), # Slot 3: Top-Right (dulu blok cokelat 3)
+		Vector2(434.0, 488.0), # Slot 4: Middle-Right (dulu blok cokelat 4)
+		Vector2(434.0, 642.0), # Slot 5: Bottom-Right (dulu blok cokelat 5)
+		Vector2(64.0, 792.0)   # Slot 6: Bottom-Left (dulu blok cokelat 6)
+	]
+	
+	var rects: Array[Rect2] = []
+	for p in base_positions:
+		rects.append(Rect2(p.x + gx, p.y + gy, base_w, base_h))
+	return rects
 
 @export_group("20. Gedung Samping Rumah Sakit")
 @export var gedung_rs_tampilkan: bool = true:
@@ -698,13 +729,13 @@ class RoofOverlayNode extends Node2D:
 		var c2_y := 690.0 + 25.0
 		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
 
-		# ── 5. Atap Gedung Blok Atas Polisi & Samping RS ──────────────────────
-		if map.gedung_polisi_tampilkan:
-			var gp_sk = 1.0 if (map.gedung_polisi_skala == null or map.gedung_polisi_skala <= 0.0) else float(map.gedung_polisi_skala)
-			var gp_w = (map.gedung_polisi_lebar if (map.gedung_polisi_lebar != null and map.gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
-			var gp_h = (map.gedung_polisi_tinggi if (map.gedung_polisi_tinggi != null and map.gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
-			var gp_rect = Rect2(18.0 + (map.gedung_polisi_geser_x if map.gedung_polisi_geser_x != null else 0.0), 335.0 + (map.gedung_polisi_geser_y if map.gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
-			_draw_house_roof(map.tex_gedung, gp_rect)
+		# ── 5. Atap Gedung-Gedung Blok NW & Samping RS ─────────────────────────
+		if map.gedung_nw_tampilkan and is_instance_valid(map.tex_gedung):
+			for b_rect in map.get_nw_gedung_rects():
+				var roof_h: float = b_rect.size.y * 0.35
+				var src_h: float = 2031.0 * 0.35
+				var src := Rect2(1620.0, 822.0, 951.0, src_h)
+				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src)
 
 		if map.gedung_rs_tampilkan:
 			var grs_sk = 1.0 if (map.gedung_rs_skala == null or map.gedung_rs_skala <= 0.0) else float(map.gedung_rs_skala)
@@ -890,13 +921,10 @@ func _build_all_colliders() -> void:
 		var pk_h = (pagar_kereta_tinggi if (pagar_kereta_tinggi != null and pagar_kereta_tinggi > 0.0) else 621.0) * pk_sk
 		_add_box_collider(sb, Rect2(pk_x - 4, pk_y, 8, pk_h))
 
-	# 7. Gedung di Blok Atas Kantor Polisi (Otomatis Pixel-Perfect dari PNG)
-	if gedung_polisi_tampilkan:
-		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
-		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 480.0) * gp_sk
-		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 440.0) * gp_sk
-		var gp_rect = Rect2(18.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 335.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
-		_add_bitmap_collider(sb, tex_gedung, gp_rect)
+	# 7. Gedung-Gedung di Blok NW (Box Colliders Kokoh & Bebas Error Dekomposisi)
+	if gedung_nw_tampilkan:
+		for b_rect in get_nw_gedung_rects():
+			_add_box_collider(sb, b_rect)
 
 	# 8. Gedung di Samping Rumah Sakit (Otomatis Pixel-Perfect dari PNG)
 	if gedung_rs_tampilkan:
@@ -1086,10 +1114,15 @@ func _setup_navigation_region() -> void:
 	])
 	nav_poly.add_outline(outer_boundary)
 
-	nav_poly.add_outline(PackedVector2Array([
-		Vector2(10, 334), Vector2(506, 334), Vector2(506, 776),
-		Vector2(202, 776), Vector2(202, 923), Vector2(10, 923)
-	]))
+	# Gedung-gedung Blok NW
+	if gedung_nw_tampilkan:
+		for b_rect in get_nw_gedung_rects():
+			nav_poly.add_outline(PackedVector2Array([
+				b_rect.position,
+				Vector2(b_rect.end.x, b_rect.position.y),
+				b_rect.end,
+				Vector2(b_rect.position.x, b_rect.end.y)
+			]))
 	
 	nav_poly.add_outline(PackedVector2Array([
 		Vector2(10, 961), Vector2(347, 961), Vector2(347, 1301), Vector2(10, 1301)
@@ -1169,12 +1202,6 @@ func _draw() -> void:
 	_draw_tile_pattern(Rect2(0, 324, 516, 462), COLOR_PLAZA_TILE_LINE)
 	_draw_tile_pattern(Rect2(0, 786, 192, 147), COLOR_PLAZA_TILE_LINE)
 
-	_draw_desk(Rect2(9, 324, 156, 156))
-	_draw_desk(Rect2(195, 324, 156, 156))
-	_draw_desk(Rect2(411, 324, 105, 156))
-	_draw_desk(Rect2(411, 495, 105, 156))
-	_draw_desk(Rect2(411, 666, 105, 120))
-	_draw_desk(Rect2(25, 800, 140, 100))
 
 	# Kompleks Rumah Sakit Atas (Kamar Jenazah & Plaza)
 	var top_complex_pts = PackedVector2Array([
@@ -1232,14 +1259,10 @@ func _draw() -> void:
 	for p_pos in phone_spots:
 		_draw_phone_booth(Rect2(p_pos.x, p_pos.y, tw, th))
 
-	# ── Gedung Utama (Sprites) ────────────────────────────────────────────────
-	# 🏢 1. Gedung NW block (0,324)→(516,786) — isi seluruh blok
-	if gedung_polisi_tampilkan and is_instance_valid(tex_gedung):
-		var gp_sk = 1.0 if (gedung_polisi_skala == null or gedung_polisi_skala <= 0.0) else float(gedung_polisi_skala)
-		var gp_w = (gedung_polisi_lebar if (gedung_polisi_lebar != null and gedung_polisi_lebar > 0.0) else 510.0) * gp_sk
-		var gp_h = (gedung_polisi_tinggi if (gedung_polisi_tinggi != null and gedung_polisi_tinggi > 0.0) else 455.0) * gp_sk
-		var gp_rect = Rect2(0.0 + (gedung_polisi_geser_x if gedung_polisi_geser_x != null else 0.0), 324.0 + (gedung_polisi_geser_y if gedung_polisi_geser_y != null else 0.0), gp_w, gp_h)
-		draw_texture_rect(tex_gedung, gp_rect, false)
+	# 🏢 1. Gedung-Gedung Blok NW (North-West Complex) — proporsi asli, skala seragam
+	if gedung_nw_tampilkan and is_instance_valid(tex_gedung):
+		for b_rect in get_nw_gedung_rects():
+			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT)
 
 	# 🏥 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) — isi seluruh blok
 	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
