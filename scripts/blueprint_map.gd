@@ -468,9 +468,29 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 	set(val):
 		gedung_nw_tampilkan = val
 		queue_redraw()
+@export var gedung_nw_kolom: int = 4:
+	set(val):
+		gedung_nw_kolom = max(1, val)
+		queue_redraw()
+@export var gedung_nw_baris: int = 3:
+	set(val):
+		gedung_nw_baris = max(1, val)
+		queue_redraw()
 @export var gedung_nw_skala: float = 1.0:
 	set(val):
 		gedung_nw_skala = 1.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_nw_lebar_dasar: float = 96.0:
+	set(val):
+		gedung_nw_lebar_dasar = 96.0 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_nw_jarak_x: float = 28.0:
+	set(val):
+		gedung_nw_jarak_x = 28.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_nw_jarak_y: float = 110.0:
+	set(val):
+		gedung_nw_jarak_y = 110.0 if val == null else float(val)
 		queue_redraw()
 @export var gedung_nw_geser_x: float = 0.0:
 	set(val):
@@ -499,23 +519,53 @@ func get_nw_gedung_rects() -> Array[Rect2]:
 	var sk: float = 1.0 if (gedung_nw_skala == null or gedung_nw_skala <= 0.0) else float(gedung_nw_skala)
 	var gx: float = (gedung_nw_geser_x if gedung_nw_geser_x != null else 0.0)
 	var gy: float = (gedung_nw_geser_y if gedung_nw_geser_y != null else 0.0)
+	var cols: int = max(1, gedung_nw_kolom if gedung_nw_kolom != null else 4)
+	var rows: int = max(1, gedung_nw_baris if gedung_nw_baris != null else 3)
 	
-	var base_w: float = 64.0 * sk
+	var base_w: float = (gedung_nw_lebar_dasar if (gedung_nw_lebar_dasar != null and gedung_nw_lebar_dasar > 0.0) else 96.0) * sk
 	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
 	
-	var base_positions = [
-		Vector2(55.0, 334.0),  # Slot 1: Top-Left (dulu blok cokelat 1)
-		Vector2(241.0, 334.0), # Slot 2: Top-Middle (dulu blok cokelat 2)
-		Vector2(434.0, 334.0), # Slot 3: Top-Right (dulu blok cokelat 3)
-		Vector2(434.0, 488.0), # Slot 4: Middle-Right (dulu blok cokelat 4)
-		Vector2(434.0, 642.0), # Slot 5: Bottom-Right (dulu blok cokelat 5)
-		Vector2(64.0, 792.0)   # Slot 6: Bottom-Left (dulu blok cokelat 6)
-	]
+	var total_area_w: float = 516.0
+	var step_x: float = (gedung_nw_jarak_x if gedung_nw_jarak_x != null else 28.0) * sk
+	var step_y: float = (gedung_nw_jarak_y if gedung_nw_jarak_y != null else 110.0) * sk
+	
+	# Pusatkan grid horizontal secara simetris di area lebar 516
+	var total_grid_w: float = float(cols) * base_w + float(cols - 1) * step_x
+	var start_x: float = (total_area_w - total_grid_w) * 0.5
+	var start_y: float = 330.0
 	
 	var rects: Array[Rect2] = []
-	for p in base_positions:
-		rects.append(Rect2(p.x + gx, p.y + gy, base_w, base_h))
+	# Urutan dari baris belakang (row 0) ke baris depan (row rows - 1)
+	# sehingga gedung depan menggambar menutupi sebagian gedung di belakangnya
+	for r in range(rows):
+		var cur_y: float = start_y + float(r) * step_y + gy
+		for c in range(cols):
+			var cur_x: float = start_x + float(c) * (base_w + step_x) + gx
+			rects.append(Rect2(cur_x, cur_y, base_w, base_h))
 	return rects
+
+func get_nw_gedung_columns() -> Array[Rect2]:
+	var sk: float = 1.0 if (gedung_nw_skala == null or gedung_nw_skala <= 0.0) else float(gedung_nw_skala)
+	var gx: float = (gedung_nw_geser_x if gedung_nw_geser_x != null else 0.0)
+	var gy: float = (gedung_nw_geser_y if gedung_nw_geser_y != null else 0.0)
+	var cols: int = max(1, gedung_nw_kolom if gedung_nw_kolom != null else 4)
+	var rows: int = max(1, gedung_nw_baris if gedung_nw_baris != null else 3)
+	
+	var base_w: float = (gedung_nw_lebar_dasar if (gedung_nw_lebar_dasar != null and gedung_nw_lebar_dasar > 0.0) else 96.0) * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	var total_area_w: float = 516.0
+	var step_x: float = (gedung_nw_jarak_x if gedung_nw_jarak_x != null else 28.0) * sk
+	var step_y: float = (gedung_nw_jarak_y if gedung_nw_jarak_y != null else 110.0) * sk
+	var total_grid_w: float = float(cols) * base_w + float(cols - 1) * step_x
+	var start_x: float = (total_area_w - total_grid_w) * 0.5
+	var start_y: float = 330.0
+	var total_col_h: float = float(rows - 1) * step_y + base_h
+	
+	var col_rects: Array[Rect2] = []
+	for c in range(cols):
+		var cur_x: float = start_x + float(c) * (base_w + step_x) + gx
+		col_rects.append(Rect2(cur_x, start_y + gy, base_w, total_col_h))
+	return col_rects
 
 @export_group("20. Gedung Samping Rumah Sakit")
 @export var gedung_rs_tampilkan: bool = true:
@@ -921,10 +971,10 @@ func _build_all_colliders() -> void:
 		var pk_h = (pagar_kereta_tinggi if (pagar_kereta_tinggi != null and pagar_kereta_tinggi > 0.0) else 621.0) * pk_sk
 		_add_box_collider(sb, Rect2(pk_x - 4, pk_y, 8, pk_h))
 
-	# 7. Gedung-Gedung di Blok NW (Box Colliders Kokoh & Bebas Error Dekomposisi)
+	# 7. Gedung-Gedung di Blok NW (Box Colliders Kokoh per Kolom)
 	if gedung_nw_tampilkan:
-		for b_rect in get_nw_gedung_rects():
-			_add_box_collider(sb, b_rect)
+		for col_rect in get_nw_gedung_columns():
+			_add_box_collider(sb, col_rect)
 
 	# 8. Gedung di Samping Rumah Sakit (Otomatis Pixel-Perfect dari PNG)
 	if gedung_rs_tampilkan:
@@ -1114,14 +1164,14 @@ func _setup_navigation_region() -> void:
 	])
 	nav_poly.add_outline(outer_boundary)
 
-	# Gedung-gedung Blok NW
+	# Gedung-gedung Blok NW (outlines per kolom)
 	if gedung_nw_tampilkan:
-		for b_rect in get_nw_gedung_rects():
+		for col_rect in get_nw_gedung_columns():
 			nav_poly.add_outline(PackedVector2Array([
-				b_rect.position,
-				Vector2(b_rect.end.x, b_rect.position.y),
-				b_rect.end,
-				Vector2(b_rect.position.x, b_rect.end.y)
+				col_rect.position,
+				Vector2(col_rect.end.x, col_rect.position.y),
+				col_rect.end,
+				Vector2(col_rect.position.x, col_rect.end.y)
 			]))
 	
 	nav_poly.add_outline(PackedVector2Array([
