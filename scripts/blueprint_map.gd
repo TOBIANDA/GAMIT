@@ -1128,9 +1128,9 @@ func _build_all_colliders() -> void:
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
 		var sq_y = 36.0
-		# Bodi Rumah Utama dari PNG (Rumah Detektif i==6 terbuka interiornya)
-		if i != 6:
-			_add_bitmap_collider(sb, tex_rumah_depan, Rect2(sq_x + 12 + ra_gx, sq_y + 6 + ra_gy, ra_w, ra_h))
+		# Bodi Rumah Utama dari PNG (Rumah MC Detektif Benedict i==6 menggunakan tex_rumah_mc dengan atap merah)
+		var h_tex = tex_rumah_mc if i == 6 else tex_rumah_depan
+		_add_bitmap_collider(sb, h_tex, Rect2(sq_x + 12 + ra_gx, sq_y + 6 + ra_gy, ra_w, ra_h))
 		# Pagar Belakang
 		_add_box_collider(sb, Rect2(sq_x - 4, sq_y - 8, 164, 16))
 		# Pagar Samping Kiri & Kanan - box collider sederhana (lebih stabil)
@@ -1465,6 +1465,9 @@ func _bake_nav_region(nav_region: NavigationRegion2D, nav_poly: NavigationPolygo
 	)
 
 func _draw() -> void:
+	if tex_rumah_mc == null or tex_rumah_depan == null:
+		_load_textures()
+
 	draw_rect(Rect2(-200, -200, 2800, 1800), COLOR_VOID, true)
 
 	draw_rect(Rect2(0, 0, 2160, 1311), COLOR_SIDEWALK, true)
@@ -1476,16 +1479,10 @@ func _draw() -> void:
 
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0
-		var r_rect = Rect2(sq_x, 36, 156, 156)
 		var g_key = "top_%d" % i
-		
-		if i == 6:
-			draw_rect(r_rect, Color(0.35, 0.52, 0.22), true)
-			draw_rect(Rect2(sq_x + 64, 130, 28, 62), Color(0.70, 0.68, 0.62), true)
-			_draw_detective_house(r_rect)
-			_draw_fences_for_house(sq_x, 36, g_key)
-		else:
-			_draw_civilian_fenced_house(Vector2(sq_x, 36), tex_rumah_depan, g_key)
+		# Rumah MC Detektif Benedict berada pada urutan ke-6 (i == 6) dengan atap merah (tex_rumah_mc)
+		var house_tex = tex_rumah_mc if i == 6 else tex_rumah_depan
+		_draw_civilian_fenced_house(Vector2(sq_x, 36), house_tex, g_key)
 
 	# ── Ruang Gedung Barat Laut (North-West Complex) ─────────────────────────
 	var l_pts = PackedVector2Array([
@@ -1733,7 +1730,7 @@ func _draw() -> void:
 
 	draw_line(Vector2(2160, 0), Vector2(2160, 1311), COLOR_WALL_LINE, WT)
 
-	_draw_poi_badge(Vector2(1170, 270), "Rumah Detektif", Color(0.35, 0.65, 0.95))
+	_draw_poi_badge(Vector2(1200, 210), "Rumah Detektif Benedict", Color(0.95, 0.35, 0.30))
 	_draw_poi_badge(Vector2(350, 258),  "Kantor Polisi",  Color(0.25, 0.50, 0.85))
 	_draw_poi_badge(Vector2(2020, 960), "Stasiun Kereta", Color(0.95, 0.70, 0.20))
 	_draw_poi_badge(Vector2(594, 550),  "Kamar Jenazah",  Color(0.85, 0.35, 0.35))

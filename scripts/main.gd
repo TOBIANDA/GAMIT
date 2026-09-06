@@ -27,7 +27,7 @@ var toast_timer: float = 0.0
 var active_poi_id: String = ""
 
 const POI_LOCATIONS = {
-	"desk": {"name": "Meja Kerja & Foto Ibu", "pos": Vector2(1170, 270), "radius": 75.0},
+	"desk": {"name": "Rumah Benedict (Meja Kerja & Foto)", "pos": Vector2(1200, 210), "radius": 115.0},
 	"police": {"name": "Kantor Polisi & Marcus", "pos": Vector2(350, 430), "radius": 90.0},
 	"station": {"name": "Peron Stasiun Kereta", "pos": Vector2(2020, 960), "radius": 110.0},
 	"hospital": {"name": "Rumah Sakit & Kamar Mayat", "pos": Vector2(750, 1095), "radius": 110.0},
