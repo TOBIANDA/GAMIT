@@ -17,21 +17,39 @@ var status_label: Label
 var action_hint: Label
 var soak_container: VBoxContainer
 var baskom_texture_rect: TextureRect
+var photo_preview_rect: TextureRect
 var soak_progress_bar: ProgressBar
 var qte_box: PanelContainer
 var qte_label: Label
 var qte_timer_bar: ProgressBar
 var result_panel: PanelContainer
 var result_label: Label
-var photo_display: ColorRect
+var result_photo_rect: TextureRect
 var close_btn: Button
 var splash_player: AudioStreamPlayer
 
+# Aset Tekstur
+var tex_baskom: Texture2D
+var tex_polaroid_dark: Texture2D
+var tex_pose1: Texture2D
+var tex_pose2: Texture2D
+var tex_pose3: Texture2D
+var tex_pose4: Texture2D
+
 func _ready() -> void:
 	layer = 14
+	_load_assets()
 	_setup_splash_audio()
 	_build_scene_ui()
 	visible = false
+
+func _load_assets() -> void:
+	tex_baskom = load("res://Environment/interactable assets/baskom cetak photo.png")
+	tex_polaroid_dark = load("res://UI/Polaroid/polaroidSebelumDiCuci.png")
+	tex_pose1 = load("res://UI/Polaroid/pose1.png")
+	tex_pose2 = load("res://UI/Polaroid/pose2.png")
+	tex_pose3 = load("res://UI/Polaroid/pose3.png")
+	tex_pose4 = load("res://UI/Polaroid/pose4.png")
 
 func _setup_splash_audio() -> void:
 	splash_player = AudioStreamPlayer.new()
@@ -59,8 +77,13 @@ func _setup_soak_step() -> void:
 	current_step = 0
 	soak_progress = 0.0
 	status_label.text = "🧪 LANGKAH 1: MERENDAM FOTO KE CAIRAN PENGEMBANG"
-	action_hint.text = "👉 TAHAN KLIK KIRI MOUSE untuk merendam foto dalam bak kimia..."
+	action_hint.text = "👉 TAHAN KLIK KIRI MOUSE untuk merendam klise foto dalam bak kimia..."
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	
+	if is_instance_valid(photo_preview_rect) and is_instance_valid(tex_polaroid_dark):
+		photo_preview_rect.texture = tex_polaroid_dark
+		photo_preview_rect.modulate = Color(0.4, 0.4, 0.45, 0.85)
+
 	if is_instance_valid(soak_container):
 		soak_container.visible = true
 	if is_instance_valid(qte_box):
@@ -72,8 +95,13 @@ func _setup_qte_step() -> void:
 	current_step = 1
 	qte_success_count = 0
 	status_label.text = "💧 LANGKAH 2: MEMBILAS FOTO DENGAN CEPAT (QTE)"
-	action_hint.text = "👉 TEKAN TOMBOL KEYBOARD YANG MUNCUL DENGAN TEPAT!"
+	action_hint.text = "👉 TEKAN TOMBOL KEYBOARD YANG MUNCUL DENGAN CEPAT!"
 	action_hint.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	
+	if is_instance_valid(photo_preview_rect) and is_instance_valid(tex_pose1):
+		photo_preview_rect.texture = tex_pose1
+		photo_preview_rect.modulate = Color(0.6, 0.6, 0.7, 0.95)
+
 	if is_instance_valid(soak_container):
 		soak_container.visible = false
 	if is_instance_valid(qte_box):
@@ -97,6 +125,10 @@ func _process(delta: float) -> void:
 		if is_mouse_holding:
 			soak_progress += delta * 35.0
 			soak_progress_bar.value = soak_progress
+			# Animasi kimia: warna foto perlahan mulai bereaksi
+			if is_instance_valid(photo_preview_rect):
+				var r_factor = soak_progress / 100.0
+				photo_preview_rect.modulate = Color(0.4 + r_factor * 0.4, 0.4 + r_factor * 0.4, 0.45 + r_factor * 0.45, 0.85 + r_factor * 0.15)
 			if soak_progress >= 100.0:
 				_setup_qte_step()
 		else:
@@ -118,6 +150,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_active:
 		return
 
+	if event is InputEventKey and event.pressed and not event.is_echo() and event.keycode == KEY_ESCAPE:
+		_finish_and_close(false)
+		get_viewport().set_input_as_handled()
+		return
+
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if current_step == 0:
 			is_mouse_holding = event.pressed
@@ -132,6 +169,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			action_hint.text = "✨ Bilasan sempurna! (%d/%d)" % [qte_success_count, QTE_TARGET_GOAL]
 			action_hint.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 			
+			# Perkembangan foto di setiap bilasan
+			if is_instance_valid(photo_preview_rect):
+				if qte_success_count == 1 and is_instance_valid(tex_pose1):
+					photo_preview_rect.texture = tex_pose1
+				elif qte_success_count == 2 and is_instance_valid(tex_pose2):
+					photo_preview_rect.texture = tex_pose2
+				elif qte_success_count >= 3 and is_instance_valid(tex_pose3):
+					photo_preview_rect.texture = tex_pose3
+				photo_preview_rect.modulate = Color.WHITE
+
 			if qte_success_count >= QTE_TARGET_GOAL:
 				_show_photo_revelation()
 			else:
@@ -149,17 +196,20 @@ func _show_photo_revelation() -> void:
 	action_hint.text = "⚠️ KEJANGGALAN MUTLAK TERUNGKAP!"
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 
-	result_label.text = "Di bawah cahaya lampu merah kamar gelap, detail foto terakhir muncul dengan sangat jelas...\n\nJasad korban yang tergeletak mengenakan setelan kemeja putih detektif... dan wajah korban adalah:\n👉 WAJAH BENEDICT SENDIRI!\n\nBenedict: 'Tidak mungkin... Kenapa wajah korban di foto ini... adalah wajahku sendiri?! Aku harus segera ke Rumah Sakit untuk memeriksa jasad itu!'"
+	if is_instance_valid(result_photo_rect) and is_instance_valid(tex_pose4):
+		result_photo_rect.texture = tex_pose4
+
+	result_label.text = "Di bawah cahaya lampu merah kamar gelap, detail foto terakhir muncul dengan sangat jelas...\n\nJasad korban yang tergeletak mengenakan kemeja putih dan dasi detektif... dan wajah korban di foto adalah:\n👉 WAJAH BENEDICT SENDIRI!\n\nBenedict: 'Tidak mungkin... Kenapa wajah korban di foto ini... adalah wajahku sendiri?! Aku harus segera menyelinap ke Rumah Sakit untuk membuktikannya!'"
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
 	if is_instance_valid(inv_mgr):
 		inv_mgr.unlock_clue("developed_photos")
 		inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_4_HOSPITAL)
 
-func _finish_and_close() -> void:
+func _finish_and_close(success: bool = true) -> void:
 	is_active = false
 	visible = false
-	minigame_completed.emit(true)
+	minigame_completed.emit(success)
 
 func _build_scene_ui() -> void:
 	var bg = ColorRect.new()
@@ -169,14 +219,14 @@ func _build_scene_ui() -> void:
 
 	var margin = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 80)
-	margin.add_theme_constant_override("margin_right", 80)
-	margin.add_theme_constant_override("margin_top", 40)
-	margin.add_theme_constant_override("margin_bottom", 40)
+	margin.add_theme_constant_override("margin_left", 60)
+	margin.add_theme_constant_override("margin_right", 60)
+	margin.add_theme_constant_override("margin_top", 30)
+	margin.add_theme_constant_override("margin_bottom", 30)
 	add_child(margin)
 
 	var main_vbox = VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 14)
+	main_vbox.add_theme_constant_override("separation", 12)
 	margin.add_child(main_vbox)
 
 	var header = HBoxContainer.new()
@@ -192,7 +242,7 @@ func _build_scene_ui() -> void:
 	close_btn = Button.new()
 	close_btn.text = "✖ Tutup [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
-	close_btn.pressed.connect(func(): is_active = false; visible = false)
+	close_btn.pressed.connect(func(): _finish_and_close(false))
 	header.add_child(close_btn)
 
 	status_label = Label.new()
@@ -207,80 +257,111 @@ func _build_scene_ui() -> void:
 	action_hint.add_theme_font_size_override("font_size", 14)
 	main_vbox.add_child(action_hint)
 
-	soak_container = VBoxContainer.new()
-	soak_container.add_theme_constant_override("separation", 10)
-	main_vbox.add_child(soak_container)
+	# Tampilan Baskom & Preview Foto
+	var center_tray = CenterContainer.new()
+	center_tray.custom_minimum_size = Vector2(0, 220)
+	main_vbox.add_child(center_tray)
 
+	var tray_box = HBoxContainer.new()
+	tray_box.add_theme_constant_override("separation", 30)
+	center_tray.add_child(tray_box)
+
+	# Baskom
 	baskom_texture_rect = TextureRect.new()
-	var tex_baskom = load("res://interactable assets/baskom cetak photo.png")
 	if is_instance_valid(tex_baskom):
 		baskom_texture_rect.texture = tex_baskom
 	baskom_texture_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
 	baskom_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	baskom_texture_rect.custom_minimum_size = Vector2(280, 160)
-	baskom_texture_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	soak_container.add_child(baskom_texture_rect)
+	baskom_texture_rect.custom_minimum_size = Vector2(240, 180)
+	tray_box.add_child(baskom_texture_rect)
+
+	# Klise Polaroid yang sedang dicuci
+	photo_preview_rect = TextureRect.new()
+	if is_instance_valid(tex_polaroid_dark):
+		photo_preview_rect.texture = tex_polaroid_dark
+	photo_preview_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	photo_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	photo_preview_rect.custom_minimum_size = Vector2(170, 200)
+	tray_box.add_child(photo_preview_rect)
+
+	# Progress perendaman
+	soak_container = VBoxContainer.new()
+	soak_container.add_theme_constant_override("separation", 8)
+	main_vbox.add_child(soak_container)
 
 	soak_progress_bar = ProgressBar.new()
-	soak_progress_bar.custom_minimum_size = Vector2(400, 24)
+	soak_progress_bar.custom_minimum_size = Vector2(440, 22)
 	soak_progress_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	soak_progress_bar.max_value = 100
 	soak_container.add_child(soak_progress_bar)
 
+	# Box QTE Pembilasan
 	qte_box = PanelContainer.new()
 	var qte_style = StyleBoxFlat.new()
 	qte_style.bg_color = Color(0.18, 0.05, 0.08, 0.95)
 	qte_style.border_color = Color(1.0, 0.5, 0.5, 1.0)
 	qte_style.set_border_width_all(2)
 	qte_style.set_corner_radius_all(10)
-	qte_style.content_margin_top = 20
-	qte_style.content_margin_bottom = 20
+	qte_style.content_margin_top = 16
+	qte_style.content_margin_bottom = 16
 	qte_box.add_theme_stylebox_override("panel", qte_style)
 	main_vbox.add_child(qte_box)
 
 	var qte_vb = VBoxContainer.new()
-	qte_vb.add_theme_constant_override("separation", 10)
+	qte_vb.add_theme_constant_override("separation", 8)
 	qte_box.add_child(qte_vb)
 
 	qte_label = Label.new()
 	qte_label.text = "[ SPACE ]"
 	qte_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qte_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
-	qte_label.add_theme_font_size_override("font_size", 36)
+	qte_label.add_theme_font_size_override("font_size", 34)
 	qte_vb.add_child(qte_label)
 
 	qte_timer_bar = ProgressBar.new()
-	qte_timer_bar.custom_minimum_size = Vector2(240, 16)
+	qte_timer_bar.custom_minimum_size = Vector2(260, 14)
 	qte_timer_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	qte_timer_bar.max_value = 100
 	qte_vb.add_child(qte_timer_bar)
 
+	# Panel Hasil (Pose 4 Wajah Benedict)
 	result_panel = PanelContainer.new()
 	var res_style = StyleBoxFlat.new()
-	res_style.bg_color = Color(0.12, 0.03, 0.05, 0.95)
+	res_style.bg_color = Color(0.12, 0.03, 0.05, 0.96)
 	res_style.border_color = Color(1.0, 0.2, 0.2, 1.0)
 	res_style.set_border_width_all(2)
 	res_style.set_corner_radius_all(10)
 	res_style.content_margin_left = 20
 	res_style.content_margin_right = 20
-	res_style.content_margin_top = 16
-	res_style.content_margin_bottom = 16
+	res_style.content_margin_top = 14
+	res_style.content_margin_bottom = 14
 	result_panel.add_theme_stylebox_override("panel", res_style)
 	main_vbox.add_child(result_panel)
 
+	var res_hb = HBoxContainer.new()
+	res_hb.add_theme_constant_override("separation", 24)
+	result_panel.add_child(res_hb)
+
+	result_photo_rect = TextureRect.new()
+	result_photo_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	result_photo_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	result_photo_rect.custom_minimum_size = Vector2(170, 200)
+	res_hb.add_child(result_photo_rect)
+
 	var res_vb = VBoxContainer.new()
+	res_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	res_vb.add_theme_constant_override("separation", 12)
-	result_panel.add_child(res_vb)
+	res_hb.add_child(res_vb)
 
 	result_label = Label.new()
 	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	result_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.9))
-	result_label.add_theme_font_size_override("font_size", 15)
+	result_label.add_theme_font_size_override("font_size", 14)
 	res_vb.add_child(result_label)
 
 	var continue_btn = Button.new()
-	continue_btn.text = "🚨 Lanjutkan ke Rumah Sakit (Kamar Mayat)"
-	continue_btn.custom_minimum_size = Vector2(0, 40)
+	continue_btn.text = "🚨 Lanjutkan Menyelidiki ke Rumah Sakit (Kamar Mayat)"
+	continue_btn.custom_minimum_size = Vector2(0, 42)
 	continue_btn.focus_mode = Control.FOCUS_NONE
-	continue_btn.pressed.connect(_finish_and_close)
+	continue_btn.pressed.connect(func(): _finish_and_close(true))
 	res_vb.add_child(continue_btn)

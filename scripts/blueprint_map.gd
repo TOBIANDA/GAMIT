@@ -1314,25 +1314,25 @@ func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
 	body.add_child(shape)
 
 func _load_textures() -> void:
-	tex_hospital = load("res://Bangunan/Hospital.png")
-	tex_police = load("res://Bangunan/police.png")
-	tex_gedung = load("res://Bangunan/gedung.png")
-	tex_rumah_mc = load("res://Bangunan/rumahMC.png")
-	tex_rumah_depan = load("res://Bangunan/rumahTampakDepan.png")
-	tex_rumah_belakang = load("res://Bangunan/rumahTampakBelakang.png")
-	tex_rumah_samping = load("res://Bangunan/rumahTampakSamping.png")
-	tex_pagar = load("res://Bangunan/pagar.png")
-	tex_pagar_samping = load("res://Bangunan/pagar samping.png")
-	tex_pintu_pagar = load("res://Bangunan/pintuPagar.png")
-	tex_telepon = load("res://Bangunan/stasiun telepon.png")
+	tex_hospital = load("res://Environment/Bangunan/Hospital.png")
+	tex_police = load("res://Environment/Bangunan/police.png")
+	tex_gedung = load("res://Environment/Bangunan/gedung.png")
+	tex_rumah_mc = load("res://Environment/Bangunan/rumahMC.png")
+	tex_rumah_depan = load("res://Environment/Bangunan/rumahTampakDepan.png")
+	tex_rumah_belakang = load("res://Environment/Bangunan/rumahTampakBelakang.png")
+	tex_rumah_samping = load("res://Environment/Bangunan/rumahTampakSamping.png")
+	tex_pagar = load("res://Environment/Bangunan/pagar.png")
+	tex_pagar_samping = load("res://Environment/Bangunan/pagar samping.png")
+	tex_pintu_pagar = load("res://Environment/Bangunan/pintuPagar.png")
+	tex_telepon = load("res://Environment/Bangunan/stasiun telepon.png")
 
-	tex_bed = load("res://kamar/bed.png")
-	tex_karpet = load("res://kamar/karpet.png")
-	tex_laci = load("res://kamar/laci.png")
-	tex_lemari = load("res://kamar/lemari.png")
+	tex_bed = load("res://Environment/kamar/bed.png")
+	tex_karpet = load("res://Environment/kamar/karpet.png")
+	tex_laci = load("res://Environment/kamar/laci.png")
+	tex_lemari = load("res://Environment/kamar/lemari.png")
 
-	tex_baskom = load("res://interactable assets/baskom cetak photo.png")
-	tex_surat = load("res://interactable assets/surat.png")
+	tex_baskom = load("res://Environment/interactable assets/baskom cetak photo.png")
+	tex_surat = load("res://Environment/interactable assets/surat.png")
 
 func _draw_texture_fit(tex: Texture2D, target_rect: Rect2) -> void:
 	if not is_instance_valid(tex):

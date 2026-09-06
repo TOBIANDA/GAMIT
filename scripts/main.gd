@@ -17,6 +17,7 @@ var minigame_tailgate: CanvasLayer
 var minigame_hidden_objects: CanvasLayer
 var minigame_photo_wash: CanvasLayer
 var minigame_safe: CanvasLayer
+var death_god_layer: CanvasLayer
 
 var interact_prompt: Label
 var toast_banner: PanelContainer
@@ -149,6 +150,14 @@ func _setup_minigames() -> void:
 		add_child(minigame_safe)
 		minigame_safe.safe_opened.connect(func(_ok): _on_minigame_ended())
 
+	var dg_script = load("res://scripts/death_god.gd")
+	if dg_script:
+		death_god_layer = CanvasLayer.new()
+		death_god_layer.name = "DeathGodLayer"
+		death_god_layer.set_script(dg_script)
+		add_child(death_god_layer)
+		death_god_layer.death_god_closed.connect(func(): _on_minigame_ended())
+
 func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
@@ -183,7 +192,7 @@ func _setup_letter_viewer() -> void:
 	center.add_child(vb)
 
 	letter_rect = TextureRect.new()
-	var tex_close = load("res://interactable assets/surat close up.png")
+	var tex_close = load("res://Environment/interactable assets/surat close up.png")
 	if is_instance_valid(tex_close):
 		letter_rect.texture = tex_close
 	letter_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
@@ -311,7 +320,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 
 		if event.keycode == KEY_X:
-			_summon_death_god()
+			_trigger_death_god()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -351,10 +360,9 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				_show_toast("Kantor Polisi: 'Detektif, kami sedang menangani penyelidikan kasus 404.'")
 
 		"station":
-			if inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_2_STATION:
-				if is_instance_valid(minigame_hidden_objects):
-					player.can_move = false
-					minigame_hidden_objects.start_minigame()
+			if is_instance_valid(minigame_hidden_objects):
+				player.can_move = false
+				minigame_hidden_objects.start_minigame()
 			else:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
@@ -375,6 +383,14 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 
 		"phone":
 			_show_toast("📞 Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
+
+func _trigger_death_god() -> void:
+	if is_instance_valid(player):
+		player.can_move = false
+	if is_instance_valid(death_god_layer) and death_god_layer.has_method("open_interface"):
+		death_god_layer.open_interface()
+	else:
+		_summon_death_god()
 
 func _summon_death_god() -> void:
 	if is_instance_valid(dialog_box):
