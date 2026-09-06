@@ -472,7 +472,7 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 	set(val):
 		gedung_nw_kolom = max(1, val)
 		queue_redraw()
-@export var gedung_nw_baris: int = 3:
+@export var gedung_nw_baris: int = 2:
 	set(val):
 		gedung_nw_baris = max(1, val)
 		queue_redraw()
@@ -488,9 +488,9 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 	set(val):
 		gedung_nw_jarak_x = 24.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_nw_jarak_y: float = 80.0:
+@export var gedung_nw_jarak_y: float = 160.0:
 	set(val):
-		gedung_nw_jarak_y = 80.0 if val == null else float(val)
+		gedung_nw_jarak_y = 160.0 if val == null else float(val)
 		queue_redraw()
 @export var gedung_nw_zigzag: bool = true:
 	set(val):
@@ -980,11 +980,12 @@ class RoofOverlayNode extends Node2D:
 			for idx in range(nw_rects.size()):
 				var b_rect: Rect2 = nw_rects[idx]
 				var r: int = int(floor(float(idx) / float(max(1, map.gedung_nw_kolom))))
+				var total_rows: int = max(1, map.gedung_nw_baris)
 				var tint: Color = Color.WHITE
 				if map.gedung_nw_depth_tint:
-					if r == 0:
+					if r == 0 and total_rows > 1:
 						tint = Color(0.82, 0.85, 0.92, 1.0)
-					elif r == 1:
+					elif r < total_rows - 1:
 						tint = Color(0.92, 0.94, 0.97, 1.0)
 				var roof_h: float = b_rect.size.y * 0.35
 				var src_h: float = 2031.0 * 0.35
@@ -1599,11 +1600,12 @@ func _draw() -> void:
 				draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 8, b_rect.size.x + 6, 12), Color(0, 0, 0, 0.22), true)
 				draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.22), true)
 			# Atmospheric Depth Tinting
+			var total_rows: int = max(1, gedung_nw_baris)
 			var tint := Color.WHITE
 			if gedung_nw_depth_tint:
-				if r == 0:
+				if r == 0 and total_rows > 1:
 					tint = Color(0.82, 0.85, 0.92, 1.0)
-				elif r == 1:
+				elif r < total_rows - 1:
 					tint = Color(0.92, 0.94, 0.97, 1.0)
 			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, tint)
 			if gedung_nw_rooftop_props:
