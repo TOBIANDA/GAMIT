@@ -480,25 +480,25 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 	set(val):
 		gedung_nw_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var gedung_nw_lebar_dasar: float = 96.0:
+@export var gedung_nw_lebar_dasar: float = 84.0:
 	set(val):
-		gedung_nw_lebar_dasar = 96.0 if (val == null or val <= 0.0) else float(val)
+		gedung_nw_lebar_dasar = 84.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var gedung_nw_jarak_x: float = 28.0:
+@export var gedung_nw_jarak_x: float = 24.0:
 	set(val):
-		gedung_nw_jarak_x = 28.0 if val == null else float(val)
+		gedung_nw_jarak_x = 24.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_nw_jarak_y: float = 62.0:
+@export var gedung_nw_jarak_y: float = 80.0:
 	set(val):
-		gedung_nw_jarak_y = 62.0 if val == null else float(val)
+		gedung_nw_jarak_y = 80.0 if val == null else float(val)
 		queue_redraw()
 @export var gedung_nw_zigzag: bool = true:
 	set(val):
 		gedung_nw_zigzag = val
 		queue_redraw()
-@export var gedung_nw_zigzag_offset: float = 16.0:
+@export var gedung_nw_zigzag_offset: float = 14.0:
 	set(val):
-		gedung_nw_zigzag_offset = 16.0 if val == null else float(val)
+		gedung_nw_zigzag_offset = 14.0 if val == null else float(val)
 		queue_redraw()
 @export var gedung_nw_depth_tint: bool = true:
 	set(val):
@@ -530,21 +530,21 @@ const GEDUNG_ASPECT_RATIO := 2031.0 / 951.0 # ~2.13565
 	set(val):
 		gedung_nw_kolam_tampilkan = val
 		queue_redraw()
-@export var gedung_nw_kolam_x: float = 168.0:
+@export var gedung_nw_kolam_x: float = 175.0:
 	set(val):
-		gedung_nw_kolam_x = 168.0 if val == null else float(val)
+		gedung_nw_kolam_x = 175.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_nw_kolam_y: float = 665.0:
+@export var gedung_nw_kolam_y: float = 692.0:
 	set(val):
-		gedung_nw_kolam_y = 665.0 if val == null else float(val)
+		gedung_nw_kolam_y = 692.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_nw_kolam_lebar: float = 180.0:
+@export var gedung_nw_kolam_lebar: float = 166.0:
 	set(val):
-		gedung_nw_kolam_lebar = 180.0 if (val == null or val <= 0.0) else float(val)
+		gedung_nw_kolam_lebar = 166.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var gedung_nw_kolam_tinggi: float = 90.0:
+@export var gedung_nw_kolam_tinggi: float = 68.0:
 	set(val):
-		gedung_nw_kolam_tinggi = 90.0 if (val == null or val <= 0.0) else float(val)
+		gedung_nw_kolam_tinggi = 68.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
 @export_group("19c. Gedung Benjolan Persegi NW")
@@ -638,23 +638,23 @@ func get_benjolan_gedung_rect() -> Rect2:
 	var sk: float = 1.0 if (gedung_benjolan_skala == null or gedung_benjolan_skala <= 0.0) else float(gedung_benjolan_skala)
 	var gx: float = (gedung_benjolan_geser_x if gedung_benjolan_geser_x != null else 0.0)
 	var gy: float = (gedung_benjolan_geser_y if gedung_benjolan_geser_y != null else 0.0)
-	var base_w: float = (gedung_nw_lebar_dasar if (gedung_nw_lebar_dasar != null and gedung_nw_lebar_dasar > 0.0) else 96.0) * sk
+	var base_w: float = (gedung_nw_lebar_dasar if (gedung_nw_lebar_dasar != null and gedung_nw_lebar_dasar > 0.0) else 84.0) * sk
 	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
 	var bx: float = (192.0 - base_w) * 0.5 + gx
-	var by: float = 926.0 - base_h + gy
+	var by: float = 922.0 - base_h + gy
 	return Rect2(bx, by, base_w, base_h)
 
 func get_nw_kolam_water_rect() -> Rect2:
-	var kx: float = (gedung_nw_kolam_x if gedung_nw_kolam_x != null else 168.0)
-	var ky: float = (gedung_nw_kolam_y if gedung_nw_kolam_y != null else 665.0)
-	var kw: float = (gedung_nw_kolam_lebar if (gedung_nw_kolam_lebar != null and gedung_nw_kolam_lebar > 0.0) else 180.0)
-	var kh: float = (gedung_nw_kolam_tinggi if (gedung_nw_kolam_tinggi != null and gedung_nw_kolam_tinggi > 0.0) else 90.0)
+	var kx: float = (gedung_nw_kolam_x if gedung_nw_kolam_x != null else 175.0)
+	var ky: float = (gedung_nw_kolam_y if gedung_nw_kolam_y != null else 692.0)
+	var kw: float = (gedung_nw_kolam_lebar if (gedung_nw_kolam_lebar != null and gedung_nw_kolam_lebar > 0.0) else 166.0)
+	var kh: float = (gedung_nw_kolam_tinggi if (gedung_nw_kolam_tinggi != null and gedung_nw_kolam_tinggi > 0.0) else 68.0)
 	return Rect2(kx, ky, kw, kh)
 
 func _draw_swimming_pool(rect: Rect2) -> void:
 	# 1. Dek / Teras Paving Sekitar Kolam (Pool Deck)
-	var deck_pad_x := 18.0
-	var deck_pad_y := 14.0
+	var deck_pad_x := 16.0
+	var deck_pad_y := 10.0
 	var deck_rect := Rect2(rect.position.x - deck_pad_x, rect.position.y - deck_pad_y, rect.size.x + deck_pad_x * 2.0, rect.size.y + deck_pad_y * 2.0)
 	
 	# Bayangan jatuh dek kolam di atas rumput
@@ -713,8 +713,8 @@ func _draw_swimming_pool(rect: Rect2) -> void:
 		draw_line(Vector2(chair_x - 7, chair_y + 14), Vector2(chair_x + 1, chair_y + 14), Color(0.2, 0.55, 0.8), 2.0)
 		draw_rect(Rect2(chair_x - 6, chair_y + 2, 6, 5), Color(0.2, 0.55, 0.8), true)
 
-	# 9. Payung Pantai / Peneduh (Beach Umbrella di pojok bawah kanan dek)
-	var umb_center := Vector2(deck_rect.end.x - 8.0, deck_rect.end.y - 12.0)
+	# 9. Payung Pantai / Peneduh (Beach Umbrella di pojok atas kanan dek dekat kursi)
+	var umb_center := Vector2(deck_rect.end.x - 8.0, deck_rect.position.y + 12.0)
 	draw_circle(umb_center + Vector2(2, 3), 10.0, Color(0, 0, 0, 0.22))
 	draw_circle(umb_center, 10.0, Color(0.96, 0.82, 0.20))
 	for w_angle in range(0, 360, 90):
@@ -1504,18 +1504,28 @@ func _draw() -> void:
 			for gy in range(790, 920, 40):
 				draw_line(Vector2(gx, gy), Vector2(gx + 4, gy - 5), Color(0.27, 0.44, 0.18, 0.6), 1.5)
 
-		# Jalur Setapak Batu (Stone Walkway) menghubungkan pintu timur, selatan, dan kolam
+		# Jalur Setapak Batu (Stone Walkway Network) terintegrasi
 		var kw_rect := get_nw_kolam_water_rect()
-		var deck_right: float = kw_rect.end.x + 18.0
-		var deck_bot: float = kw_rect.end.y + 14.0
-		# Path dari pintu timur (516, 540) ke dek kolam
-		if deck_right < 516.0:
-			draw_rect(Rect2(deck_right, 532, 516.0 - deck_right, 18), Color(0.82, 0.80, 0.74), true)
-			draw_rect(Rect2(deck_right, 532, 516.0 - deck_right, 18), Color(0.68, 0.66, 0.60), false, 1.0)
-		# Path dari pintu selatan (350, 786) ke dek kolam
-		if deck_bot < 786.0:
-			draw_rect(Rect2(342, deck_bot, 20, 786.0 - deck_bot), Color(0.82, 0.80, 0.74), true)
-			draw_rect(Rect2(342, deck_bot, 20, 786.0 - deck_bot), Color(0.68, 0.66, 0.60), false, 1.0)
+		var p_color := Color(0.82, 0.80, 0.74)
+		var p_border := Color(0.68, 0.66, 0.60)
+		
+		# 1. Promenade / Trotoar Utama di Depan Pintu Gedung Baris Depan
+		draw_rect(Rect2(40, 668, 436, 16), p_color, true)
+		draw_rect(Rect2(40, 668, 436, 16), p_border, false, 1.0)
+		
+		# 2. Akses ke Gerbang Timur (x=516, y=540) lewat lorong timur
+		draw_rect(Rect2(476, 532, 40, 16), p_color, true)
+		draw_rect(Rect2(476, 532, 40, 16), p_border, false, 1.0)
+		draw_rect(Rect2(476, 532, 16, 140), p_color, true)
+		draw_rect(Rect2(476, 532, 16, 140), p_border, false, 1.0)
+		
+		# 3. Akses ke Gerbang Selatan (x=350, y=786) di samping kolam
+		draw_rect(Rect2(344, 768, 16, 18), p_color, true)
+		draw_rect(Rect2(344, 768, 16, 18), p_border, false, 1.0)
+		
+		# 4. Akses ke Gedung Benjolan Persegi (x=54, y=742)
+		draw_rect(Rect2(54, 684, 16, 60), p_color, true)
+		draw_rect(Rect2(54, 684, 16, 60), p_border, false, 1.0)
 	else:
 		draw_colored_polygon(l_pts, COLOR_ROOM_STONE_A)
 		_draw_tile_pattern(Rect2(0, 324, 516, 462), COLOR_PLAZA_TILE_LINE)
