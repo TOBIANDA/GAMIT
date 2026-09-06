@@ -19,7 +19,7 @@ var minigame_photo_wash: CanvasLayer
 var minigame_safe: CanvasLayer
 var death_god_layer: CanvasLayer
 
-var interact_prompt: Label
+var interact_prompt: Button
 var toast_banner: PanelContainer
 var toast_label: Label
 var toast_timer: float = 0.0
@@ -27,12 +27,12 @@ var toast_timer: float = 0.0
 var active_poi_id: String = ""
 
 const POI_LOCATIONS = {
-	"desk": {"name": "Rumah Benedict (Meja Kerja & Foto)", "pos": Vector2(1200, 210), "radius": 115.0},
-	"police": {"name": "Kantor Polisi & Marcus", "pos": Vector2(350, 430), "radius": 90.0},
-	"station": {"name": "Peron Stasiun Kereta", "pos": Vector2(2020, 960), "radius": 110.0},
-	"hospital": {"name": "Rumah Sakit & Kamar Mayat", "pos": Vector2(750, 1095), "radius": 110.0},
-	"safe": {"name": "Brankas Rumah Ibu Medeline", "pos": Vector2(180, 1050), "radius": 80.0},
-	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 65.0}
+	"desk": {"name": "Rumah Benedict (Minigame Cuci Foto Polaroid)", "pos": Vector2(1200, 210), "radius": 160.0},
+	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(350, 350), "radius": 220.0},
+	"station": {"name": "Stasiun Kereta Api (Minigame Cari Bukti)", "pos": Vector2(2020, 930), "radius": 320.0},
+	"hospital": {"name": "Rumah Sakit & Kamar Mayat", "pos": Vector2(750, 1095), "radius": 160.0},
+	"safe": {"name": "Brankas Baja Ibu Medeline (Minigame Kode)", "pos": Vector2(180, 1050), "radius": 140.0},
+	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 85.0}
 }
 
 var bgm_player: AudioStreamPlayer
@@ -207,6 +207,24 @@ func _setup_letter_viewer() -> void:
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
+	var letter_photo_btn = Button.new()
+	letter_photo_btn.text = "🧪 Langsung Buka Minigame Cuci Foto Polaroid"
+	letter_photo_btn.custom_minimum_size = Vector2(320, 38)
+	letter_photo_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var lpb_style = StyleBoxFlat.new()
+	lpb_style.bg_color = Color(0.2, 0.45, 0.3, 0.95)
+	lpb_style.border_color = Color(0.4, 0.9, 0.5, 1.0)
+	lpb_style.set_border_width_all(1)
+	lpb_style.set_corner_radius_all(6)
+	letter_photo_btn.add_theme_stylebox_override("normal", lpb_style)
+	letter_photo_btn.pressed.connect(func():
+		_close_letter_viewer()
+		if is_instance_valid(minigame_photo_wash):
+			player.can_move = false
+			minigame_photo_wash.start_minigame()
+	)
+	vb.add_child(letter_photo_btn)
+
 	letter_root_control.visible = false
 
 func _open_letter_closeup() -> void:
@@ -230,13 +248,38 @@ func _setup_hud_prompts() -> void:
 	if not is_instance_valid(hud_layer):
 		return
 
-	interact_prompt = Label.new()
-	interact_prompt.text = "[ F / E ] Interaksi"
-	interact_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	interact_prompt.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-	interact_prompt.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	interact_prompt.add_theme_constant_override("outline_size", 4)
+	interact_prompt = Button.new()
+	interact_prompt.text = "👉 [ F / E / Spasi ] KLIK UNTUK INTERAKSI"
+	interact_prompt.custom_minimum_size = Vector2(460, 52)
+	interact_prompt.focus_mode = Control.FOCUS_NONE
+	interact_prompt.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	interact_prompt.add_theme_font_size_override("font_size", 15)
+
+	var btn_normal = StyleBoxFlat.new()
+	btn_normal.bg_color = Color(0.06, 0.08, 0.16, 0.92)
+	btn_normal.border_color = Color(1.0, 0.85, 0.3, 1.0)
+	btn_normal.set_border_width_all(2)
+	btn_normal.set_corner_radius_all(10)
+	btn_normal.content_margin_left = 18
+	btn_normal.content_margin_right = 18
+	btn_normal.content_margin_top = 8
+	btn_normal.content_margin_bottom = 8
+	interact_prompt.add_theme_stylebox_override("normal", btn_normal)
+
+	var btn_hover = btn_normal.duplicate()
+	btn_hover.bg_color = Color(0.16, 0.22, 0.36, 0.96)
+	btn_hover.border_color = Color(1.0, 1.0, 0.5, 1.0)
+	interact_prompt.add_theme_stylebox_override("hover", btn_hover)
+	interact_prompt.add_theme_stylebox_override("pressed", btn_hover)
+
+	interact_prompt.add_theme_color_override("font_color", Color(1.0, 0.92, 0.4))
+	interact_prompt.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 0.8))
+
+	interact_prompt.pressed.connect(func():
+		play_click_sfx()
+		if not active_poi_id.is_empty():
+			_trigger_poi_interaction(active_poi_id)
+	)
 	interact_prompt.visible = false
 	hud_layer.add_child(interact_prompt)
 
@@ -291,14 +334,27 @@ func _check_poi_proximity() -> void:
 		return
 
 	var p_pos = player.global_position
-	active_poi_id = ""
+	var closest_dist: float = 999999.0
+	var best_poi: String = ""
 
-	for poi_key in POI_LOCATIONS.keys():
-		var poi = POI_LOCATIONS[poi_key]
-		var dist = p_pos.distance_to(poi["pos"])
-		if dist <= poi["radius"]:
-			active_poi_id = poi_key
-			break
+	# Check bounding boxes for large complex areas first
+	# 1. Stasiun Kereta Api (seluruh gedung, parkiran, peron, dan rel: x 1850..2350, y 670..1310)
+	if p_pos.x >= 1850.0 and p_pos.x <= 2350.0 and p_pos.y >= 670.0 and p_pos.y <= 1310.0:
+		best_poi = "station"
+		closest_dist = 0.0
+	# 2. Rumah Benedict (halaman, gerbang, dan jalan depan rumah: x 1050..1350, y 20..330)
+	elif p_pos.x >= 1050.0 and p_pos.x <= 1350.0 and p_pos.y >= 20.0 and p_pos.y <= 330.0:
+		best_poi = "desk"
+		closest_dist = 0.0
+	else:
+		for poi_key in POI_LOCATIONS.keys():
+			var poi = POI_LOCATIONS[poi_key]
+			var dist = p_pos.distance_to(poi["pos"])
+			if dist <= poi["radius"] and dist < closest_dist:
+				closest_dist = dist
+				best_poi = poi_key
+
+	active_poi_id = best_poi
 
 	if active_poi_id.is_empty():
 		if is_instance_valid(interact_prompt):
@@ -306,12 +362,12 @@ func _check_poi_proximity() -> void:
 	else:
 		if is_instance_valid(interact_prompt):
 			var poi_info = POI_LOCATIONS[active_poi_id]
-			interact_prompt.text = "👉 [ F / E / Spasi ] Interaksi: " + poi_info["name"]
+			interact_prompt.text = "👉 [ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
 			var vp = get_viewport().get_visible_rect().size
-			interact_prompt.position = Vector2(vp.x * 0.5 - 180, vp.y - 75)
+			interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
 			interact_prompt.visible = true
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if is_instance_valid(letter_root_control) and letter_root_control.visible:
 			if event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER, KEY_F, KEY_E]:
@@ -324,14 +380,37 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-		if event.keycode in [KEY_F, KEY_E, KEY_SPACE]:
+		# Pintasan cepat tombol angka untuk langsung uji coba semua minigame kapan saja:
+		if event.keycode == KEY_1:
+			_trigger_poi_interaction("police")
+			get_viewport().set_input_as_handled()
+			return
+		elif event.keycode == KEY_2:
+			_trigger_poi_interaction("station")
+			get_viewport().set_input_as_handled()
+			return
+		elif event.keycode == KEY_3:
+			if is_instance_valid(minigame_photo_wash):
+				player.can_move = false
+				minigame_photo_wash.start_minigame()
+				_show_toast("🧪 Uji Coba: Minigame Cuci Foto Polaroid Dimulai!")
+				get_viewport().set_input_as_handled()
+				return
+		elif event.keycode == KEY_4:
+			_trigger_poi_interaction("safe")
+			get_viewport().set_input_as_handled()
+			return
+
+		if event.keycode in [KEY_F, KEY_E, KEY_SPACE, KEY_ENTER]:
 			if not active_poi_id.is_empty():
 				_trigger_poi_interaction(active_poi_id)
 				get_viewport().set_input_as_handled()
+				return
 		elif event.keycode == KEY_J:
 			if is_instance_valid(clue_journal):
 				clue_journal.toggle_journal()
 				get_viewport().set_input_as_handled()
+				return
 
 func _trigger_poi_interaction(poi_id: String) -> void:
 	if not is_instance_valid(inv_mgr):
@@ -339,23 +418,24 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 
 	match poi_id:
 		"desk":
+			# Jika belum membaca surat penugasan awal, buka surat; jika sudah, langsung buka minigame cuci foto
 			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
 				_open_letter_closeup()
-			elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_3_PHOTO:
-				if is_instance_valid(minigame_photo_wash):
-					player.can_move = false
-					minigame_photo_wash.start_minigame()
+			elif is_instance_valid(minigame_photo_wash):
+				player.can_move = false
+				minigame_photo_wash.start_minigame()
+				_show_toast("🧪 Masuk ke Kamar Gelap: Cuci Foto Polaroid!")
 			else:
 				_show_toast("Meja kerja detektif. Buka Jurnal [J] untuk meninjau petunjuk.")
 
 		"police":
-			if inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
-				var marcus_npc = find_child("NPC4", true, false)
-				if not is_instance_valid(marcus_npc):
-					marcus_npc = find_child("NPC1", true, false)
-				if is_instance_valid(minigame_tailgate) and is_instance_valid(marcus_npc):
-					minigame_tailgate.start_minigame(player, marcus_npc)
-					_show_toast("🕵️ Minigame Menguntit Marcus dimulai! Jaga jarak aman!")
+			var marcus_npc = find_child("NPC4", true, false)
+			if not is_instance_valid(marcus_npc):
+				marcus_npc = find_child("NPC1", true, false)
+			if is_instance_valid(minigame_tailgate) and is_instance_valid(marcus_npc):
+				player.can_move = false
+				minigame_tailgate.start_minigame(player, marcus_npc)
+				_show_toast("🕵️ Minigame Menguntit Marcus dimulai! Jaga jarak aman!")
 			else:
 				_show_toast("Kantor Polisi: 'Detektif, kami sedang menangani penyelidikan kasus 404.'")
 
@@ -363,23 +443,22 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if is_instance_valid(minigame_hidden_objects):
 				player.can_move = false
 				minigame_hidden_objects.start_minigame()
+				_show_toast("🔍 Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!")
 			else:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
 		"hospital":
-			if inv_mgr.current_phase >= inv_mgr.Phase.INVESTIGATION_4_HOSPITAL:
-				inv_mgr.unlock_clue("autopsy_corpse")
-				inv_mgr.set_phase(inv_mgr.Phase.FINAL_DEATH_GOD)
-				_show_toast("🩺 Rumah Sakit: Kamu melihat jasad dirimu sendiri... Tekan [X] untuk memanggil Dewa Kematian!")
-				if is_instance_valid(dialog_box):
-					dialog_box.open_dialog("...Detektif Benedict. Tataplah tubuh yang terbaring kaku itu. Kamu bukan lagi detektif yang bernafas... kamu adalah arwah yang mencari kebenaran tentang kematianmu sendiri. Tekan [X] kapan saja untuk memanggilku...")
-			else:
-				_show_toast("Rumah Sakit: 'Pemeriksaan jasad korban sedang dijaga ketat oleh dokter.'")
+			inv_mgr.unlock_clue("autopsy_corpse")
+			inv_mgr.set_phase(inv_mgr.Phase.FINAL_DEATH_GOD)
+			_show_toast("🩺 Rumah Sakit: Kamu melihat jasad dirimu sendiri... Tekan [X] untuk Dewa Kematian!")
+			if is_instance_valid(dialog_box):
+				dialog_box.open_dialog("...Detektif Benedict. Tataplah tubuh yang terbaring kaku itu. Kamu bukan lagi detektif yang bernafas... kamu adalah arwah yang mencari kebenaran tentang kematianmu sendiri. Tekan [X] kapan saja untuk memanggilku...")
 
 		"safe":
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
+				_show_toast("🗝️ Membuka Brankas Baja Rumah Ibu!")
 
 		"phone":
 			_show_toast("📞 Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
