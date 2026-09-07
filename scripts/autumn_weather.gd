@@ -4,14 +4,11 @@ var leaf_particles_fg: CPUParticles2D
 var leaf_particles_mg: CPUParticles2D
 var leaf_particles_bg: CPUParticles2D
 
-var audio_player_breeze: AudioStreamPlayer
-var playback_breeze: AudioStreamGeneratorPlayback
 var breeze_time: float = 0.0
 
 func _ready() -> void:
 	layer = 8
 	_build_autumn_leaves()
-	_setup_autumn_breeze_audio()
 	get_viewport().size_changed.connect(_on_viewport_resized)
 
 func _build_autumn_leaves() -> void:
@@ -94,17 +91,6 @@ func _on_viewport_resized() -> void:
 		leaf_particles_fg.position = Vector2(vp.x * 0.5, -50)
 		leaf_particles_fg.emission_rect_extents = Vector2(vp.x * 0.8, 15)
 
-func _setup_autumn_breeze_audio() -> void:
-	audio_player_breeze = AudioStreamPlayer.new()
-	var generator = AudioStreamGenerator.new()
-	generator.mix_rate = 22050
-	generator.buffer_length = 0.15
-	audio_player_breeze.stream = generator
-	audio_player_breeze.volume_db = -14.0
-	add_child(audio_player_breeze)
-	audio_player_breeze.play()
-	playback_breeze = audio_player_breeze.get_stream_playback()
-
 func _process(delta: float) -> void:
 	breeze_time += delta
 	var wind_gust = sin(breeze_time * 0.5) * 22.0
@@ -113,22 +99,3 @@ func _process(delta: float) -> void:
 		leaf_particles_mg.gravity.x = 35.0 + wind_gust
 	if is_instance_valid(leaf_particles_fg):
 		leaf_particles_fg.gravity.x = 45.0 + wind_gust * 1.6
-
-	_synthesize_autumn_breeze(delta)
-
-func _synthesize_autumn_breeze(delta: float) -> void:
-	if playback_breeze == null:
-		return
-
-	var frames = min(playback_breeze.get_frames_available(), int(22050 * delta * 1.5))
-	if frames <= 0:
-		return
-
-	for i in range(frames):
-		breeze_time += 1.0 / 22050.0
-		var gust = (0.5 + 0.5 * sin(breeze_time * 0.4)) * (0.7 + 0.3 * sin(breeze_time * 0.9))
-		var noise = (randf() * 2.0 - 1.0)
-		var rustle = sin(breeze_time * 440.0 * TAU) * (randf() * 0.06)
-		
-		var sample = (noise * 0.10 + rustle) * gust * 0.12
-		playback_breeze.push_frame(Vector2(sample, sample))

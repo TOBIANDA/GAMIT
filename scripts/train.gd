@@ -94,17 +94,22 @@ func _setup_audio_players() -> void:
 		audio_player_horn.volume_db = 0.0
 	add_child(audio_player_horn)
 
+const RAIL_ZONE_RADIUS: float = 480.0 # Suara kereta hanya terdengar di zona sekitar rel/stasiun
+
+var current_spatial_vol: float = 0.0
+
 func _process(delta: float) -> void:
 	if not is_instance_valid(player_ref):
 		player_ref = get_tree().get_first_node_in_group("player")
 		if not is_instance_valid(player_ref):
 			player_ref = get_node_or_null("../Player")
 
-	var spatial_vol = 1.0
+	current_spatial_vol = 0.0
 	if is_instance_valid(player_ref):
 		var dist_to_track = abs(player_ref.global_position.x - RAIL_CENTER_X)
-		spatial_vol = clampf(1.0 - (dist_to_track / 2000.0), 0.05, 1.0)
-		spatial_vol = pow(spatial_vol, 1.5)
+		if dist_to_track < RAIL_ZONE_RADIUS:
+			var ratio = 1.0 - (dist_to_track / RAIL_ZONE_RADIUS)
+			current_spatial_vol = pow(clampf(ratio, 0.0, 1.0), 1.6)
 
 	if not is_train_running:
 		spawn_timer -= delta
@@ -114,8 +119,8 @@ func _process(delta: float) -> void:
 		_update_train_movement(delta)
 		position = Vector2(RAIL_CENTER_X, train_y)
 
-		_handle_horn_and_bell(delta, spatial_vol)
-		_update_train_sound(spatial_vol)
+		_handle_horn_and_bell(delta, current_spatial_vol)
+		_update_train_sound(current_spatial_vol)
 
 		if train_y >= TRAIN_END_Y:
 			_end_passing_train()
@@ -154,10 +159,10 @@ func _update_train_movement(delta: float) -> void:
 			current_speed = 0.0
 			station_wait_timer -= delta
 
-			# Bunyikan peluit stasiun 1.5 detik sebelum berangkat
+			# Bunyikan peluit stasiun 1.5 detik sebelum berangkat hanya jika pemain di sekitar rel
 			if station_wait_timer <= 1.5 and not has_blown_departure_whistle:
 				has_blown_departure_whistle = true
-				_trigger_horn()
+				_trigger_horn(current_spatial_vol)
 
 			if station_wait_timer <= 0.0:
 				train_state = TrainState.ACCELERATING
@@ -194,7 +199,7 @@ func _start_passing_train() -> void:
 		smoke_particles.gravity = Vector2(0, -60)
 	horn_sequence_step = 0
 	horn_cooldown = 0.5
-	if is_instance_valid(audio_player_train) and not audio_player_train.playing:
+	if current_spatial_vol > 0.01 and is_instance_valid(audio_player_train) and not audio_player_train.playing:
 		audio_player_train.play()
 	print("[TrainSystem] 🚂 Kereta api mulai melintas mendekati stasiun!")
 
@@ -217,7 +222,7 @@ func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 		return
 	horn_cooldown -= delta
 
-	# Klakson saat mendekati stasiun
+	# Klakson saat mendekati stasiun (hanya jika dalam jangkauan dengar)
 	if horn_sequence_step == 0 and train_y > -400.0 and horn_cooldown <= 0.0:
 		_trigger_horn(spatial_vol)
 		horn_sequence_step = 1
@@ -227,22 +232,24 @@ func _handle_horn_and_bell(delta: float, spatial_vol: float) -> void:
 		horn_sequence_step = 2
 		horn_cooldown = 3.0
 
-func _trigger_horn(spatial_vol: float = 1.0) -> void:
+func _trigger_horn(spatial_vol: float = 0.0) -> void:
 	if not is_train_running:
 		return
+	if spatial_vol <= 0.02:
+		return # Di luar zona rel kereta, klakson sama sekali tidak berbunyi
 	if is_instance_valid(audio_player_horn):
-		audio_player_horn.volume_db = linear_to_db(clampf(spatial_vol * 1.2, 0.05, 1.0))
+		audio_player_horn.volume_db = linear_to_db(clampf(spatial_vol, 0.001, 1.0))
 		audio_player_horn.play()
 
 func _update_train_sound(spatial_vol: float) -> void:
 	if not is_instance_valid(audio_player_train):
 		return
-	if is_train_running:
+	if is_train_running and spatial_vol > 0.01:
 		if not audio_player_train.playing:
 			audio_player_train.play()
 		var speed_ratio := clampf(current_speed / TRAIN_MAX_SPEED, 0.3, 1.0)
 		audio_player_train.pitch_scale = lerpf(0.85, 1.10, speed_ratio)
-		audio_player_train.volume_db = linear_to_db(clampf(spatial_vol * speed_ratio, 0.05, 1.0))
+		audio_player_train.volume_db = linear_to_db(clampf(spatial_vol * speed_ratio, 0.0001, 1.0))
 	else:
 		if audio_player_train.playing:
 			audio_player_train.stop()

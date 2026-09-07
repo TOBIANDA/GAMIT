@@ -180,7 +180,11 @@ func _setup_letter_viewer() -> void:
 
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.04, 0.05, 0.08, 0.85)
+	bg.color = Color(0.02, 0.03, 0.06, 0.88)
+	bg.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed:
+			_close_letter_viewer()
+	)
 	letter_root_control.add_child(bg)
 
 	var center = CenterContainer.new()
@@ -191,29 +195,97 @@ func _setup_letter_viewer() -> void:
 	vb.add_theme_constant_override("separation", 14)
 	center.add_child(vb)
 
+	# Container kertas surat dengan batasan ukuran agar pas di layar
+	var letter_box = Control.new()
+	letter_box.custom_minimum_size = Vector2(520, 540)
+	vb.add_child(letter_box)
+
 	letter_rect = TextureRect.new()
 	var tex_close = load("res://Environment/interactable assets/surat close up.png")
 	if is_instance_valid(tex_close):
 		letter_rect.texture = tex_close
-	letter_rect.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	letter_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	letter_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	letter_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	letter_rect.custom_minimum_size = Vector2(460, 480)
-	vb.add_child(letter_rect)
+	letter_box.add_child(letter_rect)
+
+	# Overlay teks surat otentik di atas kertas amplop
+	var margin = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 52)
+	margin.add_theme_constant_override("margin_right", 52)
+	margin.add_theme_constant_override("margin_top", 56)
+	margin.add_theme_constant_override("margin_bottom", 44)
+	letter_box.add_child(margin)
+
+	var text_vb = VBoxContainer.new()
+	text_vb.add_theme_constant_override("separation", 8)
+	margin.add_child(text_vb)
+
+	var header_label = Label.new()
+	header_label.text = "BERKAS PENYELIDIKAN #404"
+	header_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header_label.add_theme_color_override("font_color", Color(0.20, 0.14, 0.08))
+	header_label.add_theme_font_size_override("font_size", 16)
+	text_vb.add_child(header_label)
+
+	var sub_label = Label.new()
+	sub_label.text = "KASUS: KEMATIAN MISTERIUS DI JALUR REL STASIUN"
+	sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub_label.add_theme_color_override("font_color", Color(0.60, 0.18, 0.18))
+	sub_label.add_theme_font_size_override("font_size", 11)
+	text_vb.add_child(sub_label)
+
+	var hsep = HSeparator.new()
+	var hsep_style = StyleBoxLine.new()
+	hsep_style.color = Color(0.45, 0.35, 0.25, 0.5)
+	hsep_style.thickness = 2
+	hsep.add_theme_stylebox_override("separator", hsep_style)
+	text_vb.add_child(hsep)
+
+	var body_rtl = RichTextLabel.new()
+	body_rtl.bbcode_enabled = true
+	body_rtl.fit_content = true
+	body_rtl.scroll_active = false
+	body_rtl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_rtl.text = "[color=#261e16][b]Kepada Detektif Benedict,[/b]\n\nSebuah insiden kematian misterius dilaporkan terjadi di sekitar jalur rel peron [b]Stasiun Kereta Api Timur[/b]. Korban adalah seorang pria tanpa identitas resmi yang berencana naik kereta ke luar kota.\n\n[b]Petunjuk & Tugas:[/b]\n• Temui [b]Inspektur Marcus[/b] di Kantor Polisi untuk meminta keterangan saksi dan rincian olah TKP.\n• Telusuri peron stasiun untuk mencari petunjuk dan mengamankan amplop rol foto korban.\n• Cuci foto di bak kamar gelap rumah untuk mengungkap wajah dan identitas korban!\n\n[i]— Kepala Departemen Penyelidikan[/i][/color]"
+	body_rtl.add_theme_font_size_override("normal_font_size", 13)
+	body_rtl.add_theme_font_size_override("bold_font_size", 13)
+	body_rtl.add_theme_font_size_override("italic_font_size", 12)
+	text_vb.add_child(body_rtl)
+
+	# Tombol silang kecil di pojok kanan atas surat
+	var x_btn = Button.new()
+	x_btn.text = "✕"
+	x_btn.custom_minimum_size = Vector2(28, 28)
+	x_btn.position = Vector2(520 - 36, 12)
+	var x_style = StyleBoxFlat.new()
+	x_style.bg_color = Color(0.4, 0.15, 0.15, 0.8)
+	x_style.set_corner_radius_all(14)
+	x_btn.add_theme_stylebox_override("normal", x_style)
+	x_btn.pressed.connect(_close_letter_viewer)
+	letter_box.add_child(x_btn)
 
 	letter_close_btn = Button.new()
 	letter_close_btn.text = "✔ Simpan ke Jurnal & Lanjutkan Investigasi [ESC / Spasi]"
-	letter_close_btn.custom_minimum_size = Vector2(320, 40)
+	letter_close_btn.custom_minimum_size = Vector2(440, 42)
 	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var lcb_style = StyleBoxFlat.new()
+	lcb_style.bg_color = Color(0.12, 0.18, 0.30, 0.95)
+	lcb_style.border_color = Color(0.9, 0.75, 0.3, 1.0)
+	lcb_style.set_border_width_all(2)
+	lcb_style.set_corner_radius_all(8)
+	letter_close_btn.add_theme_stylebox_override("normal", lcb_style)
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
 	var letter_photo_btn = Button.new()
 	letter_photo_btn.text = "🧪 Langsung Buka Minigame Cuci Foto Polaroid"
-	letter_photo_btn.custom_minimum_size = Vector2(320, 38)
+	letter_photo_btn.custom_minimum_size = Vector2(440, 38)
 	letter_photo_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var lpb_style = StyleBoxFlat.new()
-	lpb_style.bg_color = Color(0.2, 0.45, 0.3, 0.95)
-	lpb_style.border_color = Color(0.4, 0.9, 0.5, 1.0)
+	lpb_style.bg_color = Color(0.18, 0.38, 0.28, 0.95)
+	lpb_style.border_color = Color(0.35, 0.85, 0.5, 1.0)
 	lpb_style.set_border_width_all(1)
 	lpb_style.set_corner_radius_all(6)
 	letter_photo_btn.add_theme_stylebox_override("normal", lpb_style)
