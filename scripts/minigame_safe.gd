@@ -59,9 +59,11 @@ func start_minigame() -> void:
 	digit2 = 0
 	digit3 = 0
 	_update_digits_display()
-	status_label.text = "🔒 Masukkan 3 digit kombinasi brankas:"
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	unlock_btn.disabled = false
+	if is_instance_valid(status_label):
+		status_label.text = "🔒 Masukkan 3 digit kombinasi brankas:"
+		status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	if is_instance_valid(unlock_btn):
+		unlock_btn.disabled = false
 
 func _update_digits_display() -> void:
 	if is_instance_valid(digit1_label):
@@ -94,12 +96,23 @@ func _try_unlock() -> void:
 			inv_mgr.safe_unlocked = true
 
 		await get_tree().create_timer(1.8).timeout
-		is_active = false
-		visible = false
-		safe_opened.emit(true)
+		_close_safe(true)
 	else:
 		status_label.text = "❌ KOMBINASI SALAH! Perhatikan teka-teki ibu di catatan..."
 		status_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+
+func _close_safe(success: bool = false) -> void:
+	is_active = false
+	visible = false
+	safe_opened.emit(success)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_active or not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_ESCAPE:
+			_close_safe(false)
+			get_viewport().set_input_as_handled()
 
 func _build_scene_ui() -> void:
 	var bg = ColorRect.new()
@@ -123,7 +136,7 @@ func _build_scene_ui() -> void:
 	main_box.add_child(header)
 
 	var title = Label.new()
-	title.text = "🗝️ BRANKAS BAJA KELUARGA — RUMAH IBU MEDELINE"
+	title.text = "🗝️ BRANKAS BAJA KELUARGA — RUMAH BENEDICT"
 	title.add_theme_color_override("font_color", Color(0.95, 0.8, 0.4))
 	title.add_theme_font_size_override("font_size", 18)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -132,7 +145,7 @@ func _build_scene_ui() -> void:
 	close_btn = Button.new()
 	close_btn.text = "✖ Tutup [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
-	close_btn.pressed.connect(func(): is_active = false; visible = false)
+	close_btn.pressed.connect(func(): _close_safe(false))
 	header.add_child(close_btn)
 
 	var riddle_panel = PanelContainer.new()

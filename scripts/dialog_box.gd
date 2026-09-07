@@ -2,18 +2,22 @@ extends CanvasLayer
 
 signal dialog_opened
 signal dialog_closed
+signal monologue_finished
 
 const SERVER_URL = "http://127.0.0.1:8000"
-const TYPING_SPEED = 0.025
+const TYPING_SPEED = 0.028
 
 @onready var root_control: Control = $RootControl
 @onready var text_label: Label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/TextLabel
 @onready var input_container: HBoxContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer
 @onready var input_edit: LineEdit = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer/InputEdit
 @onready var submit_btn: Button = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer/SubmitBtn
+@onready var name_tag: Label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/NameTag
 @onready var status_badge: Label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/StatusBadge
 @onready var close_btn: Button = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/CloseBtn
 @onready var portrait_glow: ColorRect = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/AuraGlow
+@onready var portrait_texture: TextureRect = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/PortraitTexture
+@onready var avatar_visual_container: CenterContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer
 
 var full_text: String = ""
 var current_char_idx: int = 0
@@ -23,16 +27,37 @@ var is_active: bool = false
 var glow_timer: float = 0.0
 var click_player: AudioStreamPlayer
 
+var is_monologue_mode: bool = false
+var monologue_lines: Array[String] = []
+var monologue_index: int = 0
+
 func _ready() -> void:
-	root_control.visible = false
+	_ensure_nodes()
+	visible = false
+	if is_instance_valid(root_control):
+		root_control.visible = false
 	
 	click_player = AudioStreamPlayer.new()
 	click_player.name = "DialogClickPlayer"
 	var c_stream = load("res://sound/Click sound.mp3")
 	if c_stream:
 		click_player.stream = c_stream
-		click_player.volume_db = -4.0
+		click_player.volume_db = -5.0
 	add_child(click_player)
+
+func _ensure_nodes() -> void:
+	if root_control == null and has_node("RootControl"):
+		root_control = $RootControl
+		text_label = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/TextLabel
+		input_container = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer
+		input_edit = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer/InputEdit
+		submit_btn = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer/SubmitBtn
+		name_tag = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/NameTag
+		status_badge = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/StatusBadge
+		close_btn = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/CloseBtn
+		portrait_glow = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/AuraGlow
+		portrait_texture = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/PortraitTexture
+		avatar_visual_container = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer
 
 	submit_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.focus_mode = Control.FOCUS_NONE
@@ -52,6 +77,7 @@ func _ready() -> void:
 
 func _play_click() -> void:
 	if is_instance_valid(click_player) and click_player.stream:
+		click_player.pitch_scale = randf_range(0.95, 1.05)
 		click_player.play()
 
 func _process(delta: float) -> void:
@@ -61,33 +87,118 @@ func _process(delta: float) -> void:
 	glow_timer += delta * 3.0
 	if is_instance_valid(portrait_glow):
 		var alpha = 0.35 + sin(glow_timer) * 0.2
-		portrait_glow.color = Color(0.6, 0.2, 0.9, alpha)
+		if is_monologue_mode:
+			portrait_glow.color = Color(0.2, 0.5, 0.85, alpha)
+		else:
+			portrait_glow.color = Color(0.6, 0.2, 0.9, alpha)
 
 	if is_typing:
 		typing_timer += delta
 		if typing_timer >= TYPING_SPEED:
 			typing_timer = 0.0
 			if current_char_idx < full_text.length():
-				text_label.text += full_text[current_char_idx]
+				var ch = full_text[current_char_idx]
+				text_label.text += ch
 				current_char_idx += 1
+				if ch != " " and ch != "." and is_instance_valid(click_player) and click_player.stream:
+					click_player.pitch_scale = randf_range(0.92, 1.16)
+					click_player.play()
 			else:
 				is_typing = false
-				input_container.visible = true
-				input_edit.call_deferred("grab_focus")
+				if not is_monologue_mode:
+					input_container.visible = true
+					input_edit.call_deferred("grab_focus")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active:
 		return
 
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_ESCAPE:
+			close_dialog()
+			get_viewport().set_input_as_handled()
+			return
+
+		if is_monologue_mode and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_E, KEY_F]:
+			_advance_monologue()
+			get_viewport().set_input_as_handled()
+			return
+
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if is_monologue_mode:
+			_advance_monologue()
+			get_viewport().set_input_as_handled()
+			return
+
+func _advance_monologue() -> void:
+	if is_typing:
+		# Jika sedang mengetik, selesaikan baris seketika
+		text_label.text = full_text
+		current_char_idx = full_text.length()
+		is_typing = false
+		return
+
+	if monologue_index + 1 < monologue_lines.size():
+		monologue_index += 1
+		_start_typewriter(monologue_lines[monologue_index])
+	else:
 		close_dialog()
-		get_viewport().set_input_as_handled()
+		monologue_finished.emit()
+
+func start_monologue(lines: Array[String], speaker_name: String = "Detektif Benedict", badge_text: String = "[ Monolog Batin ]", portrait_path: String = "res://UI/mc_portrait.png") -> void:
+	_ensure_nodes()
+	visible = true
+	is_active = true
+	is_monologue_mode = true
+	monologue_lines = lines
+	monologue_index = 0
+	if is_instance_valid(root_control):
+		root_control.visible = true
+
+	if is_instance_valid(name_tag):
+		name_tag.text = speaker_name
+		name_tag.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+	if is_instance_valid(status_badge):
+		status_badge.text = badge_text
+		status_badge.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
+
+	if is_instance_valid(input_container):
+		input_container.visible = false
+
+	if is_instance_valid(avatar_visual_container):
+		avatar_visual_container.visible = false
+	if is_instance_valid(portrait_texture):
+		var tex = load(portrait_path)
+		if tex:
+			portrait_texture.texture = tex
+		portrait_texture.visible = true
+
+	dialog_opened.emit()
+
+	if monologue_lines.size() > 0:
+		_start_typewriter(monologue_lines[0])
+	else:
+		close_dialog()
+		monologue_finished.emit()
 
 func open_dialog(initial_prompt: String = "") -> void:
+	_ensure_nodes()
+	visible = true
 	is_active = true
-	root_control.visible = true
+	is_monologue_mode = false
+	if is_instance_valid(root_control):
+		root_control.visible = true
+
+	name_tag.text = "❖ DEWA KEMATIAN ❖"
+	name_tag.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))
 	status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 	status_badge.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+
+	if is_instance_valid(portrait_texture):
+		portrait_texture.visible = false
+	if is_instance_valid(avatar_visual_container):
+		avatar_visual_container.visible = true
+
 	input_container.visible = false
 	input_edit.text = ""
 	input_edit.editable = true
@@ -101,15 +212,21 @@ func open_dialog(initial_prompt: String = "") -> void:
 	dialog_opened.emit()
 
 func close_dialog() -> void:
+	_ensure_nodes()
+	visible = false
 	is_active = false
 	is_typing = false
-	root_control.visible = false
+	is_monologue_mode = false
+	if is_instance_valid(root_control):
+		root_control.visible = false
 	dialog_closed.emit()
 
 func _start_typewriter(text: String) -> void:
+	_ensure_nodes()
 	full_text = text
 	current_char_idx = 0
-	text_label.text = ""
+	if is_instance_valid(text_label):
+		text_label.text = ""
 	is_typing = true
 
 func _on_submit_pressed() -> void:

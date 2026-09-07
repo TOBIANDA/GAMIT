@@ -1,5 +1,5 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1788439403
+::res://::1788804392
 export_presets.cfg::TextFile::-1::1787036322::0::1::::<><><>0<>0<><>::
 Game IPB.apple-touch-icon.png::CompressedTexture2D::998518899685378611::1787036321::1787037710::1::::<><><>0<>0<>7c4f250b9151c46d73138d05b044bbf0<>res://.godot/imported/Game IPB.apple-touch-icon.png-1795cce00afe26e63b6af05b4d53f4cc.ctex::
 Game IPB.icon.png::CompressedTexture2D::379750928347896293::1787036321::1787037710::1::::<><><>0<>0<>d7fc79bd04318722d2074e7f236845b3<>res://.godot/imported/Game IPB.icon.png-c871cbc01114f034011af7454df46f35.ctex::
@@ -10,27 +10,58 @@ node_2d.tscn::PackedScene::3743655052682474799::1786555841::0::1::::<><><>0<>0<>
 requirements.txt::TextFile::-1::1786557242::0::1::::<><><>0<>0<><>::
 responses.json::JSON::-1::1787045726::0::1::::<><><>0<>0<><>::
 ::res://ai_server/__pycache__/::1786557729
-::res://Bangunan/::1788191833
-gedung.png::CompressedTexture2D::4527749654387326870::1788191751::1788191833::1::::<><><>0<>0<>0f0d3c7e03fef376feeae00e2189d5b0<>res://.godot/imported/gedung.png-1e167be9c55ede817d29c0fd4fac811f.ctex::
-Hospital.png::CompressedTexture2D::8664340145308243493::1787672654::1787672660::1::::<><><>0<>0<>add3da3773e9297332fa1b60200ad63e<>res://.godot/imported/Hospital.png-77c0787e4c8c4caf826e3ee4b85c1b3d.ctex::
-pagar samping.png::CompressedTexture2D::322804542533633063::1787843688::1787843712::1::::<><><>0<>0<>e4865f3d9cc4610c238ede89cf62517f<>res://.godot/imported/pagar samping.png-1ced49a15409b4d60b1cf0f5b0d63859.ctex::
-pagar.png::CompressedTexture2D::8468408665578066209::1787672654::1787672658::1::::<><><>0<>0<>8b92e9d98fb4b489e04d30496ba8af20<>res://.godot/imported/pagar.png-214a6077b2f25c1b6e039a1d88bce840.ctex::
-pintuPagar.png::CompressedTexture2D::883848312681699473::1787672654::1787672658::1::::<><><>0<>0<>f7df8c26e7a65364128dcb5a4394e34c<>res://.godot/imported/pintuPagar.png-3ae743c41e11dcabd95f7509f314d99b.ctex::
-police.png::CompressedTexture2D::9125789009933400637::1787672654::1787672659::1::::<><><>0<>0<>76166afb03af887277d0a5f15db43f5a<>res://.godot/imported/police.png-c443867d3f17604cb9ea7260bf32bc82.ctex::
-rumahMC.png::CompressedTexture2D::791077815666632195::1787672654::1787672659::1::::<><><>0<>0<>55c79329c2d71249c0ea8bbdf0794559<>res://.godot/imported/rumahMC.png-283c7ff2d15dd6443c6ee0e4b41ac900.ctex::
-rumahTampakBelakang.png::CompressedTexture2D::2929854702803441769::1787672653::1787672659::1::::<><><>0<>0<>b513238b9078206d8ed58e037e8ac370<>res://.godot/imported/rumahTampakBelakang.png-ac650a798ee37c925e6a22649d394e01.ctex::
-rumahTampakDepan.png::CompressedTexture2D::147635018243890426::1787672653::1787672659::1::::<><><>0<>0<>e6d00fd7ab0d3fda1ec44f25feb1d5a9<>res://.godot/imported/rumahTampakDepan.png-209a7c9a58cc1fcedc52bd9a4bc87358.ctex::
-rumahTampakSamping.png::CompressedTexture2D::5793708528110841606::1787672654::1787672659::1::::<><><>0<>0<>9415ee9bcf0abafc426451e67e2f5941<>res://.godot/imported/rumahTampakSamping.png-d10b0497032a45707f09c4549dbd38b0.ctex::
-stasiun telepon.png::CompressedTexture2D::5770447952482729467::1787734182::1787734769::1::::<><><>0<>0<>ffce41fb84f77dde3ebdbe097e83f29f<>res://.godot/imported/stasiun telepon.png-e015c38981513b310e5f05e19b7e7e47.ctex::
-::res://interactable assets/::1787672660
-baskom cetak photo.png::CompressedTexture2D::4384118435115113494::1787672625::1787672658::1::::<><><>0<>0<>016d803ab9fe0dd19368e8000ef98495<>res://.godot/imported/baskom cetak photo.png-4e857f1e116a09de3f99e9caf5336c9d.ctex::
-surat close up.png::CompressedTexture2D::3146866533003463919::1787672625::1787672660::1::::<><><>0<>0<>8fb1a288ae70d109d65bfcef92a6313c<>res://.godot/imported/surat close up.png-698cd52325d1980cce53a99f8a0320eb.ctex::
-surat.png::CompressedTexture2D::3907933406898439047::1787672625::1787672659::1::::<><><>0<>0<>6ddee97e0ba0d17a07fc1f6e908fc288<>res://.godot/imported/surat.png-65c8b6c921a6d6a52711b30313d9a459.ctex::
-::res://kamar/::1787672659
-bed.png::CompressedTexture2D::7842995539715088088::1787672590::1787672659::1::::<><><>0<>0<>74cab91fcf11a63fda2eb37385bc1ce6<>res://.godot/imported/bed.png-26841fcf8d47407bafd29a50f16a7c31.ctex::
-karpet.png::CompressedTexture2D::7079225083131140807::1787672590::1787672659::1::::<><><>0<>0<>e53a5cfec34439b97106ba9296a96eb7<>res://.godot/imported/karpet.png-03ace50029a914989491c99e7a89d570.ctex::
-laci.png::CompressedTexture2D::1713737316565554944::1787672590::1787672659::1::::<><><>0<>0<>fba834534d891c1e1ca3a3c857dd0cc0<>res://.godot/imported/laci.png-b4721292de7d54ffac28f39c80ba3eca.ctex::
-lemari.png::CompressedTexture2D::5131107464025001087::1787672590::1787672659::1::::<><><>0<>0<>28ab57738622b7d4939ac832b67dfc5d<>res://.godot/imported/lemari.png-41ba4afbc792a83a4d0bd1888c5a4425.ctex::
+::res://Environment/::1788708138
+::res://Environment/Bangunan/::1788708962
+gedung.png::CompressedTexture2D::2296184867098711678::1788708137::1788708962::1::::<><><>0<>0<>7aa0eaaa68fbd6ee01360ab2831ffb39<>res://.godot/imported/gedung.png-b6d080aed6a8a794fed8fe5e3e0dc88b.ctex::
+Hospital.png::CompressedTexture2D::4355897656744327354::1788708137::1788708961::1::::<><><>0<>0<>f1004730f4e1ddc1d7d88c2f38c7ea04<>res://.godot/imported/Hospital.png-1c6a94ca6318356bfe272347d70bb87b.ctex::
+pagar samping.png::CompressedTexture2D::6256515639168869653::1788708137::1788708959::1::::<><><>0<>0<>7a43e7241e4f482ce54908349f47c11d<>res://.godot/imported/pagar samping.png-73bede731e456d39f1ee9dec89d9452e.ctex::
+pagar.png::CompressedTexture2D::1202665556217862698::1788708137::1788708960::1::::<><><>0<>0<>2263ccfc4702ffaa091806e092c98238<>res://.godot/imported/pagar.png-85b01b6fcb3abe3251260b679b430bb3.ctex::
+pintuPagar.png::CompressedTexture2D::6203009732995881762::1788708137::1788708959::1::::<><><>0<>0<>c0703c7821b8d32f1f406e1b8bd3016e<>res://.godot/imported/pintuPagar.png-3b31cfb2b72fc60d6ff804224480f58b.ctex::
+police.png::CompressedTexture2D::558220446669875139::1788708138::1788708960::1::::<><><>0<>0<>c4da47d47f75e62d3b4e00c55e545a3f<>res://.godot/imported/police.png-a5273d4d2947752a6a7bc22e28cad3ed.ctex::
+rumahMC.png::CompressedTexture2D::6563526242009516743::1788708138::1788708960::1::::<><><>0<>0<>62af3cd98c5fa792193c3f6db4db81bc<>res://.godot/imported/rumahMC.png-5ad2dc528486afb1672dc6b07caa6a6a.ctex::
+rumahTampakBelakang.png::CompressedTexture2D::437517156417166391::1788708137::1788708960::1::::<><><>0<>0<>b1ebf96097caace297fb875016375a23<>res://.godot/imported/rumahTampakBelakang.png-84e3550cef05c9a107a925546936b35a.ctex::
+rumahTampakDepan.png::CompressedTexture2D::3015387895042471922::1788708137::1788708960::1::::<><><>0<>0<>930f88164a2b486fc8fc4c52f75e5c71<>res://.godot/imported/rumahTampakDepan.png-0b2b12ba563d5771304ac2734863490c.ctex::
+rumahTampakSamping.png::CompressedTexture2D::5792057413653655275::1788708137::1788708960::1::::<><><>0<>0<>cd840b284fc24589fd33122d189961d3<>res://.godot/imported/rumahTampakSamping.png-f274e473561254331a3c4450a433c28a.ctex::
+stasiun telepon.png::CompressedTexture2D::5530277221900975293::1788708137::1788708960::1::::<><><>0<>0<>a48df1eae9c835b8091af5dc78625838<>res://.godot/imported/stasiun telepon.png-5574bb562fc2e133fefe5f22fb7b7488.ctex::
+tongSampah.png::CompressedTexture2D::955430458002940806::1788708137::1788708961::1::::<><><>0<>0<>d818f0ec2ea0acbce64a273dd56df9c5<>res://.godot/imported/tongSampah.png-2032413aef2619d41704d1241ca836ae.ctex::
+::res://Environment/dapur/::1788804708
+kitchen_unit.png::CompressedTexture2D::6482059783824021867::1788804700::1788804733::1::::<><><>0<>0<>7a53fe3702e5dddce070348a3201657c<>res://.godot/imported/kitchen_unit.png-a74ae02e310ebf731c54842f28e342c0.ctex::
+kulkas.png::CompressedTexture2D::7547712795674905823::1788708137::1788708960::1::::<><><>0<>0<>2eeac3119f1135958166fc7c464f53e3<>res://.godot/imported/kulkas.png-fe03ce9148aa8b16073fbb83784c0a3b.ctex::
+lemari atas.png::CompressedTexture2D::7429113601532375964::1788708137::1788708960::1::::<><><>0<>0<>f3339c0a8580cae5a651608edcd0e8a2<>res://.godot/imported/lemari atas.png-6baa153b9260e79056668149c1743ce9.ctex::
+meja dapur.png::CompressedTexture2D::2231702585628671553::1788708137::1788708960::1::::<><><>0<>0<>d920e09e6147844214e098b9f693f782<>res://.godot/imported/meja dapur.png-486edbe96774c33c60eca540b43bf2fd.ctex::
+meja_lab_foto.png::CompressedTexture2D::7505054496257160318::1788804708::1788804733::1::::<><><>0<>0<>b717d946ad30558e9cc4658c00d53e1a<>res://.godot/imported/meja_lab_foto.png-e90fee63294a984bd4695df173f4ec07.ctex::
+susunan.jpg::CompressedTexture2D::1924914627973431031::1788708137::1788708961::1::::<><><>0<>0<>788adba0c715055a39104f83e8f7e1d9<>res://.godot/imported/susunan.jpg-02d308881f757038ef9052b19342b51d.ctex::
+::res://Environment/interactable assets/::1788708961
+baskom cetak photo.png::CompressedTexture2D::4578275342053206865::1788708138::1788708960::1::::<><><>0<>0<>6fcefda9324819ecb5dc2038cc321c45<>res://.godot/imported/baskom cetak photo.png-868cfeae4658e0594a3e2e858efa9ab9.ctex::
+berangkas-terbuka.png::CompressedTexture2D::4412622761495727683::1788708138::1788708960::1::::<><><>0<>0<>a1dbe6365bf40889c5273c4e85ee7c9f<>res://.godot/imported/berangkas-terbuka.png-8f03d821d44b6456fe4f8bf59719d53b.ctex::
+berangkas.png::CompressedTexture2D::6480941673431407769::1788804552::1788804733::1::::<><><>0<>0<>991cacabf74317f9544b66d1d100fac7<>res://.godot/imported/berangkas.png-93eba9fb229d0799e7d2e9bb9aaaff94.ctex::
+polaroid photo-black.png::CompressedTexture2D::8716027758963280761::1788708138::1788708961::1::::<><><>0<>0<>5b3fc35d36b70ebf435ba2e7495903ca<>res://.godot/imported/polaroid photo-black.png-585ca68845bd23481ad0328cbe8d0a2a.ctex::
+surat close up.png::CompressedTexture2D::3146193011831740416::1788708138::1788708961::1::::<><><>0<>0<>b1508e8d42ae61717fe14da0fe58b904<>res://.godot/imported/surat close up.png-d69998180da2f3bc7a540956cd160691.ctex::
+surat.png::CompressedTexture2D::2504520271310870095::1788708138::1788708959::1::::<><><>0<>0<>16035da3d4c2f49507fff60faedcb91c<>res://.godot/imported/surat.png-ef4c88df12245543c5f60bfbef605072.ctex::
+zoom-in numpad.png::CompressedTexture2D::7455998574363508589::1788708138::1788708959::1::::<><><>0<>0<>59c62ce89c989a94c959f6182ad7df98<>res://.godot/imported/zoom-in numpad.png-fa5fd1051a4bd1854487115857023b68.ctex::
+::res://Environment/kamar/::1788708959
+bed.png::CompressedTexture2D::7561161335640994335::1788708138::1788708959::1::::<><><>0<>0<>b5e3121a70a924172b930333a2254a0f<>res://.godot/imported/bed.png-702755b4eebe9f42c64bd5c2b9caf85f.ctex::
+karpet.png::CompressedTexture2D::3215019128978270624::1788708138::1788708959::1::::<><><>0<>0<>5b25cee7c6cc13e549ca10f9f8d85bf2<>res://.godot/imported/karpet.png-1cd39f2bc95c6759fa41f618aca5a6e5.ctex::
+laci.png::CompressedTexture2D::3229402292559427945::1788708138::1788708959::1::::<><><>0<>0<>520ea6eb9cc44e236ffb311590c7b787<>res://.godot/imported/laci.png-71c43ec07638f12d0908a2db7e64c144.ctex::
+lemari.png::CompressedTexture2D::4002747806910552494::1788708138::1788708959::1::::<><><>0<>0<>c881788ddda479b76119a121a4eb95ca<>res://.godot/imported/lemari.png-3566084e3f0f3c1fee2a0a49e9780542.ctex::
+::res://Environment/RS/::1788709890
+hostpital.svg::CompressedTexture2D::7214804754121747427::1788708138::1788708959::1::::<><><>0<>0<>8d45e3eb4d4bde23ca7bb69590e991ee<>res://.godot/imported/hostpital.svg-e8ca5ed329f2ada4a85f5fd31e3f8124.ctex::
+::res://Environment/RS/FloorTile/::1788713457
+FloorTileAmbientOcclusion.png::CompressedTexture2D::2569566986754835965::1788710917::1788713457::1::::<><><>0<>0<>17b14f40a9f6414611adce0738153bc6<>res://.godot/imported/FloorTileAmbientOcclusion.png-ea8d33b5d33ef267fa5bdee690b6444f.ctex::
+FloorTileDiffuse.png::CompressedTexture2D::7605755634823172048::1788709890::1788713457::1::::<><><>0<>0<>26fd7aeae50f26bec72d95f9f3bc878a<>res://.godot/imported/FloorTileDiffuse.png-f6f350298c34a2c71e32f4f892925628.ctex::
+FloorTileNormal.png::CompressedTexture2D::1745951905681430884::1788710917::1788713457::1::::<><><>0<>0<>44f072f8ace1a558c1b42e1511b5b59b<>res://.godot/imported/FloorTileNormal.png-7f691248ebdbb269da50efdfbe4ef918.ctex::
+FloorTileSpecular.png::CompressedTexture2D::7619617087077656644::1788710917::1788713457::1::::<><><>0<>0<>8ccef103796cba24a5a0220d1d732099<>res://.godot/imported/FloorTileSpecular.png-ad0a65d95b986fe9fdf38405581b6139.ctex::
+::res://Environment/Ruang Mayat/::1788708962
+kasurmayat-mayat.png::CompressedTexture2D::7761615926807709131::1788708138::1788708962::1::::<><><>0<>0<>5055f95ffc06265328b23175d5a0c6cc<>res://.godot/imported/kasurmayat-mayat.png-60839335a08703624bd97323ee867351.ctex::
+kasurmayat.png::CompressedTexture2D::9151843863932092806::1788708138::1788708962::1::::<><><>0<>0<>f91d46066a22202dae50eb4aba309728<>res://.godot/imported/kasurmayat.png-ba69aae9ecdda02fc7c550e1dc9d917c.ctex::
+::res://Environment/ruang tamu/::1788804696
+karpet.png::CompressedTexture2D::2280208978431625283::1788708137::1788708959::1::::<><><>0<>0<>9f507a461e549731ff489104dea55978<>res://.godot/imported/karpet.png-f1f6f0a38c97b21303ed229dd2c3a889.ctex::
+mejaPanjang.png::CompressedTexture2D::4189586687783852767::1788708137::1788708959::1::::<><><>0<>0<>e80794e14ea9be674a2a18308b5a627b<>res://.godot/imported/mejaPanjang.png-0672733261249e4909c816744465cbb2.ctex::
+meja_detektif.png::CompressedTexture2D::7040297244179855128::1788804696::1788804733::1::::<><><>0<>0<>31f34b85acdd85e3b475bd803a062e53<>res://.godot/imported/meja_detektif.png-4c6754688ecd62a4471238f1059f60b9.ctex::
+sofaKecilSamping.png::CompressedTexture2D::7156336997837026339::1788708137::1788708959::1::::<><><>0<>0<>6ead0cbce6bb7d43932ae9d45df5abc3<>res://.godot/imported/sofaKecilSamping.png-a10ea9fa6acb69bab3164a46456d0712.ctex::
+sofaPanjang.png::CompressedTexture2D::3549752492729667372::1788708137::1788713457::1::::<><><>0<>0<>09bce418daa64441289883fda513c805<>res://.godot/imported/sofaPanjang.png-8c806457fb2d77807fd543541a11b816.ctex::
+::res://Environment/stasiun/::1788708960
+latar stasiun.png::CompressedTexture2D::5096552437837961998::1788708138::1788708960::1::::<><><>0<>0<>9f10724a55473053a4fc9e3a14c36330<>res://.godot/imported/latar stasiun.png-15051f48804fc89301994c5c81577461.ctex::
 ::res://nlp_tester/::1786629110
 vercel.json::JSON::-1::1786628918::0::1::::<><><>0<>0<><>::
 ::res://NPC_Boy/::1787576883
@@ -86,39 +117,42 @@ right.png::CompressedTexture2D::1990049474917012531::1787576749::1787576882::1::
 right_left.png::CompressedTexture2D::586030800452003707::1787576749::1787576882::1::::<><><>0<>0<>2908e6f870fb6c301418a7e6a0b89af0<>res://.godot/imported/right_left.png-529ea9ca063b7596ffd7d64b09cd360e.ctex::
 right_right.png::CompressedTexture2D::8904569665960288527::1787576749::1787576882::1::::<><><>0<>0<>dedc776c3fc1225640163c28d0661c79<>res://.godot/imported/right_right.png-dcb7ce2ad0d56687dbe0f639f7d77e56.ctex::
 ::res://project/::1786555226
-::res://scenes/::1788416918
+::res://scenes/::1788522589
 ai_test_runner.tscn::PackedScene::4677310074191032807::1788416918::0::1::::<><><>0<>0<><>::uid://cln430v11l82w::::res://scripts/ai_test_runner.gd
 autumn_weather.tscn::PackedScene::-1::1787592201::0::1::::<><><>0<>0<><>::res://scripts/autumn_weather.gd
 death_god.tscn::PackedScene::-1::1786557375::0::1::::<><><>0<>0<><>::
 death_god_shrine.tscn::PackedScene::-1::1787038288::0::1::::<><><>0<>0<><>::res://scripts/death_god_shrine.gd
-dialog_box.tscn::PackedScene::-1::1787580301::0::1::::<><><>0<>0<><>::res://scripts/dialog_box.gd
+dialog_box.tscn::PackedScene::-1::1788802963::0::1::::<><><>0<>0<><>::res://scripts/dialog_box.gd
 drivable_car.tscn::PackedScene::-1::1788017428::0::1::::<><><>0<>0<><>::res://scripts/drivable_car.gd
-main.tscn::PackedScene::1591262633726309101::1788191017::0::1::::<><><>0<>0<><>::uid://depv87mrl6pxj::::res://scripts/main.gd<>uid://cq4lv857r4ysq::::res://scripts/blueprint_map.gd<>res://scenes/player.tscn<>res://scenes/dialog_box.tscn<>res://scenes/npc.tscn<>res://scenes/train.tscn
+main.tscn::PackedScene::1591262633726309101::1788522589::0::1::::<><><>0<>0<><>::uid://depv87mrl6pxj::::res://scripts/main.gd<>uid://cq4lv857r4ysq::::res://scripts/blueprint_map.gd<>res://scenes/player.tscn<>res://scenes/dialog_box.tscn<>res://scenes/npc.tscn<>res://scenes/train.tscn
 npc.tscn::PackedScene::-1::1787669160::0::1::::<><><>0<>0<><>::res://scripts/npc.gd
 opening_cutscene.tscn::PackedScene::7117527770993168129::1787589720::0::1::::<><><>0<>0<><>::res://scripts/opening_cutscene.gd
 player.tscn::PackedScene::-1::1787577094::0::1::::<><><>0<>0<><>::res://scripts/player.gd
 snow_weather.tscn::PackedScene::-1::1787590937::0::1::::<><><>0<>0<><>::res://scripts/snow_weather.gd
 train.tscn::PackedScene::-1::1787588778::0::1::::<><><>0<>0<><>::res://scripts/train.gd
-::res://scripts/::1788439037
+::res://scratch/::1788714363
+::res://scripts/::1788803196
 ai_test_runner.gd::GDScript::5771416409400177019::1788439326::0::1::::<>Node2D<><>0<>0<><>::
-autumn_weather.gd::GDScript::2408246856585723642::1787673538::0::1::::<>CanvasLayer<><>0<>0<><>::
-blueprint_map.gd::GDScript::5956436990147394380::1788439299::0::1::::<>Node2D<><>0<>1<><>::
+autumn_weather.gd::GDScript::2408246856585723642::1788802244::0::1::::<>CanvasLayer<><>0<>0<><>::
+blueprint_map.gd::GDScript::5956436990147394380::1788713826::0::1::::<>Node2D<><>0<>1<><>::
 clue_journal.gd::GDScript::2142673304032924964::1788182837::0::1::::<>CanvasLayer<><>0<>0<><>::
-death_god.gd::GDScript::3180217757218688735::1787673538::0::1::::<>Node<><>0<>0<><>::
+death_god.gd::GDScript::3180217757218688735::1788713013::0::1::::<>CanvasLayer<><>0<>0<><>::
 death_god_shrine.gd::GDScript::1269913713562578233::1787673538::0::1::::<>Node2D<><>0<>0<><>::
-dialog_box.gd::GDScript::4664792095732826220::1788182793::0::1::::<>CanvasLayer<><>0<>0<><>::
+dialog_box.gd::GDScript::4664792095732826220::1788803270::0::1::::<>CanvasLayer<><>0<>0<><>::
 drivable_car.gd::GDScript::6696789087466689244::1788018504::0::1::::<>CharacterBody2D<><>0<>0<><>::
+house_interior.gd::GDScript::1404456842583250113::1788803040::0::1::::<>Node2D<><>0<>0<><>::
 investigation_manager.gd::GDScript::2356221758719184784::1787673538::0::1::::<>Node<><>0<>0<><>::
-main.gd::GDScript::7472318780062482715::1788416957::0::1::::<>Node2D<><>0<>0<><>::
-minigame_hidden_objects.gd::GDScript::428710439540681575::1787673538::0::1::::<>CanvasLayer<><>0<>0<><>::
-minigame_photo_wash.gd::GDScript::1274547480172925497::1788182867::0::1::::<>CanvasLayer<><>0<>0<><>::
-minigame_safe.gd::GDScript::2520054733384782019::1788182885::0::1::::<>CanvasLayer<><>0<>0<><>::
+main.gd::GDScript::7472318780062482715::1788803145::0::1::::<>Node2D<><>0<>0<><>::
+minigame_hidden_objects.gd::GDScript::428710439540681575::1788711228::0::1::::<>CanvasLayer<><>0<>0<><>::
+minigame_photo_wash.gd::GDScript::1274547480172925497::1788711201::0::1::::<>CanvasLayer<><>0<>0<><>::
+minigame_safe.gd::GDScript::2520054733384782019::1788802902::0::1::::<>CanvasLayer<><>0<>0<><>::
 minigame_tailgate.gd::GDScript::7491847639245693544::1787673538::0::1::::<>CanvasLayer<><>0<>0<><>::
 npc.gd::GDScript::6267724638373676114::1787678307::0::1::::<>CharacterBody2D<><>0<>0<><>::
 opening_cutscene.gd::GDScript::8604353093428452129::1787673538::0::1::::<>Control<><>0<>0<><>::
 player.gd::GDScript::3118802539127583894::1788189180::0::1::::<>CharacterBody2D<><>0<>0<><>::
-snow_weather.gd::GDScript::8207218257541907173::1787673538::0::1::::<>CanvasLayer<><>0<>0<><>::
-train.gd::GDScript::7990284397012246982::1788184628::0::1::::<>Node2D<><>0<>0<><>::
+snow_weather.gd::GDScript::8207218257541907173::1788802255::0::1::::<>CanvasLayer<><>0<>0<><>::
+test_part_a.gd::GDScript::3758236555392557283::1788803276::0::1::::<>SceneTree<><>0<>0<><>::
+train.gd::GDScript::7990284397012246982::1788802216::0::1::::<>Node2D<><>0<>0<><>::
 world_shader.gd::GDScript::2199869679122508515::1787673538::0::1::::<>CanvasLayer<><>0<>0<><>::
 ::res://sound/::1788182247
 BGM.mp3::AudioStreamMP3::1834103773328197570::1788181623::1788181894::1::::<><><>0<>0<>1342b0150d0c6738e37e06f65e6679eb<>res://.godot/imported/BGM.mp3-855852ce0a93a680e29f0c3950e35948.mp3str::
@@ -128,3 +162,13 @@ Footsteps.mp3::AudioStreamMP3::234121763607891242::1788181587::1788181894::1::::
 Train Horn.mp3::AudioStreamMP3::3169400537326462588::1788181574::1788181894::1::::<><><>0<>0<>453cc675c0662f613d7faf1de304553a<>res://.godot/imported/Train Horn.mp3-ac20ae23365df924d4cf73857d8c5cad.mp3str::
 TRAIN.mp3::AudioStreamMP3::5758556261391014278::1788181573::1788181894::1::::<><><>0<>0<>1f785f375939023561c9474ac3127cd6<>res://.godot/imported/TRAIN.mp3-9c7576fddde7c7891549bdd821aec101.mp3str::
 Water Splash.mp3::AudioStreamMP3::7576368462758940137::1788181577::1788181894::1::::<><><>0<>0<>b03fb561b8f123d3a04a881f15a59e89<>res://.godot/imported/Water Splash.mp3-9f2c2184d47a4442a4d24e7a1e84e62c.mp3str::
+::res://UI/::1788803517
+mc_portrait.png::CompressedTexture2D::626636418110021239::1788802929::1788803517::1::::<><><>0<>0<>83f84434aa648806705046c64211d2fc<>res://.godot/imported/mc_portrait.png-4dbd6b9c51af09daa11cc4cacfc1288d.ctex::
+::res://UI/Main Menu/::1788708963
+main-menu-meja.png::CompressedTexture2D::3500262466611451167::1788708115::1788708963::1::::<><><>0<>0<>dc05fd7da24a8dc264db51238ebb67f7<>res://.godot/imported/main-menu-meja.png-cf8131b552e53fb59edceaa7ad6a6602.ctex::
+::res://UI/Polaroid/::1788708960
+polaroidSebelumDiCuci.png::CompressedTexture2D::3192142680610155372::1788708115::1788708959::1::::<><><>0<>0<>f3189a74b70a06a3e2b772a868d38701<>res://.godot/imported/polaroidSebelumDiCuci.png-80ec911a329d17090fa92347dfdd248c.ctex::
+pose1.png::CompressedTexture2D::4723445947046979313::1788708115::1788708960::1::::<><><>0<>0<>453253d621d5c6b6ed3577ee9f634af4<>res://.godot/imported/pose1.png-2c56c68c54e9033edbccefb209952b2c.ctex::
+pose2.png::CompressedTexture2D::3734856235638109337::1788708115::1788708960::1::::<><><>0<>0<>145c83ff893d661c429fefbfaaff86ab<>res://.godot/imported/pose2.png-874b5faa5d0bdb3417e4e735104f0df8.ctex::
+pose3.png::CompressedTexture2D::2678213721178715017::1788708115::1788708960::1::::<><><>0<>0<>108eb85b34be0913866c9fffa5859095<>res://.godot/imported/pose3.png-ca0dbb4b4afa0e3077bf95f07b8a589b.ctex::
+pose4.png::CompressedTexture2D::6335790416696270653::1788708115::1788708960::1::::<><><>0<>0<>fb888a5690eef511bdc6a433c6ad305a<>res://.godot/imported/pose4.png-fb7299407921f96787829270314fc579.ctex::

@@ -26,22 +26,30 @@ var toast_timer: float = 0.0
 
 var active_poi_id: String = ""
 
+var house_interior: Node2D
+var is_inside_house: bool = false
+var transition_overlay: ColorRect
+var transition_layer: CanvasLayer
+
 const POI_LOCATIONS = {
-	"desk": {"name": "Rumah Benedict (Minigame Cuci Foto Polaroid)", "pos": Vector2(1200, 210), "radius": 160.0},
+	"desk": {"name": "Masuk ke Rumah Benedict", "pos": Vector2(1170, 230), "radius": 150.0},
 	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(350, 350), "radius": 220.0},
 	"station": {"name": "Stasiun Kereta Api (Minigame Cari Bukti)", "pos": Vector2(2020, 930), "radius": 320.0},
 	"hospital": {"name": "Rumah Sakit & Kamar Mayat", "pos": Vector2(750, 1095), "radius": 160.0},
-	"safe": {"name": "Brankas Baja Ibu Medeline (Minigame Kode)", "pos": Vector2(180, 1050), "radius": 140.0},
 	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 85.0}
 }
 
 var bgm_player: AudioStreamPlayer
 var click_sfx_player: AudioStreamPlayer
+var door_sfx_player: AudioStreamPlayer
 
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
 
 	_setup_audio_system()
+	_setup_dialog_box()
+	_setup_transition_overlay()
+	_setup_house_interior()
 	_setup_investigation_manager()
 	_setup_world_shader()
 	_setup_clue_journal()
@@ -50,13 +58,22 @@ func _ready() -> void:
 	_setup_hud_prompts()
 	_start_ai_server()
 
+	_update_hud_objective()
+
+func _setup_dialog_box() -> void:
+	if not is_instance_valid(dialog_box):
+		dialog_box = get_node_or_null("DialogBox")
+	if not is_instance_valid(dialog_box):
+		var dlg_scene = load("res://scenes/dialog_box.tscn")
+		if dlg_scene:
+			dialog_box = dlg_scene.instantiate()
+			dialog_box.name = "DialogBox"
+			add_child(dialog_box)
 	if is_instance_valid(dialog_box):
 		if not dialog_box.dialog_opened.is_connected(_on_dialog_opened):
 			dialog_box.dialog_opened.connect(_on_dialog_opened)
 		if not dialog_box.dialog_closed.is_connected(_on_dialog_closed):
 			dialog_box.dialog_closed.connect(_on_dialog_closed)
-
-	_update_hud_objective()
 
 func _setup_audio_system() -> void:
 	# 1. Background Music Player (BGM.mp3)
@@ -80,9 +97,96 @@ func _setup_audio_system() -> void:
 		click_sfx_player.volume_db = -4.0
 	add_child(click_sfx_player)
 
+	# 3. Door SFX Player (Door Open.mp3)
+	door_sfx_player = AudioStreamPlayer.new()
+	door_sfx_player.name = "DoorSFXPlayer"
+	var door_stream = load("res://sound/Door Open.mp3")
+	if door_stream:
+		door_sfx_player.stream = door_stream
+		door_sfx_player.volume_db = -3.0
+	add_child(door_sfx_player)
+
 func play_click_sfx() -> void:
 	if is_instance_valid(click_sfx_player) and click_sfx_player.stream:
 		click_sfx_player.play()
+
+func play_door_sfx() -> void:
+	if is_instance_valid(door_sfx_player) and door_sfx_player.stream:
+		door_sfx_player.play()
+
+func _setup_transition_overlay() -> void:
+	transition_layer = CanvasLayer.new()
+	transition_layer.name = "TransitionLayer"
+	transition_layer.layer = 25
+	add_child(transition_layer)
+
+	transition_overlay = ColorRect.new()
+	transition_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	transition_overlay.color = Color(0, 0, 0, 0.0)
+	transition_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	transition_layer.add_child(transition_overlay)
+
+func _setup_house_interior() -> void:
+	var hi_script = load("res://scripts/house_interior.gd")
+	if hi_script:
+		house_interior = Node2D.new()
+		house_interior.name = "HouseInterior"
+		house_interior.set_script(hi_script)
+		add_child(house_interior)
+
+func _enter_house() -> void:
+	if not is_instance_valid(player):
+		return
+	player.can_move = false
+	play_door_sfx()
+
+	var tw = create_tween()
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
+	tw.tween_callback(func():
+		is_inside_house = true
+		player.global_position = Vector2(3600.0 + 270.0, 400.0 + 310.0)
+		_show_toast("🏠 Masuk ke Dalam Rumah Benedict.")
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		player.can_move = true
+	)
+
+func _exit_house() -> void:
+	if not is_instance_valid(player):
+		return
+	player.can_move = false
+	play_door_sfx()
+
+	var tw = create_tween()
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
+	tw.tween_callback(func():
+		is_inside_house = false
+		player.global_position = Vector2(1170.0, 250.0)
+		_show_toast("🚪 Keluar ke Jalan Kota.")
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		player.can_move = true
+	)
+
+func _trigger_indoor_letter_monologue() -> void:
+	if not is_instance_valid(dialog_box):
+		_open_letter_closeup()
+		return
+
+	var monologue_lines: Array[String] = [
+		"hmmmmm.......",
+		"dari mana ya aku harus memulai",
+		"sepertinya aku harus menjumpai inspektur markus dulu"
+	]
+	if is_instance_valid(player):
+		player.can_move = false
+
+	dialog_box.start_monologue(monologue_lines, "Detektif Benedict", "[ Monolog Batin ]", "res://UI/mc_portrait.png")
+	dialog_box.monologue_finished.connect(func():
+		_open_letter_closeup()
+	, CONNECT_ONE_SHOT)
 
 func _setup_investigation_manager() -> void:
 	inv_mgr = get_node_or_null("/root/InvestigationManager")
@@ -406,6 +510,43 @@ func _check_poi_proximity() -> void:
 		return
 
 	var p_pos = player.global_position
+
+	if is_inside_house:
+		var desk_letter_pos = Vector2(3600.0 + 410.0, 400.0 + 250.0)
+		var safe_pos = Vector2(3600.0 + 505.0, 400.0 + 215.0)
+		var photo_basin_pos = Vector2(3600.0 + 335.0, 400.0 + 83.0)
+		var exit_door_pos = Vector2(3600.0 + 270.0, 400.0 + 342.0)
+
+		if p_pos.distance_to(desk_letter_pos) <= 52.0:
+			active_poi_id = "indoor_letter"
+		elif p_pos.distance_to(safe_pos) <= 42.0:
+			active_poi_id = "indoor_safe"
+		elif p_pos.distance_to(photo_basin_pos) <= 42.0:
+			active_poi_id = "indoor_photo_basin"
+		elif p_pos.distance_to(exit_door_pos) <= 38.0 or (p_pos.y >= (400.0 + 332.0) and abs(p_pos.x - (3600.0 + 270.0)) <= 38.0):
+			active_poi_id = "indoor_exit"
+		else:
+			active_poi_id = ""
+
+		if active_poi_id.is_empty():
+			if is_instance_valid(interact_prompt):
+				interact_prompt.visible = false
+		else:
+			if is_instance_valid(interact_prompt):
+				match active_poi_id:
+					"indoor_letter":
+						interact_prompt.text = "👉 [ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
+					"indoor_safe":
+						interact_prompt.text = "👉 [ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
+					"indoor_photo_basin":
+						interact_prompt.text = "👉 [ F / E / Spasi ] KAMAR GELAP: CUCI FOTO POLAROID"
+					"indoor_exit":
+						interact_prompt.text = "👉 [ F / E / Spasi ] KELUAR KE KOTA"
+				var vp = get_viewport().get_visible_rect().size
+				interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
+				interact_prompt.visible = true
+		return
+
 	var closest_dist: float = 999999.0
 	var best_poi: String = ""
 
@@ -415,7 +556,7 @@ func _check_poi_proximity() -> void:
 		best_poi = "station"
 		closest_dist = 0.0
 	# 2. Rumah Benedict (halaman, gerbang, dan jalan depan rumah: x 1050..1350, y 20..330)
-	elif p_pos.x >= 1050.0 and p_pos.x <= 1350.0 and p_pos.y >= 20.0 and p_pos.y <= 330.0:
+	elif not is_inside_house and p_pos.x >= 1050.0 and p_pos.x <= 1350.0 and p_pos.y >= 20.0 and p_pos.y <= 330.0:
 		best_poi = "desk"
 		closest_dist = 0.0
 	else:
@@ -469,7 +610,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 		elif event.keycode == KEY_4:
-			_trigger_poi_interaction("safe")
+			_trigger_poi_interaction("indoor_safe" if is_inside_house else "safe")
 			get_viewport().set_input_as_handled()
 			return
 
@@ -490,15 +631,25 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 
 	match poi_id:
 		"desk":
-			# Jika belum membaca surat penugasan awal, buka surat; jika sudah, langsung buka minigame cuci foto
-			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-				_open_letter_closeup()
-			elif is_instance_valid(minigame_photo_wash):
+			_enter_house()
+
+		"indoor_letter":
+			_trigger_indoor_letter_monologue()
+
+		"indoor_safe":
+			if is_instance_valid(minigame_safe):
+				player.can_move = false
+				minigame_safe.start_minigame()
+				_show_toast("🗝️ Membuka Brankas Baja Keluarga!")
+
+		"indoor_photo_basin":
+			if is_instance_valid(minigame_photo_wash):
 				player.can_move = false
 				minigame_photo_wash.start_minigame()
 				_show_toast("🧪 Masuk ke Kamar Gelap: Cuci Foto Polaroid!")
-			else:
-				_show_toast("Meja kerja detektif. Buka Jurnal [J] untuk meninjau petunjuk.")
+
+		"indoor_exit":
+			_exit_house()
 
 		"police":
 			var marcus_npc = find_child("NPC4", true, false)

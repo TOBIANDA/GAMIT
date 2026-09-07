@@ -145,6 +145,12 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_portrait_frame")
 layout_mode = 2
 color = Color(0.55, 0.2, 0.85, 0.35)
 
+[node name="PortraitTexture" type="TextureRect" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel"]
+visible = false
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="CenterContainer" type="CenterContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel"]
 layout_mode = 2
 

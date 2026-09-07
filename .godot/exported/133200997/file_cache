@@ -1,5 +1,12 @@
-res://scenes/death_god_shrine.tscn::a0fb6052b656a2d6ee51d5ce172d494e::1787030935::res://.godot/exported/133200997/export-ecfd00bf93051343ff9a239e7457f18e-death_god_shrine.scn
-res://scenes/dialog_box.tscn::0e3d98e8b0950027636c6ca4bc8c5d6f::1787030916::res://.godot/exported/133200997/export-4573ebbfedd2e5da466f451ba6d2c3d4-dialog_box.scn
-res://scenes/main.tscn::52220754d71bf18a9534c3719804118e::1787030951::res://.godot/exported/133200997/export-3ad5c15c4f3250da0cc7c1af1770d85f-main.scn
-res://scenes/player.tscn::4aa4ea1ea6981d19c70f933eb027fa26::1787030101::res://.godot/exported/133200997/export-234fb6894ec6226e856ab7f825500d3d-player.scn
+res://scenes/death_god_shrine.tscn::d32aae3cfd0973151b6f96a9ed3cb2d9::1787038288::res://.godot/exported/133200997/export-ecfd00bf93051343ff9a239e7457f18e-death_god_shrine.scn
+res://scenes/dialog_box.tscn::8efbe841d2af570e803bda751cd17679::1787580301::res://.godot/exported/133200997/export-4573ebbfedd2e5da466f451ba6d2c3d4-dialog_box.scn
+res://scenes/main.tscn::699eda28c2aa0f33bf310bbe81728a95::1788522589::res://.godot/exported/133200997/export-3ad5c15c4f3250da0cc7c1af1770d85f-main.scn
+res://scenes/player.tscn::05a9512d6d3c0e8d3e67ce81f76469c1::1787577094::res://.godot/exported/133200997/export-234fb6894ec6226e856ab7f825500d3d-player.scn
 res://node_2d.tscn::a6610564058e82d0ca7255c860900442::1786555841::res://.godot/exported/133200997/export-362256a061aa8890e9a1e558b11e5ec3-node_2d.scn
+res://scenes/ai_test_runner.tscn::23651e4e113859c955298bb810180d77::1788416918::res://.godot/exported/133200997/export-487840b7bb1ec18993b9a83049cc332c-ai_test_runner.scn
+res://scenes/autumn_weather.tscn::78504042cd9f97be880fec6e2ab5ecf1::1787592201::res://.godot/exported/133200997/export-e2d7c6e3a550d851e50d7b419270613c-autumn_weather.scn
+res://scenes/drivable_car.tscn::187a99dfc701b8ac9cbc37bad4b2df5d::1788017428::res://.godot/exported/133200997/export-371f896cea139e9ef029cda295ec5230-drivable_car.scn
+res://scenes/npc.tscn::df891184f05e56c56f350a4655382155::1787669160::res://.godot/exported/133200997/export-51652f9d5c9453037b2bf9159a453860-npc.scn
+res://scenes/opening_cutscene.tscn::bc82c2c3f1bf4aa6c7e53bdb54e2c84e::1787589720::res://.godot/exported/133200997/export-44b45a984c7d7ab6b63d5172e9d35718-opening_cutscene.scn
+res://scenes/snow_weather.tscn::a341a4a67713be39c36cf9bcf1d7be39::1787590937::res://.godot/exported/133200997/export-3618f127f36bb01a9acb08fd26a94d39-snow_weather.scn
+res://scenes/train.tscn::c94e5395ba799d7bd4e7585476425a7b::1787588778::res://.godot/exported/133200997/export-7a2177d939751d69eee4e6cb1d75fa03-train.scn
