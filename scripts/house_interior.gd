@@ -64,6 +64,8 @@ func _load_textures() -> void:
 func _build_room_collisions() -> void:
 	static_body = StaticBody2D.new()
 	static_body.name = "HouseInteriorCollisions"
+	static_body.collision_layer = 1
+	static_body.collision_mask = 0
 	add_child(static_body)
 
 	# 1. Dinding Luar Atas
@@ -86,18 +88,21 @@ func _build_room_collisions() -> void:
 	# 7. Kolisi Perabot Kamar Tidur
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 42.0, ROOM_ORIGIN.y + 40.0, 46.0, 50.0)) # Bed
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 138.0, ROOM_ORIGIN.y + 40.0, 44.0, 32.0)) # Wardrobe
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 94.0, ROOM_ORIGIN.y + 54.0, 22.0, 22.0)) # Nakas
 
 	# 8. Kolisi Perabot Ruang Tamu
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 88.0, ROOM_ORIGIN.y + 220.0, 65.0, 26.0)) # Sofa
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 100.0, ROOM_ORIGIN.y + 258.0, 40.0, 20.0)) # Meja Kopi
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 88.0, ROOM_ORIGIN.y + 220.0, 65.0, 30.0)) # Sofa
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 100.0, ROOM_ORIGIN.y + 258.0, 40.0, 24.0)) # Meja Kopi
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 53.0, ROOM_ORIGIN.y + 253.0, 24.0, 24.0)) # Armchair
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 24.0, ROOM_ORIGIN.y + 304.0, 22.0, 22.0)) # Corner Table
 
 	# 9. Kolisi Perabot Dapur & Meja Cuci Foto
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 390.0, ROOM_ORIGIN.y + 40.0, 100.0, 48.0)) # Kitchen Unit
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 306.0, ROOM_ORIGIN.y + 60.0, 48.0, 28.0)) # Meja Foto
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 390.0, ROOM_ORIGIN.y + 40.0, 100.0, 52.0)) # Kitchen Unit
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 306.0, ROOM_ORIGIN.y + 60.0, 48.0, 34.0)) # Meja Foto
 
-	# 10. Kolisi Meja Kerja Detektif & Brankas
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 371.0, ROOM_ORIGIN.y + 232.0, 78.0, 32.0)) # Meja Kerja
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 491.0, ROOM_ORIGIN.y + 202.0, 28.0, 26.0)) # Brankas Baja
+	# 10. Kolisi Meja Kerja Detektif & Brankas (Pembatas solid agar tidak tembus)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 371.0, ROOM_ORIGIN.y + 228.0, 78.0, 45.0)) # Meja Kerja Detektif
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 491.0, ROOM_ORIGIN.y + 200.0, 28.0, 30.0)) # Brankas Baja
 
 func _add_box_collider(body: StaticBody2D, rect: Rect2) -> void:
 	var col = CollisionShape2D.new()
@@ -111,13 +116,13 @@ func _setup_furniture_nodes() -> void:
 	# ==========================================
 	# 1. ZONE KAMAR TIDUR (Top-Left)
 	# ==========================================
-	# Karpet Kamar
+	# Karpet Kamar (di bawah lantai)
 	if is_instance_valid(tex_karpet_kamar):
 		var sp = Sprite2D.new()
 		sp.texture = tex_karpet_kamar
 		sp.position = ROOM_ORIGIN + Vector2(65.0, 125.0)
 		sp.scale = Vector2(50.0 / tex_karpet_kamar.get_width(), 50.0 / tex_karpet_kamar.get_width())
-		sp.z_index = 0
+		sp.z_index = -1
 		add_child(sp)
 
 	# Ranjang Tidur (Bed)
@@ -126,7 +131,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_bed
 		sp.position = ROOM_ORIGIN + Vector2(65.0, 80.0)
 		sp.scale = Vector2(46.0 / tex_bed.get_width(), 46.0 / tex_bed.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Nakas / Meja Kecil dengan Bunga
@@ -135,7 +140,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_laci
 		sp.position = ROOM_ORIGIN + Vector2(105.0, 65.0)
 		sp.scale = Vector2(22.0 / tex_laci.get_width(), 22.0 / tex_laci.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Lemari Pakaian Kayu
@@ -144,19 +149,19 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_lemari
 		sp.position = ROOM_ORIGIN + Vector2(160.0, 65.0)
 		sp.scale = Vector2(44.0 / tex_lemari.get_width(), 44.0 / tex_lemari.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# ==========================================
 	# 2. ZONE RUANG TAMU (Bottom-Left)
 	# ==========================================
-	# Karpet Tamu Oval
+	# Karpet Tamu Oval (di bawah lantai)
 	if is_instance_valid(tex_karpet):
 		var sp = Sprite2D.new()
 		sp.texture = tex_karpet
 		sp.position = ROOM_ORIGIN + Vector2(120.0, 265.0)
 		sp.scale = Vector2(85.0 / tex_karpet.get_width(), 85.0 / tex_karpet.get_width())
-		sp.z_index = 0
+		sp.z_index = -1
 		add_child(sp)
 
 	# Sofa Tamu Hijau
@@ -165,7 +170,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_sofa_panjang
 		sp.position = ROOM_ORIGIN + Vector2(120.0, 235.0)
 		sp.scale = Vector2(65.0 / tex_sofa_panjang.get_width(), 65.0 / tex_sofa_panjang.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Meja Kopi Panjang
@@ -174,7 +179,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_meja_panjang
 		sp.position = ROOM_ORIGIN + Vector2(120.0, 270.0)
 		sp.scale = Vector2(40.0 / tex_meja_panjang.get_width(), 40.0 / tex_meja_panjang.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Sofa Kecil Samping (Armchair)
@@ -183,7 +188,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_sofa_kecil
 		sp.position = ROOM_ORIGIN + Vector2(65.0, 265.0)
 		sp.scale = Vector2(24.0 / tex_sofa_kecil.get_width(), 24.0 / tex_sofa_kecil.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Meja Hias Bunga di Sudut Tamu
@@ -192,7 +197,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_laci
 		sp.position = ROOM_ORIGIN + Vector2(35.0, 315.0)
 		sp.scale = Vector2(22.0 / tex_laci.get_width(), 22.0 / tex_laci.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# ==========================================
@@ -204,38 +209,45 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_kitchen_unit
 		sp.position = ROOM_ORIGIN + Vector2(440.0, 80.0)
 		sp.scale = Vector2(100.0 / tex_kitchen_unit.get_width(), 100.0 / tex_kitchen_unit.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Meja Kayu Lab Cuci Foto
+	var sp_meja_foto: Sprite2D = null
 	if is_instance_valid(tex_meja_lab_foto):
-		var sp = Sprite2D.new()
-		sp.texture = tex_meja_lab_foto
-		sp.position = ROOM_ORIGIN + Vector2(330.0, 85.0)
-		sp.scale = Vector2(48.0 / tex_meja_lab_foto.get_width(), 48.0 / tex_meja_lab_foto.get_width())
-		sp.z_index = 1
-		add_child(sp)
+		sp_meja_foto = Sprite2D.new()
+		sp_meja_foto.texture = tex_meja_lab_foto
+		sp_meja_foto.position = ROOM_ORIGIN + Vector2(330.0, 85.0)
+		sp_meja_foto.scale = Vector2(48.0 / tex_meja_lab_foto.get_width(), 48.0 / tex_meja_lab_foto.get_width())
+		sp_meja_foto.z_index = 0
+		add_child(sp_meja_foto)
 
 	# Baskom Cuci Foto (Ditaruh tepat DI ATAS meja lab foto)
 	if is_instance_valid(tex_baskom):
 		var sp = Sprite2D.new()
 		sp.texture = tex_baskom
-		sp.position = PHOTO_BASIN_POS
-		sp.scale = Vector2(26.0 / tex_baskom.get_width(), 26.0 / tex_baskom.get_width())
-		sp.z_index = 2
-		add_child(sp)
+		if is_instance_valid(sp_meja_foto):
+			sp.position = Vector2(5.0, -2.0)
+			sp.scale = Vector2(26.0 / (48.0 * (tex_baskom.get_width() / tex_meja_lab_foto.get_width())), 26.0 / (48.0 * (tex_baskom.get_width() / tex_meja_lab_foto.get_width())))
+			sp_meja_foto.add_child(sp)
+		else:
+			sp.position = PHOTO_BASIN_POS
+			sp.scale = Vector2(26.0 / tex_baskom.get_width(), 26.0 / tex_baskom.get_width())
+			sp.z_index = 0
+			add_child(sp)
 
 	# ==========================================
 	# 4. ZONE RUANG KERJA DETEKTIF & BRANKAS (Bottom-Right)
 	# ==========================================
 	# Meja Kerja Detektif Kayu (dengan bantalan kulit, lampu bankir, wadah tinta, dan buku catatan)
+	var sp_meja: Sprite2D = null
 	if is_instance_valid(tex_meja_detektif):
-		var sp = Sprite2D.new()
-		sp.texture = tex_meja_detektif
-		sp.position = ROOM_ORIGIN + Vector2(410.0, 250.0)
-		sp.scale = Vector2(78.0 / tex_meja_detektif.get_width(), 78.0 / tex_meja_detektif.get_width())
-		sp.z_index = 1
-		add_child(sp)
+		sp_meja = Sprite2D.new()
+		sp_meja.texture = tex_meja_detektif
+		sp_meja.position = ROOM_ORIGIN + Vector2(410.0, 250.0)
+		sp_meja.scale = Vector2(78.0 / tex_meja_detektif.get_width(), 78.0 / tex_meja_detektif.get_width())
+		sp_meja.z_index = 0
+		add_child(sp_meja)
 
 	# Brankas Baja Keluarga (Di sudut ruang kerja, bebas box putih)
 	if is_instance_valid(tex_berangkas):
@@ -244,7 +256,7 @@ func _setup_furniture_nodes() -> void:
 		sp.texture = tex_berangkas
 		sp.position = SAFE_POS
 		sp.scale = Vector2(28.0 / tex_berangkas.get_width(), 28.0 / tex_berangkas.get_width())
-		sp.z_index = 1
+		sp.z_index = 0
 		add_child(sp)
 
 	# Surat Penugasan (Ditaruh tepat DI ATAS meja kerja detektif secara realistis)
@@ -252,18 +264,23 @@ func _setup_furniture_nodes() -> void:
 		sprite_letter = Sprite2D.new()
 		sprite_letter.name = "SpriteSurat"
 		sprite_letter.texture = tex_surat
-		sprite_letter.position = DESK_LETTER_POS
-		# Skala realistis: amplop asli sekitar 18 px lebar
-		var s_factor = 18.0 / tex_surat.get_width()
-		sprite_letter.scale = Vector2(s_factor, s_factor)
-		sprite_letter.z_index = 2
-		add_child(sprite_letter)
+		if is_instance_valid(sp_meja):
+			sprite_letter.position = Vector2(0.0, 0.0)
+			var base_s = (18.0 / tex_surat.get_width()) / (78.0 / tex_meja_detektif.get_width())
+			sprite_letter.scale = Vector2(base_s, base_s)
+			sp_meja.add_child(sprite_letter)
+		else:
+			sprite_letter.position = DESK_LETTER_POS
+			var s_factor = 18.0 / tex_surat.get_width()
+			sprite_letter.scale = Vector2(s_factor, s_factor)
+			sprite_letter.z_index = 0
+			add_child(sprite_letter)
 
 func _process(delta: float) -> void:
 	letter_glow_time += delta * 3.5
-	if is_instance_valid(sprite_letter) and tex_surat:
-		var base_s = 18.0 / tex_surat.get_width()
-		var s = base_s + (0.0004 * sin(letter_glow_time))
+	if is_instance_valid(sprite_letter) and tex_surat and tex_meja_detektif:
+		var base_s = (18.0 / tex_surat.get_width()) / (78.0 / tex_meja_detektif.get_width())
+		var s = base_s * (1.0 + 0.05 * sin(letter_glow_time))
 		sprite_letter.scale = Vector2(s, s)
 	queue_redraw()
 

@@ -22,6 +22,7 @@ const TYPING_SPEED = 0.028
 @onready var margin_container: MarginContainer = $RootControl/BottomPanel/MarginContainer
 @onready var portrait_box: VBoxContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox
 @onready var large_portrait: TextureRect = $RootControl/LargePortrait
+@onready var continue_prompt: Label = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/ContinuePrompt")
 
 var full_text: String = ""
 var current_char_idx: int = 0
@@ -34,6 +35,7 @@ var click_player: AudioStreamPlayer
 var is_monologue_mode: bool = false
 var monologue_lines: Array[String] = []
 var monologue_index: int = 0
+var auto_advance_timer: float = 0.0
 
 func _ready() -> void:
 	_ensure_nodes()
@@ -74,6 +76,8 @@ func _ensure_nodes() -> void:
 		margin_container = $RootControl/BottomPanel/MarginContainer
 	if portrait_box == null and has_node("RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox"):
 		portrait_box = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox
+	if continue_prompt == null and has_node("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/ContinuePrompt"):
+		continue_prompt = $RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/ContinuePrompt
 
 	submit_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.focus_mode = Control.FOCUS_NONE
@@ -90,6 +94,19 @@ func _ensure_nodes() -> void:
 		_play_click()
 		_on_submit_pressed()
 	)
+
+	# Pastikan klik pada area dialog memajukan monolog seketika
+	if is_instance_valid(root_control) and not root_control.gui_input.is_connected(_on_screen_gui_input):
+		root_control.gui_input.connect(_on_screen_gui_input)
+	if is_instance_valid(bottom_panel) and not bottom_panel.gui_input.is_connected(_on_screen_gui_input):
+		bottom_panel.gui_input.connect(_on_screen_gui_input)
+
+func _on_screen_gui_input(event: InputEvent) -> void:
+	if not is_active:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if is_monologue_mode:
+			_advance_monologue()
 
 func _play_click() -> void:
 	if is_instance_valid(click_player) and click_player.stream:
@@ -109,6 +126,8 @@ func _process(delta: float) -> void:
 			portrait_glow.color = Color(0.6, 0.2, 0.9, alpha)
 
 	if is_typing:
+		if is_instance_valid(continue_prompt):
+			continue_prompt.visible = false
 		typing_timer += delta
 		if typing_timer >= TYPING_SPEED:
 			typing_timer = 0.0
@@ -121,9 +140,29 @@ func _process(delta: float) -> void:
 					click_player.play()
 			else:
 				is_typing = false
+				auto_advance_timer = 0.0
 				if not is_monologue_mode:
 					input_container.visible = true
 					input_edit.call_deferred("grab_focus")
+	else:
+		# Pengetikan selesai: tampilkan prompt lanjut dan hitung auto-advance
+		if is_monologue_mode:
+			if is_instance_valid(continue_prompt):
+				continue_prompt.visible = true
+				if monologue_index + 1 < monologue_lines.size():
+					continue_prompt.text = "▶ Klik / Spasi / E untuk lanjut"
+				else:
+					continue_prompt.text = "▶ Klik / Spasi / E untuk selesai"
+				continue_prompt.modulate.a = 0.7 + 0.3 * sin(glow_timer * 3.0)
+			
+			# Auto-advance setelah jeda 1.8 detik membaca agar alur dialog tetap berjalan otomatis
+			auto_advance_timer += delta
+			if auto_advance_timer >= 1.8:
+				auto_advance_timer = 0.0
+				_advance_monologue()
+		else:
+			if is_instance_valid(continue_prompt):
+				continue_prompt.visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active:
@@ -147,6 +186,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 func _advance_monologue() -> void:
+	auto_advance_timer = 0.0
 	if is_typing:
 		# Jika sedang mengetik, selesaikan baris seketika
 		text_label.text = full_text

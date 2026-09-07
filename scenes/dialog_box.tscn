@@ -234,6 +234,15 @@ theme_override_font_sizes/font_size = 14
 text = "..."
 autowrap_mode = 3
 
+[node name="ContinuePrompt" type="Label" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(1.0, 0.85, 0.35, 1.0)
+theme_override_font_sizes/font_size = 12
+text = "▶ Klik / Spasi / E untuk lanjut"
+
 [node name="InputContainer" type="HBoxContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
