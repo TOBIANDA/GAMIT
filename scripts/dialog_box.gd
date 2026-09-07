@@ -18,6 +18,10 @@ const TYPING_SPEED = 0.028
 @onready var portrait_glow: ColorRect = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/AuraGlow
 @onready var portrait_texture: TextureRect = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/PortraitTexture
 @onready var avatar_visual_container: CenterContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer
+@onready var bottom_panel: PanelContainer = $RootControl/BottomPanel
+@onready var margin_container: MarginContainer = $RootControl/BottomPanel/MarginContainer
+@onready var portrait_box: VBoxContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox
+@onready var large_portrait: TextureRect = $RootControl/LargePortrait
 
 var full_text: String = ""
 var current_char_idx: int = 0
@@ -58,6 +62,18 @@ func _ensure_nodes() -> void:
 		portrait_glow = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/AuraGlow
 		portrait_texture = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/PortraitTexture
 		avatar_visual_container = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox/PortraitPanel/CenterContainer
+		bottom_panel = $RootControl/BottomPanel
+		margin_container = $RootControl/BottomPanel/MarginContainer
+		portrait_box = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox
+		large_portrait = $RootControl/LargePortrait
+	if large_portrait == null and has_node("RootControl/LargePortrait"):
+		large_portrait = $RootControl/LargePortrait
+	if bottom_panel == null and has_node("RootControl/BottomPanel"):
+		bottom_panel = $RootControl/BottomPanel
+	if margin_container == null and has_node("RootControl/BottomPanel/MarginContainer"):
+		margin_container = $RootControl/BottomPanel/MarginContainer
+	if portrait_box == null and has_node("RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox"):
+		portrait_box = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox
 
 	submit_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.focus_mode = Control.FOCUS_NONE
@@ -85,7 +101,7 @@ func _process(delta: float) -> void:
 		return
 
 	glow_timer += delta * 3.0
-	if is_instance_valid(portrait_glow):
+	if is_instance_valid(portrait_glow) and portrait_glow.visible:
 		var alpha = 0.35 + sin(glow_timer) * 0.2
 		if is_monologue_mode:
 			portrait_glow.color = Color(0.2, 0.5, 0.85, alpha)
@@ -165,13 +181,26 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 	if is_instance_valid(input_container):
 		input_container.visible = false
 
+	# Sembunyikan frame kotak potret kecil dan aura glow bawaan dialog box (tanpa frame kotak)
+	if is_instance_valid(portrait_box):
+		portrait_box.visible = false
+	if is_instance_valid(portrait_glow):
+		portrait_glow.visible = false
 	if is_instance_valid(avatar_visual_container):
 		avatar_visual_container.visible = false
 	if is_instance_valid(portrait_texture):
+		portrait_texture.visible = false
+
+	# Beri ruang di sebelah kiri dialog box agar teks rapi di samping MC
+	if is_instance_valid(margin_container):
+		margin_container.add_theme_constant_override("margin_left", 440)
+
+	# Tampilkan gambar MC 5x lipat tanpa frame kotak (cutout transparan)
+	if is_instance_valid(large_portrait):
 		var tex = load(portrait_path)
 		if tex:
-			portrait_texture.texture = tex
-		portrait_texture.visible = true
+			large_portrait.texture = tex
+		large_portrait.visible = true
 
 	dialog_opened.emit()
 
@@ -194,6 +223,14 @@ func open_dialog(initial_prompt: String = "") -> void:
 	status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 	status_badge.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
 
+	if is_instance_valid(large_portrait):
+		large_portrait.visible = false
+	if is_instance_valid(margin_container):
+		margin_container.add_theme_constant_override("margin_left", 16)
+	if is_instance_valid(portrait_box):
+		portrait_box.visible = true
+	if is_instance_valid(portrait_glow):
+		portrait_glow.visible = true
 	if is_instance_valid(portrait_texture):
 		portrait_texture.visible = false
 	if is_instance_valid(avatar_visual_container):
@@ -217,6 +254,10 @@ func close_dialog() -> void:
 	is_active = false
 	is_typing = false
 	is_monologue_mode = false
+	if is_instance_valid(large_portrait):
+		large_portrait.visible = false
+	if is_instance_valid(margin_container):
+		margin_container.add_theme_constant_override("margin_left", 16)
 	if is_instance_valid(root_control):
 		root_control.visible = false
 	dialog_closed.emit()
