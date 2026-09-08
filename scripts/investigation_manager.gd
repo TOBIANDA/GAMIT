@@ -51,7 +51,7 @@ var clues: Dictionary = {
 	"photo_envelope": {
 		"unlocked": false,
 		"title": "📁 Amplop Foto TKP",
-		"desc": "Amplop tersegel berisi rol film foto korban sebelum meninggal. Perlu dicuci di kamar gelap rumah.",
+		"desc": "Amplop tersegel berisi rol film foto korban sebelum meninggal. Perlu dicuci di Kamar Gelap Lab Forensik Kantor Polisi.",
 		"phase": 2
 	},
 	"developed_photos": {
@@ -98,11 +98,11 @@ func get_current_objective_title() -> String:
 		Phase.PROLOGUE_HOME:
 			return "Periksa Meja Kerja & Pergi ke Kantor Polisi"
 		Phase.INVESTIGATION_1_POLICE:
-			return "Temui / Kuntit Inspektur Marcus di Kantor Polisi"
+			return "Kuntit & Uping Inspektur Marcus di Kantor Polisi"
 		Phase.INVESTIGATION_2_STATION:
 			return "Selidiki Bukti di Stasiun Kereta Api Ujung Timur"
 		Phase.INVESTIGATION_3_PHOTO:
-			return "Kembali ke Rumah & Cuci Foto di Kamar Gelap"
+			return "Pergi ke Kantor Polisi & Cuci Foto di Lab Forensik"
 		Phase.INVESTIGATION_4_HOSPITAL:
 			return "Menyelinap ke Kamar Mayat Rumah Sakit"
 		Phase.FINAL_DEATH_GOD:
@@ -114,11 +114,11 @@ func get_current_objective_desc() -> String:
 		Phase.PROLOGUE_HOME:
 			return "Kamu menemukan surat tugas misterius di meja dan foto masa kecil bersama Ibu Medeline. Clue pertama memintamu pergi ke Kantor Polisi di barat."
 		Phase.INVESTIGATION_1_POLICE:
-			return "Inspektur Marcus sedang bergerak. Ikuti dia (Tailgate) dengan menjaga jarak aman dan jangan sampai membuat warga sekitar panik."
+			return "Dua polisi sedang mengobrol di depan kantor polisi. Dekati dan buntuti mereka untuk menguping petunjuk kasus pembunuhan."
 		Phase.INVESTIGATION_2_STATION:
 			return "Stasiun kereta api menyimpan jejak terakhir korban. Cari amplop foto, tiket kereta, dan jam saku rusak sebelum waktu habis."
 		Phase.INVESTIGATION_3_PHOTO:
-			return "Bawa rol film ke bak cairan kimia di rumahmu. Rendam dan bilas dengan hati-hati untuk mengungkap identitas korban."
+			return "Bawa rol film ke Kamar Gelap Lab Forensik di Kantor Polisi. Rendam dan bilas dengan hati-hati untuk mengungkap identitas korban."
 		Phase.INVESTIGATION_4_HOSPITAL:
 			return "Foto menunjukkan fakta ganjil. Pergilah ke Rumah Sakit di bagian selatan untuk memverifikasi jasad korban secara langsung."
 		Phase.FINAL_DEATH_GOD:

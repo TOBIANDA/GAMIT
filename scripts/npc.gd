@@ -31,7 +31,7 @@ const SHARED_DESTINATIONS = [
 const POLICE_PATROL_WAYPOINTS = [
 	Vector2(350, 258),
 	Vector2(577, 258),
-	Vector2(1104, 780),
+	Vector2(1270, 619),
 	Vector2(2088, 520),
 	Vector2(1581, 780),
 	Vector2(411, 1278)

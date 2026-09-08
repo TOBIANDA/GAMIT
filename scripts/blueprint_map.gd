@@ -296,27 +296,12 @@ var tex_telepon: Texture2D
 		rumah_se_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
 
-@export_group("12. Rumah Belakang (Central South)")
-@export var rumah_belakang_geser_x: float = 0.0:
-	set(val):
-		rumah_belakang_geser_x = 0.0 if val == null else float(val)
-		queue_redraw()
-@export var rumah_belakang_geser_y: float = 0.0:
-	set(val):
-		rumah_belakang_geser_y = 0.0 if val == null else float(val)
-		queue_redraw()
-@export var rumah_belakang_lebar: float = 220.0:
-	set(val):
-		rumah_belakang_lebar = 220.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
-@export var rumah_belakang_tinggi: float = 175.0:
-	set(val):
-		rumah_belakang_tinggi = 175.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
-@export var rumah_belakang_skala: float = 1.0:
-	set(val):
-		rumah_belakang_skala = 1.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
+# Legacy compatibility properties (Rumah Belakang replaced by WTC South District)
+var rumah_belakang_geser_x: float = 0.0
+var rumah_belakang_geser_y: float = 0.0
+var rumah_belakang_lebar: float = 220.0
+var rumah_belakang_tinggi: float = 175.0
+var rumah_belakang_skala: float = 1.0
 
 @export_group("13. Dua Rumah Blok NE (East Complex)")
 @export var rumah_ne_base_x: float = 1652.0:
@@ -358,27 +343,12 @@ func get_ne_house_positions() -> Array[Vector2]:
 	var step = (rumah_ne_jarak if rumah_ne_jarak != null else 182.0)
 	return [Vector2(bx, by), Vector2(bx + step, by)]
 
-@export_group("14. Kamar Jenazah (Morgue Plaza)")
-@export var morgue_geser_x: float = 0.0:
-	set(val):
-		morgue_geser_x = 0.0 if val == null else float(val)
-		queue_redraw()
-@export var morgue_geser_y: float = 0.0:
-	set(val):
-		morgue_geser_y = 0.0 if val == null else float(val)
-		queue_redraw()
-@export var morgue_lebar: float = 380.0:
-	set(val):
-		morgue_lebar = 380.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
-@export var morgue_tinggi: float = 225.0:
-	set(val):
-		morgue_tinggi = 225.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
-@export var morgue_skala: float = 1.0:
-	set(val):
-		morgue_skala = 1.0 if (val == null or val <= 0.0) else float(val)
-		queue_redraw()
+# Legacy compatibility properties (Morgue Plaza replaced by WTC North Financial District)
+var morgue_geser_x: float = 0.0
+var morgue_geser_y: float = 0.0
+var morgue_lebar: float = 380.0
+var morgue_tinggi: float = 225.0
+var morgue_skala: float = 1.0
 
 @export_group("15. Pembatas Kuning Kereta (Platform Yellow Line)")
 @export var pembatas_kuning_lebar: float = 20.0:
@@ -761,53 +731,119 @@ func _draw_rooftop_props_to(ci: CanvasItem, b_rect: Rect2, seed_idx: int) -> voi
 		ci.draw_line(Vector2(ant_x - 4, ant_y - 8), Vector2(ant_x + 4, ant_y - 8), Color(0.25, 0.28, 0.30), 1.0)
 		ci.draw_circle(Vector2(ant_x, ant_y - 14), 2.0, Color(1.0, 0.22, 0.22))
 
-@export_group("14b. Gedung Plaza Tengah (Central Plaza)")
-@export var gedung_tengah_tampilkan: bool = true:
+@export_group("21. Metropolitan World Trade Center Complex")
+@export var wtc_tampilkan: bool = true:
 	set(val):
-		gedung_tengah_tampilkan = val
+		wtc_tampilkan = val
 		queue_redraw()
-@export var gedung_tengah_skala: float = 0.92:
+@export var wtc_twin_skala: float = 1.0:
 	set(val):
-		gedung_tengah_skala = 0.92 if (val == null or val <= 0.0) else float(val)
+		wtc_twin_skala = 1.0 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var gedung_tengah_jumlah: int = 3:
+@export var wtc_twin_geser_x: float = 0.0:
 	set(val):
-		gedung_tengah_jumlah = max(1, val)
+		wtc_twin_geser_x = 0.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_tengah_jarak_x: float = 30.0:
+@export var wtc_twin_geser_y: float = 0.0:
 	set(val):
-		gedung_tengah_jarak_x = 30.0 if val == null else float(val)
+		wtc_twin_geser_y = 0.0 if val == null else float(val)
 		queue_redraw()
-@export var gedung_tengah_geser_x: float = 0.0:
+@export var wtc_north_skala: float = 0.95:
 	set(val):
-		gedung_tengah_geser_x = 0.0 if val == null else float(val)
+		wtc_north_skala = 0.95 if (val == null or val <= 0.0) else float(val)
 		queue_redraw()
-@export var gedung_tengah_geser_y: float = 0.0:
+@export var wtc_north_jumlah: int = 5:
 	set(val):
-		gedung_tengah_geser_y = 0.0 if val == null else float(val)
+		wtc_north_jumlah = max(1, val)
+		queue_redraw()
+@export var wtc_north_geser_x: float = 0.0:
+	set(val):
+		wtc_north_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var wtc_north_geser_y: float = 0.0:
+	set(val):
+		wtc_north_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var wtc_south_skala: float = 0.92:
+	set(val):
+		wtc_south_skala = 0.92 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var wtc_south_geser_x: float = 0.0:
+	set(val):
+		wtc_south_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var wtc_south_geser_y: float = 0.0:
+	set(val):
+		wtc_south_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var wtc_pool_tampilkan: bool = true:
+	set(val):
+		wtc_pool_tampilkan = val
+		queue_redraw()
+@export var wtc_pool_geser_x: float = 0.0:
+	set(val):
+		wtc_pool_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var wtc_pool_geser_y: float = 0.0:
+	set(val):
+		wtc_pool_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var wtc_spire_tampilkan: bool = true:
+	set(val):
+		wtc_spire_tampilkan = val
 		queue_redraw()
 
+# Legacy compatibility properties
+var gedung_tengah_tampilkan: bool = false
+var gedung_tengah_skala: float = 0.92
+var gedung_tengah_jumlah: int = 3
+var gedung_tengah_jarak_x: float = 30.0
+var gedung_tengah_geser_x: float = 0.0
+var gedung_tengah_geser_y: float = 0.0
+
 func get_tengah_gedung_rects() -> Array[Rect2]:
-	var sk: float = 1.0 if (gedung_tengah_skala == null or gedung_tengah_skala <= 0.0) else float(gedung_tengah_skala)
-	var gx: float = (gedung_tengah_geser_x if gedung_tengah_geser_x != null else 0.0)
-	var gy: float = (gedung_tengah_geser_y if gedung_tengah_geser_y != null else 0.0)
-	var count: int = max(1, gedung_tengah_jumlah if gedung_tengah_jumlah != null else 3)
-	var base_w: float = 88.0 * sk
-	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
-	var step_x: float = (gedung_tengah_jarak_x if gedung_tengah_jarak_x != null else 30.0) * sk
-	
-	# Area x: 1150 sampai 1530 (lebar 380), y: 324 sampai 549 (tinggi 225)
-	var area_start_x: float = 1150.0
-	var area_w: float = 376.0
-	var total_w: float = float(count) * base_w + float(count - 1) * step_x
-	var start_x: float = area_start_x + (area_w - total_w) * 0.5 + gx
-	var start_y: float = 324.0 + (225.0 - base_h) * 0.5 + gy
-	
+	return []
+
+func get_wtc_north_towers() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
+	var count: int = max(1, wtc_north_jumlah if wtc_north_jumlah != null else 5)
+	var sk: float = 1.0 if (wtc_north_skala == null or wtc_north_skala <= 0.0) else float(wtc_north_skala)
+	var base_w: float = 86.0 * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	var area_start_x: float = 660.0
+	var area_w: float = 856.0
+	var total_w: float = float(count) * base_w
+	var gap: float = (area_w - total_w) / float(max(1, count - 1))
+	var start_y: float = 324.0 + (225.0 - base_h) * 0.5 + (wtc_north_geser_y if wtc_north_geser_y != null else 0.0)
 	for i in range(count):
-		var cur_x: float = start_x + float(i) * (base_w + step_x)
+		var cur_x: float = area_start_x + float(i) * (base_w + gap) + (wtc_north_geser_x if wtc_north_geser_x != null else 0.0)
 		rects.append(Rect2(cur_x, start_y, base_w, base_h))
 	return rects
+
+func get_wtc_twin_towers() -> Array[Rect2]:
+	var sk: float = 1.0 if (wtc_twin_skala == null or wtc_twin_skala <= 0.0) else float(wtc_twin_skala)
+	var base_w: float = 104.0 * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	var gx: float = (wtc_twin_geser_x if wtc_twin_geser_x != null else 0.0)
+	var gy: float = (wtc_twin_geser_y if wtc_twin_geser_y != null else 0.0)
+	var t1 = Rect2(1075.0 + gx, 712.0 + gy, base_w, base_h)
+	var t2 = Rect2(1357.0 + gx, 712.0 + gy, base_w, base_h)
+	return [t1, t2]
+
+func get_wtc_memorial_pool_rect() -> Rect2:
+	var gx: float = (wtc_pool_geser_x if wtc_pool_geser_x != null else 0.0)
+	var gy: float = (wtc_pool_geser_y if wtc_pool_geser_y != null else 0.0)
+	return Rect2(1183.0 + gx, 965.0 + gy, 170.0, 110.0)
+
+func get_wtc_south_flank_towers() -> Array[Rect2]:
+	var sk: float = 1.0 if (wtc_south_skala == null or wtc_south_skala <= 0.0) else float(wtc_south_skala)
+	var base_w: float = 84.0 * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	var gx: float = (wtc_south_geser_x if wtc_south_geser_x != null else 0.0)
+	var gy: float = (wtc_south_geser_y if wtc_south_geser_y != null else 0.0)
+	var t3 = Rect2(1065.0 + gx, 995.0 + gy, base_w, base_h)
+	var t4 = Rect2(1387.0 + gx, 995.0 + gy, base_w, base_h)
+	return [t3, t4]
 
 func get_rs_gedung_rects() -> Array[Rect2]:
 	var sk: float = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
@@ -998,11 +1034,7 @@ class RoofOverlayNode extends Node2D:
 		for hy in [705.0, 880.0, 1055.0]:
 			_draw_house_roof(map.tex_rumah_depan, Rect2(1636 + 12 + rse_gx, hy + 6 + rse_gy, rse_w, rse_h))
 
-		# ── 3. Rumah Belakang & Samping ────────────────────────────────────────
-		var rb_sk = 1.0 if (map.rumah_belakang_skala == null or map.rumah_belakang_skala <= 0.0) else float(map.rumah_belakang_skala)
-		var rb_w = (map.rumah_belakang_lebar if (map.rumah_belakang_lebar != null and map.rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
-		var rb_h = (map.rumah_belakang_tinggi if (map.rumah_belakang_tinggi != null and map.rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
-		_draw_house_roof(map.tex_rumah_belakang, Rect2(1180 + (map.rumah_belakang_geser_x if map.rumah_belakang_geser_x != null else 0.0), 745 + (map.rumah_belakang_geser_y if map.rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
+		# ── 3. (Rumah Belakang removed for WTC Complex) ────────────────────────
 
 		# ── 3b. Atap 2 Rumah Blok NE ──────────────────────────────────────────
 		var rne_sk = 1.0 if (map.rumah_ne_skala == null or map.rumah_ne_skala <= 0.0) else float(map.rumah_ne_skala)
@@ -1061,17 +1093,46 @@ class RoofOverlayNode extends Node2D:
 			if map.gedung_nw_rooftop_props:
 				map._draw_rooftop_props_to(self, bg_rect, 99)
 
-		# Atap Gedung-Gedung Plaza Tengah
-		if map.gedung_tengah_tampilkan and is_instance_valid(map.tex_gedung):
-			var tengah_rects: Array[Rect2] = map.get_tengah_gedung_rects()
-			for idx in range(tengah_rects.size()):
-				var b_rect: Rect2 = tengah_rects[idx]
+		# ── Atap Kompleks Metropolitan World Trade Center ──────────────────────
+		if map.wtc_tampilkan and is_instance_valid(map.tex_gedung):
+			# 1. Barisan Gedung Finansial Utara (5 Gedung)
+			var north_rects: Array[Rect2] = map.get_wtc_north_towers()
+			for idx in range(north_rects.size()):
+				var b_rect: Rect2 = north_rects[idx]
 				var roof_h: float = b_rect.size.y * 0.35
 				var src_h: float = 2031.0 * 0.35
 				var src := Rect2(1620.0, 822.0, 951.0, src_h)
 				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src, Color.WHITE)
-				if map.gedung_nw_rooftop_props:
-					map._draw_rooftop_props_to(self, b_rect, 50 + idx)
+				map._draw_rooftop_props_to(self, b_rect, 10 + idx)
+
+			# 2. Menara Kembar WTC (1 WTC & 2 WTC)
+			var twin_rects: Array[Rect2] = map.get_wtc_twin_towers()
+			if twin_rects.size() >= 2:
+				var t1_rect: Rect2 = twin_rects[0]
+				var t2_rect: Rect2 = twin_rects[1]
+				
+				# Menara 1 (North Tower) + Antena Spire Perak
+				var t1_roof_h: float = t1_rect.size.y * 0.35
+				var t1_src := Rect2(1620.0, 822.0, 951.0, 2031.0 * 0.35)
+				draw_texture_rect_region(map.tex_gedung, Rect2(t1_rect.position, Vector2(t1_rect.size.x, t1_roof_h)), t1_src, Color.WHITE)
+				if map.wtc_spire_tampilkan:
+					map._draw_wtc_spire_to(self, t1_rect)
+				
+				# Menara 2 (South Tower) + Dek Observasi Rooftop
+				var t2_roof_h: float = t2_rect.size.y * 0.35
+				var t2_src := Rect2(1620.0, 822.0, 951.0, 2031.0 * 0.35)
+				draw_texture_rect_region(map.tex_gedung, Rect2(t2_rect.position, Vector2(t2_rect.size.x, t2_roof_h)), t2_src, Color.WHITE)
+				map._draw_wtc_observation_deck_to(self, t2_rect)
+
+			# 3. Gedung Sayap Selatan (3 WTC & 4 WTC)
+			var flank_rects: Array[Rect2] = map.get_wtc_south_flank_towers()
+			for idx in range(flank_rects.size()):
+				var b_rect: Rect2 = flank_rects[idx]
+				var roof_h: float = b_rect.size.y * 0.35
+				var src_h: float = 2031.0 * 0.35
+				var src := Rect2(1620.0, 822.0, 951.0, src_h)
+				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src, Color.WHITE)
+				map._draw_rooftop_props_to(self, b_rect, 30 + idx)
 
 		# Atap Gedung Samping Rumah Sakit
 		if map.gedung_rs_tampilkan and is_instance_valid(map.tex_gedung):
@@ -1146,22 +1207,11 @@ func _build_all_colliders() -> void:
 	var rs_rect = Rect2(465 + (rs_geser_x if rs_geser_x != null else 0.0), 945 + (rs_geser_y if rs_geser_y != null else 0.0), r_w, r_h)
 	_add_bitmap_collider(sb, tex_hospital, rs_rect)
 
-	# Kamar Jenazah (Morgue) & Gedung Stasiun
-	var m_sk = 1.0 if (morgue_skala == null or morgue_skala <= 0.0) else float(morgue_skala)
-	var m_w = (morgue_lebar if (morgue_lebar != null and morgue_lebar > 0.0) else 380.0) * m_sk
-	var m_h = (morgue_tinggi if (morgue_tinggi != null and morgue_tinggi > 0.0) else 225.0) * m_sk
-	_add_box_collider(sb, Rect2(639 + (morgue_geser_x if morgue_geser_x != null else 0.0), 324 + (morgue_geser_y if morgue_geser_y != null else 0.0), m_w, m_h))
-	
+	# Gedung Stasiun Kereta
 	var st_sk = 1.0 if (stasiun_skala == null or stasiun_skala <= 0.0) else float(stasiun_skala)
 	var st_w = (stasiun_lebar if (stasiun_lebar != null and stasiun_lebar > 0.0) else 300.0) * st_sk
 	var st_h = (stasiun_tinggi if (stasiun_tinggi != null and stasiun_tinggi > 0.0) else 621.0) * st_sk
 	_add_box_collider(sb, Rect2(1991 + (stasiun_geser_x if stasiun_geser_x != null else 0.0), 698 + (stasiun_geser_y if stasiun_geser_y != null else 0.0), 142 * st_sk, 245 * st_sk))
-
-	# Rumah Belakang & Rumah Samping (Otomatis dari PNG)
-	var rb_sk = 1.0 if (rumah_belakang_skala == null or rumah_belakang_skala <= 0.0) else float(rumah_belakang_skala)
-	var rb_w = (rumah_belakang_lebar if (rumah_belakang_lebar != null and rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
-	var rb_h = (rumah_belakang_tinggi if (rumah_belakang_tinggi != null and rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
-	_add_bitmap_collider(sb, tex_rumah_belakang, Rect2(1180 + (rumah_belakang_geser_x if rumah_belakang_geser_x != null else 0.0), 745 + (rumah_belakang_geser_y if rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
 
 	# 2 Rumah Blok NE (Bodi rumah + pagar halaman)
 	var rne_sk = 1.0 if (rumah_ne_skala == null or rumah_ne_skala <= 0.0) else float(rumah_ne_skala)
@@ -1275,10 +1325,20 @@ func _build_all_colliders() -> void:
 	if gedung_nw_kolam_tampilkan:
 		_add_box_collider(sb, get_nw_kolam_water_rect())
 
-	# 7d. Gedung-Gedung Plaza Tengah
-	if gedung_tengah_tampilkan:
-		for b_rect in get_tengah_gedung_rects():
-			_add_box_collider(sb, b_rect)
+	# 7d. Kompleks Metropolitan World Trade Center
+	if wtc_tampilkan:
+		# Gedung Finansial Barisan Utara (5 Gedung)
+		for b in get_wtc_north_towers():
+			_add_box_collider(sb, Rect2(b.position.x, b.position.y + b.size.y * 0.45, b.size.x, b.size.y * 0.55))
+		# Menara Kembar WTC (1 WTC & 2 WTC)
+		for b in get_wtc_twin_towers():
+			_add_box_collider(sb, Rect2(b.position.x, b.position.y + b.size.y * 0.45, b.size.x, b.size.y * 0.55))
+		# Gedung Sayap Selatan (3 WTC & 4 WTC)
+		for b in get_wtc_south_flank_towers():
+			_add_box_collider(sb, Rect2(b.position.x, b.position.y + b.size.y * 0.45, b.size.x, b.size.y * 0.55))
+		# Kolam Refleksi Memorial WTC (Solid agar tidak bisa masuk ke air)
+		if wtc_pool_tampilkan:
+			_add_box_collider(sb, get_wtc_memorial_pool_rect())
 
 	# 8. Gedung di Samping Rumah Sakit
 	if gedung_rs_tampilkan:
@@ -1499,9 +1559,14 @@ func _setup_navigation_region() -> void:
 		Vector2(10, 961), Vector2(347, 961), Vector2(347, 1301), Vector2(10, 1301)
 	]))
 	
-	nav_poly.add_outline(PackedVector2Array([
-		Vector2(649, 334), Vector2(1526, 334), Vector2(1526, 539), Vector2(649, 539)
-	]))
+	# Kompleks Metropolitan World Trade Center (North Financial Skyscraper Row)
+	if wtc_tampilkan:
+		for b in get_wtc_north_towers():
+			var base_r = Rect2(b.position.x, b.position.y + b.size.y * 0.45, b.size.x, b.size.y * 0.55)
+			nav_poly.add_outline(PackedVector2Array([
+				base_r.position, Vector2(base_r.end.x, base_r.position.y),
+				base_r.end, Vector2(base_r.position.x, base_r.end.y)
+			]))
 
 	# Dua Rumah Blok NE
 	for n_pos in get_ne_house_positions():
@@ -1515,9 +1580,26 @@ func _setup_navigation_region() -> void:
 		Vector2(475, 1235), Vector2(475, 955), Vector2(649, 955)
 	]))
 	
-	nav_poly.add_outline(PackedVector2Array([
-		Vector2(1168, 740), Vector2(1418, 740), Vector2(1418, 940), Vector2(1168, 940)
-	]))
+	# Kompleks Metropolitan World Trade Center (Twin Towers, Flanking Towers, Memorial Pool)
+	if wtc_tampilkan:
+		for b in get_wtc_twin_towers():
+			var base_r = Rect2(b.position.x, b.position.y + b.size.y * 0.45, b.size.x, b.size.y * 0.55)
+			nav_poly.add_outline(PackedVector2Array([
+				base_r.position, Vector2(base_r.end.x, base_r.position.y),
+				base_r.end, Vector2(base_r.position.x, base_r.end.y)
+			]))
+		for b in get_wtc_south_flank_towers():
+			var base_r = Rect2(b.position.x, b.position.y + b.size.y * 0.45, b.size.x, b.size.y * 0.55)
+			nav_poly.add_outline(PackedVector2Array([
+				base_r.position, Vector2(base_r.end.x, base_r.position.y),
+				base_r.end, Vector2(base_r.position.x, base_r.end.y)
+			]))
+		if wtc_pool_tampilkan:
+			var pool_r = get_wtc_memorial_pool_rect()
+			nav_poly.add_outline(PackedVector2Array([
+				pool_r.position, Vector2(pool_r.end.x, pool_r.position.y),
+				pool_r.end, Vector2(pool_r.position.x, pool_r.end.y)
+			]))
 
 	# Tiga Rumah Warga Tenggara
 	for hy in [705.0, 880.0, 1055.0]:
@@ -1607,17 +1689,19 @@ func _draw() -> void:
 		_draw_tile_pattern(Rect2(0, 786, 192, 147), COLOR_PLAZA_TILE_LINE)
 
 
-	# Kompleks Rumah Sakit Atas (Kamar Jenazah & Plaza)
-	var top_complex_pts = PackedVector2Array([
-		Vector2(639, 324), Vector2(1536, 324), Vector2(1536, 549), Vector2(639, 549)
-	])
-	draw_colored_polygon(top_complex_pts, COLOR_ROOM_STONE_A)
-	_draw_tile_pattern(Rect2(639, 324, 897, 225), COLOR_PLAZA_TILE_LINE)
-	var m_sk = 1.0 if (morgue_skala == null or morgue_skala <= 0.0) else float(morgue_skala)
-	var m_w = (morgue_lebar if (morgue_lebar != null and morgue_lebar > 0.0) else 380.0) * m_sk
-	var m_h = (morgue_tinggi if (morgue_tinggi != null and morgue_tinggi > 0.0) else 225.0) * m_sk
-	_draw_hospital_morgue(Rect2(639 + (morgue_geser_x if morgue_geser_x != null else 0.0), 324 + (morgue_geser_y if morgue_geser_y != null else 0.0), m_w, m_h))
-	_draw_courtyard_garden(Vector2(1090, 435), 50.0)
+	# Kompleks Metropolitan World Trade Center — Lantai Dasar Plaza Utara & Selatan
+	if wtc_tampilkan:
+		# Plaza Finansial Utara (x=639..1536, y=324..549)
+		draw_rect(Rect2(639, 324, 897, 225), Color(0.26, 0.28, 0.31), true)
+		_draw_tile_pattern(Rect2(639, 324, 897, 225), Color(0.20, 0.22, 0.25, 0.6))
+		
+		# Distrik World Trade Center Selatan (x=1050..1536, y=690..1245)
+		draw_rect(Rect2(1050, 690, 486, 555), Color(0.26, 0.28, 0.31), true)
+		_draw_tile_pattern(Rect2(1050, 690, 486, 555), Color(0.20, 0.22, 0.25, 0.6))
+		# Koridor / Esplanade Marmer Tengah WTC
+		draw_rect(Rect2(1165, 690, 206, 555), Color(0.31, 0.33, 0.37), true)
+		draw_line(Vector2(1165, 690), Vector2(1165, 1245), Color(0.42, 0.45, 0.50, 0.6), 2.0)
+		draw_line(Vector2(1371, 690), Vector2(1371, 1245), Color(0.42, 0.45, 0.50, 0.6), 2.0)
 
 	# Kompleks Rumah Sakit Bawah (Taman & Gedung RS)
 	var bot_complex_pts = PackedVector2Array([
@@ -1627,13 +1711,6 @@ func _draw() -> void:
 	draw_colored_polygon(bot_complex_pts, COLOR_ROOM_STONE_B)
 	_draw_tile_pattern(Rect2(639, 690, 411, 255), COLOR_PLAZA_TILE_LINE)
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
-
-	# Bangunan Rumah Lainnya
-	_draw_room_pavement(Rect2(1158, 730, 270, 210), COLOR_ROOM_OCHRE)
-	var rb_sk = 1.0 if (rumah_belakang_skala == null or rumah_belakang_skala <= 0.0) else float(rumah_belakang_skala)
-	var rb_w = (rumah_belakang_lebar if (rumah_belakang_lebar != null and rumah_belakang_lebar > 0.0) else 220.0) * rb_sk
-	var rb_h = (rumah_belakang_tinggi if (rumah_belakang_tinggi != null and rumah_belakang_tinggi > 0.0) else 175.0) * rb_sk
-	_draw_texture_fit(tex_rumah_belakang, Rect2(1180 + (rumah_belakang_geser_x if rumah_belakang_geser_x != null else 0.0), 745 + (rumah_belakang_geser_y if rumah_belakang_geser_y != null else 0.0), rb_w, rb_h))
 	
 	# 🏠🏠 Dua Rumah Berpekarangan di Blok NE (1626,324)→(2016,549)
 	var ne_positions = get_ne_house_positions()
@@ -1649,7 +1726,7 @@ func _draw() -> void:
 	# ── Stasiun Telepon Umum Kota ─────────────────────────────────────────────
 	var phone_spots = [
 		Vector2(480, 225),
-		Vector2(1040, 545),
+		Vector2(991, 545),
 		Vector2(1980, 225),
 		Vector2(1460, 1195)
 	]
@@ -1705,17 +1782,8 @@ func _draw() -> void:
 			if gedung_nw_rooftop_props:
 				_draw_rooftop_props_to(self, b_rect, 80 + idx)
 
-	# 🏛️ 3. Gedung Plaza Tengah (Central Plaza Buildings) - Skala Seragam & Tanpa Distorsi
-	if gedung_tengah_tampilkan and is_instance_valid(tex_gedung):
-		var tengah_rects := get_tengah_gedung_rects()
-		for idx in range(tengah_rects.size()):
-			var b_rect: Rect2 = tengah_rects[idx]
-			if gedung_nw_depth_shadow:
-				draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 6, b_rect.size.x + 6, 10), Color(0, 0, 0, 0.22), true)
-				draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.22), true)
-			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, Color.WHITE)
-			if gedung_nw_rooftop_props:
-				_draw_rooftop_props_to(self, b_rect, 50 + idx)
+	# 🏛️ 3. Kompleks Metropolitan World Trade Center (Twin Towers, Reflecting Pool, North Skyscraper Row)
+	_draw_wtc_complex()
 
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
@@ -1773,14 +1841,6 @@ func _draw() -> void:
 	draw_line(Vector2(357, 1150), Vector2(357, 1311), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(357, 1311), Vector2(0, 1311), COLOR_WALL_LINE, WT)
 
-	draw_line(Vector2(639, 324), Vector2(1000, 324), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1060, 324), Vector2(1536, 324), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1536, 324), Vector2(1536, 420), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1536, 480), Vector2(1536, 549), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1536, 549), Vector2(639, 549), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(639, 549), Vector2(639, 440), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(639, 380), Vector2(639, 324), COLOR_WALL_LINE, WT)
-
 	draw_line(Vector2(639, 690), Vector2(1050, 690), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(1050, 690), Vector2(1050, 900), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(1050, 960), Vector2(1050, 1245), COLOR_WALL_LINE, WT)
@@ -1789,14 +1849,6 @@ func _draw() -> void:
 	draw_line(Vector2(465, 945), Vector2(639, 945), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(639, 945), Vector2(639, 810), COLOR_WALL_LINE, WT)
 	draw_line(Vector2(639, 750), Vector2(639, 690), COLOR_WALL_LINE, WT)
-
-	draw_line(Vector2(1158, 730), Vector2(1260, 730), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1320, 730), Vector2(1428, 730), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1428, 730), Vector2(1428, 940), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1428, 940), Vector2(1158, 940), COLOR_WALL_LINE, WT)
-	draw_line(Vector2(1158, 940), Vector2(1158, 730), COLOR_WALL_LINE, WT)
-
-
 
 	# Dinding Tiga Rumah Warga Tenggara
 	for hy in [705.0, 880.0, 1055.0]:
@@ -1817,7 +1869,7 @@ func _draw() -> void:
 	_draw_poi_badge(Vector2(1200, 210), "Rumah Detektif Benedict", Color(0.95, 0.35, 0.30))
 	_draw_poi_badge(Vector2(350, 258),  "Kantor Polisi",  Color(0.25, 0.50, 0.85))
 	_draw_poi_badge(Vector2(2020, 960), "Stasiun Kereta", Color(0.95, 0.70, 0.20))
-	_draw_poi_badge(Vector2(594, 550),  "Kamar Jenazah",  Color(0.85, 0.35, 0.35))
+	_draw_poi_badge(Vector2(1270, 710), "World Trade Center", Color(0.20, 0.48, 0.78))
 	_draw_poi_badge(Vector2(750, 1095), "Rumah Sakit",    Color(0.85, 0.25, 0.25))
 	_draw_poi_badge(Vector2(180, 1050), "Brankas Ibu",    Color(0.80, 0.50, 0.90))
 
@@ -2192,51 +2244,235 @@ func _draw_detective_house(rect: Rect2) -> void:
 	draw_line(Vector2(rect.position.x + 71, rect.position.y + 57), Vector2(rect.position.x + 80, rect.position.y + 69), Color(0.9, 0.2, 0.2), 1.2)
 	draw_line(Vector2(rect.position.x + 89, rect.position.y + 57), Vector2(rect.position.x + 80, rect.position.y + 69), Color(0.9, 0.2, 0.2), 1.2)
 
-func _draw_hospital_morgue(rect: Rect2) -> void:
-	draw_rect(rect, COLOR_HOSPITAL_TILE, true)
-	for tx in range(int(rect.position.x), int(rect.end.x), 24):
-		draw_line(Vector2(tx, rect.position.y), Vector2(tx, rect.end.y), COLOR_HOSPITAL_GROUT, 1.0)
-	for ty in range(int(rect.position.y), int(rect.end.y), 24):
-		draw_line(Vector2(rect.position.x, ty), Vector2(rect.end.x, ty), COLOR_HOSPITAL_GROUT, 1.0)
+func _draw_hospital_morgue(_rect: Rect2) -> void:
+	# Stub: Kamar jenazah lama telah digantikan oleh Kompleks WTC
+	pass
 
-	var darkroom_rect = Rect2(rect.position.x + 10, rect.position.y + 115, 135, 95)
-	draw_rect(darkroom_rect, Color(0.12, 0.04, 0.04), true)
-	draw_rect(darkroom_rect, Color(0.40, 0.10, 0.10), false, 2.0)
-	draw_rect(darkroom_rect, COLOR_DARKROOM_RED, true)
+func _draw_wtc_complex() -> void:
+	if not wtc_tampilkan:
+		return
+	
+	# ── 1. Penyeberangan Pejalan Kaki (Zebra Crossings) di Central Boulevard ───
+	# Menghubungkan Plaza Finansial Utara dengan Distrik WTC Selatan
+	_draw_zebra_crossing(Rect2(880, 551, 54, 137))
+	_draw_zebra_crossing(Rect2(1270, 551, 54, 137))
 
-	_draw_texture_fit(tex_baskom, Rect2(darkroom_rect.position.x + 15, darkroom_rect.position.y + 12, 105, 55))
+	# ── 2. Lanskap & Fasilitas Plaza Utara ────────────────────────────────────
+	# Jalur pejalan kaki, pohon-pohon peneduh di antara gedung, dan lampu jalan
+	var north_gaps = [799.0, 991.0, 1184.0, 1376.0]
+	for gx in north_gaps:
+		_draw_wtc_tree_planter(Vector2(gx, 435.0))
+		_draw_wtc_bench(Vector2(gx, 478.0), true)
+		_draw_wtc_street_lamp(Vector2(gx, 375.0))
+	
+	# Lampu jalan sepanjang trotoar depan Plaza Utara
+	for lx in [690.0, 890.0, 1090.0, 1290.0, 1480.0]:
+		_draw_wtc_street_lamp(Vector2(lx, 536.0))
 
-	draw_line(Vector2(darkroom_rect.position.x + 8, darkroom_rect.position.y + 68), Vector2(darkroom_rect.end.x - 8, darkroom_rect.position.y + 68), Color(0.9, 0.9, 0.9), 1.0)
-	draw_rect(Rect2(darkroom_rect.position.x + 35, darkroom_rect.position.y + 62, 12, 10), Color(0.95, 0.95, 0.95), true)
+	# ── 3. Barisan Gedung Finansial Utara (5 Gedung Modern) ───────────────────
+	if is_instance_valid(tex_gedung):
+		var north_rects := get_wtc_north_towers()
+		for idx in range(north_rects.size()):
+			var b_rect: Rect2 = north_rects[idx]
+			# Drop shadow lembut di belakang & bawah
+			draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 6, b_rect.size.x + 6, 10), Color(0, 0, 0, 0.24), true)
+			draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.24), true)
+			# Menggambar gedung dengan aspek rasio asli (GEDUNG_SRC_RECT)
+			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, Color.WHITE)
+			_draw_rooftop_props_to(self, b_rect, 10 + idx)
 
-	var ecg_rect = Rect2(rect.position.x + 225, rect.position.y + 135, 60, 45)
-	draw_rect(ecg_rect, Color(0.08, 0.09, 0.11), true)
-	draw_rect(ecg_rect, Color(0.40, 0.45, 0.50), false, 2.0)
-	var ecg_pts = PackedVector2Array([
-		Vector2(ecg_rect.position.x + 4, ecg_rect.position.y + 22),
-		Vector2(ecg_rect.position.x + 18, ecg_rect.position.y + 22),
-		Vector2(ecg_rect.position.x + 24, ecg_rect.position.y + 8),
-		Vector2(ecg_rect.position.x + 30, ecg_rect.position.y + 36),
-		Vector2(ecg_rect.position.x + 36, ecg_rect.position.y + 22),
-		Vector2(ecg_rect.position.x + 56, ecg_rect.position.y + 22)
-	])
-	draw_polyline(ecg_pts, COLOR_ECG_GREEN, 2.0)
+	# ── 4. Distrik Selatan: Kolam Refleksi Memorial WTC & Taman Pohon Ek ──────
+	if wtc_pool_tampilkan:
+		_draw_wtc_memorial_pool(get_wtc_memorial_pool_rect())
+		_draw_wtc_oak_grove()
 
-	var freezer_rect = Rect2(rect.position.x + 10, rect.position.y + 10, 85, 30)
-	draw_rect(freezer_rect, COLOR_STEEL_DARK, true)
-	draw_rect(freezer_rect, Color(0.2, 0.22, 0.25), false, 1.5)
-	for fi in range(3):
-		var fx = freezer_rect.position.x + 4 + fi * 27
-		draw_rect(Rect2(fx, freezer_rect.position.y + 4, 23, 22), COLOR_STEEL_LIGHT, true)
-		draw_rect(Rect2(fx + 6, freezer_rect.position.y + 12, 11, 4), Color(0.2, 0.2, 0.2), true)
+	# ── 5. Menara Kembar WTC (1 WTC & 2 WTC) ──────────────────────────────────
+	if is_instance_valid(tex_gedung):
+		var twin_rects := get_wtc_twin_towers()
+		if twin_rects.size() >= 2:
+			var t1_rect: Rect2 = twin_rects[0]
+			var t2_rect: Rect2 = twin_rects[1]
+			
+			# Menara 1 (North Tower)
+			draw_rect(Rect2(t1_rect.position.x - 4, t1_rect.position.y - 8, t1_rect.size.x + 8, 12), Color(0, 0, 0, 0.28), true)
+			draw_rect(Rect2(t1_rect.position.x - 5, t1_rect.end.y - 4, t1_rect.size.x + 10, 8), Color(0, 0, 0, 0.28), true)
+			draw_texture_rect_region(tex_gedung, t1_rect, GEDUNG_SRC_RECT, Color.WHITE)
+			if wtc_spire_tampilkan:
+				_draw_wtc_spire_to(self, t1_rect)
+			
+			# Menara 2 (South Tower)
+			draw_rect(Rect2(t2_rect.position.x - 4, t2_rect.position.y - 8, t2_rect.size.x + 8, 12), Color(0, 0, 0, 0.28), true)
+			draw_rect(Rect2(t2_rect.position.x - 5, t2_rect.end.y - 4, t2_rect.size.x + 10, 8), Color(0, 0, 0, 0.28), true)
+			draw_texture_rect_region(tex_gedung, t2_rect, GEDUNG_SRC_RECT, Color.WHITE)
+			_draw_wtc_observation_deck_to(self, t2_rect)
 
-	var med_cab = Rect2(rect.position.x + 295, rect.position.y + 135, 65, 75)
-	draw_rect(med_cab, Color(0.85, 0.90, 0.94), true)
-	draw_rect(med_cab, Color(0.40, 0.50, 0.60), false, 2.0)
-	draw_line(Vector2(med_cab.position.x + 32, med_cab.position.y), Vector2(med_cab.position.x + 32, med_cab.end.y), Color(0.40, 0.50, 0.60), 1.5)
-	for my in range(int(med_cab.position.y) + 15, int(med_cab.end.y) - 10, 20):
-		draw_circle(Vector2(med_cab.position.x + 16, my), 4.0, Color(0.9, 0.3, 0.3))
-		draw_circle(Vector2(med_cab.position.x + 48, my), 4.0, Color(0.3, 0.6, 0.9))
+	# ── 6. Gedung Sayap Selatan (3 WTC & 4 WTC) ───────────────────────────────
+	if is_instance_valid(tex_gedung):
+		var flank_rects := get_wtc_south_flank_towers()
+		for idx in range(flank_rects.size()):
+			var b_rect: Rect2 = flank_rects[idx]
+			draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 6, b_rect.size.x + 6, 10), Color(0, 0, 0, 0.24), true)
+			draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.24), true)
+			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, Color.WHITE)
+			_draw_rooftop_props_to(self, b_rect, 30 + idx)
+
+	# ── 7. Fasilitas Plaza Selatan: Lampu Jalan, Bangku, & Jalur Pejalan Kaki ──
+	# Bangku marmer di sisi promenade tengah
+	_draw_wtc_bench(Vector2(1210.0, 750.0), false)
+	_draw_wtc_bench(Vector2(1325.0, 750.0), false)
+	_draw_wtc_bench(Vector2(1210.0, 830.0), false)
+	_draw_wtc_bench(Vector2(1325.0, 830.0), false)
+	_draw_wtc_bench(Vector2(1210.0, 910.0), false)
+	_draw_wtc_bench(Vector2(1325.0, 910.0), false)
+	
+	# Lampu jalan di sekitar esplanade WTC Selatan
+	for ly in [720.0, 820.0, 920.0, 1140.0, 1220.0]:
+		_draw_wtc_street_lamp(Vector2(1175.0, ly))
+		_draw_wtc_street_lamp(Vector2(1360.0, ly))
+
+func _draw_wtc_memorial_pool(pool_rect: Rect2) -> void:
+	# 1. Bibir Granit Luar
+	var apron_rect = pool_rect.grow(8.0)
+	draw_rect(apron_rect, Color(0.18, 0.19, 0.22), true)
+	draw_rect(apron_rect, Color(0.12, 0.13, 0.15), false, 2.0)
+	
+	# 2. Dinding Perunggu Memorial (Bronze Parapet) dengan panel nama
+	draw_rect(pool_rect, Color(0.36, 0.28, 0.18), true)
+	draw_rect(pool_rect, Color(0.22, 0.17, 0.11), false, 1.5)
+	for px in range(int(pool_rect.position.x) + 12, int(pool_rect.end.x) - 8, 20):
+		draw_line(Vector2(px, pool_rect.position.y), Vector2(px, pool_rect.position.y + 6), Color(0.22, 0.17, 0.11), 1.0)
+		draw_line(Vector2(px, pool_rect.end.y - 6), Vector2(px, pool_rect.end.y), Color(0.22, 0.17, 0.11), 1.0)
+	for py in range(int(pool_rect.position.y) + 12, int(pool_rect.end.y) - 8, 20):
+		draw_line(Vector2(pool_rect.position.x, py), Vector2(pool_rect.position.x + 6, py), Color(0.22, 0.17, 0.11), 1.0)
+		draw_line(Vector2(pool_rect.end.x - 6, py), Vector2(pool_rect.end.x, py), Color(0.22, 0.17, 0.11), 1.0)
+
+	# 3. Air Terjun Bertingkat / Weir Cascade Rim (Buih putih cyan)
+	var water_rect = pool_rect.grow(-6.0)
+	draw_rect(water_rect, Color(0.65, 0.88, 0.95, 0.85), true)
+	
+	# 4. Kolam Air Refleksi Biru Dalam
+	var basin_rect = water_rect.grow(-4.0)
+	draw_rect(basin_rect, Color(0.06, 0.20, 0.32), true)
+	
+	# Kilauan gelombang halus
+	for ry in range(int(basin_rect.position.y) + 8, int(basin_rect.end.y) - 8, 12):
+		var rx1 = basin_rect.position.x + 6.0 + float((ry % 7) * 5)
+		var rx2 = min(rx1 + 32.0, basin_rect.end.x - 6.0)
+		if rx2 > rx1:
+			draw_line(Vector2(rx1, ry), Vector2(rx2, ry), Color(0.25, 0.65, 0.85, 0.40), 1.5)
+	
+	# 5. Lubang Pusat Kehampaan / Void Drain (Air jatuh ke jurang hitam tak berujung)
+	var center_void = Rect2(
+		basin_rect.position.x + (basin_rect.size.x - 50.0) * 0.5,
+		basin_rect.position.y + (basin_rect.size.y - 36.0) * 0.5,
+		50.0, 36.0
+	)
+	draw_rect(center_void.grow(2.0), Color(0.55, 0.82, 0.92, 0.9), false, 2.0)
+	draw_rect(center_void, Color(0.02, 0.03, 0.04), true)
+	draw_rect(center_void, Color(0.0, 0.0, 0.0, 0.8), false, 1.5)
+
+func _draw_wtc_oak_grove() -> void:
+	var tree_positions: Array[Vector2] = [
+		Vector2(1148, 965), Vector2(1148, 1020), Vector2(1148, 1075),
+		Vector2(1388, 965), Vector2(1388, 1020), Vector2(1388, 1075),
+		Vector2(1205, 1115), Vector2(1268, 1115), Vector2(1331, 1115)
+	]
+	for pos in tree_positions:
+		# Kisi lantai pohon granit
+		draw_rect(Rect2(pos.x - 12, pos.y - 12, 24, 24), Color(0.20, 0.22, 0.25), true)
+		draw_rect(Rect2(pos.x - 12, pos.y - 12, 24, 24), Color(0.35, 0.38, 0.42), false, 1.0)
+		draw_circle(pos, 8.0, Color(0.18, 0.16, 0.14))
+		# Tajuk pohon ek rimbun berlapis
+		draw_circle(pos + Vector2(2, 2), 12.0, Color(0, 0, 0, 0.22))
+		draw_circle(pos, 11.0, Color(0.20, 0.30, 0.12))
+		draw_circle(pos + Vector2(-2, -2), 9.0, Color(0.35, 0.48, 0.18))
+		draw_circle(pos + Vector2(-3, -3), 5.0, Color(0.48, 0.60, 0.24))
+
+func _draw_zebra_crossing(rect: Rect2) -> void:
+	# Strip kuning taktil penyeberangan di kedua ujung trotoar
+	draw_rect(Rect2(rect.position.x - 2, rect.position.y - 2, rect.size.x + 4, 4), Color(0.85, 0.72, 0.20), true)
+	draw_rect(Rect2(rect.position.x - 2, rect.end.y - 2, rect.size.x + 4, 4), Color(0.85, 0.72, 0.20), true)
+	# Garis putih zebra crossing sejajar arah lalu lintas jalan
+	for sy in range(int(rect.position.y) + 4, int(rect.end.y) - 6, 14):
+		draw_rect(Rect2(rect.position.x, sy, rect.size.x, 8.0), Color(0.95, 0.95, 0.96, 0.92), true)
+
+func _draw_wtc_street_lamp(pos: Vector2) -> void:
+	# Pendaran cahaya hangat
+	draw_circle(pos, 16.0, Color(1.0, 0.92, 0.65, 0.15))
+	draw_circle(pos, 8.0, Color(1.0, 0.95, 0.75, 0.30))
+	# Tiang lampu modern
+	draw_circle(pos, 3.5, Color(0.35, 0.38, 0.42))
+	draw_circle(pos, 2.0, Color(1.0, 0.98, 0.85))
+
+func _draw_wtc_bench(pos: Vector2, horizontal: bool = true) -> void:
+	var bw = 24.0 if horizontal else 8.0
+	var bh = 8.0 if horizontal else 24.0
+	var rect = Rect2(pos.x - bw * 0.5, pos.y - bh * 0.5, bw, bh)
+	# Kaki logam
+	draw_rect(rect.grow(1.5), Color(0.20, 0.22, 0.25), true)
+	# Dudukan marmer/kayu
+	draw_rect(rect, Color(0.60, 0.48, 0.35), true)
+	draw_rect(rect, Color(0.28, 0.22, 0.16), false, 1.0)
+
+func _draw_wtc_tree_planter(pos: Vector2) -> void:
+	# Kotak pot tanaman granit
+	var pr = Rect2(pos.x - 14, pos.y - 14, 28, 28)
+	draw_rect(pr, Color(0.22, 0.24, 0.28), true)
+	draw_rect(pr, Color(0.40, 0.44, 0.48), false, 1.5)
+	draw_circle(pos, 10.0, Color(0.18, 0.16, 0.14))
+	# Pohon ornamen taman
+	draw_circle(pos + Vector2(2, 2), 12.0, Color(0, 0, 0, 0.25))
+	draw_circle(pos, 11.0, Color(0.20, 0.32, 0.14))
+	draw_circle(pos + Vector2(-2, -2), 9.0, Color(0.36, 0.50, 0.20))
+	draw_circle(pos + Vector2(-3, -3), 5.0, Color(0.50, 0.64, 0.26))
+
+func _draw_wtc_spire_to(ci: CanvasItem, t_rect: Rect2) -> void:
+	if not is_instance_valid(ci):
+		return
+	var cx: float = t_rect.position.x + t_rect.size.x * 0.5
+	var roof_y: float = t_rect.position.y
+	var spire_top: float = roof_y - 52.0
+	
+	# Kabel penahan (guy wires) ke sudut atap menara
+	ci.draw_line(Vector2(cx, roof_y - 28.0), Vector2(t_rect.position.x + 8.0, roof_y + 4.0), Color(0.70, 0.74, 0.80, 0.55), 1.0)
+	ci.draw_line(Vector2(cx, roof_y - 28.0), Vector2(t_rect.end.x - 8.0, roof_y + 4.0), Color(0.70, 0.74, 0.80, 0.55), 1.0)
+	
+	# Dudukan dasar tiang antena
+	ci.draw_rect(Rect2(cx - 8.0, roof_y - 4.0, 16.0, 6.0), Color(0.40, 0.44, 0.48), true)
+	ci.draw_rect(Rect2(cx - 5.0, roof_y - 8.0, 10.0, 4.0), Color(0.55, 0.58, 0.62), true)
+	
+	# Batang utama antena perak (spire mast)
+	ci.draw_line(Vector2(cx, roof_y - 8.0), Vector2(cx, spire_top), Color(0.85, 0.88, 0.92), 2.5)
+	for sy in range(int(spire_top) + 8, int(roof_y) - 8, 8):
+		var sw: float = float(sy - spire_top) * 0.12 + 2.0
+		ci.draw_line(Vector2(cx - sw, sy), Vector2(cx + sw, sy), Color(0.75, 0.78, 0.82), 1.0)
+	
+	# Lampu suar merah penerbangan (aviation warning beacon) di puncak antena
+	ci.draw_circle(Vector2(cx, spire_top), 4.5, Color(1.0, 0.25, 0.25, 0.35))
+	ci.draw_circle(Vector2(cx, spire_top), 2.5, Color(1.0, 0.15, 0.15, 1.0))
+
+func _draw_wtc_observation_deck_to(ci: CanvasItem, t_rect: Rect2) -> void:
+	if not is_instance_valid(ci):
+		return
+	var rx: float = t_rect.position.x + 8.0
+	var ry: float = t_rect.position.y + 4.0
+	var rw: float = t_rect.size.x - 16.0
+	var rh: float = 24.0
+	
+	# Lantai dek observasi
+	ci.draw_rect(Rect2(rx, ry, rw, rh), Color(0.30, 0.32, 0.36), true)
+	# Pagar kaca pengaman perimeter
+	ci.draw_rect(Rect2(rx, ry, rw, rh), Color(0.50, 0.75, 0.90, 0.75), false, 1.5)
+	# Teropong pengamatan panorama
+	for bx in [rx + 12.0, rx + rw * 0.5, rx + rw - 12.0]:
+		ci.draw_line(Vector2(bx, ry + 2.0), Vector2(bx, ry + 7.0), Color(0.85, 0.88, 0.90), 1.5)
+		ci.draw_circle(Vector2(bx, ry + 2.0), 1.5, Color(0.95, 0.95, 0.98))
+	# Paviliun kaca / rumah lift di tengah atap
+	var pav_w: float = rw * 0.45
+	var pav_h: float = 12.0
+	var pav_rect := Rect2(rx + (rw - pav_w) * 0.5, ry + (rh - pav_h) * 0.5, pav_w, pav_h)
+	ci.draw_rect(pav_rect, Color(0.20, 0.35, 0.48, 0.85), true)
+	ci.draw_rect(pav_rect, Color(0.60, 0.80, 0.95), false, 1.0)
 
 func _draw_city_road_network() -> void:
 	# ── 1. Trotoar & Lapisan Dasar Aspal (Seamless Asphalt Base) ─────────────
