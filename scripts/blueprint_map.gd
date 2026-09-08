@@ -761,6 +761,65 @@ func _draw_rooftop_props_to(ci: CanvasItem, b_rect: Rect2, seed_idx: int) -> voi
 		ci.draw_line(Vector2(ant_x - 4, ant_y - 8), Vector2(ant_x + 4, ant_y - 8), Color(0.25, 0.28, 0.30), 1.0)
 		ci.draw_circle(Vector2(ant_x, ant_y - 14), 2.0, Color(1.0, 0.22, 0.22))
 
+@export_group("14b. Gedung Plaza Tengah (Central Plaza)")
+@export var gedung_tengah_tampilkan: bool = true:
+	set(val):
+		gedung_tengah_tampilkan = val
+		queue_redraw()
+@export var gedung_tengah_skala: float = 0.92:
+	set(val):
+		gedung_tengah_skala = 0.92 if (val == null or val <= 0.0) else float(val)
+		queue_redraw()
+@export var gedung_tengah_jumlah: int = 3:
+	set(val):
+		gedung_tengah_jumlah = max(1, val)
+		queue_redraw()
+@export var gedung_tengah_jarak_x: float = 30.0:
+	set(val):
+		gedung_tengah_jarak_x = 30.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_tengah_geser_x: float = 0.0:
+	set(val):
+		gedung_tengah_geser_x = 0.0 if val == null else float(val)
+		queue_redraw()
+@export var gedung_tengah_geser_y: float = 0.0:
+	set(val):
+		gedung_tengah_geser_y = 0.0 if val == null else float(val)
+		queue_redraw()
+
+func get_tengah_gedung_rects() -> Array[Rect2]:
+	var sk: float = 1.0 if (gedung_tengah_skala == null or gedung_tengah_skala <= 0.0) else float(gedung_tengah_skala)
+	var gx: float = (gedung_tengah_geser_x if gedung_tengah_geser_x != null else 0.0)
+	var gy: float = (gedung_tengah_geser_y if gedung_tengah_geser_y != null else 0.0)
+	var count: int = max(1, gedung_tengah_jumlah if gedung_tengah_jumlah != null else 3)
+	var base_w: float = 88.0 * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	var step_x: float = (gedung_tengah_jarak_x if gedung_tengah_jarak_x != null else 30.0) * sk
+	
+	# Area x: 1150 sampai 1530 (lebar 380), y: 324 sampai 549 (tinggi 225)
+	var area_start_x: float = 1150.0
+	var area_w: float = 376.0
+	var total_w: float = float(count) * base_w + float(count - 1) * step_x
+	var start_x: float = area_start_x + (area_w - total_w) * 0.5 + gx
+	var start_y: float = 324.0 + (225.0 - base_h) * 0.5 + gy
+	
+	var rects: Array[Rect2] = []
+	for i in range(count):
+		var cur_x: float = start_x + float(i) * (base_w + step_x)
+		rects.append(Rect2(cur_x, start_y, base_w, base_h))
+	return rects
+
+func get_rs_gedung_rects() -> Array[Rect2]:
+	var sk: float = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
+	var gx: float = (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0)
+	var gy: float = (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0)
+	var base_w: float = 96.0 * sk
+	var base_h: float = base_w * GEDUNG_ASPECT_RATIO
+	# Posisi serasi di sisi kanan taman melingkar RS
+	var bx: float = 870.0 + gx
+	var by: float = 715.0 + gy
+	return [Rect2(bx, by, base_w, base_h)]
+
 @export_group("20. Gedung Samping Rumah Sakit")
 @export var gedung_rs_tampilkan: bool = true:
 	set(val):
@@ -902,11 +961,15 @@ class RoofOverlayNode extends Node2D:
 	func _draw_house_roof(tex: Texture2D, dest: Rect2) -> void:
 		if tex == null:
 			return
-		# Hanya gambar bagian atas (atap) dari tekstur, bukan seluruh tinggi
-		var roof_h_px := dest.size.y * ROOF_RATIO
 		var tex_size := tex.get_size()
+		if tex_size.x <= 0 or tex_size.y <= 0:
+			return
+		var scale_factor: float = min(dest.size.x / tex_size.x, dest.size.y / tex_size.y)
+		var draw_size: Vector2 = tex_size * scale_factor
+		var draw_pos: Vector2 = dest.position + (dest.size - draw_size) * 0.5
+		var roof_h_px := draw_size.y * ROOF_RATIO
 		var src := Rect2(0.0, 0.0, tex_size.x, tex_size.y * ROOF_RATIO)
-		draw_texture_rect_region(tex, Rect2(dest.position, Vector2(dest.size.x, roof_h_px)), src, Color.WHITE)
+		draw_texture_rect_region(tex, Rect2(draw_pos, Vector2(draw_size.x, roof_h_px)), src, Color.WHITE)
 
 	func _draw() -> void:
 		if not is_instance_valid(map):
@@ -951,11 +1014,6 @@ class RoofOverlayNode extends Node2D:
 			_draw_house_roof(map.tex_rumah_depan, Rect2(n_pos.x + 12 + rne_gx, n_pos.y + 6 + rne_gy, rne_w, rne_h))
 
 		# ── 4. Kanopi Peron Stasiun (FULL COVER) ──────────────────────────────
-		# Kanopi peron adalah struktur yang pemain BERJALAN DI BAWAHNYA,
-		# jadi full cover di overlay sudah benar.
-		# Gedung polisi & RS TIDAK dimasukkan di sini karena:
-		#   a) Sudah digambar di base layer (tidak perlu double-draw)
-		#   b) Ada collider solid → pemain tidak bisa berjalan di baliknya
 		var p1_x := 1860.0 + 125.0
 		var warn1_x := 2140.0
 		var b_w := 142.0
@@ -974,7 +1032,7 @@ class RoofOverlayNode extends Node2D:
 		var c2_y := 690.0 + 25.0
 		map._draw_vertical_canopy_to(self, Rect2(c2_x, c2_y, c2_w, c2_h))
 
-		# ── 5. Atap Gedung-Gedung Blok NW, Benjolan, & Samping RS ──────────────────
+		# ── 5. Atap Gedung-Gedung Blok NW, Benjolan, Plaza Tengah, & Samping RS ──
 		if map.gedung_nw_tampilkan and is_instance_valid(map.tex_gedung):
 			var nw_rects: Array[Rect2] = map.get_nw_gedung_rects()
 			for idx in range(nw_rects.size()):
@@ -1003,12 +1061,29 @@ class RoofOverlayNode extends Node2D:
 			if map.gedung_nw_rooftop_props:
 				map._draw_rooftop_props_to(self, bg_rect, 99)
 
-		if map.gedung_rs_tampilkan:
-			var grs_sk = 1.0 if (map.gedung_rs_skala == null or map.gedung_rs_skala <= 0.0) else float(map.gedung_rs_skala)
-			var grs_w = (map.gedung_rs_lebar if (map.gedung_rs_lebar != null and map.gedung_rs_lebar > 0.0) else 380.0) * grs_sk
-			var grs_h = (map.gedung_rs_tinggi if (map.gedung_rs_tinggi != null and map.gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
-			var grs_rect = Rect2(655.0 + (map.gedung_rs_geser_x if map.gedung_rs_geser_x != null else 0.0), 695.0 + (map.gedung_rs_geser_y if map.gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
-			_draw_house_roof(map.tex_gedung, grs_rect)
+		# Atap Gedung-Gedung Plaza Tengah
+		if map.gedung_tengah_tampilkan and is_instance_valid(map.tex_gedung):
+			var tengah_rects: Array[Rect2] = map.get_tengah_gedung_rects()
+			for idx in range(tengah_rects.size()):
+				var b_rect: Rect2 = tengah_rects[idx]
+				var roof_h: float = b_rect.size.y * 0.35
+				var src_h: float = 2031.0 * 0.35
+				var src := Rect2(1620.0, 822.0, 951.0, src_h)
+				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src, Color.WHITE)
+				if map.gedung_nw_rooftop_props:
+					map._draw_rooftop_props_to(self, b_rect, 50 + idx)
+
+		# Atap Gedung Samping Rumah Sakit
+		if map.gedung_rs_tampilkan and is_instance_valid(map.tex_gedung):
+			var rs_rects: Array[Rect2] = map.get_rs_gedung_rects()
+			for idx in range(rs_rects.size()):
+				var b_rect: Rect2 = rs_rects[idx]
+				var roof_h: float = b_rect.size.y * 0.35
+				var src_h: float = 2031.0 * 0.35
+				var src := Rect2(1620.0, 822.0, 951.0, src_h)
+				draw_texture_rect_region(map.tex_gedung, Rect2(b_rect.position, Vector2(b_rect.size.x, roof_h)), src, Color.WHITE)
+				if map.gedung_nw_rooftop_props:
+					map._draw_rooftop_props_to(self, b_rect, 80 + idx)
 
 
 func _setup_roof_overlay() -> void:
@@ -1200,13 +1275,15 @@ func _build_all_colliders() -> void:
 	if gedung_nw_kolam_tampilkan:
 		_add_box_collider(sb, get_nw_kolam_water_rect())
 
-	# 8. Gedung di Samping Rumah Sakit (Otomatis Pixel-Perfect dari PNG)
+	# 7d. Gedung-Gedung Plaza Tengah
+	if gedung_tengah_tampilkan:
+		for b_rect in get_tengah_gedung_rects():
+			_add_box_collider(sb, b_rect)
+
+	# 8. Gedung di Samping Rumah Sakit
 	if gedung_rs_tampilkan:
-		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
-		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 380.0) * grs_sk
-		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 240.0) * grs_sk
-		var grs_rect = Rect2(655.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 695.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
-		_add_bitmap_collider(sb, tex_gedung, grs_rect)
+		for b_rect in get_rs_gedung_rects():
+			_add_box_collider(sb, b_rect)
 
 func _add_bitmap_collider(body: StaticBody2D, tex: Texture2D, target_rect: Rect2, alpha_threshold: float = 0.25, epsilon: float = 5.0) -> void:
 	if not is_instance_valid(tex):
@@ -1541,10 +1618,6 @@ func _draw() -> void:
 	var m_h = (morgue_tinggi if (morgue_tinggi != null and morgue_tinggi > 0.0) else 225.0) * m_sk
 	_draw_hospital_morgue(Rect2(639 + (morgue_geser_x if morgue_geser_x != null else 0.0), 324 + (morgue_geser_y if morgue_geser_y != null else 0.0), m_w, m_h))
 	_draw_courtyard_garden(Vector2(1090, 435), 50.0)
-	_draw_desk(Rect2(1180, 350, 110, 75))
-	_draw_desk(Rect2(1330, 350, 110, 75))
-	_draw_desk(Rect2(1180, 445, 110, 75))
-	_draw_desk(Rect2(1330, 445, 110, 75))
 
 	# Kompleks Rumah Sakit Bawah (Taman & Gedung RS)
 	var bot_complex_pts = PackedVector2Array([
@@ -1553,7 +1626,6 @@ func _draw() -> void:
 	])
 	draw_colored_polygon(bot_complex_pts, COLOR_ROOM_STONE_B)
 	_draw_tile_pattern(Rect2(639, 690, 411, 255), COLOR_PLAZA_TILE_LINE)
-	_draw_desk(Rect2(672, 730, 340, 170))
 	_draw_courtyard_garden(Vector2(780, 830), 40.0)
 
 	# Bangunan Rumah Lainnya
@@ -1621,17 +1693,29 @@ func _draw() -> void:
 	if gedung_nw_kolam_tampilkan:
 		_draw_swimming_pool(get_nw_kolam_water_rect())
 
-	# 🏥 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) — isi seluruh blok
+	# 🏥 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) - Skala Seragam
 	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
-		var grs_sk = 1.0 if (gedung_rs_skala == null or gedung_rs_skala <= 0.0) else float(gedung_rs_skala)
-		var grs_w = (gedung_rs_lebar if (gedung_rs_lebar != null and gedung_rs_lebar > 0.0) else 408.0) * grs_sk
-		var grs_h = (gedung_rs_tinggi if (gedung_rs_tinggi != null and gedung_rs_tinggi > 0.0) else 552.0) * grs_sk
-		var grs_rect = Rect2(639.0 + (gedung_rs_geser_x if gedung_rs_geser_x != null else 0.0), 690.0 + (gedung_rs_geser_y if gedung_rs_geser_y != null else 0.0), grs_w, grs_h)
-		draw_texture_rect(tex_gedung, grs_rect, false)
+		var rs_rects := get_rs_gedung_rects()
+		for idx in range(rs_rects.size()):
+			var b_rect: Rect2 = rs_rects[idx]
+			if gedung_nw_depth_shadow:
+				draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 6, b_rect.size.x + 6, 10), Color(0, 0, 0, 0.22), true)
+				draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.22), true)
+			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, Color.WHITE)
+			if gedung_nw_rooftop_props:
+				_draw_rooftop_props_to(self, b_rect, 80 + idx)
 
-	# 🏛️ 3. Gedung blok kanan top RS (1050,324)→(1536,549)
-	if is_instance_valid(tex_gedung):
-		draw_texture_rect(tex_gedung, Rect2(1050, 324, 486, 225), false)
+	# 🏛️ 3. Gedung Plaza Tengah (Central Plaza Buildings) - Skala Seragam & Tanpa Distorsi
+	if gedung_tengah_tampilkan and is_instance_valid(tex_gedung):
+		var tengah_rects := get_tengah_gedung_rects()
+		for idx in range(tengah_rects.size()):
+			var b_rect: Rect2 = tengah_rects[idx]
+			if gedung_nw_depth_shadow:
+				draw_rect(Rect2(b_rect.position.x - 3, b_rect.position.y - 6, b_rect.size.x + 6, 10), Color(0, 0, 0, 0.22), true)
+				draw_rect(Rect2(b_rect.position.x - 4, b_rect.end.y - 4, b_rect.size.x + 8, 8), Color(0, 0, 0, 0.22), true)
+			draw_texture_rect_region(tex_gedung, b_rect, GEDUNG_SRC_RECT, Color.WHITE)
+			if gedung_nw_rooftop_props:
+				_draw_rooftop_props_to(self, b_rect, 50 + idx)
 
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)
 	var pol_w = (polisi_lebar if (polisi_lebar != null and polisi_lebar > 0.0) else 341.0) * pol_sk
