@@ -188,8 +188,6 @@ func _create_paper_hotspot(btn_text: String, pos: Vector2, btn_size: Vector2) ->
 	hover_sb.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("hover", hover_sb)
 	btn.add_theme_stylebox_override("pressed", hover_sb)
-
-	btn.mouse_entered.connect(func(): _play_click())
 	return btn
 
 func _build_options_modal() -> void:

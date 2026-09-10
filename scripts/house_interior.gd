@@ -174,8 +174,8 @@ var default_furniture_config: Dictionary = {
 		"scale": 1.0,
 		"base_w": 44.0,
 		"has_col": true,
-		"col_w": 46.0, "col_h": 32.0,
-		"col_off_x": 0.0, "col_y_off": 0.0,
+		"col_w": 52.0, "col_h": 58.0,
+		"col_off_x": 0.0, "col_y_off": 10.0,
 		"z_idx": 0
 	},
 	"karpet_kamar": {

@@ -67,15 +67,15 @@
 	},
 	"meja_panjang": {
 		"name": "Meja Kopi Ruang Tamu",
-		"scale": 1.0,
-		"x": 108.0,
-		"y": 121.0
+		"scale": 1.7,
+		"x": 95.0,
+		"y": 114.0
 	},
 	"meja_sudut_tamu": {
 		"name": "Meja Hias / Vas Bunga",
-		"scale": 1.0,
-		"x": 35.0,
-		"y": 62.0
+		"scale": 1.5,
+		"x": 170.0,
+		"y": 59.0
 	},
 	"nakas_kamar": {
 		"name": "Nakas Samping Kasur",
@@ -91,14 +91,14 @@
 	},
 	"sofa_kecil": {
 		"name": "Armchair Tamu",
-		"scale": 1.0,
-		"x": 169.0,
-		"y": 120.0
+		"scale": 1.65,
+		"x": 163.0,
+		"y": 107.0
 	},
 	"sofa_panjang": {
 		"name": "Sofa Tamu Hijau",
-		"scale": 1.0,
-		"x": 111.0,
+		"scale": 0.9,
+		"x": 97.0,
 		"y": 60.0
 	},
 	"surat": {

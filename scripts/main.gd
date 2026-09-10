@@ -421,8 +421,7 @@ func _setup_minigames() -> void:
 		minigame_tailgate = CanvasLayer.new()
 		minigame_tailgate.name = "MinigameTailgate"
 		minigame_tailgate.set_script(mg1_script)
-		add_child(minigame_tailgate)
-		minigame_tailgate.minigame_completed.connect(func(_ok): _on_minigame_ended())
+		minigame_tailgate.minigame_completed.connect(_on_tailgate_completed)
 
 	var mg2_script = load("res://scripts/minigame_hidden_objects.gd")
 	if mg2_script:
@@ -480,6 +479,43 @@ func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
 	_update_hud_objective()
+
+func _on_tailgate_completed(success: bool) -> void:
+	if is_instance_valid(player):
+		player.can_move = true
+	_update_hud_objective()
+
+	if not success:
+		return
+
+	# Marcus berjalan melewati stasiun, Benedict terpicu force dialogue:
+	# "hmm sepertinya aku hrus ke stasiun"
+	if is_instance_valid(player):
+		player.can_move = false
+		player.global_position = Vector2(1950.0, 720.0)
+
+	if is_instance_valid(dialog_box):
+		var station_prompt_lines: Array[String] = [
+			"Inspektur Marcus: 'Cepat amankan peron sebelum kereta malam tiba... Saksi melihat korban di stasiun!'",
+			"Hmm... sepertinya aku harus ke stasiun.",
+			"Marcus bergegas ke arah lain, tapi jejak korban dan barang bawaannya tertinggal di peron stasiun.",
+			"Aku harus segera memeriksa peron dan mencari amplop foto serta barang bukti korban sebelum terlambat!"
+		]
+		dialog_box.start_monologue(station_prompt_lines, "Detektif Benedict", "[ Menuju Stasiun ]", "res://karakter/MC_Bingung.png")
+		dialog_box.monologue_finished.connect(func():
+			if is_instance_valid(minigame_hidden_objects):
+				player.can_move = false
+				minigame_hidden_objects.start_minigame()
+				_show_toast("🔍 Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
+			else:
+				if is_instance_valid(player):
+					player.can_move = true
+		, CONNECT_ONE_SHOT)
+	else:
+		if is_instance_valid(minigame_hidden_objects):
+			player.can_move = false
+			minigame_hidden_objects.start_minigame()
+			_show_toast("🔍 Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
 
 func _setup_main_menu() -> void:
 	var mm_script = load("res://scripts/main_menu_ui.gd")
@@ -955,7 +991,10 @@ func _check_poi_proximity() -> void:
 					"indoor_safe":
 						interact_prompt.text = "👉 [ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
 					"indoor_photo_basin":
-						interact_prompt.text = "👉 [ F / E / Spasi ] KAMAR GELAP: CUCI FOTO POLAROID"
+						if inv_mgr.is_clue_unlocked("photo_envelope"):
+							interact_prompt.text = "👉 [ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN"
+						else:
+							interact_prompt.text = "👉 [ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)"
 					"indoor_stairs":
 						interact_prompt.text = "👉 [ F / E / Spasi ] TANGGA: MENUJU LANTAI ATAS"
 					"indoor_exit":
@@ -997,7 +1036,22 @@ func _check_poi_proximity() -> void:
 	else:
 		if is_instance_valid(interact_prompt):
 			var poi_info = POI_LOCATIONS[active_poi_id]
-			interact_prompt.text = "👉 [ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
+			var custom_text = "👉 [ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
+			if active_poi_id == "police":
+				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
+					custom_text = "👉 [ F / E / Spasi ] KANTOR POLISI (PERIKSA RUMAH DULU)"
+				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
+					custom_text = "👉 [ F / E / Spasi ] TEMUI & KUNTIT INSPEKTUR MARCUS"
+				elif inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
+					custom_text = "👉 [ F / E / Spasi ] LAB POLISI: CUCI ROL FOTO STASIUN"
+				elif inv_mgr.has_developed_photos:
+					custom_text = "👉 [ F / E / Spasi ] BICARA DENGAN PETUGAS POLISI"
+			elif active_poi_id == "hospital":
+				if not inv_mgr.is_clue_unlocked("developed_photos"):
+					custom_text = "👉 [ F / E / Spasi ] RUMAH SAKIT (BUTUH FOTO FORENSIK)"
+				else:
+					custom_text = "👉 [ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
+			interact_prompt.text = custom_text
 			var vp = get_viewport().get_visible_rect().size
 			interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
 			interact_prompt.visible = true
@@ -1049,9 +1103,12 @@ func _input(event: InputEvent) -> void:
 			return
 		elif event.keycode == KEY_3:
 			if is_instance_valid(minigame_photo_wash):
-				player.can_move = false
-				minigame_photo_wash.start_minigame()
-				_show_toast("🧪 Uji Coba: Minigame Cuci Foto Polaroid Dimulai!")
+				if not inv_mgr.is_clue_unlocked("photo_envelope"):
+					_show_toast("⚠️ [Uji Coba] Belum ada rol foto dari stasiun untuk dicuci.")
+				else:
+					player.can_move = false
+					minigame_photo_wash.start_minigame()
+					_show_toast("🧪 Uji Coba: Minigame Cuci Foto Polaroid Dimulai!")
 				get_viewport().set_input_as_handled()
 				return
 		elif event.keycode == KEY_4:
@@ -1097,6 +1154,16 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				_show_toast("🗝️ Membuka Brankas Baja Keluarga!")
 
 		"indoor_photo_basin":
+			if not inv_mgr.is_clue_unlocked("photo_envelope"):
+				_show_toast("⚠️ Belum ada rol foto yang perlu dicuci. Selidiki stasiun terlebih dahulu!")
+				if is_instance_valid(dialog_box):
+					var lines: Array[String] = [
+						"Baskom larutan kimia kamar gelap ini masih kosong.",
+						"Aku belum menemukan rol film foto ataupun bukti kasus di stasiun.",
+						"Aku harus menyelidiki kasus dan mencari bukti di stasiun terlebih dahulu."
+					]
+					dialog_box.start_monologue(lines, "Detektif Benedict", "[ Kamar Gelap ]", "res://karakter/MC_Bingung.png")
+				return
 			if is_instance_valid(minigame_photo_wash):
 				player.can_move = false
 				minigame_photo_wash.start_minigame()
@@ -1120,6 +1187,24 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			_show_toast("⏱️ Jam Kota Terhenti di Pukul 16:04!")
 
 		"police":
+			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
+				_show_toast("⚠️ Selidiki rumah korban di timur terlebih dahulu!")
+				if is_instance_valid(dialog_box):
+					var p_lines: Array[String] = [
+						"Petugas Polisi: 'Selamat bertugas, Detektif Benedict.'",
+						"Petugas Polisi: 'Inspektur Marcus meminta Anda memeriksa TKP rumah korban di ujung timur terlebih dahulu untuk mencari berkas atau petunjuk awal.'"
+					]
+					dialog_box.start_monologue(p_lines, "Kantor Polisi", "[ Instruksi Tugas ]", "res://NPC_Police/front.png")
+				return
+
+			if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
+				# Cuci foto di lab forensik kantor polisi
+				if is_instance_valid(minigame_photo_wash):
+					player.can_move = false
+					minigame_photo_wash.start_minigame()
+					_show_toast("🧪 Masuk ke Kamar Gelap Lab Forensik Kepolisian!")
+					return
+
 			var marcus_npc = find_child("NPC_Police_Marcus", true, false)
 			if not is_instance_valid(marcus_npc):
 				marcus_npc = find_child("NPC1_Police", true, false)
@@ -1138,7 +1223,10 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 					_start_marcus_tailgate(marcus_npc)
 				, CONNECT_ONE_SHOT)
 			else:
-				_start_marcus_tailgate(marcus_npc)
+				if inv_mgr.has_tailgated_marcus:
+					_show_toast("Petugas Polisi: 'Inspektur Marcus sedang berpatroli ke arah stasiun.'")
+				else:
+					_start_marcus_tailgate(marcus_npc)
 
 		"station":
 			if is_instance_valid(minigame_hidden_objects):
@@ -1149,6 +1237,16 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
 		"hospital":
+			if not inv_mgr.is_clue_unlocked("developed_photos"):
+				_show_toast("⚠️ Akses ditolak: Belum ada identifikasi foto forensik korban!")
+				if is_instance_valid(dialog_box):
+					var rej_lines: Array[String] = [
+						"Resepsionis RS: 'Mohon maaf, Detektif. Kamar mayat steril ditutup rapat.'",
+						"Resepsionis RS: 'Kami membutuhkan hasil identifikasi foto forensik resmi dari kepolisian sebelum membuka akses berkas jasad korban.'"
+					]
+					dialog_box.start_monologue(rej_lines, "Rumah Sakit", "[ Akses Ditolak ]", "res://karakter/MC_Bingung.png")
+				return
+
 			if not hospital_status_reception_rejected and not inv_mgr.has_inspected_morgue:
 				hospital_status_reception_rejected = true
 				if is_instance_valid(dialog_box):

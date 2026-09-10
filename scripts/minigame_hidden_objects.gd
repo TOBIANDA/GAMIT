@@ -3,12 +3,12 @@ extends CanvasLayer
 signal minigame_completed(success: bool)
 
 var is_active: bool = false
-var time_left: float = 45.0
+var time_left: float = 60.0
 
 var items_to_find: Dictionary = {
-	"envelope": {"found": false, "name": "✉️ Amplop Berisi Rol Foto TKP", "hint": "Di dekat tangga peron stasiun"},
-	"ticket":   {"found": false, "name": "🎫 Tiket Kereta Luar Kota", "hint": "Di dekat loket tiket peron"},
-	"watch":    {"found": false, "name": "⏱️ Jam Saku Arwah (Macet 16:04)", "hint": "Di bawah tiang jam stasiun"}
+	"envelope": {"found": false, "name": "✉️ Amplop Foto Korban", "hint": "Di atas bangku tunggu stasiun"},
+	"luggage":  {"found": false, "name": "💼 Koper Biru & Tiket Kereta", "hint": "Di lantai dekat bangku tunggu"},
+	"bag":      {"found": false, "name": "👜 Tas Pribadi Korban", "hint": "Di atas sandaran bangku stasiun"}
 }
 
 var root_control: Control
@@ -21,6 +21,11 @@ var click_player: AudioStreamPlayer
 
 var tex_station_bg: Texture2D
 var tex_envelope: Texture2D
+var tex_luggage: Texture2D
+var tex_bag: Texture2D
+var tex_umbrella: Texture2D
+var tex_big_suitcase: Texture2D
+var tex_trash_bin: Texture2D
 
 var item_buttons: Dictionary = {}
 
@@ -45,8 +50,32 @@ func _play_click() -> void:
 		click_player.play()
 
 func _load_assets() -> void:
-	tex_station_bg = load("res://Environment/stasiun/latar stasiun.png")
-	tex_envelope = load("res://Environment/interactable assets/surat.png")
+	if ResourceLoader.exists("res://stasiun/latar pake bayangan.png"):
+		tex_station_bg = load("res://stasiun/latar pake bayangan.png")
+	elif ResourceLoader.exists("res://stasiun/latar stasiun.png"):
+		tex_station_bg = load("res://stasiun/latar stasiun.png")
+	elif ResourceLoader.exists("res://Environment/stasiun/latar stasiun.png"):
+		tex_station_bg = load("res://Environment/stasiun/latar stasiun.png")
+
+	if ResourceLoader.exists("res://stasiun/surat diatas kursi.png"):
+		tex_envelope = load("res://stasiun/surat diatas kursi.png")
+	elif ResourceLoader.exists("res://Environment/interactable assets/surat.png"):
+		tex_envelope = load("res://Environment/interactable assets/surat.png")
+
+	if ResourceLoader.exists("res://stasiun/koperbiru.png"):
+		tex_luggage = load("res://stasiun/koperbiru.png")
+
+	if ResourceLoader.exists("res://stasiun/tas diatas kursi.png"):
+		tex_bag = load("res://stasiun/tas diatas kursi.png")
+
+	if ResourceLoader.exists("res://stasiun/payung depan.png"):
+		tex_umbrella = load("res://stasiun/payung depan.png")
+
+	if ResourceLoader.exists("res://stasiun/koperbesar.png"):
+		tex_big_suitcase = load("res://stasiun/koperbesar.png")
+
+	if ResourceLoader.exists("res://stasiun/tongsampah.png"):
+		tex_trash_bin = load("res://stasiun/tongsampah.png")
 
 func start_minigame() -> void:
 	if not is_instance_valid(root_control):
@@ -55,7 +84,7 @@ func start_minigame() -> void:
 		_build_scene_ui()
 	is_active = true
 	visible = true
-	time_left = 45.0
+	time_left = 60.0
 	for k in items_to_find.keys():
 		items_to_find[k]["found"] = false
 		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
@@ -74,7 +103,7 @@ func _process(delta: float) -> void:
 	time_left -= delta
 	if is_instance_valid(timer_label):
 		timer_label.text = "⏱️ Jadwal Kereta Berangkat: %.1fs" % max(0.0, time_left)
-		if time_left < 10.0:
+		if time_left < 15.0:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 		else:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
@@ -140,7 +169,7 @@ func _on_item_clicked(item_key: String) -> void:
 
 func _complete_victory() -> void:
 	is_active = false
-	status_banner.text = "🎉 SEMUA 3 BUKTI BERHASIL DIKUMPULKAN! Bawa amplop foto pulang ke rumah untuk dicuci!"
+	status_banner.text = "🎉 SEMUA BUKTI DITEMUKAN! Amplop foto berhasil diamankan! Bawa ke Kantor Polisi untuk dicuci!"
 	status_banner.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
@@ -148,8 +177,8 @@ func _complete_victory() -> void:
 		inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
 	if is_instance_valid(inv_mgr):
 		inv_mgr.unlock_clue("train_ticket")
-		inv_mgr.unlock_clue("broken_pocket_watch")
 		inv_mgr.unlock_clue("photo_envelope")
+		inv_mgr.has_cleared_station = true
 		inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_3_PHOTO)
 
 	if is_inside_tree() and get_tree():
@@ -158,12 +187,12 @@ func _complete_victory() -> void:
 
 func _fail_timeout() -> void:
 	is_active = false
-	status_banner.text = "❌ WAKTU HABIS! Kereta melintas dan menimbulkan kepanikan arwah! Mengulang..."
+	status_banner.text = "❌ WAKTU HABIS! Kereta melintas dan menimbulkan kepanikan! Mengulang pencarian..."
 	status_banner.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 	if is_inside_tree() and get_tree():
 		await get_tree().create_timer(2.0).timeout
-	time_left = 45.0
+	time_left = 60.0
 	for k in items_to_find.keys():
 		items_to_find[k]["found"] = false
 		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
@@ -175,6 +204,16 @@ func _finish_and_close(success: bool = true) -> void:
 	is_active = false
 	visible = false
 	minigame_completed.emit(success)
+
+	if success and get_tree() and get_tree().root:
+		var dlg = get_tree().root.find_child("DialogBox", true, false)
+		if is_instance_valid(dlg) and dlg.has_method("start_monologue"):
+			var lines: Array[String] = [
+				"Di peron stasiun ini... aku menemukan tiket kereta dan amplop berisi rol film foto milik korban.",
+				"Aku harus segera kembali ke Kantor Polisi (atau Kamar Gelap) untuk mencuci rol foto ini!",
+				"Firasatku mengatakan... foto-foto ini akan membuka identitas korban yang sebenarnya."
+			]
+			dlg.start_monologue(lines, "Detektif Benedict", "[ Bukti Foto Didapatkan ]", "res://karakter/MC_Bingung.png")
 
 func _build_scene_ui() -> void:
 	root_control = Control.new()
@@ -188,14 +227,14 @@ func _build_scene_ui() -> void:
 
 	var margin = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 40)
-	margin.add_theme_constant_override("margin_right", 40)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
+	margin.add_theme_constant_override("margin_left", 32)
+	margin.add_theme_constant_override("margin_right", 32)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
 	root_control.add_child(margin)
 
 	var main_box = VBoxContainer.new()
-	main_box.add_theme_constant_override("separation", 10)
+	main_box.add_theme_constant_override("separation", 8)
 	margin.add_child(main_box)
 
 	var header = HBoxContainer.new()
@@ -209,7 +248,7 @@ func _build_scene_ui() -> void:
 	header.add_child(title)
 
 	timer_label = Label.new()
-	timer_label.text = "⏱️ Jadwal Kereta: 45.0s"
+	timer_label.text = "⏱️ Jadwal Kereta: 60.0s"
 	timer_label.add_theme_font_size_override("font_size", 16)
 	header.add_child(timer_label)
 
@@ -220,7 +259,7 @@ func _build_scene_ui() -> void:
 	header.add_child(close_btn)
 
 	status_banner = Label.new()
-	status_banner.text = "🔍 Klik objek tersembunyi di peron stasiun!"
+	status_banner.text = "🔍 Klik objek bukti tersembunyi di peron stasiun!"
 	status_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_banner.add_theme_font_size_override("font_size", 14)
 	main_box.add_child(status_banner)
@@ -228,7 +267,7 @@ func _build_scene_ui() -> void:
 	# Canvas Area dengan Latar Belakang Asli Stasiun
 	canvas_area = Control.new()
 	canvas_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	canvas_area.custom_minimum_size = Vector2(0, 420)
+	canvas_area.custom_minimum_size = Vector2(0, 440)
 	main_box.add_child(canvas_area)
 
 	var bg_station = TextureRect.new()
@@ -239,41 +278,49 @@ func _build_scene_ui() -> void:
 	bg_station.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	canvas_area.add_child(bg_station)
 
-	# 1. Amplop Foto TKP (di dekat tangga stasiun)
-	var btn_env = Button.new()
-	btn_env.text = "✉️ Amplop Foto TKP"
-	btn_env.position = Vector2(620, 290)
-	btn_env.custom_minimum_size = Vector2(170, 42)
-	btn_env.focus_mode = Control.FOCUS_NONE
-	if is_instance_valid(tex_envelope):
-		btn_env.icon = tex_envelope
-		btn_env.expand_icon = true
-	_style_item_button(btn_env, Color(0.95, 0.75, 0.2))
-	btn_env.pressed.connect(func(): _on_item_clicked("envelope"))
+	# --- OBJEK DEKORATIF DARI ASET USER ---
+	if is_instance_valid(tex_big_suitcase):
+		var deco_koper = TextureRect.new()
+		deco_koper.texture = tex_big_suitcase
+		deco_koper.position = Vector2(880, 240)
+		deco_koper.size = Vector2(170, 170)
+		deco_koper.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		deco_koper.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		canvas_area.add_child(deco_koper)
+
+	if is_instance_valid(tex_umbrella):
+		var deco_umbrella = TextureRect.new()
+		deco_umbrella.texture = tex_umbrella
+		deco_umbrella.position = Vector2(210, 220)
+		deco_umbrella.size = Vector2(140, 140)
+		deco_umbrella.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		deco_umbrella.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		canvas_area.add_child(deco_umbrella)
+
+	if is_instance_valid(tex_trash_bin):
+		var deco_trash = TextureRect.new()
+		deco_trash.texture = tex_trash_bin
+		deco_trash.position = Vector2(140, 260)
+		deco_trash.size = Vector2(120, 120)
+		deco_trash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		deco_trash.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		canvas_area.add_child(deco_trash)
+
+	# --- 3 TARGET UTAMA PENCARIAN (INTERACTIVE BUTTONS) ---
+	# 1. Amplop Surat di atas kursi
+	var btn_env = _create_interactive_prop("envelope", tex_envelope, Vector2(390, 230), Vector2(180, 180), "✉️ Amplop Foto Korban")
 	canvas_area.add_child(btn_env)
 	item_buttons["envelope"] = btn_env
 
-	# 2. Tiket Kereta (di dekat loket TICKET kanan)
-	var btn_tkt = Button.new()
-	btn_tkt.text = "🎫 Tiket Kereta Luar Kota"
-	btn_tkt.position = Vector2(870, 240)
-	btn_tkt.custom_minimum_size = Vector2(180, 42)
-	btn_tkt.focus_mode = Control.FOCUS_NONE
-	_style_item_button(btn_tkt, Color(0.3, 0.85, 1.0))
-	btn_tkt.pressed.connect(func(): _on_item_clicked("ticket"))
-	canvas_area.add_child(btn_tkt)
-	item_buttons["ticket"] = btn_tkt
+	# 2. Koper Biru di lantai dekat peron
+	var btn_lug = _create_interactive_prop("luggage", tex_luggage, Vector2(720, 270), Vector2(180, 180), "💼 Koper Biru Korban")
+	canvas_area.add_child(btn_lug)
+	item_buttons["luggage"] = btn_lug
 
-	# 3. Jam Saku Rusak 16:04 (di bawah jam stasiun tengah)
-	var btn_wch = Button.new()
-	btn_wch.text = "⏱️ Jam Saku (16:04)"
-	btn_wch.position = Vector2(430, 140)
-	btn_wch.custom_minimum_size = Vector2(170, 42)
-	btn_wch.focus_mode = Control.FOCUS_NONE
-	_style_item_button(btn_wch, Color(1.0, 0.45, 0.45))
-	btn_wch.pressed.connect(func(): _on_item_clicked("watch"))
-	canvas_area.add_child(btn_wch)
-	item_buttons["watch"] = btn_wch
+	# 3. Tas di atas kursi
+	var btn_bag = _create_interactive_prop("bag", tex_bag, Vector2(560, 220), Vector2(170, 170), "👜 Tas Pribadi Korban")
+	canvas_area.add_child(btn_bag)
+	item_buttons["bag"] = btn_bag
 
 	# Panel Checklist Bawah
 	var bottom_panel = PanelContainer.new()
@@ -284,8 +331,8 @@ func _build_scene_ui() -> void:
 	bot_style.set_corner_radius_all(8)
 	bot_style.content_margin_left = 20.0
 	bot_style.content_margin_right = 20.0
-	bot_style.content_margin_top = 10.0
-	bot_style.content_margin_bottom = 10.0
+	bot_style.content_margin_top = 8.0
+	bot_style.content_margin_bottom = 8.0
 	bottom_panel.add_theme_stylebox_override("panel", bot_style)
 	main_box.add_child(bottom_panel)
 
@@ -293,19 +340,17 @@ func _build_scene_ui() -> void:
 	bottom_panel.add_child(item_checklist)
 	_refresh_checklist()
 
-func _style_item_button(btn: Button, border_col: Color) -> void:
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.08, 0.12, 0.90)
-	sb.border_color = border_col
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
-	sb.content_margin_top = 6
-	sb.content_margin_bottom = 6
-	btn.add_theme_stylebox_override("normal", sb)
-	
-	var sb_h = sb.duplicate()
-	sb_h.bg_color = Color(border_col.r * 0.35, border_col.g * 0.35, border_col.b * 0.35, 0.95)
-	sb_h.border_color = Color.WHITE
-	btn.add_theme_stylebox_override("hover", sb_h)
+func _create_interactive_prop(item_key: String, tex: Texture2D, pos: Vector2, prop_size: Vector2, tooltip: String) -> Control:
+	var btn = TextureButton.new()
+	btn.name = "Prop_" + item_key
+	btn.texture_normal = tex
+	btn.position = pos
+	btn.size = prop_size
+	btn.custom_minimum_size = prop_size
+	btn.ignore_texture_size = true
+	btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn.tooltip_text = tooltip
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.pressed.connect(func(): _on_item_clicked(item_key))
+	return btn
