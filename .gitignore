@@ -1,3 +1,50 @@
+# ==============================================================================
+# Godot 4 & Game Development Industry-Standard .gitignore
+# ==============================================================================
+
+# --- Godot 4 Engine Local Caches & Artifacts ---
 .godot/
+*.translation
+export_presets.cfg.local
+
+# --- Export Builds & Executables ---
+build/
+builds/
+bin/
+dist/
+*.apk
+*.aab
+*.exe
+*.pck
+*.dmg
+*.app
+*.ipa
+
+# --- Operating System & Desktop Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# --- IDE & Editor Configurations ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Python & AI Server Virtual Environments / Caches ---
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+ENV/
+build/
+dist/
+*.spec
+
+# --- Temporary Test Scripts & AI Debug Captures ---
+.ai_debug/
+scratch/
+*.log
