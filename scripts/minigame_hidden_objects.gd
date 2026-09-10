@@ -6,14 +6,15 @@ var is_active: bool = false
 var time_left: float = 60.0
 
 var items_to_find: Dictionary = {
-	"envelope": {"found": false, "name": "Amplop Foto Korban", "hint": "Di atas bangku tunggu stasiun"},
-	"luggage":  {"found": false, "name": "Koper Biru & Tiket Kereta", "hint": "Di lantai dekat bangku tunggu"},
-	"bag":      {"found": false, "name": "Tas Pribadi Korban", "hint": "Di atas sandaran bangku stasiun"}
+	"envelope": {"found": false, "name": "Amplop Foto Korban", "hint": "Di atas bangku tunggu stasiun (kertas putih)"},
+	"luggage":  {"found": false, "name": "Koper Biru & Tiket Kereta", "hint": "Tumpukan koper di lantai peron stasiun"},
+	"bag":      {"found": false, "name": "Tas Pribadi Korban", "hint": "Tas koper merah di atas bangku tunggu"}
 }
 
 var root_control: Control
 var aspect_container: AspectRatioContainer
-var stage_root: Control
+var station_canvas: Control
+var station_bg: TextureRect
 var timer_label: Label
 var item_checklist: VBoxContainer
 var status_banner: Label
@@ -22,27 +23,40 @@ var click_player: AudioStreamPlayer
 
 # Aset Stasiun
 var tex_station_bg: Texture2D
-var tex_kursi: Texture2D
-var tex_envelope: Texture2D
-var tex_luggage: Texture2D
-var tex_bag: Texture2D
-var tex_big_suitcase: Texture2D
-var tex_hanging_lamp: Texture2D
-var tex_trash_bin: Texture2D
-var tex_umbrella: Texture2D
-var tex_sign: Texture2D
-var tex_banana: Texture2D
-var tex_bag_green: Texture2D
-var tex_bag_purple: Texture2D
 
 var item_buttons: Dictionary = {}
-var item_nodes: Dictionary = {}
+var item_found_badges: Dictionary = {}
 
-const STAGE_W := 1280.0
-const STAGE_H := 720.0
+# Koordinat persentase (anchor) presisi sesuai ilustrasi utuh stasiun (5760x3240)
+const ITEM_ANCHORS := {
+	"envelope": {
+		"left": 0.7578,
+		"top": 0.7569,
+		"right": 0.8359,
+		"bottom": 0.8264,
+		"name": "Amplop Foto Korban",
+		"badge_offset": Vector2(0, -28)
+	},
+	"bag": {
+		"left": 0.7656,
+		"top": 0.7917,
+		"right": 0.9219,
+		"bottom": 0.9167,
+		"name": "Tas Pribadi Korban",
+		"badge_offset": Vector2(0, -28)
+	},
+	"luggage": {
+		"left": 0.3789,
+		"top": 0.6875,
+		"right": 0.4883,
+		"bottom": 0.7986,
+		"name": "Koper Biru & Tiket Kereta",
+		"badge_offset": Vector2(0, -28)
+	}
+}
 
 func _ready() -> void:
-	layer = 14
+	layer = 15
 	_setup_audio()
 	_load_assets()
 	_build_scene_ui()
@@ -62,46 +76,13 @@ func _play_click() -> void:
 		click_player.play()
 
 func _load_assets() -> void:
-	if ResourceLoader.exists("res://stasiun/latar pake bayangan.png"):
-		tex_station_bg = load("res://stasiun/latar pake bayangan.png")
-	elif ResourceLoader.exists("res://stasiun/latar stasiun.png"):
+	# Prioritaskan latar stasiun utuh (5760x3240) yang sudah berisi komposisi lengkap gambar kedua
+	if ResourceLoader.exists("res://stasiun/latar stasiun.png"):
 		tex_station_bg = load("res://stasiun/latar stasiun.png")
-
-	if ResourceLoader.exists("res://stasiun/kursi.png"):
-		tex_kursi = load("res://stasiun/kursi.png")
-
-	if ResourceLoader.exists("res://stasiun/surat diatas kursi.png"):
-		tex_envelope = load("res://stasiun/surat diatas kursi.png")
-
-	if ResourceLoader.exists("res://stasiun/tas diatas kursi.png"):
-		tex_bag = load("res://stasiun/tas diatas kursi.png")
-
-	if ResourceLoader.exists("res://stasiun/koperbiru.png"):
-		tex_luggage = load("res://stasiun/koperbiru.png")
-
-	if ResourceLoader.exists("res://stasiun/koperbesar.png"):
-		tex_big_suitcase = load("res://stasiun/koperbesar.png")
-
-	if ResourceLoader.exists("res://stasiun/lampu gantung.png"):
-		tex_hanging_lamp = load("res://stasiun/lampu gantung.png")
-
-	if ResourceLoader.exists("res://stasiun/tongsampah.png"):
-		tex_trash_bin = load("res://stasiun/tongsampah.png")
-
-	if ResourceLoader.exists("res://stasiun/payung depan.png"):
-		tex_umbrella = load("res://stasiun/payung depan.png")
-
-	if ResourceLoader.exists("res://stasiun/rambu.png"):
-		tex_sign = load("res://stasiun/rambu.png")
-
-	if ResourceLoader.exists("res://stasiun/pisang.png"):
-		tex_banana = load("res://stasiun/pisang.png")
-
-	if ResourceLoader.exists("res://stasiun/tas ijo.png"):
-		tex_bag_green = load("res://stasiun/tas ijo.png")
-
-	if ResourceLoader.exists("res://stasiun/tas ungu.png"):
-		tex_bag_purple = load("res://stasiun/tas ungu.png")
+	elif ResourceLoader.exists("res://stasiun/latar pake bayangan.png"):
+		tex_station_bg = load("res://stasiun/latar pake bayangan.png")
+	elif ResourceLoader.exists("res://Environment/stasiun/latar stasiun.png"):
+		tex_station_bg = load("res://Environment/stasiun/latar stasiun.png")
 
 func start_minigame() -> void:
 	if not is_instance_valid(root_control):
@@ -115,17 +96,15 @@ func start_minigame() -> void:
 		items_to_find[k]["found"] = false
 		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
 			item_buttons[k].visible = true
+			item_buttons[k].disabled = false
 			item_buttons[k].modulate = Color.WHITE
-		if item_nodes.has(k) and is_instance_valid(item_nodes[k]):
-			item_nodes[k].visible = true
-			item_nodes[k].modulate = Color.WHITE
+		if item_found_badges.has(k) and is_instance_valid(item_found_badges[k]):
+			item_found_badges[k].visible = false
 
 	_refresh_checklist()
 	if is_instance_valid(status_banner):
 		status_banner.text = "Temukan 3 barang bukti korban di peron stasiun sebelum jadwal kereta berangkat!"
 		status_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
-
-	_on_aspect_resized()
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -139,14 +118,12 @@ func _process(delta: float) -> void:
 		else:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 
-	# Efek pulsing lembut pada item target yang belum ditemukan
-	var pulse = 0.85 + 0.15 * sin(Time.get_ticks_msec() * 0.007)
+	# Efek glowing lembut pada hotspot target yang belum ditemukan
+	var pulse = 0.82 + 0.18 * sin(Time.get_ticks_msec() * 0.006)
 	for k in items_to_find.keys():
 		if not items_to_find[k]["found"]:
 			if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
 				item_buttons[k].modulate = Color(pulse, pulse, 1.0, 1.0)
-			if item_nodes.has(k) and is_instance_valid(item_nodes[k]):
-				item_nodes[k].modulate = Color(pulse, pulse, 1.0, 1.0)
 
 	if time_left <= 0.0:
 		_fail_timeout()
@@ -186,14 +163,14 @@ func _on_item_clicked(item_key: String) -> void:
 	items_to_find[item_key]["found"] = true
 
 	if item_buttons.has(item_key) and is_instance_valid(item_buttons[item_key]):
-		item_buttons[item_key].visible = false
-	if item_nodes.has(item_key) and is_instance_valid(item_nodes[item_key]):
+		item_buttons[item_key].disabled = true
+	
+	if item_found_badges.has(item_key) and is_instance_valid(item_found_badges[item_key]):
+		var badge = item_found_badges[item_key]
+		badge.visible = true
+		badge.modulate = Color(1, 1, 1, 0)
 		var tw = create_tween()
-		tw.tween_property(item_nodes[item_key], "modulate", Color(0.2, 1.0, 0.4, 0.0), 0.35)
-		tw.tween_callback(func():
-			if is_instance_valid(item_nodes[item_key]):
-				item_nodes[item_key].visible = false
-		)
+		tw.tween_property(badge, "modulate:a", 1.0, 0.25)
 
 	_refresh_checklist()
 
@@ -241,9 +218,10 @@ func _fail_timeout() -> void:
 		items_to_find[k]["found"] = false
 		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
 			item_buttons[k].visible = true
-		if item_nodes.has(k) and is_instance_valid(item_nodes[k]):
-			item_nodes[k].visible = true
-			item_nodes[k].modulate = Color.WHITE
+			item_buttons[k].disabled = false
+			item_buttons[k].modulate = Color.WHITE
+		if item_found_badges.has(k) and is_instance_valid(item_found_badges[k]):
+			item_found_badges[k].visible = false
 	_refresh_checklist()
 	is_active = true
 
@@ -263,6 +241,9 @@ func _finish_and_close(success: bool = true) -> void:
 			dlg.start_monologue(lines, "Detektif Benedict", "[ Bukti Foto Didapatkan ]", "res://karakter/MC_Bingung.png")
 
 func _build_scene_ui() -> void:
+	if is_instance_valid(root_control):
+		return
+
 	root_control = Control.new()
 	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root_control)
@@ -284,6 +265,7 @@ func _build_scene_ui() -> void:
 	main_box.add_theme_constant_override("separation", 6)
 	margin.add_child(main_box)
 
+	# 1. Header & Timer
 	var header = HBoxContainer.new()
 	main_box.add_child(header)
 
@@ -306,166 +288,91 @@ func _build_scene_ui() -> void:
 	close_btn.pressed.connect(func(): _finish_and_close(false))
 	header.add_child(close_btn)
 
+	# 2. Status Banner
 	status_banner = Label.new()
 	status_banner.text = "Temukan 3 barang bukti korban di peron stasiun!"
 	status_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_banner.add_theme_font_size_override("font_size", 13)
 	main_box.add_child(status_banner)
 
-	# --- PANGGUNG 16:9 DENGAN SELURUH ASET STASIUN LENGKAP ---
+	# 3. Panggung Utama 16:9 Proporsional Penuh (Sesuai Gambar Kedua)
 	aspect_container = AspectRatioContainer.new()
 	aspect_container.ratio = 16.0 / 9.0
 	aspect_container.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
 	aspect_container.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
 	aspect_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	aspect_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	aspect_container.resized.connect(_on_aspect_resized)
 	main_box.add_child(aspect_container)
 
-	stage_root = Control.new()
-	stage_root.custom_minimum_size = Vector2(STAGE_W, STAGE_H)
-	stage_root.size = Vector2(STAGE_W, STAGE_H)
-	aspect_container.add_child(stage_root)
+	station_canvas = Control.new()
+	station_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
+	aspect_container.add_child(station_canvas)
 
-	# 1. Latar Belakang Stasiun (Latar dengan bayangan peron)
-	var bg_station = TextureRect.new()
+	station_bg = TextureRect.new()
 	if is_instance_valid(tex_station_bg):
-		bg_station.texture = tex_station_bg
-	bg_station.size = Vector2(STAGE_W, STAGE_H)
-	bg_station.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg_station.stretch_mode = TextureRect.STRETCH_SCALE
-	stage_root.add_child(bg_station)
+		station_bg.texture = tex_station_bg
+	station_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	station_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	station_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	station_canvas.add_child(station_bg)
 
-	# 2. Lampu Gantung Atap Stasiun
-	if is_instance_valid(tex_hanging_lamp):
-		var lamp = TextureRect.new()
-		lamp.texture = tex_hanging_lamp
-		lamp.position = Vector2(450, 20)
-		lamp.size = Vector2(130, 200)
-		lamp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		lamp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(lamp)
+	# 4. Tiga Hotspot Interaktif Sesuai Posisi Gambar Asli Stasiun
+	for item_key in ITEM_ANCHORS.keys():
+		var data = ITEM_ANCHORS[item_key]
+		var btn = Button.new()
+		btn.name = "Target_" + item_key
+		btn.anchor_left = data["left"]
+		btn.anchor_top = data["top"]
+		btn.anchor_right = data["right"]
+		btn.anchor_bottom = data["bottom"]
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn.tooltip_text = "Klik untuk mengamankan " + data["name"]
 
-	# 3. Rambu Peron Kereta
-	if is_instance_valid(tex_sign):
-		var sign_rect = TextureRect.new()
-		sign_rect.texture = tex_sign
-		sign_rect.position = Vector2(240, 250)
-		sign_rect.size = Vector2(110, 180)
-		sign_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		sign_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(sign_rect)
+		var style_normal = StyleBoxFlat.new()
+		style_normal.bg_color = Color(1.0, 0.9, 0.2, 0.04)
+		style_normal.border_color = Color(1.0, 0.85, 0.2, 0.40)
+		style_normal.set_border_width_all(2)
+		style_normal.set_corner_radius_all(6)
+		btn.add_theme_stylebox_override("normal", style_normal)
 
-	# 4. Payung di Dekat Loket
-	if is_instance_valid(tex_umbrella):
-		var umbrella_rect = TextureRect.new()
-		umbrella_rect.texture = tex_umbrella
-		umbrella_rect.position = Vector2(1050, 330)
-		umbrella_rect.size = Vector2(130, 150)
-		umbrella_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		umbrella_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(umbrella_rect)
+		var style_hover = StyleBoxFlat.new()
+		style_hover.bg_color = Color(1.0, 1.0, 0.3, 0.25)
+		style_hover.border_color = Color(1.0, 1.0, 0.6, 0.95)
+		style_hover.set_border_width_all(2)
+		style_hover.set_corner_radius_all(6)
+		btn.add_theme_stylebox_override("hover", style_hover)
+		btn.add_theme_stylebox_override("pressed", style_hover)
 
-	# 5. Tong Sampah Stasiun
-	if is_instance_valid(tex_trash_bin):
-		var trash_rect = TextureRect.new()
-		trash_rect.texture = tex_trash_bin
-		trash_rect.position = Vector2(1110, 380)
-		trash_rect.size = Vector2(110, 150)
-		trash_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		trash_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(trash_rect)
+		var k_copy = item_key
+		btn.pressed.connect(func(): _on_item_clicked(k_copy))
+		station_canvas.add_child(btn)
+		item_buttons[item_key] = btn
 
-	# 6. Koper Besar Cokelat di Peron
-	if is_instance_valid(tex_big_suitcase):
-		var big_lug = TextureRect.new()
-		big_lug.texture = tex_big_suitcase
-		big_lug.position = Vector2(980, 420)
-		big_lug.size = Vector2(180, 180)
-		big_lug.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		big_lug.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(big_lug)
+		# Badge "✔ DIAMANKAN" saat berhasil ditemukan
+		var badge = Label.new()
+		badge.text = "✔ DIAMANKAN"
+		badge.anchor_left = data["left"]
+		badge.anchor_top = data["top"]
+		badge.anchor_right = data["right"]
+		badge.anchor_bottom = data["top"]
+		badge.offset_top = -24
+		badge.offset_bottom = -2
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
+		badge.add_theme_font_size_override("font_size", 12)
+		
+		var b_style = StyleBoxFlat.new()
+		b_style.bg_color = Color(0.05, 0.12, 0.08, 0.85)
+		b_style.border_color = Color(0.3, 1.0, 0.5, 0.8)
+		b_style.set_border_width_all(1)
+		b_style.set_corner_radius_all(4)
+		badge.add_theme_stylebox_override("panel", b_style)
+		badge.visible = false
+		station_canvas.add_child(badge)
+		item_found_badges[item_key] = badge
 
-	# 7. Tas Penumpang Hijau & Ungu
-	if is_instance_valid(tex_bag_green):
-		var bag_g = TextureRect.new()
-		bag_g.texture = tex_bag_green
-		bag_g.position = Vector2(780, 490)
-		bag_g.size = Vector2(110, 110)
-		bag_g.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		bag_g.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(bag_g)
-
-	# 8. Kulit Pisang di Lantai Peron
-	if is_instance_valid(tex_banana):
-		var banana_rect = TextureRect.new()
-		banana_rect.texture = tex_banana
-		banana_rect.position = Vector2(480, 530)
-		banana_rect.size = Vector2(60, 60)
-		banana_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		banana_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(banana_rect)
-
-	# 9. BANGKU TUNGGU PERON (KURSI STASIUN)
-	var bench_pos = Vector2(650, 310)
-	var bench_size = Vector2(380, 380)
-	if is_instance_valid(tex_kursi):
-		var bench_rect = TextureRect.new()
-		bench_rect.texture = tex_kursi
-		bench_rect.position = bench_pos
-		bench_rect.size = bench_size
-		bench_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		bench_rect.stretch_mode = TextureRect.STRETCH_SCALE
-		stage_root.add_child(bench_rect)
-
-	# --- 3 TARGET UTAMA PENCARIAN DENGAN HIGHLIGHT INTERAKTIF ---
-
-	# TARGET 1: Amplop Foto Korban di Atas Bangku
-	if is_instance_valid(tex_envelope):
-		var env_tex_rect = TextureRect.new()
-		env_tex_rect.texture = tex_envelope
-		env_tex_rect.position = bench_pos
-		env_tex_rect.size = bench_size
-		env_tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		env_tex_rect.stretch_mode = TextureRect.STRETCH_SCALE
-		stage_root.add_child(env_tex_rect)
-		item_nodes["envelope"] = env_tex_rect
-
-	var btn_env = _create_interactive_button("envelope", Vector2(785, 485), Vector2(115, 38), "Amplop Foto Korban")
-	stage_root.add_child(btn_env)
-	item_buttons["envelope"] = btn_env
-
-	# TARGET 2: Tas Pribadi Korban di Atas Sandaran Bangku
-	if is_instance_valid(tex_bag):
-		var bag_tex_rect = TextureRect.new()
-		bag_tex_rect.texture = tex_bag
-		bag_tex_rect.position = bench_pos
-		bag_tex_rect.size = bench_size
-		bag_tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		bag_tex_rect.stretch_mode = TextureRect.STRETCH_SCALE
-		stage_root.add_child(bag_tex_rect)
-		item_nodes["bag"] = bag_tex_rect
-
-	var btn_bag = _create_interactive_button("bag", Vector2(745, 465), Vector2(185, 60), "Tas Pribadi Korban")
-	stage_root.add_child(btn_bag)
-	item_buttons["bag"] = btn_bag
-
-	# TARGET 3: Koper Biru & Tiket di Lantai Dekat Bangku
-	if is_instance_valid(tex_luggage):
-		var lug_tex_rect = TextureRect.new()
-		lug_tex_rect.texture = tex_luggage
-		lug_tex_rect.position = Vector2(540, 430)
-		lug_tex_rect.size = Vector2(170, 170)
-		lug_tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		lug_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		stage_root.add_child(lug_tex_rect)
-		item_nodes["luggage"] = lug_tex_rect
-
-	var btn_lug = _create_interactive_button("luggage", Vector2(595, 495), Vector2(75, 48), "Koper Biru & Tiket Kereta")
-	stage_root.add_child(btn_lug)
-	item_buttons["luggage"] = btn_lug
-
-	# Panel Checklist Bawah
+	# 5. Panel Checklist di Bagian Bawah
 	var bottom_panel = PanelContainer.new()
 	var bot_style = StyleBoxFlat.new()
 	bot_style.bg_color = Color(0.06, 0.08, 0.12, 0.95)
@@ -482,44 +389,3 @@ func _build_scene_ui() -> void:
 	item_checklist = VBoxContainer.new()
 	bottom_panel.add_child(item_checklist)
 	_refresh_checklist()
-
-func _create_interactive_button(item_key: String, pos: Vector2, b_size: Vector2, tooltip: String) -> Button:
-	var btn = Button.new()
-	btn.name = "ClickTarget_" + item_key
-	btn.position = pos
-	btn.size = b_size
-	btn.custom_minimum_size = b_size
-	btn.flat = true
-	btn.focus_mode = Control.FOCUS_NONE
-	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	btn.tooltip_text = tooltip
-
-	var style_normal = StyleBoxFlat.new()
-	style_normal.bg_color = Color(1.0, 0.9, 0.2, 0.08)
-	style_normal.border_color = Color(1.0, 0.85, 0.2, 0.45)
-	style_normal.set_border_width_all(1)
-	style_normal.set_corner_radius_all(4)
-	btn.add_theme_stylebox_override("normal", style_normal)
-
-	var style_hover = StyleBoxFlat.new()
-	style_hover.bg_color = Color(1.0, 1.0, 0.4, 0.25)
-	style_hover.border_color = Color(1.0, 1.0, 0.5, 0.95)
-	style_hover.set_border_width_all(2)
-	style_hover.set_corner_radius_all(4)
-	btn.add_theme_stylebox_override("hover", style_hover)
-	btn.add_theme_stylebox_override("pressed", style_hover)
-
-	btn.pressed.connect(func(): _on_item_clicked(item_key))
-	return btn
-
-func _on_aspect_resized() -> void:
-	if not is_instance_valid(aspect_container) or not is_instance_valid(stage_root):
-		return
-	var c_sz = aspect_container.size
-	if c_sz.x <= 0 or c_sz.y <= 0:
-		return
-	var sx = c_sz.x / STAGE_W
-	var sy = c_sz.y / STAGE_H
-	var s = minf(sx, sy)
-	stage_root.scale = Vector2(s, s)
-	stage_root.position = (c_sz - Vector2(STAGE_W * s, STAGE_H * s)) * 0.5
