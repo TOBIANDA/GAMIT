@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://btgqp5m50ghwp"
+path="res://.godot/imported/Keyboard Type.mp3-2cd8b6fcc33e12dd75c8a79ee9d9ef11.mp3str"
+
+[deps]
+
+source_file="res://sound/Keyboard Type.mp3"
+dest_files=["res://.godot/imported/Keyboard Type.mp3-2cd8b6fcc33e12dd75c8a79ee9d9ef11.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
