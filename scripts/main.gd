@@ -501,9 +501,9 @@ func _on_tailgate_completed(success: bool) -> void:
 	if is_instance_valid(dialog_box):
 		var station_prompt_lines: Array[String] = [
 			"Inspektur Marcus: 'Cepat amankan peron sebelum kereta malam tiba... Saksi melihat korban di stasiun!'",
-			"Hmm... sepertinya aku harus ke stasiun.",
-			"Marcus bergegas ke arah lain, tapi jejak korban dan barang bawaannya tertinggal di peron stasiun.",
-			"Aku harus segera memeriksa peron dan mencari amplop foto serta barang bukti korban sebelum terlambat!"
+			"Hmm... obrolan Marcus dan rekannya menuntunku tepat ke area stasiun ini.",
+			"Mereka bergegas ke sudut lain, tapi jejak korban dan barang bawaannya tertinggal di peron stasiun.",
+			"Aku harus segera memeriksa peron dan mencari amplop foto serta barang bukti korban sebelum kereta tiba!"
 		]
 		dialog_box.start_monologue(station_prompt_lines, "Detektif Benedict", "[ Menuju Stasiun ]", "res://karakter/MC_Bingung.png")
 		dialog_box.monologue_finished.connect(func():

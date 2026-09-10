@@ -101,11 +101,11 @@ const CLUE_MESSAGES_CIVILIAN = [
 ]
 
 const CLUE_MESSAGES_POLICE = [
-	"Marcus: Korban terakhir terlihat berjalan ke arah stasiun kereta api...",
-	"Polisi: Katanya dia mau ke luar kota untuk berlibur sebelum kematiannya.",
-	"Marcus: Laporan TKP 404... kita harus temukan amplop foto dan barang pribadinya di stasiun.",
-	"Polisi: Benar, Inspektur. Ada jejak mencurigakan di peron timur.",
-	"Marcus: Detektif Benedict mungkin sedang mencari informasi ini juga..."
+	"Marcus: Saksi bilang korban terakhir terlihat berjalan ke arah stasiun kereta api...",
+	"Polisi: Benar, katanya dia membawa koper dan amplop foto sebelum kematiannya.",
+	"Marcus: Kita harus segera amankan barang bukti yang tertinggal di peron stasiun timur.",
+	"Polisi: Siap, Inspektur. Ayo kita susuri rute jalan menuju peron stasiun sekarang.",
+	"Marcus: Jangan sampai terlambat sebelum jadwal kereta malam tiba di stasiun!"
 ]
 
 const PANIC_MESSAGES = [
@@ -399,7 +399,7 @@ func start_patrol() -> void:
 	last_check_pos = global_position
 	if is_instance_valid(nav_agent):
 		nav_agent.target_position = target_destination
-	show_chat_bubble("Marcus: Benedict sudah di sini! Ayo kita mulai rute investigasi.", 3.0)
+	show_chat_bubble("Marcus: Ayo bergegas, kita harus segera periksa peron stasiun kereta!", 3.0)
 
 func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:

@@ -136,7 +136,7 @@ func _process(delta: float) -> void:
 		lost_trail_timer = move_toward(lost_trail_timer, 0.0, delta * 2.0)
 		suspicion_meter = move_toward(suspicion_meter, 0.0, delta * 15.0)
 		follow_progress += delta * 7.5
-		status_hint.text = "JARAK AMAN — Menguping percakapan rute Marcus..."
+		status_hint.text = "JARAK AMAN — Menguping obrolan Marcus dan rekannya menuju stasiun..."
 		status_hint.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
 	if grace_period > 0.0:
@@ -156,7 +156,7 @@ func _complete_minigame() -> void:
 	is_active = false
 	if is_instance_valid(chatter_player) and chatter_player.playing:
 		chatter_player.stop()
-	status_hint.text = "SUKSES! Obrolan Marcus: 'Korban terakhir terlihat di Stasiun Kereta Api menuju luar kota untuk liburan!'"
+	status_hint.text = "SUKSES! Obrolan Marcus: 'Korban terakhir menuju Stasiun Kereta Api... periksa peron!'"
 	status_hint.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")

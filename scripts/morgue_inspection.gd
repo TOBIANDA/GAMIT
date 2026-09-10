@@ -160,6 +160,8 @@ func _build_ui() -> void:
 	btn_hb.add_child(back_btn)
 
 func open_morgue() -> void:
+	if not is_instance_valid(action_btn):
+		_build_ui()
 	is_active = true
 	has_revealed_corpse = false
 	visible = true
@@ -212,64 +214,121 @@ func _reveal_corpse() -> void:
 	if is_instance_valid(bed_rect) and is_instance_valid(tex_bed_corpse):
 		bed_rect.texture = tex_bed_corpse
 
-	# Flash effect & shake
-	var flash = ColorRect.new()
-	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
-	flash.color = Color(1.0, 1.0, 1.0, 0.85)
-	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(flash)
+	# ── EFEK GLITCH VISUAL & DISTORSI REALITAS (Sesuai Cerita) ──
+	_play_glitch_sequence(1.8, func():
+		status_label.text = "KAIN DISINGKAP... WAJAH MAYAT INI ADALAH DIRIMU SENDIRI, BENEDICT!!"
+		status_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
 
-	var tw = create_tween()
-	tw.tween_property(flash, "color:a", 0.0, 0.6)
-	tw.tween_callback(func(): flash.queue_free())
+		var inv_mgr = get_node_or_null("/root/InvestigationManager")
+		if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
+			inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
+		if is_instance_valid(inv_mgr):
+			inv_mgr.unlock_clue("autopsy_corpse")
+			inv_mgr.has_inspected_morgue = true
+			inv_mgr.set_phase(inv_mgr.Phase.FINAL_DEATH_GOD)
 
-	status_label.text = "KAIN DISINGKAP... WAJAH MAYAT INI ADALAH DIRIMU SENDIRI, BENEDICT!!"
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
+		# Launch Monologue Sequence via DialogBox
+		var main_node = get_parent()
+		var dlg = null
+		if is_instance_valid(main_node):
+			dlg = main_node.get_node_or_null("DialogBox")
 
-	var inv_mgr = get_node_or_null("/root/InvestigationManager")
-	if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
-		inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
-	if is_instance_valid(inv_mgr):
-		inv_mgr.unlock_clue("autopsy_corpse")
-		inv_mgr.has_inspected_morgue = true
-		inv_mgr.set_phase(inv_mgr.Phase.FINAL_DEATH_GOD)
+		var monologue_lines: Array[String] = [
+			"T-tidak... TIDAK MUNGKIN!!",
+			"Wajah ini... luka di pelipis ini... mantel yang kukenakan ini...",
+			"JASAD YANG TERBARING KAKU DI ATAS RANJANG INI... ADALAH DIRIKU SENDIRI?!",
+			"Jam yang terhenti di 16:04... orang-orang di jalan yang bergidik saat menyapaku... foto di peron stasiun...",
+			"Aku bukan sedang menyelidiki kematian orang lain. Aku... aku sudah tewas sejak awal...",
+			"Udara bergetar hebat... ruang dan waktu di sekitarku mulai retak dan hancur..."
+		]
 
-	# Launch Monologue Sequence via DialogBox
-	var main_node = get_parent()
-	var dlg = null
-	if is_instance_valid(main_node):
-		dlg = main_node.get_node_or_null("DialogBox")
+		if is_instance_valid(dlg) and dlg.has_method("start_monologue"):
+			dlg.start_monologue(monologue_lines, "Benedict", "[ FAKTA MENGERIKAN ]", "res://karakter/MC_Kaget.png")
+			dlg.monologue_finished.connect(func():
+				_trigger_pull_to_death_god()
+			, CONNECT_ONE_SHOT)
+		else:
+			if is_inside_tree() and get_tree():
+				await get_tree().create_timer(4.0).timeout
+			_trigger_pull_to_death_god()
+	)
 
-	var monologue_lines: Array[String] = [
-		"T-tidak... TIDAK MUNGKIN!!",
-		"Wajah ini... luka di pelipis ini... mantel yang kukenakan ini...",
-		"JASAD YANG TERBARING KAKU DI ATAS RANJANG INI... ADALAH DIRIKU SENDIRI?!",
-		"Jam yang terhenti di 16:04... orang-orang di jalan yang bergidik saat menyapaku... foto di peron stasiun...",
-		"Aku bukan sedang menyelidiki kematian orang lain. Aku... aku sudah tewas sejak awal...",
-		"Udara semakin berat... ada kekuatan gelap yang menarik jiwaku ke dimensi lain..."
+func _play_glitch_sequence(duration: float, callback: Callable) -> void:
+	var glitch_overlay = Control.new()
+	glitch_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glitch_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(glitch_overlay)
+
+	var orig_bed_pos = bed_rect.position if is_instance_valid(bed_rect) else Vector2.ZERO
+	var orig_status_pos = status_label.position if is_instance_valid(status_label) else Vector2.ZERO
+	var glitch_colors: Array[Color] = [
+		Color(0.0, 0.95, 1.0, 0.8),
+		Color(1.0, 0.05, 0.65, 0.8),
+		Color(1.0, 0.15, 0.15, 0.85),
+		Color(0.05, 0.05, 0.08, 0.9),
+		Color(1.0, 1.0, 1.0, 0.95)
 	]
 
-	if is_instance_valid(dlg) and dlg.has_method("start_monologue"):
-		dlg.start_monologue(monologue_lines, "Benedict", "[ FAKTA MENGERIKAN ]", "res://karakter/MC_Kaget.png")
-		dlg.monologue_finished.connect(func():
-			_trigger_pull_to_death_god()
-		, CONNECT_ONE_SHOT)
-	else:
-		if is_inside_tree() and get_tree():
-			await get_tree().create_timer(4.0).timeout
-		_trigger_pull_to_death_god()
-
-func _trigger_pull_to_death_god() -> void:
-	# Pulled to death god realm transition
-	var pull_overlay = ColorRect.new()
-	pull_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	pull_overlay.color = Color(0.05, 0.02, 0.1, 0.0)
-	pull_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(pull_overlay)
+	var corrupted_strings: Array[String] = [
+		"ERR_0R: J@S@D 404... B-BENED!CT?!",
+		"W@J@H M@Y@T... MENGAPA ADALAH DIRIKU?!",
+		"DETEKTIF... K@U SUDAH M@TI SEJAK AW@L...",
+		"16:04... WAKTU KEMATIANMU T!D@K BISA DIULANG..."
+	]
 
 	var tw = create_tween()
-	tw.tween_property(pull_overlay, "color:a", 1.0, 1.2)
+	tw.tween_method(func(_progress: float):
+		# Screen shake pada ranjang dan teks status
+		if is_instance_valid(bed_rect):
+			bed_rect.position = orig_bed_pos + Vector2(randf_range(-14, 14), randf_range(-8, 8))
+		if is_instance_valid(status_label):
+			status_label.position = orig_status_pos + Vector2(randf_range(-8, 8), randf_range(-4, 4))
+			if randf() < 0.35:
+				status_label.text = corrupted_strings[randi() % corrupted_strings.size()]
+				status_label.add_theme_color_override("font_color", glitch_colors[randi() % glitch_colors.size()])
+
+		# Bersihkan strip glitch frame sebelumnya
+		for child in glitch_overlay.get_children():
+			child.queue_free()
+
+		# Buat strip glitch horizontal acak
+		var num_slices = randi_range(4, 9)
+		var view_sz = glitch_overlay.get_viewport_rect().size
+		for i in range(num_slices):
+			var slice = ColorRect.new()
+			var sy = randf_range(0.0, view_sz.y)
+			var sh = randf_range(3.0, 32.0)
+			var sx = randf_range(-30.0, 30.0)
+			slice.position = Vector2(sx, sy)
+			slice.size = Vector2(view_sz.x + 60.0, sh)
+			slice.color = glitch_colors[randi() % glitch_colors.size()]
+			glitch_overlay.add_child(slice)
+	, 0.0, 1.0, duration)
+
 	tw.tween_callback(func():
-		close_morgue()
-		morgue_completed.emit()
+		if is_instance_valid(bed_rect):
+			bed_rect.position = orig_bed_pos
+		if is_instance_valid(status_label):
+			status_label.position = orig_status_pos
+		if is_instance_valid(glitch_overlay):
+			glitch_overlay.queue_free()
+		if callback.is_valid():
+			callback.call()
+	)
+
+func _trigger_pull_to_death_god() -> void:
+	# Glitch penutup dan transisi langsung ke Dewa Kematian
+	_play_glitch_sequence(1.2, func():
+		var pull_overlay = ColorRect.new()
+		pull_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+		pull_overlay.color = Color(0.04, 0.02, 0.08, 0.0)
+		pull_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(pull_overlay)
+
+		var tw = create_tween()
+		tw.tween_property(pull_overlay, "color:a", 1.0, 1.0)
+		tw.tween_callback(func():
+			close_morgue()
+			morgue_completed.emit()
+		)
 	)
