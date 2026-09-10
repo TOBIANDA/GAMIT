@@ -44,10 +44,10 @@ const ITEM_ANCHORS := {
 		"name": "Tas Pribadi Korban"
 	},
 	"luggage": {
-		"left": 0.4160,
-		"top": 0.6160,
-		"right": 0.5020,
-		"bottom": 0.7080,
+		"left": 0.3738,
+		"top": 0.6522,
+		"right": 0.4601,
+		"bottom": 0.7441,
 		"name": "Koper Biru & Tiket Kereta"
 	}
 }
