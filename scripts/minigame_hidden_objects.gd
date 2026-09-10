@@ -7,8 +7,8 @@ var time_left: float = 45.0
 
 var items_to_find: Dictionary = {
 	"envelope": {"found": false, "name": "✉️ Amplop Berisi Rol Foto TKP", "hint": "Di dekat tangga peron stasiun"},
-	"ticket":   {"found": false, "name": "🎫 Tiket Kereta Luar Kota", "hint": "Di area loket tiket stasiun"},
-	"watch":    {"found": false, "name": "⏱️ Jam Saku Arwah (Macet 16:04)", "hint": "Di bawah jam besar stasiun"}
+	"ticket":   {"found": false, "name": "🎫 Tiket Kereta Luar Kota", "hint": "Di dekat loket tiket peron"},
+	"watch":    {"found": false, "name": "⏱️ Jam Saku Arwah (Macet 16:04)", "hint": "Di bawah tiang jam stasiun"}
 }
 
 var root_control: Control
@@ -17,6 +17,7 @@ var item_checklist: VBoxContainer
 var status_banner: Label
 var close_btn: Button
 var canvas_area: Control
+var click_player: AudioStreamPlayer
 
 var tex_station_bg: Texture2D
 var tex_envelope: Texture2D
@@ -25,15 +26,33 @@ var item_buttons: Dictionary = {}
 
 func _ready() -> void:
 	layer = 14
+	_setup_audio()
 	_load_assets()
 	_build_scene_ui()
 	visible = false
+
+func _setup_audio() -> void:
+	click_player = AudioStreamPlayer.new()
+	click_player.name = "HiddenObjClickPlayer"
+	var c_stream = load("res://sound/Click sound.mp3")
+	if c_stream:
+		click_player.stream = c_stream
+		click_player.volume_db = -2.0
+	add_child(click_player)
+
+func _play_click() -> void:
+	if is_instance_valid(click_player) and click_player.stream:
+		click_player.play()
 
 func _load_assets() -> void:
 	tex_station_bg = load("res://Environment/stasiun/latar stasiun.png")
 	tex_envelope = load("res://Environment/interactable assets/surat.png")
 
 func start_minigame() -> void:
+	if not is_instance_valid(root_control):
+		_load_assets()
+		_setup_audio()
+		_build_scene_ui()
 	is_active = true
 	visible = true
 	time_left = 45.0
@@ -41,10 +60,12 @@ func start_minigame() -> void:
 		items_to_find[k]["found"] = false
 		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
 			item_buttons[k].visible = true
+			item_buttons[k].modulate = Color.WHITE
 
 	_refresh_checklist()
-	status_banner.text = "🔍 Temukan 3 barang bukti korban di peron stasiun sebelum kereta berangkat!"
-	status_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	if is_instance_valid(status_banner):
+		status_banner.text = "🔍 Temukan 3 barang bukti korban di peron stasiun sebelum jadwal kereta berangkat!"
+		status_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -57,6 +78,12 @@ func _process(delta: float) -> void:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 		else:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+
+	# Efek pulsing lembut pada item yang belum ditemukan
+	var pulse = 0.85 + 0.15 * sin(Time.get_ticks_msec() * 0.006)
+	for k in items_to_find.keys():
+		if not items_to_find[k]["found"] and item_buttons.has(k) and is_instance_valid(item_buttons[k]):
+			item_buttons[k].modulate = Color(pulse, pulse, 1.0, 1.0)
 
 	if time_left <= 0.0:
 		_fail_timeout()
@@ -92,13 +119,14 @@ func _on_item_clicked(item_key: String) -> void:
 	if items_to_find[item_key]["found"]:
 		return
 
+	_play_click()
 	items_to_find[item_key]["found"] = true
 	if item_buttons.has(item_key) and is_instance_valid(item_buttons[item_key]):
 		item_buttons[item_key].visible = false
 
 	_refresh_checklist()
 
-	status_banner.text = "✨ Ditemukan: " + items_to_find[item_key]["name"]
+	status_banner.text = "✨ Ditemukan: " + items_to_find[item_key]["name"] + "!"
 	status_banner.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
 	var all_found = true
@@ -112,25 +140,29 @@ func _on_item_clicked(item_key: String) -> void:
 
 func _complete_victory() -> void:
 	is_active = false
-	status_banner.text = "🎉 SEMUA BUKTI BERHASIL DIKUMPULKAN! Bawa amplop foto pulang ke rumah untuk dicuci!"
+	status_banner.text = "🎉 SEMUA 3 BUKTI BERHASIL DIKUMPULKAN! Bawa amplop foto pulang ke rumah untuk dicuci!"
 	status_banner.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
+	if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
+		inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
 	if is_instance_valid(inv_mgr):
 		inv_mgr.unlock_clue("train_ticket")
 		inv_mgr.unlock_clue("broken_pocket_watch")
 		inv_mgr.unlock_clue("photo_envelope")
 		inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_3_PHOTO)
 
-	await get_tree().create_timer(2.0).timeout
+	if is_inside_tree() and get_tree():
+		await get_tree().create_timer(2.2).timeout
 	_finish_and_close(true)
 
 func _fail_timeout() -> void:
 	is_active = false
 	status_banner.text = "❌ WAKTU HABIS! Kereta melintas dan menimbulkan kepanikan arwah! Mengulang..."
-	status_banner.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+	status_banner.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
-	await get_tree().create_timer(1.8).timeout
+	if is_inside_tree() and get_tree():
+		await get_tree().create_timer(2.0).timeout
 	time_left = 45.0
 	for k in items_to_find.keys():
 		items_to_find[k]["found"] = false
@@ -151,7 +183,7 @@ func _build_scene_ui() -> void:
 
 	var bg_overlay = ColorRect.new()
 	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg_overlay.color = Color(0.04, 0.05, 0.08, 0.95)
+	bg_overlay.color = Color(0.04, 0.05, 0.08, 0.96)
 	root_control.add_child(bg_overlay)
 
 	var margin = MarginContainer.new()
@@ -193,7 +225,7 @@ func _build_scene_ui() -> void:
 	status_banner.add_theme_font_size_override("font_size", 14)
 	main_box.add_child(status_banner)
 
-	# Canvas Area dengan Latar Belakang Ilustrasi Asli Stasiun
+	# Canvas Area dengan Latar Belakang Asli Stasiun
 	canvas_area = Control.new()
 	canvas_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	canvas_area.custom_minimum_size = Vector2(0, 420)
@@ -211,9 +243,12 @@ func _build_scene_ui() -> void:
 	var btn_env = Button.new()
 	btn_env.text = "✉️ Amplop Foto TKP"
 	btn_env.position = Vector2(620, 290)
-	btn_env.custom_minimum_size = Vector2(160, 42)
+	btn_env.custom_minimum_size = Vector2(170, 42)
 	btn_env.focus_mode = Control.FOCUS_NONE
-	_style_item_button(btn_env, Color(0.9, 0.7, 0.2))
+	if is_instance_valid(tex_envelope):
+		btn_env.icon = tex_envelope
+		btn_env.expand_icon = true
+	_style_item_button(btn_env, Color(0.95, 0.75, 0.2))
 	btn_env.pressed.connect(func(): _on_item_clicked("envelope"))
 	canvas_area.add_child(btn_env)
 	item_buttons["envelope"] = btn_env
@@ -222,20 +257,20 @@ func _build_scene_ui() -> void:
 	var btn_tkt = Button.new()
 	btn_tkt.text = "🎫 Tiket Kereta Luar Kota"
 	btn_tkt.position = Vector2(870, 240)
-	btn_tkt.custom_minimum_size = Vector2(170, 40)
+	btn_tkt.custom_minimum_size = Vector2(180, 42)
 	btn_tkt.focus_mode = Control.FOCUS_NONE
-	_style_item_button(btn_tkt, Color(0.3, 0.8, 1.0))
+	_style_item_button(btn_tkt, Color(0.3, 0.85, 1.0))
 	btn_tkt.pressed.connect(func(): _on_item_clicked("ticket"))
 	canvas_area.add_child(btn_tkt)
 	item_buttons["ticket"] = btn_tkt
 
-	# 3. Jam Saku Rusak 16:04 (di bawah jam stasiun tengah atas)
+	# 3. Jam Saku Rusak 16:04 (di bawah jam stasiun tengah)
 	var btn_wch = Button.new()
 	btn_wch.text = "⏱️ Jam Saku (16:04)"
 	btn_wch.position = Vector2(430, 140)
-	btn_wch.custom_minimum_size = Vector2(160, 40)
+	btn_wch.custom_minimum_size = Vector2(170, 42)
 	btn_wch.focus_mode = Control.FOCUS_NONE
-	_style_item_button(btn_wch, Color(1.0, 0.4, 0.4))
+	_style_item_button(btn_wch, Color(1.0, 0.45, 0.45))
 	btn_wch.pressed.connect(func(): _on_item_clicked("watch"))
 	canvas_area.add_child(btn_wch)
 	item_buttons["watch"] = btn_wch
@@ -260,14 +295,17 @@ func _build_scene_ui() -> void:
 
 func _style_item_button(btn: Button, border_col: Color) -> void:
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.08, 0.12, 0.88)
+	sb.bg_color = Color(0.08, 0.08, 0.12, 0.90)
 	sb.border_color = border_col
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 10
-	sb.content_margin_right = 10
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
 	btn.add_theme_stylebox_override("normal", sb)
 	
 	var sb_h = sb.duplicate()
-	sb_h.bg_color = Color(border_col.r * 0.3, border_col.g * 0.3, border_col.b * 0.3, 0.95)
+	sb_h.bg_color = Color(border_col.r * 0.35, border_col.g * 0.35, border_col.b * 0.35, 0.95)
+	sb_h.border_color = Color.WHITE
 	btn.add_theme_stylebox_override("hover", sb_h)

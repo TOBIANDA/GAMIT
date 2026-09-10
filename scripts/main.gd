@@ -18,11 +18,24 @@ var minigame_hidden_objects: CanvasLayer
 var minigame_photo_wash: CanvasLayer
 var minigame_safe: CanvasLayer
 var death_god_layer: CanvasLayer
+var summoned_grim: Node2D = null
+var morgue_inspection: CanvasLayer
+var paper_sfx_player: AudioStreamPlayer
+var hospital_status_reception_rejected: bool = false
+
+var main_menu_layer: CanvasLayer
+var pause_menu_layer: CanvasLayer
+var detective_hud_panel: PanelContainer
+var hud_avatar_rect: TextureRect
+var hud_objective_text: Label
+var hud_phase_badge: Label
 
 var interact_prompt: Button
+var fullscreen_btn: Button
 var toast_banner: PanelContainer
 var toast_label: Label
 var toast_timer: float = 0.0
+var input_grace_timer: float = 0.35
 
 var active_poi_id: String = ""
 
@@ -32,22 +45,29 @@ var transition_overlay: ColorRect
 var transition_layer: CanvasLayer
 
 const POI_LOCATIONS = {
-	"desk": {"name": "Masuk ke Rumah Benedict", "pos": Vector2(1170, 230), "radius": 150.0},
-	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(350, 350), "radius": 220.0},
+	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1170, 230), "radius": 150.0},
+	"street_clock": {"name": "Jam Jalan (Berhenti di 16:04)", "pos": Vector2(480, 220), "radius": 120.0},
+	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(280, 915), "radius": 220.0},
 	"station": {"name": "Stasiun Kereta Api (Minigame Cari Bukti)", "pos": Vector2(2020, 930), "radius": 320.0},
-	"hospital": {"name": "Rumah Sakit & Kamar Mayat", "pos": Vector2(750, 1095), "radius": 160.0},
-	"phone": {"name": "Bilik Telepon Umum", "pos": Vector2(480, 240), "radius": 85.0}
+	"hospital": {"name": "Rumah Sakit & Kamar Jenazah", "pos": Vector2(750, 1095), "radius": 160.0},
+	"phone": {"name": "Bilik Telepon Umum (Peron Stasiun)", "pos": Vector2(2018, 1269), "radius": 75.0}
 }
 
 var bgm_player: AudioStreamPlayer
+var afterlife_audio_player: AudioStreamPlayer
 var click_sfx_player: AudioStreamPlayer
 var door_sfx_player: AudioStreamPlayer
+
+var cutscene_layer: CanvasLayer
+static var cutscene_played: bool = false
+@export var show_intro_cutscene: bool = true
 
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
 
 	_setup_audio_system()
 	_setup_dialog_box()
+	_setup_death_god_shrine()
 	_setup_transition_overlay()
 	_setup_house_interior()
 	_setup_investigation_manager()
@@ -55,10 +75,23 @@ func _ready() -> void:
 	_setup_clue_journal()
 	_setup_minigames()
 	_setup_letter_viewer()
+	_setup_main_menu()
+	_setup_pause_menu()
 	_setup_hud_prompts()
 	_start_ai_server()
 
 	_update_hud_objective()
+
+	if _is_test_run():
+		if is_instance_valid(main_menu_layer):
+			main_menu_layer.close_menu()
+		_check_and_launch_intro_cutscene()
+	else:
+		if is_instance_valid(main_menu_layer):
+			main_menu_layer.open_menu()
+			if is_instance_valid(player):
+				player.can_move = false
+				player.set_physics_process(false)
 
 func _setup_dialog_box() -> void:
 	if not is_instance_valid(dialog_box):
@@ -75,6 +108,23 @@ func _setup_dialog_box() -> void:
 		if not dialog_box.dialog_closed.is_connected(_on_dialog_closed):
 			dialog_box.dialog_closed.connect(_on_dialog_closed)
 
+func _setup_death_god_shrine() -> void:
+	if not is_instance_valid(shrine):
+		shrine = get_node_or_null("DeathGodShrine")
+	if not is_instance_valid(shrine):
+		var shrine_scene = load("res://scenes/death_god_shrine.tscn")
+		if shrine_scene:
+			shrine = shrine_scene.instantiate()
+			shrine.name = "DeathGodShrine"
+			shrine.position = Vector2(750, 1095)
+			add_child(shrine)
+	if is_instance_valid(shrine):
+		if not shrine.interaction_triggered.is_connected(_on_shrine_interaction):
+			shrine.interaction_triggered.connect(_on_shrine_interaction)
+
+func _on_shrine_interaction() -> void:
+	_summon_death_god()
+
 func _setup_audio_system() -> void:
 	# 1. Background Music Player (BGM.mp3)
 	bgm_player = AudioStreamPlayer.new()
@@ -85,7 +135,7 @@ func _setup_audio_system() -> void:
 		bgm_player.volume_db = -10.0
 		bgm_player.finished.connect(func(): if is_instance_valid(bgm_player): bgm_player.play())
 	add_child(bgm_player)
-	if bgm_stream:
+	if bgm_stream and (not show_intro_cutscene or cutscene_played or _is_test_run()):
 		bgm_player.play()
 
 	# 2. Global Click SFX Player (Click sound.mp3)
@@ -106,6 +156,101 @@ func _setup_audio_system() -> void:
 		door_sfx_player.volume_db = -3.0
 	add_child(door_sfx_player)
 
+	# 4. Afterlife Music Player (Afterlife.mp3) saat bertemu Dewa Kematian
+	afterlife_audio_player = AudioStreamPlayer.new()
+	afterlife_audio_player.name = "AfterlifeAudioPlayer"
+	var afterlife_stream: AudioStream = null
+	if ResourceLoader.exists("res://sound/Afterlife.mp3"):
+		afterlife_stream = load("res://sound/Afterlife.mp3")
+	elif ResourceLoader.exists("res://Afterlife.mp3"):
+		afterlife_stream = load("res://Afterlife.mp3")
+	if afterlife_stream:
+		afterlife_audio_player.stream = afterlife_stream
+		afterlife_audio_player.volume_db = -6.0
+		afterlife_audio_player.finished.connect(func(): if is_instance_valid(afterlife_audio_player) and afterlife_audio_player.playing: afterlife_audio_player.play())
+	add_child(afterlife_audio_player)
+
+	# 5. Paper SFX Player (Paper.mp3)
+	paper_sfx_player = AudioStreamPlayer.new()
+	paper_sfx_player.name = "PaperSFXPlayer"
+	var p_stream = load("res://sound/Paper.mp3")
+	if p_stream:
+		paper_sfx_player.stream = p_stream
+		paper_sfx_player.volume_db = -2.0
+	add_child(paper_sfx_player)
+
+func _is_test_run() -> bool:
+	for arg in OS.get_cmdline_args():
+		if arg == "-s" or arg == "--script" or arg.ends_with(".gd"):
+			return true
+	return false
+
+func _check_and_launch_intro_cutscene(force: bool = false) -> void:
+	if not force and (not show_intro_cutscene or cutscene_played or _is_test_run()):
+		if is_instance_valid(bgm_player) and not bgm_player.playing:
+			bgm_player.play()
+		return
+
+	cutscene_played = true
+
+	# Matikan BGM selama cutscene agar audio ketikan intro jelas
+	if is_instance_valid(bgm_player) and bgm_player.playing:
+		bgm_player.stop()
+
+	if not is_instance_valid(player):
+		player = get_node_or_null("Player")
+	if is_instance_valid(player):
+		player.can_move = false
+		player.set_physics_process(false)
+	var hud_node = get_node_or_null("HUD")
+	if is_instance_valid(hud_node):
+		hud_node.visible = false
+
+	cutscene_layer = CanvasLayer.new()
+	cutscene_layer.name = "IntroCutsceneLayer"
+	cutscene_layer.layer = 125
+	add_child(cutscene_layer)
+
+	var cutscene_res = load("res://scenes/opening_cutscene.tscn")
+	if cutscene_res:
+		var cutscene_inst = cutscene_res.instantiate()
+		cutscene_inst.name = "OpeningCutscene"
+		cutscene_layer.add_child(cutscene_inst)
+		if cutscene_inst.has_signal("cutscene_completed"):
+			cutscene_inst.cutscene_completed.connect(_on_intro_cutscene_finished)
+	else:
+		_on_intro_cutscene_finished()
+
+func _on_intro_cutscene_finished() -> void:
+	if is_instance_valid(cutscene_layer):
+		cutscene_layer.queue_free()
+		cutscene_layer = null
+
+	var hud_node = get_node_or_null("HUD")
+	if is_instance_valid(hud_node):
+		hud_node.visible = true
+
+	if is_instance_valid(player):
+		player.global_position = Vector2(100.0, 225.0)
+		player.velocity = Vector2.ZERO
+		player.can_move = true
+		player.set_physics_process(true)
+		var cam = player.get_node_or_null("Camera2D")
+		if is_instance_valid(cam):
+			cam.global_position = player.global_position
+			cam.reset_smoothing()
+
+	input_grace_timer = 0.35
+
+	if is_instance_valid(bgm_player) and not bgm_player.playing:
+		bgm_player.play()
+
+	if is_instance_valid(transition_overlay):
+		transition_overlay.color = Color(0, 0, 0, 1.0)
+		var tw = create_tween()
+		tw.tween_property(transition_overlay, "color:a", 0.0, 0.45)
+
+
 func play_click_sfx() -> void:
 	if is_instance_valid(click_sfx_player) and click_sfx_player.stream:
 		click_sfx_player.play()
@@ -113,6 +258,49 @@ func play_click_sfx() -> void:
 func play_door_sfx() -> void:
 	if is_instance_valid(door_sfx_player) and door_sfx_player.stream:
 		door_sfx_player.play()
+
+func play_paper_sfx() -> void:
+	if is_instance_valid(paper_sfx_player) and paper_sfx_player.stream:
+		paper_sfx_player.play()
+
+func play_afterlife_music() -> void:
+	if not is_instance_valid(afterlife_audio_player) or not afterlife_audio_player.stream:
+		return
+	if afterlife_audio_player.playing:
+		return
+	print("[Audio] Memutar lagu Afterlife saat berhadapan dengan Dewa Kematian...")
+	# Meredam BGM eksplorasi secara halus
+	if is_instance_valid(bgm_player) and bgm_player.playing:
+		var tw_bgm = create_tween()
+		tw_bgm.tween_property(bgm_player, "volume_db", -40.0, 0.6)
+		tw_bgm.tween_callback(func():
+			if is_instance_valid(bgm_player):
+				bgm_player.stop()
+				bgm_player.volume_db = -10.0
+		)
+	# Memulai pemutaran Afterlife.mp3 dengan transisi fade-in
+	afterlife_audio_player.volume_db = -24.0
+	afterlife_audio_player.play()
+	var tw_aft = create_tween()
+	tw_aft.tween_property(afterlife_audio_player, "volume_db", -5.0, 0.8)
+
+func stop_afterlife_music() -> void:
+	if not is_instance_valid(afterlife_audio_player) or not afterlife_audio_player.playing:
+		return
+	print("[Audio] Menghentikan lagu Afterlife, memulihkan BGM eksplorasi...")
+	var tw_aft = create_tween()
+	tw_aft.tween_property(afterlife_audio_player, "volume_db", -40.0, 0.6)
+	tw_aft.tween_callback(func():
+		if is_instance_valid(afterlife_audio_player):
+			afterlife_audio_player.stop()
+			afterlife_audio_player.volume_db = -6.0
+	)
+	# Pulihkan BGM eksplorasi
+	if is_instance_valid(bgm_player) and not bgm_player.playing:
+		bgm_player.volume_db = -24.0
+		bgm_player.play()
+		var tw_bgm = create_tween()
+		tw_bgm.tween_property(bgm_player, "volume_db", -10.0, 0.8)
 
 func _setup_transition_overlay() -> void:
 	transition_layer = CanvasLayer.new()
@@ -133,6 +321,8 @@ func _setup_house_interior() -> void:
 		house_interior.name = "HouseInterior"
 		house_interior.set_script(hi_script)
 		add_child(house_interior)
+		if house_interior.has_method("set_editor_available"):
+			house_interior.set_editor_available(is_inside_house)
 
 func _enter_house() -> void:
 	if not is_instance_valid(player):
@@ -144,8 +334,10 @@ func _enter_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_house = true
-		player.global_position = Vector2(3600.0 + 270.0, 400.0 + 310.0)
+		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 365.0)
 		_show_toast("🏠 Masuk ke Dalam Rumah Benedict.")
+		if is_instance_valid(house_interior) and house_interior.has_method("set_editor_available"):
+			house_interior.set_editor_available(true)
 	)
 	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
 	tw.tween_callback(func():
@@ -164,6 +356,8 @@ func _exit_house() -> void:
 		is_inside_house = false
 		player.global_position = Vector2(1170.0, 250.0)
 		_show_toast("🚪 Keluar ke Jalan Kota.")
+		if is_instance_valid(house_interior) and house_interior.has_method("set_editor_available"):
+			house_interior.set_editor_available(false)
 	)
 	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
 	tw.tween_callback(func():
@@ -176,14 +370,14 @@ func _trigger_indoor_letter_monologue() -> void:
 		return
 
 	var monologue_lines: Array[String] = [
-		"hmmmmm.......",
-		"dari mana ya aku harus memulai",
-		"sepertinya aku harus menjumpai inspektur markus dulu"
+		"Aku mencari ke sekeliling rumah korban... tapi tidak ada petunjuk apa-apa tentang kasus pembunuhan.",
+		"Semua berkas dan sudut ruangan hampa... Hanya ada sebuah foto berdebu di atas meja ini.",
+		"Coba kuperiksa foto apa ini..."
 	]
 	if is_instance_valid(player):
 		player.can_move = false
 
-	dialog_box.start_monologue(monologue_lines, "Detektif Benedict", "[ Monolog Batin ]", "res://UI/mc_portrait.png")
+	dialog_box.start_monologue(monologue_lines, "Detektif Benedict", "[ Penyelidikan Rumah ]", "res://karakter/MC_Bingung.png")
 	dialog_box.monologue_finished.connect(func():
 		_open_letter_closeup()
 	, CONNECT_ONE_SHOT)
@@ -262,10 +456,88 @@ func _setup_minigames() -> void:
 		add_child(death_god_layer)
 		death_god_layer.death_god_closed.connect(func(): _on_minigame_ended())
 
+	var mi_script = load("res://scripts/morgue_inspection.gd")
+	if mi_script:
+		morgue_inspection = CanvasLayer.new()
+		morgue_inspection.name = "MorgueInspection"
+		morgue_inspection.set_script(mi_script)
+		add_child(morgue_inspection)
+		morgue_inspection.morgue_completed.connect(_on_morgue_completed)
+
+func _on_morgue_completed() -> void:
+	if is_instance_valid(player):
+		player.can_move = false
+	_show_toast("✦ Jiwamu Ditarik Menuju Pengadilan Dewa Kematian... ✦")
+	play_afterlife_music()
+	var tw = create_tween()
+	tw.tween_interval(1.0)
+	tw.tween_callback(func():
+		if is_instance_valid(death_god_layer) and death_god_layer.has_method("open_interface"):
+			death_god_layer.open_interface()
+	)
+
 func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
 	_update_hud_objective()
+
+func _setup_main_menu() -> void:
+	var mm_script = load("res://scripts/main_menu_ui.gd")
+	if mm_script:
+		main_menu_layer = CanvasLayer.new()
+		main_menu_layer.name = "MainMenuLayer"
+		main_menu_layer.set_script(mm_script)
+		add_child(main_menu_layer)
+		main_menu_layer.play_requested.connect(_on_main_menu_play_requested)
+
+func _setup_pause_menu() -> void:
+	var pm_script = load("res://scripts/pause_menu_ui.gd")
+	if pm_script:
+		pause_menu_layer = CanvasLayer.new()
+		pause_menu_layer.name = "PauseMenuLayer"
+		pause_menu_layer.set_script(pm_script)
+		add_child(pause_menu_layer)
+		pause_menu_layer.resumed.connect(func():
+			if is_instance_valid(player):
+				player.can_move = true
+		)
+		pause_menu_layer.journal_requested.connect(func():
+			if is_instance_valid(clue_journal):
+				clue_journal.open_journal()
+		)
+		pause_menu_layer.main_menu_requested.connect(_on_return_to_main_menu)
+
+func _on_main_menu_play_requested() -> void:
+	if not cutscene_played:
+		_check_and_launch_intro_cutscene(true)
+	else:
+		if is_instance_valid(player):
+			player.can_move = true
+			player.set_physics_process(true)
+		if is_instance_valid(bgm_player) and not bgm_player.playing:
+			bgm_player.play()
+	_update_hud_objective()
+
+func _on_return_to_main_menu() -> void:
+	if is_instance_valid(player):
+		player.can_move = false
+		player.set_physics_process(false)
+	if is_instance_valid(main_menu_layer):
+		main_menu_layer.open_menu()
+
+func toggle_pause_menu() -> void:
+	if not is_instance_valid(pause_menu_layer):
+		return
+	if is_instance_valid(main_menu_layer) and main_menu_layer.is_active:
+		return
+	if pause_menu_layer.is_paused:
+		pause_menu_layer.resume_game()
+		if is_instance_valid(player):
+			player.can_move = true
+	else:
+		if is_instance_valid(player):
+			player.can_move = false
+		pause_menu_layer.open_pause()
 
 var letter_layer: CanvasLayer
 var letter_root_control: Control
@@ -284,7 +556,7 @@ func _setup_letter_viewer() -> void:
 
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.02, 0.03, 0.06, 0.88)
+	bg.color = Color(0.02, 0.03, 0.06, 0.90)
 	bg.gui_input.connect(func(ev: InputEvent):
 		if ev is InputEventMouseButton and ev.pressed:
 			_close_letter_viewer()
@@ -297,85 +569,69 @@ func _setup_letter_viewer() -> void:
 
 	var vb = VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 14)
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(vb)
 
-	# Container kertas surat dengan batasan ukuran agar pas di layar
-	var letter_box = Control.new()
-	letter_box.custom_minimum_size = Vector2(520, 540)
-	vb.add_child(letter_box)
+	# Container foto polaroid ibu & anak
+	var photo_card = PanelContainer.new()
+	photo_card.custom_minimum_size = Vector2(500, 480)
+	var pc_style = StyleBoxFlat.new()
+	pc_style.bg_color = Color(0.96, 0.94, 0.90, 1.0)
+	pc_style.border_color = Color(0.35, 0.28, 0.20, 0.9)
+	pc_style.set_border_width_all(3)
+	pc_style.set_corner_radius_all(10)
+	pc_style.set_content_margin_all(16)
+	photo_card.add_theme_stylebox_override("panel", pc_style)
+	vb.add_child(photo_card)
 
-	letter_rect = TextureRect.new()
-	var tex_close = load("res://Environment/interactable assets/surat close up.png")
-	if is_instance_valid(tex_close):
-		letter_rect.texture = tex_close
-	letter_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	letter_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	letter_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	letter_box.add_child(letter_rect)
+	var card_vb = VBoxContainer.new()
+	card_vb.add_theme_constant_override("separation", 10)
+	photo_card.add_child(card_vb)
 
-	# Overlay teks surat otentik di atas kertas amplop
-	var margin = MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 52)
-	margin.add_theme_constant_override("margin_right", 52)
-	margin.add_theme_constant_override("margin_top", 56)
-	margin.add_theme_constant_override("margin_bottom", 44)
-	letter_box.add_child(margin)
+	var photo_header = Label.new()
+	photo_header.text = "🖼️ FOTO SEORANG IBU DAN ANAK"
+	photo_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	photo_header.add_theme_color_override("font_color", Color(0.20, 0.15, 0.10))
+	photo_header.add_theme_font_size_override("font_size", 16)
+	card_vb.add_child(photo_header)
 
-	var text_vb = VBoxContainer.new()
-	text_vb.add_theme_constant_override("separation", 8)
-	margin.add_child(text_vb)
+	var photo_img = TextureRect.new()
+	var tex_ibu = load("res://UI/Polaroid/polaroidIbu.png")
+	if is_instance_valid(tex_ibu):
+		photo_img.texture = tex_ibu
+	photo_img.custom_minimum_size = Vector2(300, 220)
+	photo_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	photo_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	card_vb.add_child(photo_img)
 
-	var header_label = Label.new()
-	header_label.text = "BERKAS PENYELIDIKAN #404"
-	header_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	header_label.add_theme_color_override("font_color", Color(0.20, 0.14, 0.08))
-	header_label.add_theme_font_size_override("font_size", 16)
-	text_vb.add_child(header_label)
+	var note_sep = HSeparator.new()
+	var ns_style = StyleBoxLine.new()
+	ns_style.color = Color(0.6, 0.5, 0.4, 0.6)
+	ns_style.thickness = 1
+	note_sep.add_theme_stylebox_override("separator", ns_style)
+	card_vb.add_child(note_sep)
 
-	var sub_label = Label.new()
-	sub_label.text = "KASUS: KEMATIAN MISTERIUS DI JALUR REL STASIUN"
-	sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub_label.add_theme_color_override("font_color", Color(0.60, 0.18, 0.18))
-	sub_label.add_theme_font_size_override("font_size", 11)
-	text_vb.add_child(sub_label)
+	var note_label = Label.new()
+	note_label.text = "[ Pesan Tertulis di Balik Foto ]\n\"Untuk anakku tercinta... Kembalilah ke rumah Ibu jika sempat. Ibu menyimpan sesuatu untukmu di brankas keluarga.\nKuncinya: Waktu yang membeku ( 1 - 6 - 4 )\""
+	note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note_label.add_theme_color_override("font_color", Color(0.35, 0.18, 0.18))
+	note_label.add_theme_font_size_override("font_size", 13)
+	card_vb.add_child(note_label)
 
-	var hsep = HSeparator.new()
-	var hsep_style = StyleBoxLine.new()
-	hsep_style.color = Color(0.45, 0.35, 0.25, 0.5)
-	hsep_style.thickness = 2
-	hsep.add_theme_stylebox_override("separator", hsep_style)
-	text_vb.add_child(hsep)
-
-	var body_rtl = RichTextLabel.new()
-	body_rtl.bbcode_enabled = true
-	body_rtl.fit_content = true
-	body_rtl.scroll_active = false
-	body_rtl.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body_rtl.text = "[color=#261e16][b]Kepada Detektif Benedict,[/b]\n\nSebuah insiden kematian misterius dilaporkan terjadi di sekitar jalur rel peron [b]Stasiun Kereta Api Timur[/b]. Korban adalah seorang pria tanpa identitas resmi yang berencana naik kereta ke luar kota.\n\n[b]Petunjuk & Tugas:[/b]\n• Temui [b]Inspektur Marcus[/b] di Kantor Polisi untuk meminta keterangan saksi dan rincian olah TKP.\n• Telusuri peron stasiun untuk mencari petunjuk dan mengamankan amplop rol foto korban.\n• Cuci foto di bak kamar gelap rumah untuk mengungkap wajah dan identitas korban!\n\n[i]— Kepala Departemen Penyelidikan[/i][/color]"
-	body_rtl.add_theme_font_size_override("normal_font_size", 13)
-	body_rtl.add_theme_font_size_override("bold_font_size", 13)
-	body_rtl.add_theme_font_size_override("italic_font_size", 12)
-	text_vb.add_child(body_rtl)
-
-	# Tombol silang kecil di pojok kanan atas surat
-	var x_btn = Button.new()
-	x_btn.text = "✕"
-	x_btn.custom_minimum_size = Vector2(28, 28)
-	x_btn.position = Vector2(520 - 36, 12)
-	var x_style = StyleBoxFlat.new()
-	x_style.bg_color = Color(0.4, 0.15, 0.15, 0.8)
-	x_style.set_corner_radius_all(14)
-	x_btn.add_theme_stylebox_override("normal", x_style)
-	x_btn.pressed.connect(_close_letter_viewer)
-	letter_box.add_child(x_btn)
+	var hint_lbl = Label.new()
+	hint_lbl.text = "ℹ️ Tidak ditemukan bukti kasus pembunuhan di rumah ini. Segera temui Marcus di Kantor Polisi!"
+	hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint_lbl.add_theme_color_override("font_color", Color(0.25, 0.35, 0.55))
+	hint_lbl.add_theme_font_size_override("font_size", 11)
+	card_vb.add_child(hint_lbl)
 
 	letter_close_btn = Button.new()
-	letter_close_btn.text = "✔ Simpan ke Jurnal & Lanjutkan Investigasi [ESC / Spasi]"
-	letter_close_btn.custom_minimum_size = Vector2(440, 42)
+	letter_close_btn.text = "✔ Simpan Foto & Cari Inspektur Marcus [ESC / Spasi]"
+	letter_close_btn.custom_minimum_size = Vector2(440, 44)
 	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var lcb_style = StyleBoxFlat.new()
-	lcb_style.bg_color = Color(0.12, 0.18, 0.30, 0.95)
+	lcb_style.bg_color = Color(0.14, 0.20, 0.32, 0.95)
 	lcb_style.border_color = Color(0.9, 0.75, 0.3, 1.0)
 	lcb_style.set_border_width_all(2)
 	lcb_style.set_corner_radius_all(8)
@@ -383,27 +639,10 @@ func _setup_letter_viewer() -> void:
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
-	var letter_photo_btn = Button.new()
-	letter_photo_btn.text = "🧪 Langsung Buka Minigame Cuci Foto Polaroid"
-	letter_photo_btn.custom_minimum_size = Vector2(440, 38)
-	letter_photo_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var lpb_style = StyleBoxFlat.new()
-	lpb_style.bg_color = Color(0.18, 0.38, 0.28, 0.95)
-	lpb_style.border_color = Color(0.35, 0.85, 0.5, 1.0)
-	lpb_style.set_border_width_all(1)
-	lpb_style.set_corner_radius_all(6)
-	letter_photo_btn.add_theme_stylebox_override("normal", lpb_style)
-	letter_photo_btn.pressed.connect(func():
-		_close_letter_viewer()
-		if is_instance_valid(minigame_photo_wash):
-			player.can_move = false
-			minigame_photo_wash.start_minigame()
-	)
-	vb.add_child(letter_photo_btn)
-
 	letter_root_control.visible = false
 
 func _open_letter_closeup() -> void:
+	play_paper_sfx()
 	if is_instance_valid(letter_root_control):
 		letter_root_control.visible = true
 		if is_instance_valid(player):
@@ -415,9 +654,17 @@ func _close_letter_viewer() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
 	if is_instance_valid(inv_mgr):
+		inv_mgr.unlock_clue("mother_photo_riddle")
 		if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-			_show_toast("✉️ Surat Tugas: Temui Inspektur Marcus di Kantor Polisi!")
 			inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
+			_show_toast("🔍 Foto Ibu Ditemukan! Temui Marcus di Kantor Polisi!")
+			if is_instance_valid(dialog_box):
+				var follow_lines: Array[String] = [
+					"Foto seorang ibu dan anak... Di baliknya tertulis pesan agar si anak kembali ke rumah ibunya jika sempat.",
+					"Ini membuka petunjuk misi opsional tentang rumah ibu dan brankas keluarga...",
+					"Tapi karena rumah korban ini tidak memberi petunjuk apa-apa soal pembunuhan, aku harus segera mencari Inspektur Marcus di Kantor Polisi!"
+				]
+				dialog_box.start_monologue(follow_lines, "Detektif Benedict", "[ Rencana Investigasi ]", "res://karakter/MC_Bingung.png")
 
 func _setup_hud_prompts() -> void:
 	var hud_layer = $HUD
@@ -481,6 +728,159 @@ func _setup_hud_prompts() -> void:
 	toast_label.add_theme_font_size_override("font_size", 14)
 	toast_banner.add_child(toast_label)
 
+	# Tombol Fullscreen di pojok kanan atas HUD
+	fullscreen_btn = Button.new()
+	fullscreen_btn.text = "⛶ Fullscreen [F11]"
+	fullscreen_btn.custom_minimum_size = Vector2(165, 40)
+	fullscreen_btn.focus_mode = Control.FOCUS_NONE
+	fullscreen_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	fullscreen_btn.add_theme_font_size_override("font_size", 13)
+
+	var fb_normal = StyleBoxFlat.new()
+	fb_normal.bg_color = Color(0.06, 0.08, 0.16, 0.88)
+	fb_normal.border_color = Color(0.3, 0.6, 0.9, 0.75)
+	fb_normal.set_border_width_all(1)
+	fb_normal.set_corner_radius_all(8)
+	fb_normal.content_margin_left = 12
+	fb_normal.content_margin_right = 12
+	fb_normal.content_margin_top = 6
+	fb_normal.content_margin_bottom = 6
+	fullscreen_btn.add_theme_stylebox_override("normal", fb_normal)
+
+	var fb_hover = fb_normal.duplicate()
+	fb_hover.bg_color = Color(0.14, 0.24, 0.42, 0.96)
+	fb_hover.border_color = Color(0.6, 0.85, 1.0, 1.0)
+	fullscreen_btn.add_theme_stylebox_override("hover", fb_hover)
+	fullscreen_btn.add_theme_stylebox_override("pressed", fb_hover)
+
+	fullscreen_btn.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	fullscreen_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+
+	fullscreen_btn.anchor_left = 1.0
+	fullscreen_btn.anchor_right = 1.0
+	fullscreen_btn.anchor_top = 0.0
+	fullscreen_btn.anchor_bottom = 0.0
+	fullscreen_btn.offset_left = -185
+	fullscreen_btn.offset_top = 16
+	fullscreen_btn.offset_right = -16
+	fullscreen_btn.offset_bottom = 56
+
+	fullscreen_btn.pressed.connect(func():
+		toggle_fullscreen()
+	)
+	hud_layer.add_child(fullscreen_btn)
+	_update_fullscreen_button_text(_is_fullscreen_now())
+
+	# Detective Case Status HUD Card (Pojok Kiri Atas)
+	detective_hud_panel = PanelContainer.new()
+	detective_hud_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	detective_hud_panel.position = Vector2(20, 20)
+	detective_hud_panel.custom_minimum_size = Vector2(390, 76)
+	
+	var dh_style = StyleBoxFlat.new()
+	dh_style.bg_color = Color(0.06, 0.08, 0.12, 0.94)
+	dh_style.border_color = Color(0.85, 0.70, 0.35, 0.9)
+	dh_style.set_border_width_all(2)
+	dh_style.set_corner_radius_all(10)
+	dh_style.content_margin_left = 12
+	dh_style.content_margin_right = 14
+	dh_style.content_margin_top = 8
+	dh_style.content_margin_bottom = 8
+	dh_style.shadow_color = Color(0, 0, 0, 0.45)
+	dh_style.shadow_size = 6
+	detective_hud_panel.add_theme_stylebox_override("panel", dh_style)
+	hud_layer.add_child(detective_hud_panel)
+
+	var hud_hb = HBoxContainer.new()
+	hud_hb.add_theme_constant_override("separation", 12)
+	detective_hud_panel.add_child(hud_hb)
+
+	hud_avatar_rect = TextureRect.new()
+	var mc_tex = load("res://UI/mc_portrait.png")
+	if mc_tex:
+		hud_avatar_rect.texture = mc_tex
+	hud_avatar_rect.custom_minimum_size = Vector2(56, 56)
+	hud_avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	hud_avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	hud_hb.add_child(hud_avatar_rect)
+
+	var info_vb = VBoxContainer.new()
+	info_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vb.add_theme_constant_override("separation", 3)
+	hud_hb.add_child(info_vb)
+
+	var name_hb = HBoxContainer.new()
+	info_vb.add_child(name_hb)
+
+	var name_lbl = Label.new()
+	name_lbl.text = "Detektif Benedict"
+	name_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	name_lbl.add_theme_font_size_override("font_size", 13)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_hb.add_child(name_lbl)
+
+	hud_phase_badge = Label.new()
+	hud_phase_badge.text = "[ Prolog ]"
+	hud_phase_badge.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	hud_phase_badge.add_theme_font_size_override("font_size", 11)
+	name_hb.add_child(hud_phase_badge)
+
+	hud_objective_text = Label.new()
+	hud_objective_text.text = "🎯 Target: Periksa Meja Kerja"
+	hud_objective_text.add_theme_color_override("font_color", Color(0.92, 0.94, 0.98))
+	hud_objective_text.add_theme_font_size_override("font_size", 12)
+	hud_objective_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info_vb.add_child(hud_objective_text)
+
+	var btns_hb = HBoxContainer.new()
+	btns_hb.add_theme_constant_override("separation", 6)
+	info_vb.add_child(btns_hb)
+
+	var j_btn = Button.new()
+	j_btn.text = "📓 Jurnal [J]"
+	j_btn.focus_mode = Control.FOCUS_NONE
+	j_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	j_btn.add_theme_font_size_override("font_size", 11)
+	j_btn.pressed.connect(func():
+		play_click_sfx()
+		if is_instance_valid(clue_journal):
+			clue_journal.toggle_journal()
+	)
+	btns_hb.add_child(j_btn)
+
+	var p_btn = Button.new()
+	p_btn.text = "⏸️ Menu [ESC]"
+	p_btn.focus_mode = Control.FOCUS_NONE
+	p_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	p_btn.add_theme_font_size_override("font_size", 11)
+	p_btn.pressed.connect(func():
+		play_click_sfx()
+		toggle_pause_menu()
+	)
+	btns_hb.add_child(p_btn)
+
+func _is_fullscreen_now() -> bool:
+	var mode = DisplayServer.window_get_mode()
+	return mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+
+func toggle_fullscreen() -> void:
+	play_click_sfx()
+	if _is_fullscreen_now():
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		_update_fullscreen_button_text(false)
+		_show_toast("🪟 Mode Jendela (Windowed)")
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		_update_fullscreen_button_text(true)
+		_show_toast("🖥️ Mode Layar Penuh (Fullscreen)")
+
+func _update_fullscreen_button_text(is_fullscreen: bool) -> void:
+	if is_instance_valid(fullscreen_btn):
+		if is_fullscreen:
+			fullscreen_btn.text = "🗗 Windowed [F11]"
+		else:
+			fullscreen_btn.text = "⛶ Fullscreen [F11]"
+
 func _show_toast(msg: String) -> void:
 	if is_instance_valid(toast_label) and is_instance_valid(toast_banner):
 		toast_label.text = msg
@@ -488,6 +888,12 @@ func _show_toast(msg: String) -> void:
 		toast_timer = 3.5
 
 func _process(delta: float) -> void:
+	if is_instance_valid(cutscene_layer):
+		return
+
+	if input_grace_timer > 0.0:
+		input_grace_timer -= delta
+
 	if toast_timer > 0.0:
 		toast_timer -= delta
 		if toast_timer <= 0.0:
@@ -497,11 +903,18 @@ func _process(delta: float) -> void:
 		if is_instance_valid(hud_speed_label):
 			var spd = player.velocity.length()
 			var mode_str = " (Lari/Shift)" if player.is_sprinting else " (Jalan)"
-			hud_speed_label.text = "Kecepatan: %.0f px/s%s" % [spd, mode_str if spd > 10.0 else ""]
+			var st_str = " [LELAH]" if ("is_exhausted" in player and player.is_exhausted) else ""
+			var st_val = player.stamina if "stamina" in player else 100.0
+			hud_speed_label.text = "Kecepatan: %.0f px/s%s | ⚡ Energi: %.0f%%%s" % [spd, mode_str if spd > 10.0 else "", st_val, st_str]
 		if is_instance_valid(hud_pos_label):
 			hud_pos_label.text = "Posisi: (X: %.0f, Y: %.0f)" % [player.global_position.x, player.global_position.y]
 		if is_instance_valid(hud_zoom_label) and player.has_method("get_zoom_level"):
 			hud_zoom_label.text = "Penglihatan (Zoom): %.1fx" % player.get_zoom_level()
+
+		if is_instance_valid(summoned_grim) and summoned_grim.visible:
+			var sprite = summoned_grim.get_node_or_null("ChibiSprite")
+			if is_instance_valid(sprite):
+				sprite.position.y = sin(Time.get_ticks_msec() * 0.003) * 4.0
 
 		_check_poi_proximity()
 
@@ -512,10 +925,11 @@ func _check_poi_proximity() -> void:
 	var p_pos = player.global_position
 
 	if is_inside_house:
-		var desk_letter_pos = Vector2(3600.0 + 410.0, 400.0 + 250.0)
-		var safe_pos = Vector2(3600.0 + 505.0, 400.0 + 215.0)
-		var photo_basin_pos = Vector2(3600.0 + 335.0, 400.0 + 83.0)
-		var exit_door_pos = Vector2(3600.0 + 270.0, 400.0 + 342.0)
+		var desk_letter_pos = house_interior.get_desk_letter_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_desk_letter_pos") else Vector2(3600.0 + 295.0, 400.0 + 95.0)
+		var safe_pos = house_interior.get_safe_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_safe_pos") else Vector2(3600.0 + 235.0, 400.0 + 65.0)
+		var photo_basin_pos = house_interior.get_photo_basin_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_basin_pos") else Vector2(3600.0 + 250.0, 400.0 + 360.0)
+		var stairs_pos = house_interior.get_stairs_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_stairs_pos") else Vector2(3600.0 + 575.0, 400.0 + 305.0)
+		var exit_door_pos = house_interior.get_exit_door_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_exit_door_pos") else Vector2(3600.0 + 110.0, 400.0 + 400.0)
 
 		if p_pos.distance_to(desk_letter_pos) <= 52.0:
 			active_poi_id = "indoor_letter"
@@ -523,7 +937,9 @@ func _check_poi_proximity() -> void:
 			active_poi_id = "indoor_safe"
 		elif p_pos.distance_to(photo_basin_pos) <= 42.0:
 			active_poi_id = "indoor_photo_basin"
-		elif p_pos.distance_to(exit_door_pos) <= 38.0 or (p_pos.y >= (400.0 + 332.0) and abs(p_pos.x - (3600.0 + 270.0)) <= 38.0):
+		elif p_pos.distance_to(stairs_pos) <= 45.0:
+			active_poi_id = "indoor_stairs"
+		elif p_pos.distance_to(exit_door_pos) <= 38.0 or (p_pos.y >= (400.0 + 375.0) and abs(p_pos.x - (3600.0 + 110.0)) <= 38.0):
 			active_poi_id = "indoor_exit"
 		else:
 			active_poi_id = ""
@@ -540,6 +956,8 @@ func _check_poi_proximity() -> void:
 						interact_prompt.text = "👉 [ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
 					"indoor_photo_basin":
 						interact_prompt.text = "👉 [ F / E / Spasi ] KAMAR GELAP: CUCI FOTO POLAROID"
+					"indoor_stairs":
+						interact_prompt.text = "👉 [ F / E / Spasi ] TANGGA: MENUJU LANTAI ATAS"
 					"indoor_exit":
 						interact_prompt.text = "👉 [ F / E / Spasi ] KELUAR KE KOTA"
 				var vp = get_viewport().get_visible_rect().size
@@ -550,9 +968,13 @@ func _check_poi_proximity() -> void:
 	var closest_dist: float = 999999.0
 	var best_poi: String = ""
 
-	# Check bounding boxes for large complex areas first
+	# Check dedicated POIs with priority (e.g. Bilik Telepon di Peron Stasiun)
+	var phone_dist = p_pos.distance_to(POI_LOCATIONS["phone"]["pos"])
+	if phone_dist <= POI_LOCATIONS["phone"]["radius"]:
+		best_poi = "phone"
+		closest_dist = phone_dist
 	# 1. Stasiun Kereta Api (seluruh gedung, parkiran, peron, dan rel: x 1850..2350, y 670..1310)
-	if p_pos.x >= 1850.0 and p_pos.x <= 2350.0 and p_pos.y >= 670.0 and p_pos.y <= 1310.0:
+	elif p_pos.x >= 1850.0 and p_pos.x <= 2350.0 and p_pos.y >= 670.0 and p_pos.y <= 1310.0:
 		best_poi = "station"
 		closest_dist = 0.0
 	# 2. Rumah Benedict (halaman, gerbang, dan jalan depan rumah: x 1050..1350, y 20..330)
@@ -582,11 +1004,34 @@ func _check_poi_proximity() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_F11 or (event.alt_pressed and event.keycode == KEY_ENTER):
+			toggle_fullscreen()
+			get_viewport().set_input_as_handled()
+			return
+
+	if is_instance_valid(cutscene_layer):
+		return
+	if input_grace_timer > 0.0:
+		return
+	if event is InputEventKey and event.pressed and not event.is_echo():
 		if is_instance_valid(letter_root_control) and letter_root_control.visible:
 			if event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER, KEY_F, KEY_E]:
 				_close_letter_viewer()
 				get_viewport().set_input_as_handled()
 				return
+
+		# Jika dialog/monolog sedang aktif, delegasikan penekanan tombol langsung ke dialog_box
+		if is_instance_valid(dialog_box) and dialog_box.is_active:
+			if event.keycode in [KEY_SPACE, KEY_ENTER, KEY_E, KEY_F]:
+				if dialog_box.is_monologue_mode:
+					dialog_box.advance_monologue()
+					get_viewport().set_input_as_handled()
+					return
+			elif event.keycode == KEY_ESCAPE:
+				dialog_box.close_dialog()
+				get_viewport().set_input_as_handled()
+				return
+			return
 
 		if event.keycode == KEY_X:
 			_trigger_death_god()
@@ -624,6 +1069,15 @@ func _input(event: InputEvent) -> void:
 				clue_journal.toggle_journal()
 				get_viewport().set_input_as_handled()
 				return
+		elif event.keycode in [KEY_ESCAPE, KEY_P]:
+			if is_instance_valid(clue_journal) and clue_journal.is_open:
+				clue_journal.close_journal()
+				get_viewport().set_input_as_handled()
+				return
+			if is_instance_valid(pause_menu_layer):
+				toggle_pause_menu()
+				get_viewport().set_input_as_handled()
+				return
 
 func _trigger_poi_interaction(poi_id: String) -> void:
 	if not is_instance_valid(inv_mgr):
@@ -648,19 +1102,43 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				minigame_photo_wash.start_minigame()
 				_show_toast("🧪 Masuk ke Kamar Gelap: Cuci Foto Polaroid!")
 
+		"indoor_stairs":
+			_show_toast("🪜 Tangga: Menuju ruang arsip & loteng lantai atas (terkunci).")
+
 		"indoor_exit":
 			_exit_house()
 
+		"street_clock":
+			if is_instance_valid(dialog_box):
+				var clock_lines: Array[String] = [
+					"Jam jalan ini... jarumnya berhenti membeku tepat di pukul 16:04.",
+					"Aneh sekali... padahal suasana kota masih terang dan lalu lalang orang tampak berjalan.",
+					"Ada firasat aneh dan dingin yang menusuk tengkukku..."
+				]
+				dialog_box.start_monologue(clock_lines, "Detektif Benedict", "[ Jam Membeku ]", "res://karakter/MC_Bingung.png")
+			inv_mgr.unlock_clue("street_clock_freeze")
+			_show_toast("⏱️ Jam Kota Terhenti di Pukul 16:04!")
+
 		"police":
-			var marcus_npc = find_child("NPC4", true, false)
+			var marcus_npc = find_child("NPC_Police_Marcus", true, false)
 			if not is_instance_valid(marcus_npc):
-				marcus_npc = find_child("NPC1", true, false)
-			if is_instance_valid(minigame_tailgate) and is_instance_valid(marcus_npc):
-				player.can_move = false
-				minigame_tailgate.start_minigame(player, marcus_npc)
-				_show_toast("🕵️ Minigame Menguntit Marcus dimulai! Jaga jarak aman!")
+				marcus_npc = find_child("NPC1_Police", true, false)
+			if not is_instance_valid(marcus_npc):
+				for n in get_tree().get_nodes_in_group("npcs"):
+					if n.get("npc_type") == 1 or n.get("npc_type") == 3:
+						marcus_npc = n
+						break
+			if is_instance_valid(dialog_box) and not inv_mgr.has_tailgated_marcus:
+				var marcus_lines: Array[String] = [
+					"Detektif Benedict! Maaf, aku sedang sangat terburu-buru!",
+					"Ada urusan darurat terkait kasus kematian di stasiun, aku harus keluar sekarang!"
+				]
+				dialog_box.start_monologue(marcus_lines, "Inspektur Marcus", "[ Terburu-buru ]", "res://NPC_Inspecture/jalan-depan-1.png")
+				dialog_box.monologue_finished.connect(func():
+					_start_marcus_tailgate(marcus_npc)
+				, CONNECT_ONE_SHOT)
 			else:
-				_show_toast("Kantor Polisi: 'Detektif, kami sedang menangani penyelidikan kasus 404.'")
+				_start_marcus_tailgate(marcus_npc)
 
 		"station":
 			if is_instance_valid(minigame_hidden_objects):
@@ -671,11 +1149,27 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
 		"hospital":
-			inv_mgr.unlock_clue("autopsy_corpse")
-			inv_mgr.set_phase(inv_mgr.Phase.FINAL_DEATH_GOD)
-			_show_toast("🩺 Rumah Sakit: Kamu melihat jasad dirimu sendiri... Tekan [X] untuk Dewa Kematian!")
-			if is_instance_valid(dialog_box):
-				dialog_box.open_dialog("...Detektif Benedict. Tataplah tubuh yang terbaring kaku itu. Kamu bukan lagi detektif yang bernafas... kamu adalah arwah yang mencari kebenaran tentang kematianmu sendiri. Tekan [X] kapan saja untuk memanggilku...")
+			if not hospital_status_reception_rejected and not inv_mgr.has_inspected_morgue:
+				hospital_status_reception_rejected = true
+				if is_instance_valid(dialog_box):
+					var recep_lines: Array[String] = [
+						"Resepsionis RS: 'Selamat siang, Detektif Benedict.'",
+						"Resepsionis RS: 'Mohon maaf, salinan berkas hasil autopsi jenazah belum bisa kami serahkan karena dokumennya belum resmi ditandatangani.'",
+						"Resepsionis RS: 'Dokter forensik yang memeriksa korban pun sedang tidak berada di tempat dan sama sekali tidak dapat dihubungi.'",
+						"Benedict: 'Dokter tidak bisa dihubungi dan laporan resmi ditahan...? Aku tidak bisa menunggu birokrasi berhari-hari.'",
+						"Benedict: 'Satu-satunya jalan adalah menyelinap langsung ke Kamar Jenazah (Ruang Mayat) di lorong bawah tanah!'"
+					]
+					dialog_box.start_monologue(recep_lines, "Penyelidikan RS", "[ Akses Ditolak ]", "res://karakter/MC_Bingung.png")
+					_show_toast("⚠️ Akses Resmi Ditolak: Menyelinap ke Kamar Jenazah!")
+			else:
+				if is_instance_valid(morgue_inspection):
+					if is_inside_house:
+						_exit_house()
+					player.can_move = false
+					morgue_inspection.open_morgue()
+					_show_toast("🚪 Menyelinap ke Kamar Jenazah...")
+				else:
+					_show_toast("Kamar jenazah rumah sakit terkunci rapat.")
 
 		"safe":
 			if is_instance_valid(minigame_safe):
@@ -686,45 +1180,161 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 		"phone":
 			_show_toast("📞 Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
 
+func _start_marcus_tailgate(marcus_npc: Node) -> void:
+	if is_instance_valid(minigame_tailgate) and is_instance_valid(marcus_npc):
+		player.can_move = true
+		if is_inside_house:
+			_exit_house()
+		if player.global_position.distance_to(marcus_npc.global_position) > 280.0:
+			player.global_position = marcus_npc.global_position + Vector2(-120, 10)
+		if marcus_npc.has_method("start_patrol"):
+			marcus_npc.start_patrol()
+		minigame_tailgate.start_minigame(player, marcus_npc)
+		_show_toast("🕵️ Marcus bergegas pergi! Ikuti dari kejauhan dan jaga jarak aman!")
+	else:
+		_show_toast("Kantor Polisi: 'Detektif, kami sedang menangani penyelidikan kasus 404.'")
+
 func _trigger_death_god() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
-	if is_instance_valid(death_god_layer) and death_god_layer.has_method("open_interface"):
-		death_god_layer.open_interface()
-	else:
-		_summon_death_god()
+	_summon_death_god()
 
 func _summon_death_god() -> void:
-	if is_instance_valid(dialog_box):
-		var prompt = ""
-		if is_instance_valid(inv_mgr):
-			if inv_mgr.has_emotional_item() and inv_mgr.is_clue_unlocked("autopsy_corpse"):
-				prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai jiwa Benedict... Kamu telah memanggilku. Di dalam genggaman jiwamu, tersimpan liontin kasih sayang Ibu Medeline yang belum tuntas.\n\nKatakan padaku apa yang kau rasakan sekarang untuk melangkah ke peristirahatan abadi..."
-			elif inv_mgr.is_clue_unlocked("autopsy_corpse"):
-				prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai Benedict... Kamu telah memanggilku dan mengetahui fakta bahwa kamu telah tiada. Katakan padaku apa yang telah kau pelajari tentang takdirmu..."
-			else:
-				prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai pengelana fana... Mengapa kamu memanggilku? Katakan padaku apa yang kau cari dalam keheningan ini..."
-		
-		dialog_box.open_dialog(prompt)
+	if not is_instance_valid(dialog_box):
+		return
+
+	if is_instance_valid(player):
+		player.can_move = false
+
+	# Periksa apakah pemain sudah berada tepat di dekat Altar Kuil Utama
+	var near_shrine = false
+	if is_instance_valid(shrine) and is_instance_valid(player):
+		if shrine.global_position.distance_to(player.global_position) < 180.0:
+			near_shrine = true
+
+	# Jika dipanggil di luar kuil, munculkan wujud Dewa Kematian Chibi di dunia game tepat di depan Benedict
+	if not near_shrine and is_instance_valid(player):
+		_spawn_summoned_chibi_grim()
+
+	var prompt = ""
+	if is_instance_valid(inv_mgr):
+		if inv_mgr.has_emotional_item() and inv_mgr.is_clue_unlocked("autopsy_corpse"):
+			prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai jiwa Benedict... Kamu telah memanggilku. Di dalam genggaman jiwamu, tersimpan liontin kasih sayang Ibu Medeline yang belum tuntas.\n\nKatakan padaku apa yang kau rasakan sekarang untuk melangkah ke peristirahatan abadi..."
+		elif inv_mgr.is_clue_unlocked("autopsy_corpse"):
+			prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai Benedict... Kamu telah memanggilku dan mengetahui fakta bahwa kamu telah tiada. Katakan padaku apa yang telah kau pelajari tentang takdirmu..."
+		else:
+			prompt = "✦ SANG DEWA KEMATIAN MUNCUL DI HADAPANMU ✦\n\nWahai pengelana fana... Mengapa kamu memanggilku? Katakan padaku apa yang kau cari dalam keheningan ini..."
+	
+	dialog_box.open_dialog(prompt)
+
+func _spawn_summoned_chibi_grim() -> void:
+	if not is_instance_valid(summoned_grim):
+		summoned_grim = Node2D.new()
+		summoned_grim.name = "SummonedChibiGrim"
+		summoned_grim.y_sort_enabled = true
+
+		var aura = ColorRect.new()
+		aura.name = "Aura"
+		aura.position = Vector2(-36, -46)
+		aura.size = Vector2(72, 82)
+		aura.color = Color(0.45, 0.15, 0.85, 0.35)
+		summoned_grim.add_child(aura)
+
+		var sprite = Sprite2D.new()
+		sprite.name = "ChibiSprite"
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		sprite.scale = Vector2(0.045, 0.045)
+		var dep = load("res://grimChibi/depan.png")
+		if dep:
+			sprite.texture = dep
+		summoned_grim.add_child(sprite)
+
+		add_child(summoned_grim)
+
+	var offset_dist = 65.0
+	var spawn_pos = player.global_position
+	var facing = Vector2.DOWN
+	if "facing_direction" in player:
+		facing = player.facing_direction
+
+	if abs(facing.x) > abs(facing.y):
+		if facing.x > 0:
+			spawn_pos += Vector2(offset_dist, 0)
+			_set_summoned_grim_tex("kiri")
+		else:
+			spawn_pos += Vector2(-offset_dist, 0)
+			_set_summoned_grim_tex("kanan")
+	else:
+		if facing.y > 0:
+			spawn_pos += Vector2(0, offset_dist)
+			_set_summoned_grim_tex("belakang")
+		else:
+			spawn_pos += Vector2(0, -offset_dist)
+			_set_summoned_grim_tex("depan")
+
+	summoned_grim.global_position = spawn_pos
+	summoned_grim.visible = true
+	summoned_grim.modulate.a = 0.0
+
+	var tw = create_tween()
+	tw.tween_property(summoned_grim, "modulate:a", 1.0, 0.35)
+
+func _set_summoned_grim_tex(dir_name: String) -> void:
+	if not is_instance_valid(summoned_grim):
+		return
+	var sprite = summoned_grim.get_node_or_null("ChibiSprite") as Sprite2D
+	if is_instance_valid(sprite):
+		var tex_path = "res://grimChibi/" + dir_name + ".png"
+		var t = load(tex_path)
+		if t:
+			sprite.texture = t
 
 func _on_dialog_opened() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
 	if is_instance_valid(shrine) and shrine.has_method("set_dialog_active"):
 		shrine.set_dialog_active(true)
+	play_afterlife_music()
 
 func _on_dialog_closed() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
 	if is_instance_valid(shrine) and shrine.has_method("set_dialog_active"):
 		shrine.set_dialog_active(false)
+	stop_afterlife_music()
+	if is_instance_valid(summoned_grim) and summoned_grim.visible:
+		var tw = create_tween()
+		tw.tween_property(summoned_grim, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(func():
+			if is_instance_valid(summoned_grim):
+				summoned_grim.visible = false
+		)
 
 func _on_phase_changed(_p: int, _title: String) -> void:
 	_update_hud_objective()
 
 func _update_hud_objective() -> void:
-	if is_instance_valid(hud_objective_label) and is_instance_valid(inv_mgr):
-		hud_objective_label.text = "🎯 Target: " + inv_mgr.get_current_objective_title()
+	var title_str = "Menyelidiki Kasus..."
+	if is_instance_valid(inv_mgr) and inv_mgr.has_method("get_current_objective_title"):
+		title_str = inv_mgr.get_current_objective_title()
+	if is_instance_valid(hud_objective_label):
+		hud_objective_label.text = "🎯 Target: " + title_str
+	if is_instance_valid(hud_objective_text):
+		hud_objective_text.text = "🎯 Target: " + title_str
+	if is_instance_valid(hud_phase_badge) and is_instance_valid(inv_mgr):
+		match inv_mgr.current_phase:
+			inv_mgr.Phase.PROLOGUE_HOME:
+				hud_phase_badge.text = "[ Prolog: Rumah ]"
+			inv_mgr.Phase.INVESTIGATION_1_POLICE:
+				hud_phase_badge.text = "[ Kasus 1: Polisi ]"
+			inv_mgr.Phase.INVESTIGATION_2_STATION:
+				hud_phase_badge.text = "[ Kasus 2: Stasiun ]"
+			inv_mgr.Phase.INVESTIGATION_3_PHOTO:
+				hud_phase_badge.text = "[ Kasus 3: Forensik ]"
+			inv_mgr.Phase.INVESTIGATION_4_HOSPITAL:
+				hud_phase_badge.text = "[ Kasus 4: Mayat ]"
+			inv_mgr.Phase.FINAL_DEATH_GOD:
+				hud_phase_badge.text = "[ Altar Dewa Maut ]"
 
 func _on_journal_btn_pressed() -> void:
 	play_click_sfx()
@@ -734,7 +1344,7 @@ func _on_journal_btn_pressed() -> void:
 func _on_reset_btn_pressed() -> void:
 	play_click_sfx()
 	if is_instance_valid(player):
-		player.global_position = Vector2(1170, 270)
+		player.global_position = Vector2(100.0, 225.0)
 		player.velocity = Vector2.ZERO
 
 func _on_zoom_in_btn_pressed() -> void:
@@ -753,6 +1363,8 @@ func _on_zoom_reset_btn_pressed() -> void:
 		player.reset_zoom()
 
 func _start_ai_server() -> void:
+	if server_pid != -1:
+		return
 	var exe_path = OS.get_executable_path().get_base_dir() + "/ai_server.exe"
 	if FileAccess.file_exists(exe_path):
 		server_pid = OS.create_process(exe_path, [])

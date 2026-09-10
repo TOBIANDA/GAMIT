@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-enum NPCType { BOY, POLICE, GIRL }
+enum NPCType { BOY, POLICE, GIRL, INSPECTOR_MARCUS }
 @export var npc_type: NPCType = NPCType.BOY
 @export var target_height_px: float = 38.0
 @export var too_close_radius: float = 42.0
@@ -29,12 +29,15 @@ const SHARED_DESTINATIONS = [
 ]
 
 const POLICE_PATROL_WAYPOINTS = [
-	Vector2(350, 258),
-	Vector2(577, 258),
+	Vector2(350, 865),
+	Vector2(577, 865),
+	Vector2(577, 619),
 	Vector2(1270, 619),
-	Vector2(2088, 520),
+	Vector2(1850, 619),
+	Vector2(2088, 690),
 	Vector2(1581, 780),
-	Vector2(411, 1278)
+	Vector2(411, 1278),
+	Vector2(280, 915)
 ]
 
 var target_destination: Vector2 = Vector2.ZERO
@@ -48,26 +51,27 @@ const STUCK_DIST_MIN: float = 4.0
 
 var social_cooldown: float = 0.0
 
+# Warga sipil merinding dan gemetar karena Benedict sejatinya adalah arwah/orang mati
 const SOCIAL_CHATS_CIVILIAN = [
-	"Hai! Mau ke stasiun juga ya?",
-	"Cuaca kota hari ini terasa dingin sekali...",
-	"Kamu dengar suara kereta tadi? Tepat waktu ya.",
-	"Hati-hati ya di jalan, ada detektif sedang menyelidiki.",
-	"Mau mampir ke taman courtyard sebentar?",
-	"Semoga urusanmu lancar hari ini!",
-	"Aku baru saja dari rumah sakit, suasananya sepi sekali."
+	"...Hii! Tiba-tiba bulu kudukku meremang hebat...",
+	"...Dingin sekali, rasanya seperti ada arwah orang mati berdiri di sebelahku...",
+	"...Kenapa aku gemetar ketakutan ya? Padahal jalanan sepi...",
+	"...Hawa dingin apa ini?! Seperti ada sosok yang menatapku tapi tak terlihat...",
+	"...Aneh, kenapa bulu romaku berdiri semua? Aku harus cepat-cepat pergi dari sini!",
+	"...Ih merinding! Jangan-jangan ada arwah korban pembunuhan yang berkeliaran..."
 ]
 
 const SOCIAL_CHATS_POLICE = [
-	"Selamat siang warga, situasi kota terpantau aman.",
-	"Tetap berhati-hati di dekat rel kereta api timur.",
-	"Ada laporan mencurigakan di area kuil lama...",
-	"Lanjutkan perjalananmu dengan tertib ya."
+	"Marcus: Cepat! Kasus ini harus segera kita tuntaskan.",
+	"Marcus: Saksi mata melihat korban terakhir menuju stasiun kereta api.",
+	"Polisi: Jam di kota ini membeku di 16:04...",
+	"Polisi: Korban berencana keluar kota untuk liburan sebelum tewas.",
+	"Marcus: Jangan sampai terlambat, kita amankan bukti di peron!"
 ]
 
 var msg_display_timer: float = 0.0
 var msg_cooldown_timer: float = 0.0
-const MSG_DISPLAY_DURATION: float = 2.4
+const MSG_DISPLAY_DURATION: float = 2.8
 const MSG_COOLDOWN_DURATION: float = 1.2
 
 var sprite_sets: Dictionary = {}
@@ -97,11 +101,11 @@ const CLUE_MESSAGES_CIVILIAN = [
 ]
 
 const CLUE_MESSAGES_POLICE = [
-	"Laporan TKP nomor 404... korbannya belum dapat diidentifikasi.",
-	"Semua pintu keluar kota diperintahkan ditutup rapat.",
-	"Detektif... berkas kasus itu terkunci di ruang arsip.",
-	"Jangan mendekati stasiun terlarang di ujung timur...",
-	"Ada jejak aneh yang berhenti tepat di depan kuil itu."
+	"Marcus: Korban terakhir terlihat berjalan ke arah stasiun kereta api...",
+	"Polisi: Katanya dia mau ke luar kota untuk berlibur sebelum kematiannya.",
+	"Marcus: Laporan TKP 404... kita harus temukan amplop foto dan barang pribadinya di stasiun.",
+	"Polisi: Benar, Inspektur. Ada jejak mencurigakan di peron timur.",
+	"Marcus: Detektif Benedict mungkin sedang mencari informasi ini juga..."
 ]
 
 const PANIC_MESSAGES = [
@@ -130,13 +134,23 @@ func _ready() -> void:
 
 	social_cooldown = randf_range(2.0, 6.0)
 	
-	call_deferred("_pick_next_destination")
+	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
+		current_state = State.IDLE
+		idle_hangout_timer = 999999.0 # Tetap standby di depan kantor polisi sampai didatangi MC
+		move_dir_facing = Vector2.RIGHT if global_position.x < 280.0 else Vector2.LEFT
+		if npc_type == NPCType.INSPECTOR_MARCUS:
+			show_chat_bubble("Marcus: Kita harus cepat ke stasiun!", 3.5)
+		else:
+			show_chat_bubble("Polisi: Siap, Inspektur Marcus!", 3.5)
+	else:
+		call_deferred("_pick_next_destination")
 	queue_redraw()
 
 func _load_all_npc_sprite_sets() -> void:
-	sprite_sets[NPCType.BOY]    = _load_sprites_from_folder("res://NPC_Boy/")
-	sprite_sets[NPCType.POLICE] = _load_sprites_from_folder("res://NPC_Police/")
-	sprite_sets[NPCType.GIRL]   = _load_sprites_from_folder("res://NPC_Girl/")
+	sprite_sets[NPCType.BOY]              = _load_sprites_from_folder("res://NPC_Boy/")
+	sprite_sets[NPCType.POLICE]           = _load_sprites_from_folder("res://NPC_Police/")
+	sprite_sets[NPCType.GIRL]             = _load_sprites_from_folder("res://NPC_Girl/")
+	sprite_sets[NPCType.INSPECTOR_MARCUS] = _load_sprites_from_folder("res://NPC_Inspecture/")
 
 func _load_sprites_from_folder(folder_path: String) -> Dictionary:
 	var set_dict: Dictionary = {}
@@ -294,7 +308,15 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _handle_travel_state(delta: float, dist_to_player: float) -> void:
-	if player_stationary_timer < 3.0 and social_cooldown <= 0.0:
+	var can_spook_player: bool = false
+	var inv_mgr = get_node_or_null("/root/InvestigationManager")
+	if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
+		inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
+	if is_instance_valid(inv_mgr):
+		# Warga hanya mulai takut/gemetar setelah Benedict membuka surat dan menguntit polisi
+		can_spook_player = (inv_mgr.current_phase >= inv_mgr.Phase.INVESTIGATION_2_STATION)
+
+	if can_spook_player and player_stationary_timer < 3.0 and social_cooldown <= 0.0:
 		if dist_to_player <= too_close_radius:
 			current_state = State.AFRAID
 			spook_freeze_timer = 2.2
@@ -374,7 +396,31 @@ func _handle_stuck_recovery() -> void:
 	_pick_next_destination()
 	global_position += Vector2(randf_range(-10, 10), randf_range(-10, 10))
 
+func start_patrol() -> void:
+	current_state = State.GO_TO_DESTINATION
+	idle_hangout_timer = 0.0
+	current_patrol_idx = 0
+	target_destination = POLICE_PATROL_WAYPOINTS[0]
+	stuck_timer = 0.0
+	last_check_pos = global_position
+	if is_instance_valid(nav_agent):
+		nav_agent.target_position = target_destination
+	show_chat_bubble("Marcus: Benedict sudah di sini! Ayo kita mulai rute investigasi.", 3.0)
+
 func _handle_idle_state(delta: float, dist_to_player: float) -> void:
+	if npc_type == NPCType.POLICE:
+		if dist_to_player <= 180.0:
+			start_patrol()
+			return
+		
+		# Mengobrol berkala santai di depan kantor polisi
+		social_cooldown -= delta
+		if social_cooldown <= 0.0:
+			var pool = CLUE_MESSAGES_POLICE
+			show_chat_bubble(pool[randi() % pool.size()], 2.8)
+			social_cooldown = randf_range(8.0, 14.0)
+		return
+
 	if dist_to_player <= too_close_radius:
 		_pick_next_destination()
 		return

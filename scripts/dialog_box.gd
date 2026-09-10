@@ -31,6 +31,7 @@ var is_typing: bool = false
 var is_active: bool = false
 var glow_timer: float = 0.0
 var click_player: AudioStreamPlayer
+var typewriter_player: AudioStreamPlayer
 
 var is_monologue_mode: bool = false
 var monologue_lines: Array[String] = []
@@ -50,6 +51,16 @@ func _ready() -> void:
 		click_player.stream = c_stream
 		click_player.volume_db = -5.0
 	add_child(click_player)
+
+	typewriter_player = AudioStreamPlayer.new()
+	typewriter_player.name = "DialogTypewriterPlayer"
+	var tw_stream = load("res://sound/keyboardtype.mp3")
+	if not tw_stream:
+		tw_stream = load("res://keyboardtype.mp3")
+	if tw_stream:
+		typewriter_player.stream = tw_stream
+		typewriter_player.volume_db = -2.0
+	add_child(typewriter_player)
 
 func _ensure_nodes() -> void:
 	if root_control == null and has_node("RootControl"):
@@ -106,7 +117,7 @@ func _on_screen_gui_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if is_monologue_mode:
-			_advance_monologue()
+			advance_monologue()
 
 func _play_click() -> void:
 	if is_instance_valid(click_player) and click_player.stream:
@@ -125,9 +136,21 @@ func _process(delta: float) -> void:
 		else:
 			portrait_glow.color = Color(0.6, 0.2, 0.9, alpha)
 
+	# Efek melayang halus untuk potret Dewa Kematian saat berbicara
+	if is_instance_valid(large_portrait) and large_portrait.visible:
+		if not is_monologue_mode:
+			var bob = sin(glow_timer * 0.8) * 5.0
+			large_portrait.offset_top = -520.0 + bob
+			large_portrait.offset_bottom = bob
+		else:
+			large_portrait.offset_top = -520.0
+			large_portrait.offset_bottom = 0.0
+
 	if is_typing:
 		if is_instance_valid(continue_prompt):
 			continue_prompt.visible = false
+		if is_instance_valid(typewriter_player) and typewriter_player.stream and not typewriter_player.playing:
+			typewriter_player.play(2.0)
 		typing_timer += delta
 		if typing_timer >= TYPING_SPEED:
 			typing_timer = 0.0
@@ -135,31 +158,30 @@ func _process(delta: float) -> void:
 				var ch = full_text[current_char_idx]
 				text_label.text += ch
 				current_char_idx += 1
-				if ch != " " and ch != "." and is_instance_valid(click_player) and click_player.stream:
-					click_player.pitch_scale = randf_range(0.92, 1.16)
-					click_player.play()
 			else:
 				is_typing = false
+				if is_instance_valid(typewriter_player) and typewriter_player.playing:
+					typewriter_player.stop()
 				auto_advance_timer = 0.0
 				if not is_monologue_mode:
 					input_container.visible = true
 					input_edit.call_deferred("grab_focus")
 	else:
-		# Pengetikan selesai: tampilkan prompt lanjut dan hitung auto-advance
+		# Pengetikan selesai: tampilkan prompt lanjut dan hitung auto-advance santai
 		if is_monologue_mode:
 			if is_instance_valid(continue_prompt):
 				continue_prompt.visible = true
 				if monologue_index + 1 < monologue_lines.size():
-					continue_prompt.text = "▶ Klik / Spasi / E untuk lanjut"
+					continue_prompt.text = "▶ Tekan [ E / Spasi / Enter ] untuk lanjut"
 				else:
-					continue_prompt.text = "▶ Klik / Spasi / E untuk selesai"
+					continue_prompt.text = "▶ Tekan [ E / Spasi / Enter ] untuk selesai"
 				continue_prompt.modulate.a = 0.7 + 0.3 * sin(glow_timer * 3.0)
 			
-			# Auto-advance setelah jeda 1.8 detik membaca agar alur dialog tetap berjalan otomatis
+			# Auto-advance opsional jika pemain AFK (5.0 detik santai)
 			auto_advance_timer += delta
-			if auto_advance_timer >= 1.8:
+			if auto_advance_timer >= 5.0:
 				auto_advance_timer = 0.0
-				_advance_monologue()
+				advance_monologue()
 		else:
 			if is_instance_valid(continue_prompt):
 				continue_prompt.visible = false
@@ -175,23 +197,25 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 		if is_monologue_mode and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_E, KEY_F]:
-			_advance_monologue()
+			advance_monologue()
 			get_viewport().set_input_as_handled()
 			return
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if is_monologue_mode:
-			_advance_monologue()
+			advance_monologue()
 			get_viewport().set_input_as_handled()
 			return
 
-func _advance_monologue() -> void:
+func advance_monologue() -> void:
 	auto_advance_timer = 0.0
 	if is_typing:
 		# Jika sedang mengetik, selesaikan baris seketika
 		text_label.text = full_text
 		current_char_idx = full_text.length()
 		is_typing = false
+		if is_instance_valid(typewriter_player) and typewriter_player.playing:
+			typewriter_player.stop()
 		return
 
 	if monologue_index + 1 < monologue_lines.size():
@@ -201,7 +225,7 @@ func _advance_monologue() -> void:
 		close_dialog()
 		monologue_finished.emit()
 
-func start_monologue(lines: Array[String], speaker_name: String = "Detektif Benedict", badge_text: String = "[ Monolog Batin ]", portrait_path: String = "res://UI/mc_portrait.png") -> void:
+func start_monologue(lines: Array[String], speaker_name: String = "Detektif Benedict", badge_text: String = "[ Monolog Batin ]", portrait_path: String = "res://karakter/MC_Biasa.png") -> void:
 	_ensure_nodes()
 	visible = true
 	is_active = true
@@ -237,7 +261,17 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 
 	# Tampilkan gambar MC 5x lipat tanpa frame kotak (cutout transparan)
 	if is_instance_valid(large_portrait):
-		var tex = load(portrait_path)
+		var resolved_path = portrait_path
+		if not resolved_path.begins_with("res://"):
+			if not resolved_path.ends_with(".png"):
+				resolved_path += ".png"
+			resolved_path = "res://karakter/" + resolved_path
+		
+		var tex = load(resolved_path)
+		if not tex and resolved_path.contains("karakter/"):
+			tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
+		if not tex:
+			tex = load("res://UI/mc_portrait.png")
 		if tex:
 			large_portrait.texture = tex
 		large_portrait.visible = true
@@ -263,18 +297,30 @@ func open_dialog(initial_prompt: String = "") -> void:
 	status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 	status_badge.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
 
-	if is_instance_valid(large_portrait):
-		large_portrait.visible = false
-	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 16)
+	# Sembunyikan frame kotak potret kecil dan figur dummy ColorRect
 	if is_instance_valid(portrait_box):
-		portrait_box.visible = true
+		portrait_box.visible = false
 	if is_instance_valid(portrait_glow):
-		portrait_glow.visible = true
+		portrait_glow.visible = false
 	if is_instance_valid(portrait_texture):
 		portrait_texture.visible = false
 	if is_instance_valid(avatar_visual_container):
-		avatar_visual_container.visible = true
+		avatar_visual_container.visible = false
+
+	# Atur margin dialog agar teks dialog dan input LineEdit tertata rapi di samping potret Dewa Kematian
+	if is_instance_valid(margin_container):
+		margin_container.add_theme_constant_override("margin_left", 440)
+
+	# Tampilkan potret visual novel megah Dewa Kematian (grim.png non-chibi)
+	if is_instance_valid(large_portrait):
+		var grim_tex = load("res://karakter/grim.png")
+		if not grim_tex:
+			grim_tex = load("res://UI/portraits/grim.png")
+		if not grim_tex:
+			grim_tex = load("res://grim.png")
+		if grim_tex:
+			large_portrait.texture = grim_tex
+		large_portrait.visible = true
 
 	input_container.visible = false
 	input_edit.text = ""
@@ -294,6 +340,8 @@ func close_dialog() -> void:
 	is_active = false
 	is_typing = false
 	is_monologue_mode = false
+	if is_instance_valid(typewriter_player) and typewriter_player.playing:
+		typewriter_player.stop()
 	if is_instance_valid(large_portrait):
 		large_portrait.visible = false
 	if is_instance_valid(margin_container):
@@ -309,6 +357,9 @@ func _start_typewriter(text: String) -> void:
 	if is_instance_valid(text_label):
 		text_label.text = ""
 	is_typing = true
+	if is_instance_valid(typewriter_player) and typewriter_player.stream:
+		typewriter_player.stop()
+		typewriter_player.play(2.0)
 
 func _on_submit_pressed() -> void:
 	var message = input_edit.text.strip_edges()

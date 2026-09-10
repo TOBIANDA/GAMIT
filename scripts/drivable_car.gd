@@ -52,8 +52,6 @@ func _setup_audio() -> void:
 	gen_engine.buffer_length = 0.15
 	audio_player_engine.stream = gen_engine
 	add_child(audio_player_engine)
-	audio_player_engine.play()
-	playback_engine = audio_player_engine.get_stream_playback()
 
 	audio_player_horn = AudioStreamPlayer.new()
 	var gen_horn = AudioStreamGenerator.new()
@@ -61,8 +59,6 @@ func _setup_audio() -> void:
 	gen_horn.buffer_length = 0.15
 	audio_player_horn.stream = gen_horn
 	add_child(audio_player_horn)
-	audio_player_horn.play()
-	playback_horn = audio_player_horn.get_stream_playback()
 
 func _on_interaction_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
@@ -98,6 +94,10 @@ func _enter_car() -> void:
 	player_ref.collision_layer = 0
 	player_ref.collision_mask = 0
 	current_speed = 0.0
+	if is_instance_valid(audio_player_engine):
+		if not audio_player_engine.playing:
+			audio_player_engine.play()
+		playback_engine = audio_player_engine.get_stream_playback()
 	emit_signal("player_entered", self)
 	print("[CarSystem] 🚗 Pemain masuk ke dalam mobil: ", car_name)
 	queue_redraw()
@@ -107,6 +107,8 @@ func _exit_car() -> void:
 		return
 	is_being_driven = false
 	current_speed = 0.0
+	if is_instance_valid(audio_player_engine) and audio_player_engine.playing:
+		audio_player_engine.stop()
 	
 	# Tempatkan pemain di samping pintu pengemudi (kiri mobil)
 	var left_normal = Vector2(-sin(car_heading), cos(car_heading))
@@ -127,6 +129,8 @@ func _physics_process(delta: float) -> void:
 		# Sinkronkan posisi player agar kamera dan audio listener tetap fokus di mobil
 		if is_instance_valid(player_ref):
 			player_ref.global_position = global_position
+		_synthesize_engine_sound(delta)
+		_handle_horn(delta)
 	else:
 		if abs(current_speed) > 1.0:
 			current_speed = move_toward(current_speed, 0.0, friction * delta)
@@ -136,8 +140,6 @@ func _physics_process(delta: float) -> void:
 			current_speed = 0.0
 			velocity = Vector2.ZERO
 
-	_synthesize_engine_sound(delta)
-	_handle_horn(delta)
 	queue_redraw()
 
 func _process_driving(delta: float) -> void:
@@ -180,6 +182,10 @@ func _process_driving(delta: float) -> void:
 func _trigger_horn(duration: float) -> void:
 	is_honking = true
 	horn_timer = duration
+	if is_instance_valid(audio_player_horn):
+		if not audio_player_horn.playing:
+			audio_player_horn.play()
+		playback_horn = audio_player_horn.get_stream_playback()
 
 func _handle_horn(delta: float) -> void:
 	if is_honking:
@@ -187,24 +193,26 @@ func _handle_horn(delta: float) -> void:
 		_synthesize_horn_sound()
 		if horn_timer <= 0.0:
 			is_honking = false
+			if is_instance_valid(audio_player_horn) and audio_player_horn.playing:
+				audio_player_horn.stop()
 
 func _synthesize_engine_sound(delta: float) -> void:
-	if playback_engine == null:
+	if not is_being_driven or playback_engine == null:
 		return
 	var frames = min(playback_engine.get_frames_available(), int(22050 * delta * 1.5))
 	if frames <= 0:
 		return
 
 	var speed_ratio = clampf(abs(current_speed) / max_forward_speed, 0.0, 1.0)
-	var base_freq = 45.0 + speed_ratio * 120.0 # Nada mesin naik seiring kecepatan
-	var vol = 0.08 if not is_being_driven else (0.22 + speed_ratio * 0.20)
+	var base_freq = 50.0 + speed_ratio * 120.0 # Nada mesin naik seiring kecepatan
+	var vol = 0.16 + speed_ratio * 0.16
 
 	for i in range(frames):
 		engine_phase += 1.0 / 22050.0
-		var r1 = sin(engine_phase * base_freq * TAU) * 0.4
-		var r2 = sin(engine_phase * base_freq * 2.0 * TAU) * 0.25
-		var noise = (randf() * 2.0 - 1.0) * 0.08
-		var sample = (r1 + r2 + noise) * vol
+		var r1 = sin(engine_phase * base_freq * TAU) * 0.50
+		var r2 = sin(engine_phase * base_freq * 2.0 * TAU) * 0.30
+		var r3 = sin(engine_phase * base_freq * 3.0 * TAU) * 0.12
+		var sample = (r1 + r2 + r3) * vol
 		playback_engine.push_frame(Vector2(sample, sample))
 
 func _synthesize_horn_sound() -> void:

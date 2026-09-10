@@ -19,6 +19,14 @@ var step_cycle: float = 0.0
 var is_moving: bool = false
 var is_sprinting: bool = false
 
+@export_group("Stamina & Energi Lari")
+@export var max_stamina: float = 100.0
+var stamina: float = 100.0
+@export var stamina_drain_rate: float = 24.0 # Habis dalam ~4.2 detik sprint nonstop
+@export var stamina_recover_rate: float = 20.0 # Pulih dalam ~5 detik saat jalan/diam
+var is_exhausted: bool = false
+const EXHAUSTION_RECOVERY_THRESHOLD: float = 20.0
+
 var sprite_sets: Dictionary = {}
 var footsteps_player: AudioStreamPlayer2D
 
@@ -29,9 +37,13 @@ var footsteps_player: AudioStreamPlayer2D
 @export var max_zoom_val: float = 3.5
 @export var zoom_step: float = 0.20
 
+var player_light: PointLight2D
+
 func _ready() -> void:
 	add_to_group("player")
 	y_sort_enabled = true
+	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	safe_margin = 0.15
 	collision_layer = 2
 	collision_mask = 1
 	if is_instance_valid(camera):
@@ -40,9 +52,41 @@ func _ready() -> void:
 		target_zoom_val = clampf(target_zoom_val, min_zoom_val, max_zoom_val)
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
 
+	_setup_player_ambient_light()
 	_setup_footsteps_audio()
 	_load_all_mc_sprite_sets()
 	queue_redraw()
+
+func _setup_player_ambient_light() -> void:
+	player_light = PointLight2D.new()
+	player_light.name = "PlayerAmbientLight"
+	var grad := Gradient.new()
+	grad.colors = PackedColorArray([
+		Color(1.0, 0.95, 0.82, 0.40),
+		Color(1.0, 0.90, 0.72, 0.18),
+		Color(0.90, 0.80, 0.60, 0.05),
+		Color(0.80, 0.70, 0.50, 0.0)
+	])
+	grad.offsets = PackedFloat32Array([0.0, 0.25, 0.65, 1.0])
+	var light_tex := GradientTexture2D.new()
+	light_tex.gradient = grad
+	light_tex.fill = GradientTexture2D.FILL_RADIAL
+	light_tex.fill_from = Vector2(0.5, 0.5)
+	light_tex.fill_to = Vector2(1.0, 0.5)
+	light_tex.width = 256
+	light_tex.height = 256
+	player_light.texture = light_tex
+	player_light.texture_scale = 0.80
+	player_light.energy = 0.32
+	player_light.color = Color(1.0, 0.95, 0.82, 1.0)
+	var ws = get_node_or_null("../WorldShader")
+	var is_night = ws.is_night_mode if is_instance_valid(ws) and "is_night_mode" in ws else false
+	player_light.enabled = is_night
+	add_child(player_light)
+
+func set_night_mode(is_night: bool) -> void:
+	if is_instance_valid(player_light):
+		player_light.enabled = is_night
 
 func _setup_footsteps_audio() -> void:
 	footsteps_player = AudioStreamPlayer2D.new()
@@ -124,7 +168,24 @@ func _physics_process(delta: float) -> void:
 
 	var input_vector = _get_input_vector()
 
-	is_sprinting = Input.is_key_pressed(KEY_SHIFT)
+	var wants_sprint = Input.is_key_pressed(KEY_SHIFT) and input_vector != Vector2.ZERO
+
+	if is_exhausted:
+		if stamina >= EXHAUSTION_RECOVERY_THRESHOLD:
+			is_exhausted = false
+		else:
+			wants_sprint = false
+
+	if wants_sprint and stamina > 0.0:
+		is_sprinting = true
+		stamina = max(0.0, stamina - stamina_drain_rate * delta)
+		if stamina <= 0.0:
+			is_exhausted = true
+			is_sprinting = false
+	else:
+		is_sprinting = false
+		stamina = min(max_stamina, stamina + stamina_recover_rate * delta)
+
 	max_speed = sprint_speed if is_sprinting else walk_speed
 	step_anim_speed = sprint_step_anim_speed if is_sprinting else base_step_anim_speed
 
@@ -223,3 +284,14 @@ func _draw() -> void:
 		draw_texture(cur_tex, draw_offset)
 		
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+	# Indikator Visual Bar Stamina / Energi di bawah kaki MC saat tidak 100%
+	if stamina < max_stamina:
+		var bar_w := 26.0
+		var bar_h := 3.5
+		var bar_x := -bar_w * 0.5
+		var bar_y := 12.0
+		var pct := stamina / max_stamina
+		var bar_col := Color(0.2, 0.9, 0.4) if not is_exhausted else Color(0.9, 0.3, 0.2)
+		draw_rect(Rect2(bar_x - 1, bar_y - 1, bar_w + 2, bar_h + 2), Color(0.05, 0.05, 0.08, 0.75), true)
+		draw_rect(Rect2(bar_x, bar_y, bar_w * pct, bar_h), bar_col, true)

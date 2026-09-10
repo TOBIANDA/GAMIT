@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://death_god_shrine_scene_01"]
+[gd_scene load_steps=7 format=3 uid="uid://death_god_shrine_scene_01"]
 
 [ext_resource type="Script" path="res://scripts/death_god_shrine.gd" id="1_shrine_script"]
+[ext_resource type="Texture2D" path="res://grimChibi/depan.png" id="2_chibi_depan"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_trigger"]
 radius = 140.0
@@ -160,26 +161,10 @@ offset_right = 36.0
 offset_bottom = 36.0
 color = Color(0.5, 0.15, 0.8, 0.28)
 
-[node name="Cloak" type="ColorRect" parent="Visuals/GodFigure"]
-offset_left = -24.0
-offset_top = -34.0
-offset_right = 24.0
-offset_bottom = 30.0
-color = Color(0.06, 0.04, 0.1, 1)
-
-[node name="EyeLeft" type="ColorRect" parent="Visuals/GodFigure"]
-offset_left = -11.0
-offset_top = -18.0
-offset_right = -4.0
-offset_bottom = -13.0
-color = Color(0.9, 0.35, 1, 1)
-
-[node name="EyeRight" type="ColorRect" parent="Visuals/GodFigure"]
-offset_left = 4.0
-offset_top = -18.0
-offset_right = 11.0
-offset_bottom = -13.0
-color = Color(0.9, 0.35, 1, 1)
+[node name="ChibiSprite" type="Sprite2D" parent="Visuals/GodFigure"]
+texture_filter = 2
+scale = Vector2(0.045, 0.045)
+texture = ExtResource("2_chibi_depan")
 
 [node name="SolidAltar" type="StaticBody2D" parent="."]
 position = Vector2(0, -10)

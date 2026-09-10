@@ -18,22 +18,22 @@ var current_phase: Phase = Phase.PROLOGUE_HOME
 var desaturation_level: float = 0.0
 
 var clues: Dictionary = {
-	"anonymous_letter": {
+	"street_clock_freeze": {
 		"unlocked": false,
-		"title": "✉️ Surat Tugas Misterius",
-		"desc": "Surat anonim di meja rumah memintaku menyelidiki kematian seseorang. Petunjuk awal: temui Inspektur Marcus di Kantor Polisi.",
+		"title": "⏱️ Jam Kota Membeku (16:04)",
+		"desc": "Jam kota terhenti kaku tepat di pukul 16:04. Orang-orang di sekitar merinding dan ketakutan saat disapa.",
 		"phase": 0
 	},
 	"mother_photo_riddle": {
 		"unlocked": false,
-		"title": "🖼️ Foto Masa Kecil Bersama Ibu",
-		"desc": "Foto bersama Ibu Medeline. Di balik foto tertulis pesan: 'Jemput hadiahmu di brankas rumah ibu. Kuncinya adalah waktu yang membeku (1-6-4)'.",
+		"title": "🖼️ Foto Ibu dan Anak (Misi Opsional)",
+		"desc": "Foto ibu bersama anaknya di meja rumah korban. Di balik foto tertulis: 'Kembalilah ke rumah ibu jika sempat... Kuncinya: waktu yang membeku (1-6-4)'.",
 		"phase": 0
 	},
 	"police_eavesdrop": {
 		"unlocked": false,
-		"title": "🎙️ Percakapan Rahasia Polisi",
-		"desc": "Menguping Marcus: Korban terakhir terlihat berjalan ke Stasiun Kereta Api untuk ke luar kota.",
+		"title": "🎙️ Obrolan Rahasia Marcus",
+		"desc": "Menguping Marcus: Korban terakhir terlihat berjalan terburu-buru ke Stasiun Kereta Api hendak liburan keluar kota.",
 		"phase": 1
 	},
 	"train_ticket": {
@@ -42,34 +42,28 @@ var clues: Dictionary = {
 		"desc": "Tiket sekali jalan atas nama seorang detektif yang tergeletak di bangku peron stasiun.",
 		"phase": 2
 	},
-	"broken_pocket_watch": {
-		"unlocked": false,
-		"title": "⏱️ Jam Saku Rusak (16:04)",
-		"desc": "Jam saku berbahan perak yang kacanya retak, jarumnya berhenti tepat di pukul 16:04.",
-		"phase": 2
-	},
 	"photo_envelope": {
 		"unlocked": false,
-		"title": "📁 Amplop Foto TKP",
-		"desc": "Amplop tersegel berisi rol film foto korban sebelum meninggal. Perlu dicuci di Kamar Gelap Lab Forensik Kantor Polisi.",
+		"title": "📁 Amplop Rol Foto Korban",
+		"desc": "Amplop berisi rol film foto korban sebelum meninggal yang tercecer di peron stasiun. Perlu dicuci di kamar gelap.",
 		"phase": 2
 	},
 	"developed_photos": {
 		"unlocked": false,
-		"title": "📷 Foto Forensik Mayat (Wajah Sendiri)",
-		"desc": "Setelah dicuci dengan hati-hati, foto korban menampakkan wajah yang sangat kukenal... wajahku sendiri (Benedict).",
+		"title": "📷 Foto Forensik (Wajah Benedict Sendiri)",
+		"desc": "Setelah dicuci di kamar gelap, foto ke-4 memperlihatkan fakta mengguncang: wajah korban adalah wajah Benedict sendiri!",
 		"phase": 3
 	},
 	"autopsy_corpse": {
 		"unlocked": false,
 		"title": "🩺 Jasad di Kamar Mayat RS",
-		"desc": "Menyelinap ke RS dan melihat mayat di meja otopsi. Tidak diragukan lagi, korban yang kucari adalah diriku sendiri yang telah mati.",
+		"desc": "Menyelinap ke kamar mayat RS dan menyingkap kain mayat. Tak terbantahkan lagi, mayat di atas ranjang adalah diriku sendiri yang telah mati.",
 		"phase": 4
 	},
 	"mother_emotional_locket": {
 		"unlocked": false,
-		"title": "💎 Liontin Kenangan Ibu Medeline (Emotional Item)",
-		"desc": "Hadiah kasih sayang dari Ibu Medeline yang tersimpan di brankas. Kunci untuk menenangkan jiwa dan meraih True Ending di hadapan Sang Dewa.",
+		"title": "💎 Liontin Kenangan Ibu (True Ending Item)",
+		"desc": "Hadiah kasih sayang abadi dari Ibu Medeline di dalam brankas rumah ibu.",
 		"phase": 0
 	}
 }
@@ -81,8 +75,6 @@ var has_developed_photos: bool = false
 var has_inspected_morgue: bool = false
 
 func _ready() -> void:
-	unlock_clue("anonymous_letter")
-	unlock_clue("mother_photo_riddle")
 	_update_desaturation()
 
 func set_phase(new_phase: Phase) -> void:
@@ -96,33 +88,33 @@ func set_phase(new_phase: Phase) -> void:
 func get_current_objective_title() -> String:
 	match current_phase:
 		Phase.PROLOGUE_HOME:
-			return "Periksa Meja Kerja & Pergi ke Kantor Polisi"
+			return "Telusuri Jalan & Selidiki Rumah Korban"
 		Phase.INVESTIGATION_1_POLICE:
-			return "Kuntit & Uping Inspektur Marcus di Kantor Polisi"
+			return "Temui & Kuntit Inspektur Marcus di Kantor Polisi"
 		Phase.INVESTIGATION_2_STATION:
 			return "Selidiki Bukti di Stasiun Kereta Api Ujung Timur"
 		Phase.INVESTIGATION_3_PHOTO:
-			return "Pergi ke Kantor Polisi & Cuci Foto di Lab Forensik"
+			return "Cuci Rol Foto di Kamar Gelap Lab Forensik"
 		Phase.INVESTIGATION_4_HOSPITAL:
 			return "Menyelinap ke Kamar Mayat Rumah Sakit"
 		Phase.FINAL_DEATH_GOD:
-			return "Menuju ke Altar Kuil Dewa Kematian di Ruang Suci"
+			return "Menjawab Pengadilan Dewa Kematian"
 	return "Lanjutkan Penyelidikan Kasus"
 
 func get_current_objective_desc() -> String:
 	match current_phase:
 		Phase.PROLOGUE_HOME:
-			return "Kamu menemukan surat tugas misterius di meja dan foto masa kecil bersama Ibu Medeline. Clue pertama memintamu pergi ke Kantor Polisi di barat."
+			return "Berjalanlah di sepanjang trotoar menuju rumah korban di timur. Periksa keanehan waktu 16:04 dan cari petunjuk di dalam rumah."
 		Phase.INVESTIGATION_1_POLICE:
-			return "Dua polisi sedang mengobrol di depan kantor polisi. Dekati dan buntuti mereka untuk menguping petunjuk kasus pembunuhan."
+			return "Rumah korban buntu. Temui Inspektur Marcus di Kantor Polisi barat untuk menguping petunjuk arah kepergian korban."
 		Phase.INVESTIGATION_2_STATION:
-			return "Stasiun kereta api menyimpan jejak terakhir korban. Cari amplop foto, tiket kereta, dan jam saku rusak sebelum waktu habis."
+			return "Marcus menyebut korban pergi ke stasiun kereta api untuk liburan. Amankan amplop rol foto korban di peron stasiun!"
 		Phase.INVESTIGATION_3_PHOTO:
-			return "Bawa rol film ke Kamar Gelap Lab Forensik di Kantor Polisi. Rendam dan bilas dengan hati-hati untuk mengungkap identitas korban."
+			return "Bawa rol film ke bak cairan kamar gelap. Rendam dan bilas dengan hati-hati untuk menyingkap wajah korban."
 		Phase.INVESTIGATION_4_HOSPITAL:
-			return "Foto menunjukkan fakta ganjil. Pergilah ke Rumah Sakit di bagian selatan untuk memverifikasi jasad korban secara langsung."
+			return "Wajah di foto adalah wajahmu sendiri! Izin resmi ditolak di depan, kamu harus menyelinap ke kamar mayat RS!"
 		Phase.FINAL_DEATH_GOD:
-			return "Kebenaran telah terungkap: kamu sedang menyelidiki kematian dirimu sendiri. Bicaralah kepada Dewa Kematian di Altar Suci."
+			return "Kebenaran mutlak terungkap. Jiwamu ditarik ke hadapan Dewa Kematian untuk mempertanggungjawabkan seluruh temuanmu."
 	return ""
 
 func unlock_clue(clue_id: String) -> void:
