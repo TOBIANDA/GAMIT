@@ -249,6 +249,10 @@ func _on_intro_cutscene_finished() -> void:
 		transition_overlay.color = Color(0, 0, 0, 1.0)
 		var tw = create_tween()
 		tw.tween_property(transition_overlay, "color:a", 0.0, 0.45)
+		tw.tween_callback(func():
+			if not police_letter_shown:
+				_open_police_letter()
+		)
 
 
 func play_click_sfx() -> void:
@@ -366,20 +370,20 @@ func _exit_house() -> void:
 
 func _trigger_indoor_letter_monologue() -> void:
 	if not is_instance_valid(dialog_box):
-		_open_letter_closeup()
+		_open_victim_letter()
 		return
 
 	var monologue_lines: Array[String] = [
-		"Aku mencari ke sekeliling rumah korban... tapi tidak ada petunjuk apa-apa tentang kasus pembunuhan.",
-		"Semua berkas dan sudut ruangan hampa... Hanya ada sebuah foto berdebu di atas meja ini.",
-		"Coba kuperiksa foto apa ini..."
+		"Aku mencari ke sekeliling rumah korban... Di atas meja ini ada selembar surat tergeletak.",
+		"Kertasnya agak lusuh, dan tulisan tangannya tampak tergesa-gesa dan gemetar...",
+		"Coba kubaca apa yang tertulis di dalam surat ini..."
 	]
 	if is_instance_valid(player):
 		player.can_move = false
 
 	dialog_box.start_monologue(monologue_lines, "Detektif Benedict", "[ Penyelidikan Rumah ]", "res://karakter/MC_Bingung.png")
 	dialog_box.monologue_finished.connect(func():
-		_open_letter_closeup()
+		_open_victim_letter()
 	, CONNECT_ONE_SHOT)
 
 func _setup_investigation_manager() -> void:
@@ -552,6 +556,12 @@ func _on_main_menu_play_requested() -> void:
 			player.set_physics_process(true)
 		if is_instance_valid(bgm_player) and not bgm_player.playing:
 			bgm_player.play()
+		if not police_letter_shown:
+			var tw = create_tween()
+			tw.tween_interval(0.35)
+			tw.tween_callback(func():
+				_open_police_letter()
+			)
 	_update_hud_objective()
 
 func _on_return_to_main_menu() -> void:
@@ -577,8 +587,12 @@ func toggle_pause_menu() -> void:
 
 var letter_layer: CanvasLayer
 var letter_root_control: Control
-var letter_rect: TextureRect
+var letter_header_lbl: Label
+var letter_sub_lbl: Label
+var letter_body_lbl: Label
 var letter_close_btn: Button
+var letter_current_type: String = ""
+var police_letter_shown: bool = false
 
 func _setup_letter_viewer() -> void:
 	letter_layer = CanvasLayer.new()
@@ -592,7 +606,7 @@ func _setup_letter_viewer() -> void:
 
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.02, 0.03, 0.06, 0.90)
+	bg.color = Color(0.02, 0.03, 0.06, 0.92)
 	bg.gui_input.connect(func(ev: InputEvent):
 		if ev is InputEventMouseButton and ev.pressed:
 			_close_letter_viewer()
@@ -608,63 +622,63 @@ func _setup_letter_viewer() -> void:
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(vb)
 
-	# Container foto polaroid ibu & anak
-	var photo_card = PanelContainer.new()
-	photo_card.custom_minimum_size = Vector2(500, 480)
-	var pc_style = StyleBoxFlat.new()
-	pc_style.bg_color = Color(0.96, 0.94, 0.90, 1.0)
-	pc_style.border_color = Color(0.35, 0.28, 0.20, 0.9)
-	pc_style.set_border_width_all(3)
-	pc_style.set_corner_radius_all(10)
-	pc_style.set_content_margin_all(16)
-	photo_card.add_theme_stylebox_override("panel", pc_style)
-	vb.add_child(photo_card)
+	# Container Kartu Dokumen / Surat Perkamen Klasik
+	var doc_card = PanelContainer.new()
+	doc_card.custom_minimum_size = Vector2(620, 520)
+	var dc_style = StyleBoxFlat.new()
+	dc_style.bg_color = Color(0.97, 0.94, 0.88, 1.0) # Warna kertas perkamen klasik
+	dc_style.border_color = Color(0.38, 0.28, 0.16, 0.95) # Border coklat kayu tua
+	dc_style.set_border_width_all(3)
+	dc_style.set_corner_radius_all(10)
+	dc_style.set_content_margin_all(22)
+	dc_style.shadow_color = Color(0, 0, 0, 0.75)
+	dc_style.shadow_size = 16
+	doc_card.add_theme_stylebox_override("panel", dc_style)
+	vb.add_child(doc_card)
 
 	var card_vb = VBoxContainer.new()
 	card_vb.add_theme_constant_override("separation", 10)
-	photo_card.add_child(card_vb)
+	doc_card.add_child(card_vb)
 
-	var photo_header = Label.new()
-	photo_header.text = "🖼️ FOTO SEORANG IBU DAN ANAK"
-	photo_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	photo_header.add_theme_color_override("font_color", Color(0.20, 0.15, 0.10))
-	photo_header.add_theme_font_size_override("font_size", 16)
-	card_vb.add_child(photo_header)
+	# Header Dokumen
+	letter_header_lbl = Label.new()
+	letter_header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	letter_header_lbl.add_theme_color_override("font_color", Color(0.20, 0.14, 0.08))
+	letter_header_lbl.add_theme_font_size_override("font_size", 16)
+	card_vb.add_child(letter_header_lbl)
 
-	var photo_img = TextureRect.new()
-	var tex_ibu = load("res://UI/Polaroid/polaroidIbu.png")
-	if is_instance_valid(tex_ibu):
-		photo_img.texture = tex_ibu
-	photo_img.custom_minimum_size = Vector2(300, 220)
-	photo_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	photo_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	card_vb.add_child(photo_img)
+	# Subtitle Dokumen
+	letter_sub_lbl = Label.new()
+	letter_sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	letter_sub_lbl.add_theme_color_override("font_color", Color(0.50, 0.38, 0.25))
+	letter_sub_lbl.add_theme_font_size_override("font_size", 12)
+	card_vb.add_child(letter_sub_lbl)
 
-	var note_sep = HSeparator.new()
-	var ns_style = StyleBoxLine.new()
-	ns_style.color = Color(0.6, 0.5, 0.4, 0.6)
-	ns_style.thickness = 1
-	note_sep.add_theme_stylebox_override("separator", ns_style)
-	card_vb.add_child(note_sep)
+	var sep = HSeparator.new()
+	var sep_style = StyleBoxLine.new()
+	sep_style.color = Color(0.55, 0.42, 0.28, 0.6)
+	sep_style.thickness = 1
+	sep.add_theme_stylebox_override("separator", sep_style)
+	card_vb.add_child(sep)
 
-	var note_label = Label.new()
-	note_label.text = "[ Pesan Tertulis di Balik Foto ]\n\"Untuk anakku tercinta... Kembalilah ke rumah Ibu jika sempat. Ibu menyimpan sesuatu untukmu di brankas keluarga.\nKuncinya: Waktu yang membeku ( 1 - 6 - 4 )\""
-	note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note_label.add_theme_color_override("font_color", Color(0.35, 0.18, 0.18))
-	note_label.add_theme_font_size_override("font_size", 13)
-	card_vb.add_child(note_label)
+	# Scroll Container Teks Surat
+	var scroll = ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(570, 360)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card_vb.add_child(scroll)
 
-	var hint_lbl = Label.new()
-	hint_lbl.text = "ℹ️ Tidak ditemukan bukti kasus pembunuhan di rumah ini. Segera temui Marcus di Kantor Polisi!"
-	hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint_lbl.add_theme_color_override("font_color", Color(0.25, 0.35, 0.55))
-	hint_lbl.add_theme_font_size_override("font_size", 11)
-	card_vb.add_child(hint_lbl)
+	letter_body_lbl = Label.new()
+	letter_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	letter_body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	letter_body_lbl.add_theme_color_override("font_color", Color(0.18, 0.14, 0.10))
+	letter_body_lbl.add_theme_font_size_override("font_size", 13)
+	letter_body_lbl.add_theme_constant_override("line_spacing", 5)
+	scroll.add_child(letter_body_lbl)
 
+	# Tombol Tutup / Aksi
 	letter_close_btn = Button.new()
-	letter_close_btn.text = "✔ Simpan Foto & Cari Inspektur Marcus [ESC / Spasi]"
-	letter_close_btn.custom_minimum_size = Vector2(440, 44)
+	letter_close_btn.custom_minimum_size = Vector2(540, 44)
 	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var lcb_style = StyleBoxFlat.new()
 	lcb_style.bg_color = Color(0.14, 0.20, 0.32, 0.95)
@@ -672,35 +686,127 @@ func _setup_letter_viewer() -> void:
 	lcb_style.set_border_width_all(2)
 	lcb_style.set_corner_radius_all(8)
 	letter_close_btn.add_theme_stylebox_override("normal", lcb_style)
+	var lcb_hov = lcb_style.duplicate()
+	lcb_hov.bg_color = Color(0.22, 0.30, 0.46, 0.98)
+	lcb_hov.border_color = Color(1.0, 0.9, 0.4, 1.0)
+	letter_close_btn.add_theme_stylebox_override("hover", lcb_hov)
+	letter_close_btn.add_theme_stylebox_override("pressed", lcb_hov)
+	letter_close_btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.4))
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
 	letter_root_control.visible = false
 
-func _open_letter_closeup() -> void:
+func _open_police_letter() -> void:
+	police_letter_shown = true
+	letter_current_type = "police"
 	play_paper_sfx()
+
+	if is_instance_valid(letter_header_lbl):
+		letter_header_lbl.text = "📁 BERKAS PENUGASAN KEPOLISIAN (KASUS #404)"
+	if is_instance_valid(letter_sub_lbl):
+		letter_sub_lbl.text = "Departemen Kepolisian Kota • Ditujukan kepada: Detektif Benedict"
+
+	var police_text = """Sesosok jenazah telah ditemukan di gang sempit dekat area kota. Hingga saat ini belum ada yang berhasil mengungkap siapa dia sebenarnya, apa yang terjadi padanya, atau mengapa semuanya terasa begitu janggal sejak kematian itu terjadi.
+
+Aku dengar kau terkenal sebagai orang yang tidak pernah puas dengan jawaban di permukaan, orang yang selalu menggali lebih dalam ketika orang lain sudah berhenti mencari. Kami percaya, dari semua orang, Andalah yang paling memahami kasus ini.
+
+Carilah bantuan, mungkin kau bisa mulai dari menemui orang yang paling sering berurusan dengan kasus semacam ini, seseorang yang duduk di balik meja penuh berkas di gedung tempat hukum ditegakkan. Dialah yang paling mungkin tahu ke mana korban terakhir kali melangkah.
+
+Ikuti jejaknya, dengarkan apa yang tidak ia katakan secara langsung, dan biarkan satu petunjuk membawamu ke petunjuk berikutnya.
+
+Semakin dalam kau menggali, semakin banyak yang akan terungkap.
+
+Selesaikan semua ini sebelum semuanya benar-benar terlambat. 
+
+Jangan lupa untuk mengingat apa yang telah kau pelajari.
+
+Mampukah kau menyelesaikan kasus ini, Detektif?"""
+
+	if is_instance_valid(letter_body_lbl):
+		letter_body_lbl.text = police_text
+
+	if is_instance_valid(letter_close_btn):
+		letter_close_btn.text = "✔ TERIMA TUGAS & MULAI PENYELIDIKAN [ESC / Spasi]"
+
+	if is_instance_valid(player):
+		player.can_move = false
+		player.set_physics_process(false)
+
 	if is_instance_valid(letter_root_control):
 		letter_root_control.visible = true
-		if is_instance_valid(player):
-			player.can_move = false
+
+func _open_victim_letter() -> void:
+	letter_current_type = "victim"
+	play_paper_sfx()
+
+	if is_instance_valid(letter_header_lbl):
+		letter_header_lbl.text = "✉️ SURAT PRIBADI KORBAN"
+	if is_instance_valid(letter_sub_lbl):
+		letter_sub_lbl.text = "Ditemukan di Meja Kerja Rumah Korban • Tulisan Tangan Gemetar"
+
+	var victim_text = """Aku tidak tahu harus bilang ke siapa lagi soal ini.
+
+Sudah beberapa hari aku merasa terus diawasi. Bukan cuma perasaan biasa namun beberapa kali aku yakin melihat orang yang sama berdiri di seberang jalan, terlalu lama untuk sekadar kebetulan. Aku sudah mencoba meyakinkan diriku sendiri kalau ini cuma paranoia karena kerjaan yang belakangan ini terlalu berat.
+
+Tapi tadi malam, seseorang mengetuk pintu larut sekali, dan saat kubuka, tidak ada siapa-siapa. Hanya jejak sepatu basah di depan teras, padahal tidak hujan.
+
+Aku sudah coba cerita ke Marcus soal ini. Dia cuma bilang aku terlalu capek dan butuh istirahat. Tapi tiap kali aku coba tanya lebih jauh kenapa dia terlihat tergesa-gesa mengganti topik, kenapa dia tidak mau menatapku lama-lama, aku jadi curiga dia tahu sesuatu yang tidak dia katakan padaku.
+
+Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu."""
+
+	if is_instance_valid(letter_body_lbl):
+		letter_body_lbl.text = victim_text
+
+	if is_instance_valid(letter_close_btn):
+		letter_close_btn.text = "✔ SIMPAN SURAT & CARI INSPEKTUR MARCUS [ESC / Spasi]"
+
+	if is_instance_valid(player):
+		player.can_move = false
+		player.set_physics_process(false)
+
+	if is_instance_valid(letter_root_control):
+		letter_root_control.visible = true
+
+func _open_letter_closeup() -> void:
+	_open_victim_letter()
 
 func _close_letter_viewer() -> void:
+	play_paper_sfx()
 	if is_instance_valid(letter_root_control):
 		letter_root_control.visible = false
 	if is_instance_valid(player):
 		player.can_move = true
-	if is_instance_valid(inv_mgr):
-		inv_mgr.unlock_clue("mother_photo_riddle")
-		if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-			inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
-			_show_toast("🔍 Foto Ibu Ditemukan! Temui Marcus di Kantor Polisi!")
-			if is_instance_valid(dialog_box):
-				var follow_lines: Array[String] = [
-					"Foto seorang ibu dan anak... Di baliknya tertulis pesan agar si anak kembali ke rumah ibunya jika sempat.",
-					"Ini membuka petunjuk misi opsional tentang rumah ibu dan brankas keluarga...",
-					"Tapi karena rumah korban ini tidak memberi petunjuk apa-apa soal pembunuhan, aku harus segera mencari Inspektur Marcus di Kantor Polisi!"
-				]
-				dialog_box.start_monologue(follow_lines, "Detektif Benedict", "[ Rencana Investigasi ]", "res://karakter/MC_Bingung.png")
+		player.set_physics_process(true)
+
+	if letter_current_type == "police":
+		if is_instance_valid(inv_mgr):
+			inv_mgr.unlock_clue("police_letter")
+		_show_toast("📌 Tugas Diterima: Periksa rumah korban di ujung timur!")
+		if is_instance_valid(dialog_box):
+			var p_lines: Array[String] = [
+				"Surat penugasan kasus jenazah tanpa identitas...",
+				"Pengirim memintaku mencari bantuan pada orang di gedung penegakan hukum (Kantor Polisi).",
+				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!"
+			]
+			dialog_box.start_monologue(p_lines, "Detektif Benedict", "[ Surat Penugasan ]", "res://karakter/MC_Bingung.png")
+
+	elif letter_current_type == "victim":
+		if is_instance_valid(inv_mgr):
+			inv_mgr.unlock_clue("victim_letter")
+			inv_mgr.unlock_clue("mother_photo_riddle")
+			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
+				inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
+		_show_toast("🔍 Marcus dicurigai! Segera temui Marcus di Kantor Polisi!")
+		if is_instance_valid(dialog_box):
+			var v_lines: Array[String] = [
+				"Surat wasiat ini... korban merasa terus diawasi selama berhari-hari sebelum kematiannya!",
+				"Dan pesan terakhirnya sangat jelas: 'Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu.'",
+				"Inspektur Marcus?! Kenapa korban mencurigai polisi yang bertugas menangani kasus ini?!",
+				"Marcus pasti menyembunyikan sesuatu. Aku harus segera ke Kantor Polisi untuk menginterogasi dan mengawasi gerak-gerik Marcus!"
+			]
+			dialog_box.start_monologue(v_lines, "Detektif Benedict", "[ Wasiat Korban ]", "res://karakter/MC_Bingung.png")
+
 
 func _setup_hud_prompts() -> void:
 	var hud_layer = $HUD

@@ -18,6 +18,18 @@ var current_phase: Phase = Phase.PROLOGUE_HOME
 var desaturation_level: float = 0.0
 
 var clues: Dictionary = {
+	"police_letter": {
+		"unlocked": false,
+		"title": "📜 Surat Tugas dari Kepolisian (Kasus 404)",
+		"desc": "Surat resmi penugasan: jenazah tak dikenal ditemukan di gang sempit kota. Detektif diminta menggali kebenaran dan menemui pihak di gedung tempat hukum ditegakkan.",
+		"phase": 0
+	},
+	"victim_letter": {
+		"unlocked": false,
+		"title": "✉️ Surat Wasiat Korban di Rumah",
+		"desc": "Surat di meja rumah korban: merasa terus diawasi, ada ketukan pintu larut malam & jejak sepatu basah. 'Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu'.",
+		"phase": 0
+	},
 	"street_clock_freeze": {
 		"unlocked": false,
 		"title": "⏱️ Jam Kota Membeku (16:04)",
