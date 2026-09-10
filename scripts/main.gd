@@ -596,6 +596,8 @@ var police_letter_shown: bool = false
 var font_vintage: FontFile
 var font_vintage_bold: FontFile
 var font_typewriter: FontFile
+var font_anaktoria: FontFile
+var font_riwaya_informal: FontFile
 
 func _load_letter_fonts() -> void:
 	if not font_vintage:
@@ -607,6 +609,43 @@ func _load_letter_fonts() -> void:
 	if not font_typewriter:
 		font_typewriter = FontFile.new()
 		font_typewriter.load_dynamic_font("res://fonts/typewriter.ttf")
+
+	# Pemuatan Font Anaktoria
+	if not font_anaktoria:
+		var anaktoria_candidates = [
+			"res://fonts/anaktoria.ttf",
+			"res://fonts/Anaktoria.ttf",
+			"res://fonts/Anaktoria_hint.ttf",
+			"res://fonts/anaktoria.otf",
+			"res://fonts/Anaktoria.otf"
+		]
+		for p in anaktoria_candidates:
+			if FileAccess.file_exists(p):
+				var ff = FontFile.new()
+				if ff.load_dynamic_font(p) == OK:
+					font_anaktoria = ff
+					print("[LetterViewer] Font Anaktoria berhasil dimuat dari: ", p)
+					break
+
+	# Pemuatan Font 29LT Riwaya Informal
+	if not font_riwaya_informal:
+		var riwaya_candidates = [
+			"res://fonts/29LT Riwaya Informal.ttf",
+			"res://fonts/29LT Riwaya Informal.otf",
+			"res://fonts/29lt_riwaya_informal.ttf",
+			"res://fonts/29lt_riwaya_informal.otf",
+			"res://fonts/riwaya_informal.ttf",
+			"res://fonts/riwaya_informal.otf",
+			"res://fonts/riwaya.ttf",
+			"res://fonts/riwaya.otf"
+		]
+		for p in riwaya_candidates:
+			if FileAccess.file_exists(p):
+				var ff = FontFile.new()
+				if ff.load_dynamic_font(p) == OK:
+					font_riwaya_informal = ff
+					print("[LetterViewer] Font 29LT Riwaya Informal berhasil dimuat dari: ", p)
+					break
 
 func _setup_letter_viewer() -> void:
 	_load_letter_fonts()
@@ -668,22 +707,28 @@ func _setup_letter_viewer() -> void:
 	card_vb.add_theme_constant_override("separation", 8)
 	paper_margin.add_child(card_vb)
 
-	# Header Dokumen (Vintage Font, Tanpa Icon AI Slop)
+	# Header Dokumen (Anaktoria Font / Vintage Bold)
 	letter_header_lbl = Label.new()
 	letter_header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter_header_lbl.add_theme_color_override("font_color", Color(0.18, 0.12, 0.08))
-	if font_vintage_bold:
+	if font_anaktoria:
+		letter_header_lbl.add_theme_font_override("font", font_anaktoria)
+		letter_header_lbl.add_theme_font_size_override("font_size", 16)
+	elif font_vintage_bold:
 		letter_header_lbl.add_theme_font_override("font", font_vintage_bold)
-	letter_header_lbl.add_theme_font_size_override("font_size", 15)
+		letter_header_lbl.add_theme_font_size_override("font_size", 15)
 	card_vb.add_child(letter_header_lbl)
 
 	# Subtitle Dokumen
 	letter_sub_lbl = Label.new()
 	letter_sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter_sub_lbl.add_theme_color_override("font_color", Color(0.42, 0.32, 0.20))
-	if font_vintage:
+	if font_anaktoria:
+		letter_sub_lbl.add_theme_font_override("font", font_anaktoria)
+		letter_sub_lbl.add_theme_font_size_override("font_size", 12)
+	elif font_vintage:
 		letter_sub_lbl.add_theme_font_override("font", font_vintage)
-	letter_sub_lbl.add_theme_font_size_override("font_size", 11)
+		letter_sub_lbl.add_theme_font_size_override("font_size", 11)
 	card_vb.add_child(letter_sub_lbl)
 
 	var sep = HSeparator.new()
@@ -704,7 +749,9 @@ func _setup_letter_viewer() -> void:
 	letter_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	letter_body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	letter_body_lbl.add_theme_color_override("font_color", Color(0.14, 0.10, 0.06))
-	if font_vintage:
+	if font_anaktoria:
+		letter_body_lbl.add_theme_font_override("font", font_anaktoria)
+	elif font_vintage:
 		letter_body_lbl.add_theme_font_override("font", font_vintage)
 	letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
 	letter_body_lbl.add_theme_constant_override("line_spacing", 6)
@@ -726,7 +773,9 @@ func _setup_letter_viewer() -> void:
 	letter_close_btn.add_theme_stylebox_override("hover", lcb_hov)
 	letter_close_btn.add_theme_stylebox_override("pressed", lcb_hov)
 	letter_close_btn.add_theme_color_override("font_color", Color(0.95, 0.88, 0.75))
-	if font_vintage_bold:
+	if font_anaktoria:
+		letter_close_btn.add_theme_font_override("font", font_anaktoria)
+	elif font_vintage_bold:
 		letter_close_btn.add_theme_font_override("font", font_vintage_bold)
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
@@ -761,8 +810,12 @@ Mampukah kau menyelesaikan kasus ini, Detektif?"""
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = police_text
-		if font_typewriter:
+		if font_anaktoria:
+			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_body_lbl.add_theme_font_size_override("font_size", 14.0)
+		elif font_typewriter:
 			letter_body_lbl.add_theme_font_override("font", font_typewriter)
+			letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
 
 	if is_instance_valid(letter_close_btn):
 		letter_close_btn.text = "TERIMA TUGAS & MULAI PENYELIDIKAN [ESC / SPASI]"
@@ -795,8 +848,15 @@ Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu."""
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = victim_text
-		if font_vintage:
+		if font_riwaya_informal:
+			letter_body_lbl.add_theme_font_override("font", font_riwaya_informal)
+			letter_body_lbl.add_theme_font_size_override("font_size", 14.5)
+		elif font_anaktoria:
+			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_body_lbl.add_theme_font_size_override("font_size", 14.0)
+		elif font_vintage:
 			letter_body_lbl.add_theme_font_override("font", font_vintage)
+			letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
 
 	if is_instance_valid(letter_close_btn):
 		letter_close_btn.text = "SIMPAN SURAT & CARI INSPEKTUR MARCUS [ESC / SPASI]"
