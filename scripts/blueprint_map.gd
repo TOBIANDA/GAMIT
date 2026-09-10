@@ -2154,22 +2154,37 @@ func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> 
 	var gx = sq_x + 62.0 + (pintu_pagar_geser_x if pintu_pagar_geser_x != null else 0.0)
 	var gy = sq_y + 126.0 + (pintu_pagar_geser_y if pintu_pagar_geser_y != null else 0.0)
 
-	# Titik engsel di pangkal tiang pagar kiri (bottom-left post)
-	var hinge := Vector2(gx, gy + gate_h * 0.75)
-
 	if open_ratio > 0.01:
-		# Sudut rotasi terdorong ke dalam halaman (swing inward ~78 derajat)
-		var swing_angle := -open_ratio * (PI * 0.43)
-		
-		# 1. Bayangan halus pintu di tanah saat terdorong membuka
-		var shadow_col := Color(0.12, 0.16, 0.08, 0.28 * open_ratio)
-		draw_set_transform(hinge + Vector2(2, 2), swing_angle, Vector2(1.0, 0.35))
-		draw_rect(Rect2(0, -gate_h * 0.75, gate_w, gate_h), shadow_col, true)
+		# Animasi didorong ke belakang (perspektif kedalaman 2.5D, bukan berputar miring ke atas jadi 'l'):
+		# 1. Pintu tetap berdiri tegak menghadap pemain (papan kayu tetap vertikal, lengkungan tetap di atas)
+		# 2. Daun pintu menyempit secara perspektif (foreshortening) saat terdorong masuk ke belakang
+		# 3. Ujung kanan pintu mundur ke arah belakang / halaman rumah (-Y)
+		var apparent_w: float = max(5.0, gate_w * (1.0 - open_ratio * 0.82))
+		var recede_y: float = open_ratio * 12.0
 
-		# 2. Gambar daun pintu pagar terayun membuka ke dalam halaman
-		draw_set_transform(hinge, swing_angle, Vector2.ONE)
-		draw_texture_rect(tex_pintu_pagar, Rect2(0, -gate_h * 0.75, gate_w, gate_h), false)
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# Bayangan halus di atas tanah saat pintu terdorong ke belakang
+		var shadow_poly := PackedVector2Array([
+			Vector2(gx, gy + gate_h),
+			Vector2(gx + apparent_w, gy + gate_h - recede_y),
+			Vector2(gx + apparent_w + 3.0, gy + gate_h - recede_y + 2.5),
+			Vector2(gx + 2.0, gy + gate_h + 2.0)
+		])
+		draw_colored_polygon(shadow_poly, Color(0.08, 0.12, 0.06, 0.32 * open_ratio))
+
+		# Gambar daun pintu dengan Transform2D affine perspektif (tegak, tidak miring 'l')
+		var origin := Vector2(gx, gy)
+		var x_axis := Vector2(apparent_w / gate_w, -recede_y / gate_w)
+		var y_axis := Vector2(0.0, 1.0)
+		var xform := Transform2D(x_axis, y_axis, origin)
+
+		draw_set_transform_matrix(xform)
+		draw_texture_rect(tex_pintu_pagar, Rect2(0, 0, gate_w, gate_h), false)
+		draw_set_transform_matrix(Transform2D.IDENTITY)
+
+		# Ketebalan kayu pada tepi daun pintu (efek 3D menghadap pemain saat terbuka)
+		var edge_top := Vector2(gx + apparent_w, gy - recede_y)
+		var edge_bot := Vector2(gx + apparent_w, gy + gate_h - recede_y)
+		draw_line(edge_top, edge_bot, Color(0.22, 0.14, 0.08, 0.85 * open_ratio), 2.0)
 	else:
 		# Pintu tertutup rapat melintang di jalan setapak
 		draw_texture_rect(tex_pintu_pagar, Rect2(gx, gy, gate_w, gate_h), false)
