@@ -720,7 +720,7 @@ func _setup_letter_viewer() -> void:
 
 	# Wadah lembaran kertas surat asli (surat close up.png)
 	var paper_container = Control.new()
-	paper_container.custom_minimum_size = Vector2(620, 640)
+	paper_container.custom_minimum_size = Vector2(640, 650)
 	paper_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	paper_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	vb.add_child(paper_container)
@@ -738,10 +738,10 @@ func _setup_letter_viewer() -> void:
 	# Margin teks agar pas di dalam area lembaran kertas surat
 	var paper_margin = MarginContainer.new()
 	paper_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	paper_margin.add_theme_constant_override("margin_left", 64)
-	paper_margin.add_theme_constant_override("margin_right", 64)
-	paper_margin.add_theme_constant_override("margin_top", 40)
-	paper_margin.add_theme_constant_override("margin_bottom", 30)
+	paper_margin.add_theme_constant_override("margin_left", 60)
+	paper_margin.add_theme_constant_override("margin_right", 60)
+	paper_margin.add_theme_constant_override("margin_top", 34)
+	paper_margin.add_theme_constant_override("margin_bottom", 28)
 	paper_container.add_child(paper_margin)
 
 	var card_vb = VBoxContainer.new()
@@ -754,10 +754,11 @@ func _setup_letter_viewer() -> void:
 	letter_header_lbl.add_theme_color_override("font_color", Color(0.18, 0.12, 0.08))
 	if font_anaktoria:
 		letter_header_lbl.add_theme_font_override("font", font_anaktoria)
-		letter_header_lbl.add_theme_font_size_override("font_size", 22)
+		letter_header_lbl.add_theme_font_size_override("font_size", 21)
 	elif font_vintage_bold:
 		letter_header_lbl.add_theme_font_override("font", font_vintage_bold)
-		letter_header_lbl.add_theme_font_size_override("font_size", 20)
+		letter_header_lbl.add_theme_font_size_override("font_size", 19)
+	letter_header_lbl.add_theme_constant_override("line_spacing", 2)
 	card_vb.add_child(letter_header_lbl)
 
 	# Subtitle Dokumen
@@ -781,7 +782,7 @@ func _setup_letter_viewer() -> void:
 
 	# Scroll Container Teks Surat
 	var scroll = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(492, 480)
+	scroll.custom_minimum_size = Vector2(512, 480)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	card_vb.add_child(scroll)
@@ -790,10 +791,10 @@ func _setup_letter_viewer() -> void:
 	var text_margin = MarginContainer.new()
 	text_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	text_margin.add_theme_constant_override("margin_left", 18)
-	text_margin.add_theme_constant_override("margin_right", 18)
-	text_margin.add_theme_constant_override("margin_top", 4)
-	text_margin.add_theme_constant_override("margin_bottom", 8)
+	text_margin.add_theme_constant_override("margin_left", 28)
+	text_margin.add_theme_constant_override("margin_right", 28)
+	text_margin.add_theme_constant_override("margin_top", 6)
+	text_margin.add_theme_constant_override("margin_bottom", 12)
 	scroll.add_child(text_margin)
 
 	letter_body_lbl = Label.new()
@@ -804,15 +805,15 @@ func _setup_letter_viewer() -> void:
 		letter_body_lbl.add_theme_font_override("font", font_anaktoria)
 	elif font_vintage:
 		letter_body_lbl.add_theme_font_override("font", font_vintage)
-	letter_body_lbl.add_theme_font_size_override("font_size", 18.0)
-	letter_body_lbl.add_theme_constant_override("line_spacing", 4)
+	letter_body_lbl.add_theme_font_size_override("font_size", 17.5)
+	letter_body_lbl.add_theme_constant_override("line_spacing", 6)
 	text_margin.add_child(letter_body_lbl)
 
-	# Tombol Tutup / Aksi (Gaya vintage noir)
+	# Tombol Tutup / Aksi (Gaya vintage noir dengan tulisan standar bersih biasa)
 	letter_close_btn = Button.new()
 	letter_close_btn.focus_mode = Control.FOCUS_NONE
 	letter_close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	letter_close_btn.custom_minimum_size = Vector2(492, 44)
+	letter_close_btn.custom_minimum_size = Vector2(512, 44)
 	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var lcb_style = StyleBoxFlat.new()
 	lcb_style.bg_color = Color(0.16, 0.13, 0.11, 0.95)
@@ -826,11 +827,8 @@ func _setup_letter_viewer() -> void:
 	letter_close_btn.add_theme_stylebox_override("hover", lcb_hov)
 	letter_close_btn.add_theme_stylebox_override("pressed", lcb_hov)
 	letter_close_btn.add_theme_color_override("font_color", Color(0.95, 0.88, 0.75))
-	letter_close_btn.add_theme_font_size_override("font_size", 15.5)
-	if font_anaktoria:
-		letter_close_btn.add_theme_font_override("font", font_anaktoria)
-	elif font_vintage_bold:
-		letter_close_btn.add_theme_font_override("font", font_vintage_bold)
+	# Tulisan di tombol biasa aja (font standar, bukan kaligrafi Anaktoria)
+	letter_close_btn.add_theme_font_size_override("font_size", 14.0)
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
@@ -842,22 +840,22 @@ func _open_police_letter() -> void:
 	play_paper_sfx()
 
 	if is_instance_valid(letter_header_lbl):
-		letter_header_lbl.text = "BERKAS PENUGASAN KEPOLISIAN (KASUS #404)"
+		letter_header_lbl.text = "BERKAS PENUGASAN KEPOLISIAN\n(KASUS #404)"
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Departemen Kepolisian Kota • Ditujukan kepada: Detektif Benedict"
 
-	var police_text = "Sesosok jenazah telah ditemukan di gang sempit dekat area kota. Hingga saat ini belum ada yang berhasil mengungkap siapa dia sebenarnya, apa yang terjadi padanya, atau mengapa semuanya terasa begitu janggal sejak kematian itu terjadi. Aku dengar kau terkenal sebagai orang yang tidak pernah puas dengan jawaban di permukaan, orang yang selalu menggali lebih dalam ketika orang lain sudah berhenti mencari. Kami percaya, dari semua orang, Andalah yang paling memahami kasus ini.\n" + \
-		"Carilah bantuan, mungkin kau bisa mulai dari menemui orang yang paling sering berurusan dengan kasus semacam ini, seseorang yang duduk di balik meja penuh berkas di gedung tempat hukum ditegakkan. Dialah yang paling mungkin tahu ke mana korban terakhir kali melangkah. Ikuti jejaknya, dengarkan apa yang tidak ia katakan secara langsung, dan biarkan satu petunjuk membawamu ke petunjuk berikutnya. Semakin dalam kau menggali, semakin banyak yang akan terungkap.\n" + \
-		"Selesaikan semua ini sebelum semuanya benar-benar terlambat. Jangan lupa untuk mengingat apa yang telah kau pelajari. Mampukah kau menyelesaikan kasus ini, Detektif?"
+	var police_text = "Sesosok jenazah telah ditemukan di gang sempit dekat area kota. Hingga saat ini belum ada yang berhasil mengungkap siapa dia sebenarnya, apa yang terjadi padanya, atau mengapa semuanya terasa begitu janggal sejak kematian itu terjadi. Aku dengar kau terkenal sebagai orang yang tidak pernah puas dengan jawaban di permukaan, orang yang selalu menggali lebih dalam ketika orang lain sudah berhenti mencari. Kami percaya, dari semua orang, Andalah yang paling memahami kasus ini.\n\n" + \
+		"Carilah bantuan, mungkin kau bisa mulai dari menemui orang yang paling sering berurusan dengan kasus semacam ini, seseorang yang duduk di balik meja penuh berkas di gedung tempat hukum ditegakkan. Dialah yang paling mungkin tahu ke mana korban terakhir kali melangkah. Ikuti jejaknya, dengarkan apa yang tidak ia katakan secara langsung, dan biarkan satu petunjuk membawamu ke petunjuk berikutnya. Semakin dalam kau menggali, semakin banyak yang akan terungkap.\n\n" + \
+		"Selesaikan semua ini sebelum semuanya benar-benar terlambat. Jangan lupa untuk mengingat apa yang telah kau pelajari."
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = police_text
 		if font_anaktoria:
 			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
-			letter_body_lbl.add_theme_font_size_override("font_size", 18.0)
+			letter_body_lbl.add_theme_font_size_override("font_size", 17.5)
 		elif font_typewriter:
 			letter_body_lbl.add_theme_font_override("font", font_typewriter)
-			letter_body_lbl.add_theme_font_size_override("font_size", 17.0)
+			letter_body_lbl.add_theme_font_size_override("font_size", 16.5)
 
 	if is_instance_valid(letter_close_btn):
 		letter_close_btn.text = "TERIMA TUGAS & MULAI PENYELIDIKAN [ESC / SPASI]"
@@ -878,8 +876,8 @@ func _open_victim_letter() -> void:
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Ditemukan di Meja Kerja Rumah Korban • Tulisan Tangan Gemetar"
 
-	var victim_text = "Aku tidak tahu harus bilang ke siapa lagi soal ini. Sudah beberapa hari aku merasa terus diawasi. Bukan cuma perasaan biasa, namun beberapa kali aku yakin melihat orang yang sama berdiri di seberang jalan, terlalu lama untuk sekadar kebetulan. Tadi malam pun seseorang mengetuk pintu larut sekali, dan saat kubuka, tidak ada siapa-siapa. Hanya jejak sepatu basah di depan teras, padahal tidak hujan.\n" + \
-		"Aku sudah coba cerita ke Marcus soal ini. Dia cuma bilang aku terlalu capek dan butuh istirahat. Tapi tiap kali aku coba tanya lebih jauh, kenapa dia terlihat tergesa-gesa mengganti topik dan tidak mau menatapku lama-lama? Aku jadi curiga dia tahu sesuatu yang tidak dia katakan padaku.\n" + \
+	var victim_text = "Aku tidak tahu harus bilang ke siapa lagi soal ini. Sudah beberapa hari aku merasa terus diawasi. Bukan cuma perasaan biasa, namun beberapa kali aku yakin melihat orang yang sama berdiri di seberang jalan, terlalu lama untuk sekadar kebetulan. Tadi malam pun seseorang mengetuk pintu larut sekali, dan saat kubuka, tidak ada siapa-siapa. Hanya jejak sepatu basah di depan teras, padahal tidak hujan.\n\n" + \
+		"Aku sudah coba cerita ke Marcus soal ini. Dia cuma bilang aku terlalu capek dan butuh istirahat. Tapi tiap kali aku coba tanya lebih jauh, kenapa dia terlihat tergesa-gesa mengganti topik dan tidak mau menatapku lama-lama? Aku jadi curiga dia tahu sesuatu yang tidak dia katakan padaku.\n\n" + \
 		"Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu."
 
 	if is_instance_valid(letter_body_lbl):
