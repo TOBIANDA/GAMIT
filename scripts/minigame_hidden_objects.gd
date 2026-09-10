@@ -27,31 +27,28 @@ var tex_station_bg: Texture2D
 var item_buttons: Dictionary = {}
 var item_found_badges: Dictionary = {}
 
-# Koordinat persentase (anchor) presisi sesuai ilustrasi utuh stasiun (5760x3240)
+# Koordinat persentase (anchor) presisi sub-pixel 1:1 sesuai ilustrasi utuh stasiun (5760x3240)
 const ITEM_ANCHORS := {
 	"envelope": {
-		"left": 0.7578,
-		"top": 0.7569,
-		"right": 0.8359,
-		"bottom": 0.8264,
-		"name": "Amplop Foto Korban",
-		"badge_offset": Vector2(0, -28)
+		"left": 0.7680,
+		"top": 0.7400,
+		"right": 0.8350,
+		"bottom": 0.8200,
+		"name": "Amplop Foto Korban"
 	},
 	"bag": {
-		"left": 0.7656,
-		"top": 0.7917,
-		"right": 0.9219,
-		"bottom": 0.9167,
-		"name": "Tas Pribadi Korban",
-		"badge_offset": Vector2(0, -28)
+		"left": 0.7680,
+		"top": 0.8130,
+		"right": 0.9330,
+		"bottom": 0.9070,
+		"name": "Tas Pribadi Korban"
 	},
 	"luggage": {
-		"left": 0.3789,
-		"top": 0.6875,
-		"right": 0.4883,
-		"bottom": 0.7986,
-		"name": "Koper Biru & Tiket Kereta",
-		"badge_offset": Vector2(0, -28)
+		"left": 0.4160,
+		"top": 0.6160,
+		"right": 0.5020,
+		"bottom": 0.7080,
+		"name": "Koper Biru & Tiket Kereta"
 	}
 }
 
@@ -117,13 +114,6 @@ func _process(delta: float) -> void:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 		else:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-
-	# Efek glowing lembut pada hotspot target yang belum ditemukan
-	var pulse = 0.82 + 0.18 * sin(Time.get_ticks_msec() * 0.006)
-	for k in items_to_find.keys():
-		if not items_to_find[k]["found"]:
-			if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
-				item_buttons[k].modulate = Color(pulse, pulse, 1.0, 1.0)
 
 	if time_left <= 0.0:
 		_fail_timeout()
@@ -329,18 +319,18 @@ func _build_scene_ui() -> void:
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		btn.tooltip_text = "Klik untuk mengamankan " + data["name"]
 
-		var style_normal = StyleBoxFlat.new()
-		style_normal.bg_color = Color(1.0, 0.9, 0.2, 0.04)
-		style_normal.border_color = Color(1.0, 0.85, 0.2, 0.40)
-		style_normal.set_border_width_all(2)
-		style_normal.set_corner_radius_all(6)
+		# Status normal: 100% transparan / StyleBoxEmpty (tidak ada kotak bayangan/garis terlihat)
+		var style_normal = StyleBoxEmpty.new()
 		btn.add_theme_stylebox_override("normal", style_normal)
+		btn.add_theme_stylebox_override("focus", style_normal)
+		btn.add_theme_stylebox_override("disabled", style_normal)
 
+		# Status hover: highlight garis emas halus saat kursor mengarah tepat ke atas objek
 		var style_hover = StyleBoxFlat.new()
-		style_hover.bg_color = Color(1.0, 1.0, 0.3, 0.25)
-		style_hover.border_color = Color(1.0, 1.0, 0.6, 0.95)
+		style_hover.bg_color = Color(1.0, 0.95, 0.4, 0.12)
+		style_hover.border_color = Color(1.0, 0.9, 0.4, 0.85)
 		style_hover.set_border_width_all(2)
-		style_hover.set_corner_radius_all(6)
+		style_hover.set_corner_radius_all(4)
 		btn.add_theme_stylebox_override("hover", style_hover)
 		btn.add_theme_stylebox_override("pressed", style_hover)
 
