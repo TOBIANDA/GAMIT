@@ -30,6 +30,8 @@ func _ready() -> void:
 	_load_assets()
 	_setup_audio()
 	_build_menu_ui()
+	if is_active and is_instance_valid(menu_bgm_player) and menu_bgm_player.stream and not menu_bgm_player.playing:
+		menu_bgm_player.play()
 
 func _load_assets() -> void:
 	tex_menu_bg = load("res://UI/Main Menu/main-menu-meja.png")
@@ -49,8 +51,10 @@ func _setup_audio() -> void:
 	if not m_stream:
 		m_stream = load("res://sound/BGM.mp3")
 	if m_stream:
+		if m_stream is AudioStreamMP3:
+			m_stream.loop = true
 		menu_bgm_player.stream = m_stream
-		menu_bgm_player.volume_db = -8.0
+		menu_bgm_player.volume_db = -6.0
 		menu_bgm_player.finished.connect(func(): if is_instance_valid(menu_bgm_player) and is_active: menu_bgm_player.play())
 	add_child(menu_bgm_player)
 
@@ -68,7 +72,7 @@ func open_menu() -> void:
 	if is_instance_valid(credit_modal):
 		credit_modal.visible = false
 	_update_button_positions()
-	if is_instance_valid(menu_bgm_player) and menu_bgm_player.stream and not menu_bgm_player.playing:
+	if is_instance_valid(menu_bgm_player) and menu_bgm_player.is_inside_tree() and menu_bgm_player.stream and not menu_bgm_player.playing:
 		menu_bgm_player.play()
 
 func close_menu() -> void:
@@ -179,6 +183,11 @@ func _update_button_positions() -> void:
 			btn.position = offset + orig_pos * scale_factor
 			btn.size = orig_size * scale_factor
 			btn.custom_minimum_size = btn.size
+
+	if is_instance_valid(options_modal):
+		options_modal.position = (vp_size - options_modal.size) * 0.5
+	if is_instance_valid(credit_modal):
+		credit_modal.position = (vp_size - credit_modal.size) * 0.5
 
 func _create_paper_hotspot(btn_text: String, pos: Vector2, btn_size: Vector2) -> Button:
 	var btn = Button.new()
@@ -367,6 +376,9 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 func _on_bgm_volume_changed(val: float) -> void:
+	if is_instance_valid(menu_bgm_player):
+		var db = linear_to_db(val) if val > 0.0 else -80.0
+		menu_bgm_player.volume_db = db - 4.0
 	var master_bus = AudioServer.get_bus_index("Master")
 	# Atur audio bus Master jika belum ada bus BGM terpisah
 	if master_bus != -1:

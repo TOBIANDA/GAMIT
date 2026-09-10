@@ -607,6 +607,8 @@ func _on_return_to_main_menu() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
 		player.set_physics_process(false)
+	if is_instance_valid(bgm_player) and bgm_player.playing:
+		bgm_player.stop()
 	if is_instance_valid(main_menu_layer):
 		main_menu_layer.open_menu()
 
