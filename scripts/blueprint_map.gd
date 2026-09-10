@@ -928,6 +928,7 @@ var collision_bodies: Array[StaticBody2D] = []
 var nav_region: NavigationRegion2D
 var roof_overlay_node: Node2D
 var gate_slide_offsets: Dictionary = {}
+var gate_open_ratios: Dictionary = {}
 var gate_colliders: Dictionary = {}
 var player_cached: CharacterBody2D = null
 var gate_audio_player: AudioStreamPlayer2D
@@ -960,6 +961,29 @@ func _play_gate_open_sound(pos: Vector2) -> void:
 		if not gate_audio_player.playing:
 			gate_audio_player.play()
 
+func _update_gate_interaction(gate_center: Vector2, key: String, p_pos: Vector2, delta: float) -> bool:
+	var dist := p_pos.distance_to(gate_center)
+	# Membuka terdorong berayun saat pemain mendekati / menabrak pagar (jarak < 52px)
+	var target_open: float = 1.0 if dist < 52.0 else 0.0
+	var cur_open: float = gate_open_ratios.get(key, 0.0)
+
+	if cur_open <= 0.02 and target_open > 0.0:
+		_play_gate_open_sound(gate_center)
+
+	var next_open: float = move_toward(cur_open, target_open, delta * 3.8)
+	var changed: bool = (abs(cur_open - next_open) > 0.005)
+
+	gate_open_ratios[key] = next_open
+	gate_slide_offsets[key] = -28.0 * next_open
+
+	if gate_colliders.has(key) and is_instance_valid(gate_colliders[key]):
+		if next_open > 0.15:
+			gate_colliders[key].set_deferred("disabled", true)
+		elif next_open <= 0.05:
+			gate_colliders[key].set_deferred("disabled", false)
+
+	return changed
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
@@ -979,68 +1003,32 @@ func _process(delta: float) -> void:
 			if is_instance_valid(l):
 				l.energy = 0.65 + sin(light_flicker_timer + float(idx) * 1.3) * 0.03
 
-	# Update posisi geser buka pintu pagar 11 Rumah Atas (Membuka Geser Mulus ke Kiri)
+	# Update ayunan buka pintu pagar saat didorong pemain (Membuka Berputar Masuk ke Halaman)
 	for i in range(11):
 		var sq_x: float = (13.0 + float(i) * 62.0) * 3.0
 		var sq_y: float = 36.0
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "top_%d" % i
-		var dist := p_pos.distance_to(gate_center)
-		var target_slide: float = -28.0 if dist < 50.0 else 0.0
-		var cur: float = gate_slide_offsets.get(key, 0.0)
-		if gate_colliders.has(key) and is_instance_valid(gate_colliders[key]):
-			if target_slide < 0.0:
-				gate_colliders[key].set_deferred("disabled", true)
-			elif cur == 0.0:
-				gate_colliders[key].set_deferred("disabled", false)
-		if cur == 0.0 and target_slide < 0.0:
-			_play_gate_open_sound(gate_center)
-		var next_val := move_toward(cur, target_slide, delta * 95.0)
-		if abs(cur - next_val) > 0.01:
-			gate_slide_offsets[key] = next_val
+		if _update_gate_interaction(gate_center, key, p_pos, delta):
 			needs_redraw = true
 
-	# Update posisi geser buka pintu pagar 3 Rumah Tenggara
+	# Update ayunan buka pintu pagar 3 Rumah Tenggara
 	var hy_list: Array[float] = [705.0, 880.0, 1055.0]
 	for idx in range(3):
 		var sq_x: float = 1636.0
 		var sq_y: float = hy_list[idx]
 		var gate_center := Vector2(sq_x + 78.0, sq_y + 138.0)
 		var key := "se_%d" % idx
-		var dist := p_pos.distance_to(gate_center)
-		var target_slide: float = -28.0 if dist < 50.0 else 0.0
-		var cur: float = gate_slide_offsets.get(key, 0.0)
-		if gate_colliders.has(key) and is_instance_valid(gate_colliders[key]):
-			if target_slide < 0.0:
-				gate_colliders[key].set_deferred("disabled", true)
-			elif cur == 0.0:
-				gate_colliders[key].set_deferred("disabled", false)
-		if cur == 0.0 and target_slide < 0.0:
-			_play_gate_open_sound(gate_center)
-		var next_val := move_toward(cur, target_slide, delta * 95.0)
-		if abs(cur - next_val) > 0.01:
-			gate_slide_offsets[key] = next_val
+		if _update_gate_interaction(gate_center, key, p_pos, delta):
 			needs_redraw = true
 
-	# Update posisi geser buka pintu pagar 2 Rumah NE
+	# Update ayunan buka pintu pagar 2 Rumah NE
 	var ne_positions_proc = get_ne_house_positions()
 	for idx in range(ne_positions_proc.size()):
 		var n_pos: Vector2 = ne_positions_proc[idx]
 		var gate_center := Vector2(n_pos.x + 78.0, n_pos.y + 138.0)
 		var key := "ne_%d" % idx
-		var dist := p_pos.distance_to(gate_center)
-		var target_slide: float = -28.0 if dist < 50.0 else 0.0
-		var cur: float = gate_slide_offsets.get(key, 0.0)
-		if gate_colliders.has(key) and is_instance_valid(gate_colliders[key]):
-			if target_slide < 0.0:
-				gate_colliders[key].set_deferred("disabled", true)
-			elif cur == 0.0:
-				gate_colliders[key].set_deferred("disabled", false)
-		if cur == 0.0 and target_slide < 0.0:
-			_play_gate_open_sound(gate_center)
-		var next_val := move_toward(cur, target_slide, delta * 95.0)
-		if abs(cur - next_val) > 0.01:
-			gate_slide_offsets[key] = next_val
+		if _update_gate_interaction(gate_center, key, p_pos, delta):
 			needs_redraw = true
 
 	if needs_redraw:
@@ -2156,13 +2144,35 @@ func _draw_fences_for_house(sq_x: float, sq_y: float, gate_key: String = "") -> 
 		# Pagar Samping Kanan
 		_draw_side_fence(Rect2(sq_x + 156 - side_w + 3 + pagar_samping_kanan_geser_x, py, side_w, panel_h), false)
 	
-	# Pintu Pagar Tengah (Membuka geser mulus ke kiri saat didekati pemain)
-	var slide_off: float = gate_slide_offsets.get(gate_key, 0.0)
+	# Pintu Pagar Tengah (Membuka terdorong ke dalam halaman secara rotasi / swing)
+	var open_ratio: float = gate_open_ratios.get(gate_key, 0.0)
+	if open_ratio <= 0.0 and gate_slide_offsets.has(gate_key):
+		open_ratio = clampf(abs(gate_slide_offsets[gate_key]) / 28.0, 0.0, 1.0)
+
 	var gate_w = (pintu_pagar_lebar if (pintu_pagar_lebar != null and pintu_pagar_lebar > 0.0) else 32.0) * sk_pintu
 	var gate_h = 30.0 * sk_pintu
-	var gx = sq_x + 62.0 + (pintu_pagar_geser_x if pintu_pagar_geser_x != null else 0.0) + slide_off
+	var gx = sq_x + 62.0 + (pintu_pagar_geser_x if pintu_pagar_geser_x != null else 0.0)
 	var gy = sq_y + 126.0 + (pintu_pagar_geser_y if pintu_pagar_geser_y != null else 0.0)
-	draw_texture_rect(tex_pintu_pagar, Rect2(gx, gy, gate_w, gate_h), false)
+
+	# Titik engsel di pangkal tiang pagar kiri (bottom-left post)
+	var hinge := Vector2(gx, gy + gate_h * 0.75)
+
+	if open_ratio > 0.01:
+		# Sudut rotasi terdorong ke dalam halaman (swing inward ~78 derajat)
+		var swing_angle := -open_ratio * (PI * 0.43)
+		
+		# 1. Bayangan halus pintu di tanah saat terdorong membuka
+		var shadow_col := Color(0.12, 0.16, 0.08, 0.28 * open_ratio)
+		draw_set_transform(hinge + Vector2(2, 2), swing_angle, Vector2(1.0, 0.35))
+		draw_rect(Rect2(0, -gate_h * 0.75, gate_w, gate_h), shadow_col, true)
+
+		# 2. Gambar daun pintu pagar terayun membuka ke dalam halaman
+		draw_set_transform(hinge, swing_angle, Vector2.ONE)
+		draw_texture_rect(tex_pintu_pagar, Rect2(0, -gate_h * 0.75, gate_w, gate_h), false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		# Pintu tertutup rapat melintang di jalan setapak
+		draw_texture_rect(tex_pintu_pagar, Rect2(gx, gy, gate_w, gate_h), false)
 
 	# Pagar Depan Kiri (Digambar di atas pintu pagar agar pintu bergeser rapi di balik pagar kiri)
 	draw_texture_rect(tex_pagar, Rect2(sq_x + (pagar_kiri_geser_x if pagar_kiri_geser_x != null else 0.0), sq_y + 130.0 + (pagar_kiri_geser_y if pagar_kiri_geser_y != null else 0.0), (pagar_kiri_lebar if pagar_kiri_lebar != null else 62.0) * sk_kiri, 26.0 * sk_kiri), false)
