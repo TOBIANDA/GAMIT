@@ -20,61 +20,61 @@ var desaturation_level: float = 0.0
 var clues: Dictionary = {
 	"police_letter": {
 		"unlocked": false,
-		"title": "📜 Surat Tugas dari Kepolisian (Kasus 404)",
+		"title": "Surat Tugas Kepolisian (Kasus 404)",
 		"desc": "Surat resmi penugasan: jenazah tak dikenal ditemukan di gang sempit kota. Detektif diminta menggali kebenaran dan menemui pihak di gedung tempat hukum ditegakkan.",
 		"phase": 0
 	},
 	"victim_letter": {
 		"unlocked": false,
-		"title": "✉️ Surat Wasiat Korban di Rumah",
+		"title": "Surat Wasiat Korban di Rumah",
 		"desc": "Surat di meja rumah korban: merasa terus diawasi, ada ketukan pintu larut malam & jejak sepatu basah. 'Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu'.",
 		"phase": 0
 	},
 	"street_clock_freeze": {
 		"unlocked": false,
-		"title": "⏱️ Jam Kota Membeku (16:04)",
+		"title": "Jam Kota Membeku (16:04)",
 		"desc": "Jam kota terhenti kaku tepat di pukul 16:04. Orang-orang di sekitar merinding dan ketakutan saat disapa.",
 		"phase": 0
 	},
 	"mother_photo_riddle": {
 		"unlocked": false,
-		"title": "🖼️ Foto Ibu dan Anak (Misi Opsional)",
+		"title": "Foto Ibu dan Anak (Misi Opsional)",
 		"desc": "Foto ibu bersama anaknya di meja rumah korban. Di balik foto tertulis: 'Kembalilah ke rumah ibu jika sempat... Kuncinya: waktu yang membeku (1-6-4)'.",
 		"phase": 0
 	},
 	"police_eavesdrop": {
 		"unlocked": false,
-		"title": "🎙️ Obrolan Rahasia Marcus",
+		"title": "Obrolan Rahasia Marcus",
 		"desc": "Menguping Marcus: Korban terakhir terlihat berjalan terburu-buru ke Stasiun Kereta Api hendak liburan keluar kota.",
 		"phase": 1
 	},
 	"train_ticket": {
 		"unlocked": false,
-		"title": "🎫 Tiket Kereta Api Terakhir",
+		"title": "Tiket Kereta Api Terakhir",
 		"desc": "Tiket sekali jalan atas nama seorang detektif yang tergeletak di bangku peron stasiun.",
 		"phase": 2
 	},
 	"photo_envelope": {
 		"unlocked": false,
-		"title": "📁 Amplop Rol Foto Korban",
+		"title": "Amplop Rol Foto Korban",
 		"desc": "Amplop berisi rol film foto korban sebelum meninggal yang tercecer di peron stasiun. Perlu dicuci di kamar gelap.",
 		"phase": 2
 	},
 	"developed_photos": {
 		"unlocked": false,
-		"title": "📷 Foto Forensik (Wajah Benedict Sendiri)",
+		"title": "Foto Forensik (Wajah Benedict Sendiri)",
 		"desc": "Setelah dicuci di kamar gelap, foto ke-4 memperlihatkan fakta mengguncang: wajah korban adalah wajah Benedict sendiri!",
 		"phase": 3
 	},
 	"autopsy_corpse": {
 		"unlocked": false,
-		"title": "🩺 Jasad di Kamar Mayat RS",
+		"title": "Jasad di Kamar Mayat RS",
 		"desc": "Menyelinap ke kamar mayat RS dan menyingkap kain mayat. Tak terbantahkan lagi, mayat di atas ranjang adalah diriku sendiri yang telah mati.",
 		"phase": 4
 	},
 	"mother_emotional_locket": {
 		"unlocked": false,
-		"title": "💎 Liontin Kenangan Ibu (True Ending Item)",
+		"title": "Liontin Kenangan Ibu (True Ending Item)",
 		"desc": "Hadiah kasih sayang abadi dari Ibu Medeline di dalam brankas rumah ibu.",
 		"phase": 0
 	}
@@ -95,7 +95,7 @@ func set_phase(new_phase: Phase) -> void:
 	
 	var title = get_current_objective_title()
 	phase_changed.emit(current_phase, title)
-	notification_displayed.emit("📌 TUJUAN BARU: " + title)
+	notification_displayed.emit("TUJUAN BARU: " + title)
 
 func get_current_objective_title() -> String:
 	match current_phase:
@@ -134,7 +134,7 @@ func unlock_clue(clue_id: String) -> void:
 		if not clues[clue_id]["unlocked"]:
 			clues[clue_id]["unlocked"] = true
 			clue_collected.emit(clue_id, clues[clue_id]["title"])
-			notification_displayed.emit("🔍 BUKTI BARU: " + clues[clue_id]["title"])
+			notification_displayed.emit("BUKTI BARU: " + clues[clue_id]["title"])
 			_update_desaturation()
 
 func is_clue_unlocked(clue_id: String) -> bool:

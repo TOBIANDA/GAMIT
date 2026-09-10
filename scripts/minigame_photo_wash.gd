@@ -100,8 +100,8 @@ func _setup_soak_step() -> void:
 	current_step = 0
 	soak_progress = 0.0
 	is_mouse_holding = false
-	status_label.text = "🧪 LANGKAH 1: MERENDAM FOTO KE CAIRAN PENGEMBANG"
-	action_hint.text = "👉 TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan foto ke cairan kimia..."
+	status_label.text = "LANGKAH 1: MERENDAM FOTO KE CAIRAN PENGEMBANG"
+	action_hint.text = "TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan foto ke cairan kimia..."
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	
 	if is_instance_valid(photo_preview_rect) and is_instance_valid(tex_polaroid_dark):
@@ -122,8 +122,8 @@ func _setup_soak_step() -> void:
 func _setup_qte_step() -> void:
 	current_step = 1
 	qte_success_count = 0
-	status_label.text = "💧 LANGKAH 2: MEMBILAS FOTO DENGAN CEPAT (QTE)"
-	action_hint.text = "👉 TEKAN TOMBOL KEYBOARD YANG MUNCUL DENGAN CEPAT!"
+	status_label.text = "LANGKAH 2: MEMBILAS FOTO DENGAN CEPAT (QTE)"
+	action_hint.text = "TEKAN TOMBOL KEYBOARD YANG MUNCUL DENGAN CEPAT!"
 	action_hint.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
 	
 	if is_instance_valid(photo_preview_rect) and is_instance_valid(tex_pose1):
@@ -151,7 +151,7 @@ func _pick_next_qte_key() -> void:
 	if is_instance_valid(qte_label):
 		qte_label.text = "[ " + qte_key_name + " ]"
 	if is_instance_valid(action_hint):
-		action_hint.text = "👉 TEKAN TOMBOL [ %s ] SEGERA UNTUK MEMBILAS!" % qte_key_name
+		action_hint.text = "TEKAN TOMBOL [ %s ] SEGERA UNTUK MEMBILAS!" % qte_key_name
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -187,7 +187,7 @@ func _process(delta: float) -> void:
 				photo_preview_rect.modulate = Color(0.4 + r_factor * 0.5, 0.45 + r_factor * 0.5, 0.5 + r_factor * 0.5, 0.88 + r_factor * 0.12)
 
 			if is_instance_valid(action_hint):
-				action_hint.text = "🧪 Merendam klise dalam cairan pengembang... %d%%" % int(clampf(soak_progress, 0.0, 100.0))
+				action_hint.text = "Merendam klise dalam cairan pengembang... %d%%" % int(clampf(soak_progress, 0.0, 100.0))
 				action_hint.add_theme_color_override("font_color", Color(0.3, 0.95, 0.95))
 
 			if soak_progress >= 100.0:
@@ -203,7 +203,7 @@ func _process(delta: float) -> void:
 				photo_preview_rect.rotation_degrees = move_toward(photo_preview_rect.rotation_degrees, -2.0, delta * 15.0)
 
 			if is_instance_valid(action_hint):
-				action_hint.text = "👉 TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan foto ke cairan kimia..."
+				action_hint.text = "TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan foto ke cairan kimia..."
 				action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 
 	elif current_step == 1:
@@ -212,7 +212,7 @@ func _process(delta: float) -> void:
 			qte_timer_bar.value = (qte_timer / QTE_TIME_LIMIT) * 100.0
 
 		if qte_timer <= 0.0:
-			action_hint.text = "⚠️ Terlalu lambat membilas! Mengulang bilasan..."
+			action_hint.text = "Terlalu lambat membilas! Mengulang bilasan..."
 			action_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 			qte_success_count = max(0, qte_success_count - 1)
 			_pick_next_qte_key()
@@ -276,7 +276,7 @@ func _on_bg_gui_input(event: InputEvent) -> void:
 func _on_qte_success() -> void:
 	qte_success_count += 1
 	_play_splash()
-	action_hint.text = "✨ Bilasan sempurna! (%d/%d)" % [qte_success_count, QTE_TARGET_GOAL]
+	action_hint.text = "Bilasan sempurna! (%d/%d)" % [qte_success_count, QTE_TARGET_GOAL]
 	action_hint.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
 	if is_instance_valid(photo_preview_rect):
@@ -294,7 +294,7 @@ func _on_qte_success() -> void:
 		_pick_next_qte_key()
 
 func _on_qte_fail() -> void:
-	action_hint.text = "❌ Salah tombol! Tekan tombol yang sesuai!"
+	action_hint.text = "Salah tombol! Tekan tombol yang sesuai!"
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 var suspense_player: AudioStreamPlayer
@@ -320,7 +320,7 @@ func _show_photo_revelation() -> void:
 	if is_instance_valid(result_photo_rect) and is_instance_valid(tex_pose4):
 		result_photo_rect.texture = tex_pose4
 
-	result_label.text = "Di bawah cahaya lampu merah kamar gelap, detail foto terakhir muncul dengan sangat jelas...\n\nJasad korban yang tergeletak mengenakan kemeja putih dan dasi detektif... dan wajah korban di foto adalah:\n👉 WAJAH BENEDICT SENDIRI!\n\nBenedict: 'Tidak mungkin... Kenapa wajah korban di foto ini... adalah wajahku sendiri?! Aku harus segera menyelinap ke Rumah Sakit untuk membuktikannya!'"
+	result_label.text = "Di bawah cahaya lampu merah kamar gelap, detail foto terakhir muncul dengan sangat jelas...\n\nJasad korban yang tergeletak mengenakan kemeja putih dan dasi detektif... dan wajah korban di foto adalah:\nWAJAH BENEDICT SENDIRI!\n\nBenedict: 'Tidak mungkin... Kenapa wajah korban di foto ini... adalah wajahku sendiri?! Aku harus segera menyelinap ke Rumah Sakit untuk membuktikannya!'"
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
 	if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
@@ -381,14 +381,14 @@ func _build_scene_ui() -> void:
 	main_vbox.add_child(header)
 
 	var title = Label.new()
-	title.text = "🔴 KAMAR GELAP FORENSIK — PENCUCIAN ROL FOTO TKP"
+	title.text = "KAMAR GELAP FORENSIK — PENCUCIAN ROL FOTO TKP"
 	title.add_theme_color_override("font_color", Color(1.0, 0.45, 0.45))
 	title.add_theme_font_size_override("font_size", 18)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
 	close_btn = Button.new()
-	close_btn.text = "✖ Tutup [ESC]"
+	close_btn.text = "Tutup [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
 	var close_style = StyleBoxFlat.new()
 	close_style.bg_color = Color(0.22, 0.08, 0.10, 0.9)
@@ -416,14 +416,14 @@ func _build_scene_ui() -> void:
 	center_wrapper.add_child(workbench_box)
 
 	status_label = Label.new()
-	status_label.text = "🧪 LANGKAH 1: MERENDAM FOTO KE CAIRAN PENGEMBANG"
+	status_label.text = "LANGKAH 1: MERENDAM FOTO KE CAIRAN PENGEMBANG"
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.add_theme_font_size_override("font_size", 17)
 	status_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.85))
 	workbench_box.add_child(status_label)
 
 	action_hint = Label.new()
-	action_hint.text = "👉 TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan foto ke cairan kimia..."
+	action_hint.text = "TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan foto ke cairan kimia..."
 	action_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	action_hint.add_theme_font_size_override("font_size", 14)
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
@@ -555,7 +555,7 @@ func _build_scene_ui() -> void:
 	res_hb.add_child(res_vb)
 
 	var res_title = Label.new()
-	res_title.text = "📷 HASIL CUCI FOTO FORENSIK TERUNGKAP"
+	res_title.text = "HASIL CUCI FOTO FORENSIK TERUNGKAP"
 	res_title.add_theme_font_size_override("font_size", 20)
 	res_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	res_vb.add_child(res_title)
@@ -567,7 +567,7 @@ func _build_scene_ui() -> void:
 	res_vb.add_child(result_label)
 
 	var continue_btn = Button.new()
-	continue_btn.text = "🚨 Lanjutkan Menyelidiki ke Rumah Sakit (Kamar Mayat)"
+	continue_btn.text = "Lanjutkan Menyelidiki ke Rumah Sakit (Kamar Mayat)"
 	continue_btn.custom_minimum_size = Vector2(0, 48)
 	continue_btn.focus_mode = Control.FOCUS_NONE
 	var cbtn_style = StyleBoxFlat.new()

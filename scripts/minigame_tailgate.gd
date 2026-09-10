@@ -105,7 +105,7 @@ func _process(delta: float) -> void:
 		dir_text = "ATAS-KANAN (Timur Laut)"
 
 	if is_instance_valid(direction_label):
-		direction_label.text = "🧭 Posisi Marcus: %s" % dir_text
+		direction_label.text = "Posisi Marcus: %s" % dir_text
 
 	if is_instance_valid(dist_progress):
 		dist_progress.value = clampf(dist, 0.0, MAX_TRAIL_DIST)
@@ -116,27 +116,27 @@ func _process(delta: float) -> void:
 	if dist < MIN_SAFE_DIST:
 		if grace_period <= 0.0:
 			suspicion_meter += delta * 35.0
-		status_hint.text = "⚠️ TERLALU DEKAT! Marcus mulai menoleh curiga!"
+		status_hint.text = "TERLALU DEKAT! Marcus mulai menoleh curiga!"
 		status_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	elif dist > MAX_SAFE_DIST and dist <= MAX_TRAIL_DIST:
-		status_hint.text = "⚡ Jarak mulai merenggang... Kejar Marcus!"
+		status_hint.text = "Jarak mulai merenggang... Kejar Marcus!"
 		status_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	elif dist > MAX_TRAIL_DIST:
 		if grace_period <= 0.0:
 			lost_trail_timer += delta
-			status_hint.text = "🚨 TERLALU JAUH! Kehilangan jejak dalam %.1fs!" % max(0.0, 5.0 - lost_trail_timer)
+			status_hint.text = "TERLALU JAUH! Kehilangan jejak dalam %.1fs!" % max(0.0, 5.0 - lost_trail_timer)
 			status_hint.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 			if lost_trail_timer >= 5.0:
 				_fail_minigame("Kehilangan jejak Inspektur Marcus!")
 				return
 		else:
-			status_hint.text = "🛡️ Mulai menguntit! Dekati posisi Marcus..."
+			status_hint.text = "Mulai menguntit! Dekati posisi Marcus..."
 			status_hint.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
 	else:
 		lost_trail_timer = move_toward(lost_trail_timer, 0.0, delta * 2.0)
 		suspicion_meter = move_toward(suspicion_meter, 0.0, delta * 15.0)
 		follow_progress += delta * 7.5
-		status_hint.text = "✔ JARAK AMAN — Menguping percakapan rute Marcus..."
+		status_hint.text = "JARAK AMAN — Menguping percakapan rute Marcus..."
 		status_hint.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
 	if grace_period > 0.0:
@@ -156,7 +156,7 @@ func _complete_minigame() -> void:
 	is_active = false
 	if is_instance_valid(chatter_player) and chatter_player.playing:
 		chatter_player.stop()
-	status_hint.text = "🎉 SUKSES! Obrolan Marcus: 'Korban terakhir terlihat di Stasiun Kereta Api menuju luar kota untuk liburan!'"
+	status_hint.text = "SUKSES! Obrolan Marcus: 'Korban terakhir terlihat di Stasiun Kereta Api menuju luar kota untuk liburan!'"
 	status_hint.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
@@ -175,12 +175,12 @@ func _complete_minigame() -> void:
 
 func _fail_minigame(reason: String) -> void:
 	is_active = false
-	status_hint.text = "❌ GAGAL: " + reason
+	status_hint.text = "GAGAL: " + reason
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
 	if not is_instance_valid(inv_mgr) and is_inside_tree() and get_tree() and get_tree().root:
 		inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
 	if is_instance_valid(inv_mgr):
-		inv_mgr.notification_displayed.emit("❌ GAGAL: " + reason + " — Mengulang dari checkpoint!")
+		inv_mgr.notification_displayed.emit("GAGAL: " + reason + " — Mengulang dari checkpoint!")
 	if is_inside_tree() and get_tree():
 		await get_tree().create_timer(1.6).timeout
 	
@@ -225,14 +225,14 @@ func _build_ui() -> void:
 	vb.add_child(top_header)
 
 	var title = Label.new()
-	title.text = "🕵️ MINI GAME: MENGUNTIT INSPEKTUR MARCUS"
+	title.text = "MINI GAME: MENGUNTIT INSPEKTUR MARCUS"
 	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	title.add_theme_font_size_override("font_size", 14)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_header.add_child(title)
 
 	close_btn = Button.new()
-	close_btn.text = "✖ [ESC]"
+	close_btn.text = "[ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.pressed.connect(cancel_minigame)
 	top_header.add_child(close_btn)
@@ -241,7 +241,7 @@ func _build_ui() -> void:
 	vb.add_child(info_hb)
 
 	direction_label = Label.new()
-	direction_label.text = "🧭 Posisi Marcus: Menghitung..."
+	direction_label.text = "Posisi Marcus: Menghitung..."
 	direction_label.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
 	direction_label.add_theme_font_size_override("font_size", 12)
 	direction_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL

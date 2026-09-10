@@ -86,11 +86,11 @@ func start_minigame() -> void:
 		reward_panel.visible = false
 
 	if is_instance_valid(status_label):
-		status_label.text = "🔒 Masukkan 3 digit kombinasi brankas (Gunakan Angka Keyboard atau Tombol ▲/▼):"
+		status_label.text = "Masukkan 3 digit kombinasi brankas (Gunakan Angka Keyboard atau Tombol ▲/▼):"
 		status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	
 	if is_instance_valid(unlock_btn):
-		unlock_btn.text = "🔓 BUKA BRANKAS [ENTER]"
+		unlock_btn.text = "BUKA BRANKAS [ENTER]"
 		unlock_btn.disabled = false
 
 	_update_digits_display()
@@ -142,9 +142,9 @@ func _try_unlock() -> void:
 		if is_instance_valid(safe_image_rect) and is_instance_valid(tex_safe_opened):
 			safe_image_rect.texture = tex_safe_opened
 
-		status_label.text = "🎉 KLIK! MEKANISME BRANKAS TERBUKA!"
+		status_label.text = "KLIK! MEKANISME BRANKAS TERBUKA!"
 		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
-		unlock_btn.text = "✨ BRANKAS BERHASIL DIBUKA"
+		unlock_btn.text = "BRANKAS BERHASIL DIBUKA"
 		unlock_btn.disabled = true
 
 		if is_instance_valid(reward_panel):
@@ -162,7 +162,7 @@ func _try_unlock() -> void:
 		_close_safe(true)
 	else:
 		_play_click()
-		status_label.text = "❌ KOMBINASI SALAH! Perhatikan teka-teki ibu di catatan (1-6-4)..."
+		status_label.text = "KOMBINASI SALAH! Perhatikan teka-teki ibu di catatan (1-6-4)..."
 		status_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 func _close_safe(success: bool = false) -> void:
@@ -240,14 +240,14 @@ func _build_scene_ui() -> void:
 	main_box.add_child(header)
 
 	var title = Label.new()
-	title.text = "🗝️ BRANKAS BAJA KELUARGA — RUMAH MEDELINE"
+	title.text = "BRANKAS BAJA KELUARGA — RUMAH MEDELINE"
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
 	title.add_theme_font_size_override("font_size", 18)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
 	close_btn = Button.new()
-	close_btn.text = "✖ Tutup [ESC]"
+	close_btn.text = "Tutup [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.pressed.connect(func(): _close_safe(false))
 	header.add_child(close_btn)
@@ -277,7 +277,7 @@ func _build_scene_ui() -> void:
 	riddle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	riddle_label.add_theme_color_override("font_color", Color(0.92, 0.92, 0.96))
 	riddle_label.add_theme_font_size_override("font_size", 14)
-	riddle_label.text = "📜 Catatan di Balik Foto Masa Kecil:\n\n'Untuk anakku tersayang Benedict...\n\nTiga angka ini menyimpan kenangan abadi keluarga kita:\n\n1. Angka Pertama:\nAwal waktu dunia ini membeku... (1)\n\n2. Angka Kedua:\nBulan kelahiranmu saat kita merayakannya... (6)\n\n3. Angka Ketiga:\nDetik terakhir pada jam tangan pemberian ibu... (4)\n\nKombinasi Rahasia: 1 - 6 - 4'"
+	riddle_label.text = "Catatan di Balik Foto Masa Kecil:\n\n'Untuk anakku tersayang Benedict...\n\nTiga angka ini menyimpan kenangan abadi keluarga kita:\n\n1. Angka Pertama:\nAwal waktu dunia ini membeku... (1)\n\n2. Angka Kedua:\nBulan kelahiranmu saat kita merayakannya... (6)\n\n3. Angka Ketiga:\nDetik terakhir pada jam tangan pemberian ibu... (4)\n\nKombinasi Rahasia: 1 - 6 - 4'"
 	riddle_panel.add_child(riddle_label)
 
 	# Kolom Tengah: Ilustrasi Asli Brankas Baja
@@ -301,7 +301,7 @@ func _build_scene_ui() -> void:
 	content_hb.add_child(right_vb)
 
 	status_label = Label.new()
-	status_label.text = "🔒 Masukkan 3 digit kombinasi brankas:"
+	status_label.text = "Masukkan 3 digit kombinasi brankas:"
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.add_theme_font_size_override("font_size", 14)
@@ -359,7 +359,7 @@ func _build_scene_ui() -> void:
 		vb_dial.add_child(btn_down)
 
 	unlock_btn = Button.new()
-	unlock_btn.text = "🔓 BUKA BRANKAS [ENTER]"
+	unlock_btn.text = "BUKA BRANKAS [ENTER]"
 	unlock_btn.custom_minimum_size = Vector2(260, 44)
 	unlock_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	unlock_btn.focus_mode = Control.FOCUS_NONE
@@ -388,7 +388,7 @@ func _build_scene_ui() -> void:
 	main_box.add_child(reward_panel)
 
 	reward_label = Label.new()
-	reward_label.text = "💎 ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Bukti cinta sejati yang mengikat arwahmu menuju Kedamaian Sejati (True Ending)!"
+	reward_label.text = "ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Bukti cinta sejati yang mengikat arwahmu menuju Kedamaian Sejati (True Ending)!"
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.9))
 	reward_label.add_theme_font_size_override("font_size", 14)

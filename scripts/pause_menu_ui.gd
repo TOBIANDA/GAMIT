@@ -73,9 +73,9 @@ func _refresh_objective_hint() -> void:
 	if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
 		inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
 	if is_instance_valid(inv_mgr) and inv_mgr.has_method("get_current_objective_title"):
-		objective_hint_label.text = "🎯 Target: " + inv_mgr.get_current_objective_title()
+		objective_hint_label.text = "Target: " + inv_mgr.get_current_objective_title()
 	else:
-		objective_hint_label.text = "🎯 Lanjutkan investigasi..."
+		objective_hint_label.text = "Lanjutkan investigasi..."
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_paused:
@@ -128,14 +128,14 @@ func _build_pause_ui() -> void:
 
 	# Title & Subtitle
 	var title = Label.new()
-	title.text = "⏸️ PERMAINAN DIJEDA (PAUSE)"
+	title.text = "PERMAINAN DIJEDA (PAUSE)"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
 	title.add_theme_font_size_override("font_size", 18)
 	vb.add_child(title)
 
 	objective_hint_label = Label.new()
-	objective_hint_label.text = "🎯 Target: Menyelidiki Kasus..."
+	objective_hint_label.text = "Target: Menyelidiki Kasus..."
 	objective_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	objective_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_hint_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
@@ -146,11 +146,11 @@ func _build_pause_ui() -> void:
 	vb.add_child(sep)
 
 	# Buttons
-	btn_resume = _create_menu_button("▶️ Lanjutkan Permainan [ESC]", Color(0.2, 0.6, 0.4))
+	btn_resume = _create_menu_button("Lanjutkan Permainan [ESC]", Color(0.2, 0.6, 0.4))
 	btn_resume.pressed.connect(resume_game)
 	vb.add_child(btn_resume)
 
-	btn_journal = _create_menu_button("📓 Buka Jurnal Kasus & Bukti [J]", Color(0.2, 0.45, 0.7))
+	btn_journal = _create_menu_button("Buka Jurnal Kasus & Bukti [J]", Color(0.2, 0.45, 0.7))
 	btn_journal.pressed.connect(func():
 		_play_click()
 		close_pause()
@@ -158,7 +158,7 @@ func _build_pause_ui() -> void:
 	)
 	vb.add_child(btn_journal)
 
-	btn_options = _create_menu_button("⚙️ Pengaturan Audio & Layar", Color(0.35, 0.35, 0.45))
+	btn_options = _create_menu_button("Pengaturan Audio & Layar", Color(0.35, 0.35, 0.45))
 	btn_options.pressed.connect(func():
 		_play_click()
 		if is_instance_valid(options_modal):
@@ -166,7 +166,7 @@ func _build_pause_ui() -> void:
 	)
 	vb.add_child(btn_options)
 
-	btn_main_menu = _create_menu_button("🏠 Kembali ke Menu Utama", Color(0.6, 0.4, 0.2))
+	btn_main_menu = _create_menu_button("Kembali ke Menu Utama", Color(0.6, 0.4, 0.2))
 	btn_main_menu.pressed.connect(func():
 		_play_click()
 		close_pause()
@@ -174,7 +174,7 @@ func _build_pause_ui() -> void:
 	)
 	vb.add_child(btn_main_menu)
 
-	btn_quit = _create_menu_button("🚪 Keluar ke Desktop", Color(0.6, 0.2, 0.2))
+	btn_quit = _create_menu_button("Keluar ke Desktop", Color(0.6, 0.2, 0.2))
 	btn_quit.pressed.connect(func():
 		_play_click()
 		get_tree().quit()
@@ -230,7 +230,7 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	options_modal.add_child(vb)
 
 	var t = Label.new()
-	t.text = "⚙️ PENGATURAN"
+	t.text = "PENGATURAN"
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	t.add_theme_font_size_override("font_size", 16)
@@ -276,7 +276,7 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	fs_hb.add_child(fs_btn)
 
 	var close_opt = Button.new()
-	close_opt.text = "✔ Selesai"
+	close_opt.text = "Selesai"
 	close_opt.custom_minimum_size = Vector2(140, 36)
 	close_opt.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_opt.focus_mode = Control.FOCUS_NONE

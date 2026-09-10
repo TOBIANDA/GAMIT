@@ -1945,10 +1945,10 @@ func _draw() -> void:
 		draw_line(Vector2(1165, 690), Vector2(1165, 1245), Color(0.42, 0.45, 0.50, 0.6), 2.0)
 		draw_line(Vector2(1371, 690), Vector2(1371, 1245), Color(0.42, 0.45, 0.50, 0.6), 2.0)
 
-	# 🌳 Lapangan Hijau & Taman Asri Sekitar Rumah Sakit di Seluruh 1 Blok (y=690..1245, x=465..1050)
+	#  Lapangan Hijau & Taman Asri Sekitar Rumah Sakit di Seluruh 1 Blok (y=690..1245, x=465..1050)
 	_draw_hospital_park_grounds()
 	
-	# 🏠🏠 Dua Rumah Berpekarangan di Blok NE (1626,324)→(2016,549)
+	# Dua Rumah Berpekarangan di Blok NE (1626,324)→(2016,549)
 	var ne_positions = get_ne_house_positions()
 	_draw_civilian_fenced_house(ne_positions[0], tex_rumah_depan, "ne_0", "ne")
 	_draw_civilian_fenced_house(ne_positions[1], tex_rumah_depan, "ne_1", "ne")
@@ -1972,7 +1972,7 @@ func _draw() -> void:
 		for p_pos in phone_spots:
 			_draw_phone_booth(Rect2(p_pos.x, p_pos.y, tw, th))
 
-	# 🏢 1. Gedung-Gedung Blok NW (North-West Complex) — proporsi asli, skala seragam
+	#  1. Gedung-Gedung Blok NW (North-West Complex) — proporsi asli, skala seragam
 	if gedung_nw_tampilkan and is_instance_valid(tex_gedung):
 		var nw_rects := get_nw_gedung_rects()
 		for idx in range(nw_rects.size()):
@@ -1994,7 +1994,7 @@ func _draw() -> void:
 			if gedung_nw_rooftop_props:
 				_draw_rooftop_props_to(self, b_rect, idx)
 
-	# 🏢 1b. Gedung Benjolan Persegi NW (Menempati area benjolan x=0..192, y=786..933)
+	#  1b. Gedung Benjolan Persegi NW (Menempati area benjolan x=0..192, y=786..933)
 	if gedung_benjolan_tampilkan and is_instance_valid(tex_gedung):
 		var bg_rect := get_benjolan_gedung_rect()
 		if gedung_nw_depth_shadow:
@@ -2003,11 +2003,11 @@ func _draw() -> void:
 		if gedung_nw_rooftop_props:
 			_draw_rooftop_props_to(self, bg_rect, 99)
 
-	# 🏊 Kolam Renang Mewah NW (Courtyard Pool)
+	#  Kolam Renang Mewah NW (Courtyard Pool)
 	if gedung_nw_kolam_tampilkan:
 		_draw_swimming_pool(get_nw_kolam_water_rect())
 
-	# 🏥 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) - Skala Seragam
+	# 2. Gedung samping RS (bot complex) (639,690)→(1050,1245) - Skala Seragam
 	if gedung_rs_tampilkan and is_instance_valid(tex_gedung):
 		var rs_rects := get_rs_gedung_rects()
 		for idx in range(rs_rects.size()):
@@ -2019,7 +2019,7 @@ func _draw() -> void:
 			if gedung_nw_rooftop_props:
 				_draw_rooftop_props_to(self, b_rect, 80 + idx)
 
-	# 🏛️ 3. Kompleks Metropolitan World Trade Center (Twin Towers, Reflecting Pool, North Skyscraper Row)
+	#  3. Kompleks Metropolitan World Trade Center (Twin Towers, Reflecting Pool, North Skyscraper Row)
 	_draw_wtc_complex()
 
 	var pol_sk = 1.0 if (polisi_skala == null or polisi_skala <= 0.0) else float(polisi_skala)

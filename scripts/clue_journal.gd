@@ -102,14 +102,14 @@ func _build_journal_ui() -> void:
 	main_vbox.add_child(header_hbox)
 
 	var title_lbl = Label.new()
-	title_lbl.text = "📓 JURNAL INVESTIGASI DETEKTIF BENEDICT — KASUS TKP 404"
+	title_lbl.text = "JURNAL INVESTIGASI DETEKTIF BENEDICT — KASUS TKP 404"
 	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.8, 0.4))
 	title_lbl.add_theme_font_size_override("font_size", 20)
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_hbox.add_child(title_lbl)
 
 	close_btn = Button.new()
-	close_btn.text = "✖ Tutup [ESC / J]"
+	close_btn.text = "Tutup [ESC / J]"
 	close_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.pressed.connect(close_journal)
 	header_hbox.add_child(close_btn)
@@ -123,13 +123,13 @@ func _build_journal_ui() -> void:
 	main_vbox.add_child(tab_container)
 
 	var tab1 = VBoxContainer.new()
-	tab1.name = "📋 Lead Aktif & Status"
+	tab1.name = "Lead Aktif & Status"
 	tab1.add_theme_constant_override("separation", 12)
 	tab_container.add_child(tab1)
 	_build_tab1_content(tab1)
 
 	var tab2 = ScrollContainer.new()
-	tab2.name = "🔍 Berkas Barang Bukti"
+	tab2.name = "Berkas Barang Bukti"
 	tab2.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	tab_container.add_child(tab2)
 	clues_container = VBoxContainer.new()
@@ -138,7 +138,7 @@ func _build_journal_ui() -> void:
 	tab2.add_child(clues_container)
 
 	var tab3 = VBoxContainer.new()
-	tab3.name = "🗝️ Pesan Ibu & Brankas (Side Quest)"
+	tab3.name = "Pesan Ibu & Brankas (Side Quest)"
 	tab3.add_theme_constant_override("separation", 12)
 	tab_container.add_child(tab3)
 	_build_tab3_content(tab3)
@@ -156,7 +156,7 @@ func _build_tab1_content(parent: VBoxContainer) -> void:
 	pad.add_child(vb)
 
 	var obj_head = Label.new()
-	obj_head.text = "🎯 TARGET PENYELIDIKAN SAAT INI:"
+	obj_head.text = "TARGET PENYELIDIKAN SAAT INI:"
 	obj_head.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
 	obj_head.add_theme_font_size_override("font_size", 16)
 	vb.add_child(obj_head)
@@ -177,7 +177,7 @@ func _build_tab1_content(parent: VBoxContainer) -> void:
 	vb.add_child(HSeparator.new())
 
 	var prog_head = Label.new()
-	prog_head.text = "📊 KEMAJUAN PENGUNGKAPAN KEBENARAN KASUS:"
+	prog_head.text = "KEMAJUAN PENGUNGKAPAN KEBENARAN KASUS:"
 	prog_head.add_theme_color_override("font_color", Color(0.9, 0.7, 0.4))
 	prog_head.add_theme_font_size_override("font_size", 15)
 	vb.add_child(prog_head)
@@ -210,7 +210,7 @@ func _build_tab3_content(parent: VBoxContainer) -> void:
 	pad.add_child(vb)
 
 	var sq_title = Label.new()
-	sq_title.text = "💎 SIDE QUEST: HADIAH PENINGGALAN IBU MEDELINE"
+	sq_title.text = "SIDE QUEST: HADIAH PENINGGALAN IBU MEDELINE"
 	sq_title.add_theme_color_override("font_color", Color(0.95, 0.65, 0.9))
 	sq_title.add_theme_font_size_override("font_size", 16)
 	vb.add_child(sq_title)
@@ -268,7 +268,7 @@ func _create_clue_card(clue: Dictionary) -> PanelContainer:
 	panel.add_child(vb)
 
 	var title = Label.new()
-	title.text = clue["title"] if clue["unlocked"] else "🔒 [Bukti Terkunci / Belum Ditemukan]"
+	title.text = clue["title"] if clue["unlocked"] else "[Bukti Terkunci / Belum Ditemukan]"
 	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4) if clue["unlocked"] else Color(0.5, 0.5, 0.5))
 	title.add_theme_font_size_override("font_size", 15)
 	vb.add_child(title)

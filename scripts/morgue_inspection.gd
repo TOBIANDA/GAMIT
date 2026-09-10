@@ -83,7 +83,7 @@ func _build_ui() -> void:
 
 	# Header Title
 	title_label = Label.new()
-	title_label.text = "🏥 KAMAR JENAZAH RUMAH SAKIT KOTA"
+	title_label.text = "KAMAR JENAZAH RUMAH SAKIT KOTA"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_color_override("font_color", Color(0.65, 0.82, 0.95))
 	title_label.add_theme_font_size_override("font_size", 22)
@@ -138,7 +138,7 @@ func _build_ui() -> void:
 	vb.add_child(btn_hb)
 
 	action_btn = Button.new()
-	action_btn.text = "👁️ SINGKAP KAIN PENUTUP MAYAT [Spasi / F]"
+	action_btn.text = "SINGKAP KAIN PENUTUP MAYAT [Spasi / F]"
 	action_btn.custom_minimum_size = Vector2(340, 48)
 	var ab_style = StyleBoxFlat.new()
 	ab_style.bg_color = Color(0.12, 0.28, 0.45, 0.95)
@@ -150,7 +150,7 @@ func _build_ui() -> void:
 	btn_hb.add_child(action_btn)
 
 	back_btn = Button.new()
-	back_btn.text = "🚪 Mundur [ESC]"
+	back_btn.text = "Mundur [ESC]"
 	back_btn.custom_minimum_size = Vector2(160, 48)
 	var bb_style = StyleBoxFlat.new()
 	bb_style.bg_color = Color(0.2, 0.2, 0.25, 0.9)
@@ -223,7 +223,7 @@ func _reveal_corpse() -> void:
 	tw.tween_property(flash, "color:a", 0.0, 0.6)
 	tw.tween_callback(func(): flash.queue_free())
 
-	status_label.text = "⚠️ KAIN DISINGKAP... WAJAH MAYAT INI ADALAH DIRIMU SENDIRI, BENEDICT!!"
+	status_label.text = "KAIN DISINGKAP... WAJAH MAYAT INI ADALAH DIRIMU SENDIRI, BENEDICT!!"
 	status_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")

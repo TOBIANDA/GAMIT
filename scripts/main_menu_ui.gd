@@ -214,7 +214,7 @@ func _build_options_modal() -> void:
 	options_modal.add_child(vb)
 
 	var title = Label.new()
-	title.text = "⚙️ PENGATURAN SUARA & TAMPILAN"
+	title.text = "PENGATURAN SUARA & TAMPILAN"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	title.add_theme_font_size_override("font_size", 16)
@@ -224,7 +224,7 @@ func _build_options_modal() -> void:
 	var bgm_hb = HBoxContainer.new()
 	vb.add_child(bgm_hb)
 	var bgm_lbl = Label.new()
-	bgm_lbl.text = "🎵 Volume Musik (BGM):"
+	bgm_lbl.text = "Volume Musik (BGM):"
 	bgm_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bgm_hb.add_child(bgm_lbl)
 	bgm_slider = HSlider.new()
@@ -240,7 +240,7 @@ func _build_options_modal() -> void:
 	var sfx_hb = HBoxContainer.new()
 	vb.add_child(sfx_hb)
 	var sfx_lbl = Label.new()
-	sfx_lbl.text = "🔊 Volume Efek Suara (SFX):"
+	sfx_lbl.text = "Volume Efek Suara (SFX):"
 	sfx_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sfx_hb.add_child(sfx_lbl)
 	sfx_slider = HSlider.new()
@@ -256,7 +256,7 @@ func _build_options_modal() -> void:
 	var fs_hb = HBoxContainer.new()
 	vb.add_child(fs_hb)
 	var fs_lbl = Label.new()
-	fs_lbl.text = "🖥️ Mode Layar Penuh (F11):"
+	fs_lbl.text = "Mode Layar Penuh (F11):"
 	fs_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fs_hb.add_child(fs_lbl)
 	fullscreen_toggle_btn = Button.new()
@@ -267,7 +267,7 @@ func _build_options_modal() -> void:
 
 	# Close Button
 	var close_opt_btn = Button.new()
-	close_opt_btn.text = "✔ Simpan & Kembali"
+	close_opt_btn.text = "Simpan & Kembali"
 	close_opt_btn.custom_minimum_size = Vector2(180, 38)
 	close_opt_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_opt_btn.focus_mode = Control.FOCUS_NONE
@@ -302,7 +302,7 @@ func _build_credit_modal() -> void:
 	credit_modal.add_child(vb)
 
 	var title = Label.new()
-	title.text = "📜 KREDIT & TIM PENGEMBANG"
+	title.text = "KREDIT & TIM PENGEMBANG"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	title.add_theme_font_size_override("font_size", 16)
@@ -315,7 +315,7 @@ func _build_credit_modal() -> void:
 	vb.add_child(info_lbl)
 
 	var close_crd_btn = Button.new()
-	close_crd_btn.text = "✖ Tutup Kredit"
+	close_crd_btn.text = "Tutup Kredit"
 	close_crd_btn.custom_minimum_size = Vector2(160, 36)
 	close_crd_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_crd_btn.focus_mode = Control.FOCUS_NONE

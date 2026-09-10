@@ -99,7 +99,7 @@ func _enter_car() -> void:
 			audio_player_engine.play()
 		playback_engine = audio_player_engine.get_stream_playback()
 	emit_signal("player_entered", self)
-	print("[CarSystem] 🚗 Pemain masuk ke dalam mobil: ", car_name)
+	print("[CarSystem] Pemain masuk ke dalam mobil: ", car_name)
 	queue_redraw()
 
 func _exit_car() -> void:
@@ -120,7 +120,7 @@ func _exit_car() -> void:
 	player_ref.collision_layer = 2
 	player_ref.collision_mask = 1
 	emit_signal("player_exited", self)
-	print("[CarSystem] 🚶 Pemain keluar dari mobil.")
+	print("[CarSystem] Pemain keluar dari mobil.")
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:

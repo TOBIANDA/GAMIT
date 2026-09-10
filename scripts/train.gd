@@ -153,7 +153,7 @@ func _update_train_movement(delta: float) -> void:
 					smoke_particles.initial_velocity_min = 10.0
 					smoke_particles.initial_velocity_max = 25.0
 					smoke_particles.gravity = Vector2(0, -25)
-				print("[TrainSystem] 🛑 Kereta api berhenti di stasiun untuk naik-turun penumpang!")
+				print("[TrainSystem] Kereta api berhenti di stasiun untuk naik-turun penumpang!")
 
 		TrainState.STOPPED_AT_STATION:
 			current_speed = 0.0
@@ -171,7 +171,7 @@ func _update_train_movement(delta: float) -> void:
 					smoke_particles.initial_velocity_min = 30.0
 					smoke_particles.initial_velocity_max = 70.0
 					smoke_particles.gravity = Vector2(0, -60)
-				print("[TrainSystem] 🟢 Kereta api berangkat melanjutkan perjalanan!")
+				print("[TrainSystem] Kereta api berangkat melanjutkan perjalanan!")
 
 		TrainState.ACCELERATING:
 			# Akselerasi halus dari berhenti menuju kecepatan penuh
@@ -201,7 +201,7 @@ func _start_passing_train() -> void:
 	horn_cooldown = 0.5
 	if current_spatial_vol > 0.01 and is_instance_valid(audio_player_train) and not audio_player_train.playing:
 		audio_player_train.play()
-	print("[TrainSystem] 🚂 Kereta api mulai melintas mendekati stasiun!")
+	print("[TrainSystem] Kereta api mulai melintas mendekati stasiun!")
 
 func _end_passing_train() -> void:
 	is_train_running = false

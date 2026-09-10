@@ -117,7 +117,7 @@ func _build_ui() -> void:
 	header.add_child(title_label)
 
 	close_btn = Button.new()
-	close_btn.text = "✖ Kembali ke Dunia [ESC]"
+	close_btn.text = "Kembali ke Dunia [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.pressed.connect(close_interface)
 	header.add_child(close_btn)
@@ -321,7 +321,7 @@ func _on_option_selected(is_correct: bool, feedback: String) -> void:
 			_display_current_question()
 		)
 	else:
-		feedback_label.text = "❌ Dewa Kematian menggeleng perlahan: 'Bukan itu yang sesungguhnya terjadi... renungkanlah bukti yang telah kau temui.'"
+		feedback_label.text = "Dewa Kematian menggeleng perlahan: 'Bukan itu yang sesungguhnya terjadi... renungkanlah bukti yang telah kau temui.'"
 		feedback_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 
 func _show_peaceful_ascension() -> void:
@@ -333,12 +333,12 @@ func _show_peaceful_ascension() -> void:
 	progress_label.text = "✦ Ujian Jiwa Selesai ✦"
 	prompt_label.text = "✦ KEPUTUSAN SANG DEWA KEMATIAN ✦\n\n'Seluruh misteri telah terurai, Benedict. Kau telah memecahkan teka-teki terakhirmu: kematian dirimu sendiri.\n\nTidak ada lagi penyesalan, tidak ada lagi rasa dingin yang membelenggu. Jiwamu kini ikhlas dan damai. Melangkahlah menuju cahaya peristirahatan abadi.'"
 
-	feedback_label.text = "🕊️ ARWAH BENEDICT IKHLAS DAN DAMAI MENUJU AFTERLIFE 🕊️"
+	feedback_label.text = "ARWAH BENEDICT IKHLAS DAN DAMAI MENUJU AFTERLIFE "
 	feedback_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.4))
 
 	# Ascension Card
 	var victory_btn = Button.new()
-	victory_btn.text = "✨ MELANGKAH MENUJU AFTERLIFE DENGAN DAMAI ✨"
+	victory_btn.text = "MELANGKAH MENUJU AFTERLIFE DENGAN DAMAI "
 	victory_btn.custom_minimum_size = Vector2(0, 52)
 	var vb_style = StyleBoxFlat.new()
 	vb_style.bg_color = Color(0.25, 0.18, 0.42, 0.98)
@@ -403,7 +403,7 @@ func _display_final_credits() -> void:
 	vb.add_child(sep)
 
 	var restart_btn = Button.new()
-	restart_btn.text = "🔄 Mulai Ulang Investigasi"
+	restart_btn.text = "Mulai Ulang Investigasi"
 	restart_btn.custom_minimum_size = Vector2(280, 48)
 	restart_btn.pressed.connect(func():
 		get_tree().reload_current_scene()

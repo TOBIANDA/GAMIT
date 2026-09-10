@@ -1,7 +1,7 @@
 extends Node2D
 
 # ==============================================================================
-# 🏠 INTERIOR RUMAH BENEDICT & SISTEM PENGATURAN PERABOT (FURNITURE SYSTEM)
+# INTERIOR RUMAH BENEDICT & SISTEM PENGATURAN PERABOT (FURNITURE SYSTEM)
 # ==============================================================================
 
 # Koordinat penempatan interior rumah di world space
@@ -17,7 +17,7 @@ const CONFIG_FILE_PATH := "res://data/house_furniture.json"
 const USER_CONFIG_FILE_PATH := "user://house_furniture.json"
 
 # ==============================================================================
-# 🛋️ PENGATURAN DEFAULT POSISI & SKALA BARANG-BARANG (BISA DIEDIT DI SINI)
+#  PENGATURAN DEFAULT POSISI & SKALA BARANG-BARANG (BISA DIEDIT DI SINI)
 # Posisi (x, y) dihitung relatif dari sudut kiri-atas ruangan (0, 0) sampai (660, 420)
 # ==============================================================================
 var default_furniture_config: Dictionary = {
@@ -670,7 +670,7 @@ func _draw() -> void:
 		draw_circle(irect.end, 4.0, Color(0.2, 0.95, 1.0))
 
 # ==============================================================================
-# 🛠️ IN-GAME FURNITURE EDITOR GUI & INTERACTION
+# IN-GAME FURNITURE EDITOR GUI & INTERACTION
 # ==============================================================================
 func _setup_editor_ui() -> void:
 	editor_layer = CanvasLayer.new()
@@ -679,7 +679,7 @@ func _setup_editor_ui() -> void:
 
 	# Tombol Buka Mode Atur di Pojok Atas Kanan
 	edit_toggle_btn = Button.new()
-	edit_toggle_btn.text = "🛠️ Atur Perabot [F2]"
+	edit_toggle_btn.text = "Atur Perabot [F2]"
 	edit_toggle_btn.focus_mode = Control.FOCUS_NONE
 	edit_toggle_btn.position = Vector2(1410, 24)
 	edit_toggle_btn.custom_minimum_size = Vector2(170, 36)
@@ -718,13 +718,13 @@ func _setup_editor_ui() -> void:
 	editor_panel.add_child(vb)
 
 	var title_lbl = Label.new()
-	title_lbl.text = "🛠️ PENGATUR PERABOT RUMAH"
+	title_lbl.text = "PENGATUR PERABOT RUMAH"
 	title_lbl.add_theme_font_size_override("font_size", 16)
 	title_lbl.add_theme_color_override("font_color", Color(0.3, 0.95, 1.0))
 	vb.add_child(title_lbl)
 
 	var subtitle = Label.new()
-	subtitle.text = "💡 Klik perabot di layar untuk drag, atau pilih dari daftar:"
+	subtitle.text = "Klik perabot di layar untuk drag, atau pilih dari daftar:"
 	subtitle.add_theme_font_size_override("font_size", 11)
 	subtitle.add_theme_color_override("font_color", Color(0.75, 0.80, 0.85))
 	vb.add_child(subtitle)
@@ -820,7 +820,7 @@ func _setup_editor_ui() -> void:
 	var quick_hb = HBoxContainer.new()
 	quick_hb.add_theme_constant_override("separation", 6)
 	var btn_s_down = Button.new()
-	btn_s_down.text = "🔍 -0.1x"
+	btn_s_down.text = "-0.1x"
 	btn_s_down.pressed.connect(func(): _adjust_selected_scale(-0.1))
 	quick_hb.add_child(btn_s_down)
 
@@ -830,7 +830,7 @@ func _setup_editor_ui() -> void:
 	quick_hb.add_child(btn_s_norm)
 
 	var btn_s_up = Button.new()
-	btn_s_up.text = "🔎 +0.1x"
+	btn_s_up.text = "+0.1x"
 	btn_s_up.pressed.connect(func(): _adjust_selected_scale(0.1))
 	quick_hb.add_child(btn_s_up)
 	vb.add_child(quick_hb)
@@ -847,7 +847,7 @@ func _setup_editor_ui() -> void:
 
 	# Tombol-tombol Aksi
 	var save_btn = Button.new()
-	save_btn.text = "💾 SIMPAN PENGATURAN"
+	save_btn.text = "SIMPAN PENGATURAN"
 	save_btn.custom_minimum_size = Vector2(0, 36)
 	var save_style = StyleBoxFlat.new()
 	save_style.bg_color = Color(0.15, 0.40, 0.25, 1.0)
@@ -857,21 +857,21 @@ func _setup_editor_ui() -> void:
 	save_btn.add_theme_stylebox_override("normal", save_style)
 	save_btn.pressed.connect(func():
 		save_furniture_config()
-		status_msg_label.text = "✅ Berhasil disimpan ke file & console!"
+		status_msg_label.text = "Berhasil disimpan ke file & console!"
 	)
 	vb.add_child(save_btn)
 
 	var reset_btn = Button.new()
-	reset_btn.text = "🔄 Reset ke Posisi Awal"
+	reset_btn.text = "Reset ke Posisi Awal"
 	reset_btn.custom_minimum_size = Vector2(0, 30)
 	reset_btn.pressed.connect(func():
 		reset_to_default_config()
-		status_msg_label.text = "🔄 Posisi dikembalikan ke awal."
+		status_msg_label.text = "Posisi dikembalikan ke awal."
 	)
 	vb.add_child(reset_btn)
 
 	var close_btn = Button.new()
-	close_btn.text = "✖ Selesai / Tutup [F2]"
+	close_btn.text = "Selesai / Tutup [F2]"
 	close_btn.custom_minimum_size = Vector2(0, 32)
 	var close_style = StyleBoxFlat.new()
 	close_style.bg_color = Color(0.4, 0.15, 0.18, 1.0)
@@ -895,7 +895,7 @@ func set_editor_available(avail: bool) -> void:
 func toggle_editor() -> void:
 	is_edit_mode = !is_edit_mode
 	editor_panel.visible = is_edit_mode
-	edit_toggle_btn.text = "✖ Tutup Editor [F2]" if is_edit_mode else "🛠️ Atur Perabot [F2]"
+	edit_toggle_btn.text = "Tutup Editor [F2]" if is_edit_mode else "Atur Perabot [F2]"
 
 	var player = get_tree().root.find_child("Player", true, false)
 	if is_instance_valid(player):

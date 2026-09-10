@@ -172,9 +172,9 @@ func _process(delta: float) -> void:
 			if is_instance_valid(continue_prompt):
 				continue_prompt.visible = true
 				if monologue_index + 1 < monologue_lines.size():
-					continue_prompt.text = "▶ Tekan [ E / Spasi / Enter ] untuk lanjut"
+					continue_prompt.text = "Tekan [ E / Spasi / Enter ] untuk lanjut"
 				else:
-					continue_prompt.text = "▶ Tekan [ E / Spasi / Enter ] untuk selesai"
+					continue_prompt.text = "Tekan [ E / Spasi / Enter ] untuk selesai"
 				continue_prompt.modulate.a = 0.7 + 0.3 * sin(glow_timer * 3.0)
 			
 			# Auto-advance opsional jika pemain AFK (5.0 detik santai)

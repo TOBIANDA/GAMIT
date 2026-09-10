@@ -109,11 +109,11 @@ const CLUE_MESSAGES_POLICE = [
 ]
 
 const PANIC_MESSAGES = [
-	"PERGI!! JANGAN MENDEKATIKU!! 🏃‍♂️",
-	"Tolong! Rasanya tempat ini membuatku tercekik!! 🏃‍♂️",
-	"Tidak... aku harus pergi dari sini sekarang!! 🏃‍♂️",
-	"Aku tidak tahan lagi... hawa ini terlalu pekat!! 🏃‍♂️",
-	"Jangan sentuh aku!! 🏃‍♂️"
+	"PERGI!! JANGAN MENDEKATIKU!! ",
+	"Tolong! Rasanya tempat ini membuatku tercekik!! ",
+	"Tidak... aku harus pergi dari sini sekarang!! ",
+	"Aku tidak tahan lagi... hawa ini terlalu pekat!! ",
+	"Jangan sentuh aku!! "
 ]
 
 func _ready() -> void:

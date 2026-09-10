@@ -6,9 +6,9 @@ var is_active: bool = false
 var time_left: float = 60.0
 
 var items_to_find: Dictionary = {
-	"envelope": {"found": false, "name": "✉️ Amplop Foto Korban", "hint": "Di atas bangku tunggu stasiun"},
-	"luggage":  {"found": false, "name": "💼 Koper Biru & Tiket Kereta", "hint": "Di lantai dekat bangku tunggu"},
-	"bag":      {"found": false, "name": "👜 Tas Pribadi Korban", "hint": "Di atas sandaran bangku stasiun"}
+	"envelope": {"found": false, "name": "Amplop Foto Korban", "hint": "Di atas bangku tunggu stasiun"},
+	"luggage":  {"found": false, "name": "Koper Biru & Tiket Kereta", "hint": "Di lantai dekat bangku tunggu"},
+	"bag":      {"found": false, "name": "Tas Pribadi Korban", "hint": "Di atas sandaran bangku stasiun"}
 }
 
 var root_control: Control
@@ -93,7 +93,7 @@ func start_minigame() -> void:
 
 	_refresh_checklist()
 	if is_instance_valid(status_banner):
-		status_banner.text = "🔍 Temukan 3 barang bukti korban di peron stasiun sebelum jadwal kereta berangkat!"
+		status_banner.text = "Temukan 3 barang bukti korban di peron stasiun sebelum jadwal kereta berangkat!"
 		status_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 
 func _process(delta: float) -> void:
@@ -102,7 +102,7 @@ func _process(delta: float) -> void:
 
 	time_left -= delta
 	if is_instance_valid(timer_label):
-		timer_label.text = "⏱️ Jadwal Kereta Berangkat: %.1fs" % max(0.0, time_left)
+		timer_label.text = "Jadwal Kereta Berangkat: %.1fs" % max(0.0, time_left)
 		if time_left < 15.0:
 			timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 		else:
@@ -134,7 +134,7 @@ func _refresh_checklist() -> void:
 		var item = items_to_find[k]
 		var lbl = Label.new()
 		if item["found"]:
-			lbl.text = "✔ " + item["name"] + " [DITEMUKAN]"
+			lbl.text = "" + item["name"] + " [DITEMUKAN]"
 			lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 		else:
 			lbl.text = "○ " + item["name"] + " — " + item["hint"]
@@ -155,7 +155,7 @@ func _on_item_clicked(item_key: String) -> void:
 
 	_refresh_checklist()
 
-	status_banner.text = "✨ Ditemukan: " + items_to_find[item_key]["name"] + "!"
+	status_banner.text = "Ditemukan: " + items_to_find[item_key]["name"] + "!"
 	status_banner.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 
 	var all_found = true
@@ -169,7 +169,7 @@ func _on_item_clicked(item_key: String) -> void:
 
 func _complete_victory() -> void:
 	is_active = false
-	status_banner.text = "🎉 SEMUA BUKTI DITEMUKAN! Amplop foto berhasil diamankan! Bawa ke Kantor Polisi untuk dicuci!"
+	status_banner.text = "SEMUA BUKTI DITEMUKAN! Amplop foto berhasil diamankan! Bawa ke Kantor Polisi untuk dicuci!"
 	status_banner.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
 	var inv_mgr = get_node_or_null("/root/InvestigationManager")
@@ -187,7 +187,7 @@ func _complete_victory() -> void:
 
 func _fail_timeout() -> void:
 	is_active = false
-	status_banner.text = "❌ WAKTU HABIS! Kereta melintas dan menimbulkan kepanikan! Mengulang pencarian..."
+	status_banner.text = "WAKTU HABIS! Kereta melintas dan menimbulkan kepanikan! Mengulang pencarian..."
 	status_banner.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 	if is_inside_tree() and get_tree():
@@ -241,25 +241,25 @@ func _build_scene_ui() -> void:
 	main_box.add_child(header)
 
 	var title = Label.new()
-	title.text = "🚉 PERON STASIUN TIMUR — PENCARIAN BARANG BUKTI KORBAN"
+	title.text = "PERON STASIUN TIMUR — PENCARIAN BARANG BUKTI KORBAN"
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
 	title.add_theme_font_size_override("font_size", 18)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
 	timer_label = Label.new()
-	timer_label.text = "⏱️ Jadwal Kereta: 60.0s"
+	timer_label.text = "Jadwal Kereta: 60.0s"
 	timer_label.add_theme_font_size_override("font_size", 16)
 	header.add_child(timer_label)
 
 	close_btn = Button.new()
-	close_btn.text = "✖ Tutup [ESC]"
+	close_btn.text = "Tutup [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.pressed.connect(func(): _finish_and_close(false))
 	header.add_child(close_btn)
 
 	status_banner = Label.new()
-	status_banner.text = "🔍 Klik objek bukti tersembunyi di peron stasiun!"
+	status_banner.text = "Klik objek bukti tersembunyi di peron stasiun!"
 	status_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_banner.add_theme_font_size_override("font_size", 14)
 	main_box.add_child(status_banner)
@@ -308,17 +308,17 @@ func _build_scene_ui() -> void:
 
 	# --- 3 TARGET UTAMA PENCARIAN (INTERACTIVE BUTTONS) ---
 	# 1. Amplop Surat di atas kursi
-	var btn_env = _create_interactive_prop("envelope", tex_envelope, Vector2(390, 230), Vector2(180, 180), "✉️ Amplop Foto Korban")
+	var btn_env = _create_interactive_prop("envelope", tex_envelope, Vector2(390, 230), Vector2(180, 180), "Amplop Foto Korban")
 	canvas_area.add_child(btn_env)
 	item_buttons["envelope"] = btn_env
 
 	# 2. Koper Biru di lantai dekat peron
-	var btn_lug = _create_interactive_prop("luggage", tex_luggage, Vector2(720, 270), Vector2(180, 180), "💼 Koper Biru Korban")
+	var btn_lug = _create_interactive_prop("luggage", tex_luggage, Vector2(720, 270), Vector2(180, 180), "Koper Biru Korban")
 	canvas_area.add_child(btn_lug)
 	item_buttons["luggage"] = btn_lug
 
 	# 3. Tas di atas kursi
-	var btn_bag = _create_interactive_prop("bag", tex_bag, Vector2(560, 220), Vector2(170, 170), "👜 Tas Pribadi Korban")
+	var btn_bag = _create_interactive_prop("bag", tex_bag, Vector2(560, 220), Vector2(170, 170), "Tas Pribadi Korban")
 	canvas_area.add_child(btn_bag)
 	item_buttons["bag"] = btn_bag
 

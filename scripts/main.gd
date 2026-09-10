@@ -339,7 +339,7 @@ func _enter_house() -> void:
 	tw.tween_callback(func():
 		is_inside_house = true
 		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 365.0)
-		_show_toast("🏠 Masuk ke Dalam Rumah Benedict.")
+		_show_toast("Masuk ke Dalam Rumah Benedict.")
 		if is_instance_valid(house_interior) and house_interior.has_method("set_editor_available"):
 			house_interior.set_editor_available(true)
 	)
@@ -359,7 +359,7 @@ func _exit_house() -> void:
 	tw.tween_callback(func():
 		is_inside_house = false
 		player.global_position = Vector2(1170.0, 250.0)
-		_show_toast("🚪 Keluar ke Jalan Kota.")
+		_show_toast("Keluar ke Jalan Kota.")
 		if is_instance_valid(house_interior) and house_interior.has_method("set_editor_available"):
 			house_interior.set_editor_available(false)
 	)
@@ -510,7 +510,7 @@ func _on_tailgate_completed(success: bool) -> void:
 			if is_instance_valid(minigame_hidden_objects):
 				player.can_move = false
 				minigame_hidden_objects.start_minigame()
-				_show_toast("🔍 Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
+				_show_toast("Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
 			else:
 				if is_instance_valid(player):
 					player.can_move = true
@@ -519,7 +519,7 @@ func _on_tailgate_completed(success: bool) -> void:
 		if is_instance_valid(minigame_hidden_objects):
 			player.can_move = false
 			minigame_hidden_objects.start_minigame()
-			_show_toast("🔍 Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
+			_show_toast("Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
 
 func _setup_main_menu() -> void:
 	var mm_script = load("res://scripts/main_menu_ui.gd")
@@ -593,8 +593,24 @@ var letter_body_lbl: Label
 var letter_close_btn: Button
 var letter_current_type: String = ""
 var police_letter_shown: bool = false
+var font_vintage: FontFile
+var font_vintage_bold: FontFile
+var font_typewriter: FontFile
+
+func _load_letter_fonts() -> void:
+	if not font_vintage:
+		font_vintage = FontFile.new()
+		font_vintage.load_dynamic_font("res://fonts/vintage_letter.ttf")
+	if not font_vintage_bold:
+		font_vintage_bold = FontFile.new()
+		font_vintage_bold.load_dynamic_font("res://fonts/vintage_letter_bold.ttf")
+	if not font_typewriter:
+		font_typewriter = FontFile.new()
+		font_typewriter.load_dynamic_font("res://fonts/typewriter.ttf")
 
 func _setup_letter_viewer() -> void:
+	_load_letter_fonts()
+
 	letter_layer = CanvasLayer.new()
 	letter_layer.name = "LetterViewer"
 	letter_layer.layer = 15
@@ -606,7 +622,7 @@ func _setup_letter_viewer() -> void:
 
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.02, 0.03, 0.06, 0.92)
+	bg.color = Color(0.02, 0.02, 0.04, 0.92)
 	bg.gui_input.connect(func(ev: InputEvent):
 		if ev is InputEventMouseButton and ev.pressed:
 			_close_letter_viewer()
@@ -618,52 +634,68 @@ func _setup_letter_viewer() -> void:
 	letter_root_control.add_child(center)
 
 	var vb = VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 14)
+	vb.add_theme_constant_override("separation", 10)
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(vb)
 
-	# Container Kartu Dokumen / Surat Perkamen Klasik
-	var doc_card = PanelContainer.new()
-	doc_card.custom_minimum_size = Vector2(620, 520)
-	var dc_style = StyleBoxFlat.new()
-	dc_style.bg_color = Color(0.97, 0.94, 0.88, 1.0) # Warna kertas perkamen klasik
-	dc_style.border_color = Color(0.38, 0.28, 0.16, 0.95) # Border coklat kayu tua
-	dc_style.set_border_width_all(3)
-	dc_style.set_corner_radius_all(10)
-	dc_style.set_content_margin_all(22)
-	dc_style.shadow_color = Color(0, 0, 0, 0.75)
-	dc_style.shadow_size = 16
-	doc_card.add_theme_stylebox_override("panel", dc_style)
-	vb.add_child(doc_card)
+	# Wadah lembaran kertas surat asli (surat close up.png)
+	var paper_container = Control.new()
+	paper_container.custom_minimum_size = Vector2(560, 600)
+	paper_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	paper_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	vb.add_child(paper_container)
+
+	# Tekstur kertas surat asli
+	var paper_texture_rect = TextureRect.new()
+	paper_texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var tex_paper = load("res://Environment/interactable assets/surat close up.png")
+	if is_instance_valid(tex_paper):
+		paper_texture_rect.texture = tex_paper
+	paper_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	paper_texture_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	paper_container.add_child(paper_texture_rect)
+
+	# Margin teks agar pas di dalam area lembaran kertas surat
+	var paper_margin = MarginContainer.new()
+	paper_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	paper_margin.add_theme_constant_override("margin_left", 54)
+	paper_margin.add_theme_constant_override("margin_right", 54)
+	paper_margin.add_theme_constant_override("margin_top", 44)
+	paper_margin.add_theme_constant_override("margin_bottom", 36)
+	paper_container.add_child(paper_margin)
 
 	var card_vb = VBoxContainer.new()
-	card_vb.add_theme_constant_override("separation", 10)
-	doc_card.add_child(card_vb)
+	card_vb.add_theme_constant_override("separation", 8)
+	paper_margin.add_child(card_vb)
 
-	# Header Dokumen
+	# Header Dokumen (Vintage Font, Tanpa Icon AI Slop)
 	letter_header_lbl = Label.new()
 	letter_header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	letter_header_lbl.add_theme_color_override("font_color", Color(0.20, 0.14, 0.08))
-	letter_header_lbl.add_theme_font_size_override("font_size", 16)
+	letter_header_lbl.add_theme_color_override("font_color", Color(0.18, 0.12, 0.08))
+	if font_vintage_bold:
+		letter_header_lbl.add_theme_font_override("font", font_vintage_bold)
+	letter_header_lbl.add_theme_font_size_override("font_size", 15)
 	card_vb.add_child(letter_header_lbl)
 
 	# Subtitle Dokumen
 	letter_sub_lbl = Label.new()
 	letter_sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	letter_sub_lbl.add_theme_color_override("font_color", Color(0.50, 0.38, 0.25))
-	letter_sub_lbl.add_theme_font_size_override("font_size", 12)
+	letter_sub_lbl.add_theme_color_override("font_color", Color(0.42, 0.32, 0.20))
+	if font_vintage:
+		letter_sub_lbl.add_theme_font_override("font", font_vintage)
+	letter_sub_lbl.add_theme_font_size_override("font_size", 11)
 	card_vb.add_child(letter_sub_lbl)
 
 	var sep = HSeparator.new()
 	var sep_style = StyleBoxLine.new()
-	sep_style.color = Color(0.55, 0.42, 0.28, 0.6)
+	sep_style.color = Color(0.45, 0.34, 0.22, 0.45)
 	sep_style.thickness = 1
 	sep.add_theme_stylebox_override("separator", sep_style)
 	card_vb.add_child(sep)
 
 	# Scroll Container Teks Surat
 	var scroll = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(570, 360)
+	scroll.custom_minimum_size = Vector2(452, 430)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	card_vb.add_child(scroll)
@@ -671,27 +703,31 @@ func _setup_letter_viewer() -> void:
 	letter_body_lbl = Label.new()
 	letter_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	letter_body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	letter_body_lbl.add_theme_color_override("font_color", Color(0.18, 0.14, 0.10))
-	letter_body_lbl.add_theme_font_size_override("font_size", 13)
-	letter_body_lbl.add_theme_constant_override("line_spacing", 5)
+	letter_body_lbl.add_theme_color_override("font_color", Color(0.14, 0.10, 0.06))
+	if font_vintage:
+		letter_body_lbl.add_theme_font_override("font", font_vintage)
+	letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
+	letter_body_lbl.add_theme_constant_override("line_spacing", 6)
 	scroll.add_child(letter_body_lbl)
 
-	# Tombol Tutup / Aksi
+	# Tombol Tutup / Aksi (Gaya vintage noir, tanpa icon AI slop)
 	letter_close_btn = Button.new()
-	letter_close_btn.custom_minimum_size = Vector2(540, 44)
+	letter_close_btn.custom_minimum_size = Vector2(460, 40)
 	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var lcb_style = StyleBoxFlat.new()
-	lcb_style.bg_color = Color(0.14, 0.20, 0.32, 0.95)
-	lcb_style.border_color = Color(0.9, 0.75, 0.3, 1.0)
+	lcb_style.bg_color = Color(0.16, 0.13, 0.11, 0.95)
+	lcb_style.border_color = Color(0.70, 0.55, 0.32, 1.0)
 	lcb_style.set_border_width_all(2)
-	lcb_style.set_corner_radius_all(8)
+	lcb_style.set_corner_radius_all(6)
 	letter_close_btn.add_theme_stylebox_override("normal", lcb_style)
 	var lcb_hov = lcb_style.duplicate()
-	lcb_hov.bg_color = Color(0.22, 0.30, 0.46, 0.98)
-	lcb_hov.border_color = Color(1.0, 0.9, 0.4, 1.0)
+	lcb_hov.bg_color = Color(0.24, 0.19, 0.15, 0.98)
+	lcb_hov.border_color = Color(0.92, 0.78, 0.42, 1.0)
 	letter_close_btn.add_theme_stylebox_override("hover", lcb_hov)
 	letter_close_btn.add_theme_stylebox_override("pressed", lcb_hov)
-	letter_close_btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.4))
+	letter_close_btn.add_theme_color_override("font_color", Color(0.95, 0.88, 0.75))
+	if font_vintage_bold:
+		letter_close_btn.add_theme_font_override("font", font_vintage_bold)
 	letter_close_btn.pressed.connect(_close_letter_viewer)
 	vb.add_child(letter_close_btn)
 
@@ -703,7 +739,7 @@ func _open_police_letter() -> void:
 	play_paper_sfx()
 
 	if is_instance_valid(letter_header_lbl):
-		letter_header_lbl.text = "📁 BERKAS PENUGASAN KEPOLISIAN (KASUS #404)"
+		letter_header_lbl.text = "BERKAS PENUGASAN KEPOLISIAN (KASUS #404)"
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Departemen Kepolisian Kota • Ditujukan kepada: Detektif Benedict"
 
@@ -725,9 +761,11 @@ Mampukah kau menyelesaikan kasus ini, Detektif?"""
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = police_text
+		if font_typewriter:
+			letter_body_lbl.add_theme_font_override("font", font_typewriter)
 
 	if is_instance_valid(letter_close_btn):
-		letter_close_btn.text = "✔ TERIMA TUGAS & MULAI PENYELIDIKAN [ESC / Spasi]"
+		letter_close_btn.text = "TERIMA TUGAS & MULAI PENYELIDIKAN [ESC / SPASI]"
 
 	if is_instance_valid(player):
 		player.can_move = false
@@ -741,7 +779,7 @@ func _open_victim_letter() -> void:
 	play_paper_sfx()
 
 	if is_instance_valid(letter_header_lbl):
-		letter_header_lbl.text = "✉️ SURAT PRIBADI KORBAN"
+		letter_header_lbl.text = "SURAT PRIBADI KORBAN"
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Ditemukan di Meja Kerja Rumah Korban • Tulisan Tangan Gemetar"
 
@@ -757,9 +795,11 @@ Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu."""
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = victim_text
+		if font_vintage:
+			letter_body_lbl.add_theme_font_override("font", font_vintage)
 
 	if is_instance_valid(letter_close_btn):
-		letter_close_btn.text = "✔ SIMPAN SURAT & CARI INSPEKTUR MARCUS [ESC / Spasi]"
+		letter_close_btn.text = "SIMPAN SURAT & CARI INSPEKTUR MARCUS [ESC / SPASI]"
 
 	if is_instance_valid(player):
 		player.can_move = false
@@ -782,7 +822,7 @@ func _close_letter_viewer() -> void:
 	if letter_current_type == "police":
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("police_letter")
-		_show_toast("📌 Tugas Diterima: Periksa rumah korban di ujung timur!")
+		_show_toast("Tugas Diterima: Periksa rumah korban di ujung timur!")
 		if is_instance_valid(dialog_box):
 			var p_lines: Array[String] = [
 				"Surat penugasan kasus jenazah tanpa identitas...",
@@ -797,7 +837,7 @@ func _close_letter_viewer() -> void:
 			inv_mgr.unlock_clue("mother_photo_riddle")
 			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
 				inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
-		_show_toast("🔍 Marcus dicurigai! Segera temui Marcus di Kantor Polisi!")
+		_show_toast("Marcus dicurigai! Segera temui Marcus di Kantor Polisi!")
 		if is_instance_valid(dialog_box):
 			var v_lines: Array[String] = [
 				"Surat wasiat ini... korban merasa terus diawasi selama berhari-hari sebelum kematiannya!",
@@ -814,7 +854,7 @@ func _setup_hud_prompts() -> void:
 		return
 
 	interact_prompt = Button.new()
-	interact_prompt.text = "👉 [ F / E / Spasi ] KLIK UNTUK INTERAKSI"
+	interact_prompt.text = "[ F / E / Spasi ] KLIK UNTUK INTERAKSI"
 	interact_prompt.custom_minimum_size = Vector2(460, 52)
 	interact_prompt.focus_mode = Control.FOCUS_NONE
 	interact_prompt.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -872,7 +912,7 @@ func _setup_hud_prompts() -> void:
 
 	# Tombol Fullscreen di pojok kanan atas HUD
 	fullscreen_btn = Button.new()
-	fullscreen_btn.text = "⛶ Fullscreen [F11]"
+	fullscreen_btn.text = "Fullscreen [F11]"
 	fullscreen_btn.custom_minimum_size = Vector2(165, 40)
 	fullscreen_btn.focus_mode = Control.FOCUS_NONE
 	fullscreen_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -968,7 +1008,7 @@ func _setup_hud_prompts() -> void:
 	name_hb.add_child(hud_phase_badge)
 
 	hud_objective_text = Label.new()
-	hud_objective_text.text = "🎯 Target: Periksa Meja Kerja"
+	hud_objective_text.text = "Target: Periksa Meja Kerja"
 	hud_objective_text.add_theme_color_override("font_color", Color(0.92, 0.94, 0.98))
 	hud_objective_text.add_theme_font_size_override("font_size", 12)
 	hud_objective_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -979,7 +1019,7 @@ func _setup_hud_prompts() -> void:
 	info_vb.add_child(btns_hb)
 
 	var j_btn = Button.new()
-	j_btn.text = "📓 Jurnal [J]"
+	j_btn.text = "Jurnal [J]"
 	j_btn.focus_mode = Control.FOCUS_NONE
 	j_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	j_btn.add_theme_font_size_override("font_size", 11)
@@ -991,7 +1031,7 @@ func _setup_hud_prompts() -> void:
 	btns_hb.add_child(j_btn)
 
 	var p_btn = Button.new()
-	p_btn.text = "⏸️ Menu [ESC]"
+	p_btn.text = "Menu [ESC]"
 	p_btn.focus_mode = Control.FOCUS_NONE
 	p_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	p_btn.add_theme_font_size_override("font_size", 11)
@@ -1010,18 +1050,18 @@ func toggle_fullscreen() -> void:
 	if _is_fullscreen_now():
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		_update_fullscreen_button_text(false)
-		_show_toast("🪟 Mode Jendela (Windowed)")
+		_show_toast("Mode Jendela (Windowed)")
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		_update_fullscreen_button_text(true)
-		_show_toast("🖥️ Mode Layar Penuh (Fullscreen)")
+		_show_toast("Mode Layar Penuh (Fullscreen)")
 
 func _update_fullscreen_button_text(is_fullscreen: bool) -> void:
 	if is_instance_valid(fullscreen_btn):
 		if is_fullscreen:
-			fullscreen_btn.text = "🗗 Windowed [F11]"
+			fullscreen_btn.text = "Windowed [F11]"
 		else:
-			fullscreen_btn.text = "⛶ Fullscreen [F11]"
+			fullscreen_btn.text = "Fullscreen [F11]"
 
 func _show_toast(msg: String) -> void:
 	if is_instance_valid(toast_label) and is_instance_valid(toast_banner):
@@ -1047,7 +1087,7 @@ func _process(delta: float) -> void:
 			var mode_str = " (Lari/Shift)" if player.is_sprinting else " (Jalan)"
 			var st_str = " [LELAH]" if ("is_exhausted" in player and player.is_exhausted) else ""
 			var st_val = player.stamina if "stamina" in player else 100.0
-			hud_speed_label.text = "Kecepatan: %.0f px/s%s | ⚡ Energi: %.0f%%%s" % [spd, mode_str if spd > 10.0 else "", st_val, st_str]
+			hud_speed_label.text = "Kecepatan: %.0f px/s%s | Energi: %.0f%%%s" % [spd, mode_str if spd > 10.0 else "", st_val, st_str]
 		if is_instance_valid(hud_pos_label):
 			hud_pos_label.text = "Posisi: (X: %.0f, Y: %.0f)" % [player.global_position.x, player.global_position.y]
 		if is_instance_valid(hud_zoom_label) and player.has_method("get_zoom_level"):
@@ -1093,18 +1133,18 @@ func _check_poi_proximity() -> void:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
 					"indoor_letter":
-						interact_prompt.text = "👉 [ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
+						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
-						interact_prompt.text = "👉 [ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
 					"indoor_photo_basin":
 						if inv_mgr.is_clue_unlocked("photo_envelope"):
-							interact_prompt.text = "👉 [ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN"
+							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN"
 						else:
-							interact_prompt.text = "👉 [ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)"
+							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)"
 					"indoor_stairs":
-						interact_prompt.text = "👉 [ F / E / Spasi ] TANGGA: MENUJU LANTAI ATAS"
+						interact_prompt.text = "[ F / E / Spasi ] TANGGA: MENUJU LANTAI ATAS"
 					"indoor_exit":
-						interact_prompt.text = "👉 [ F / E / Spasi ] KELUAR KE KOTA"
+						interact_prompt.text = "[ F / E / Spasi ] KELUAR KE KOTA"
 				var vp = get_viewport().get_visible_rect().size
 				interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
 				interact_prompt.visible = true
@@ -1142,21 +1182,21 @@ func _check_poi_proximity() -> void:
 	else:
 		if is_instance_valid(interact_prompt):
 			var poi_info = POI_LOCATIONS[active_poi_id]
-			var custom_text = "👉 [ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
+			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
 			if active_poi_id == "police":
 				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-					custom_text = "👉 [ F / E / Spasi ] KANTOR POLISI (PERIKSA RUMAH DULU)"
+					custom_text = "[ F / E / Spasi ] KANTOR POLISI (PERIKSA RUMAH DULU)"
 				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
-					custom_text = "👉 [ F / E / Spasi ] TEMUI & KUNTIT INSPEKTUR MARCUS"
+					custom_text = "[ F / E / Spasi ] TEMUI & KUNTIT INSPEKTUR MARCUS"
 				elif inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
-					custom_text = "👉 [ F / E / Spasi ] LAB POLISI: CUCI ROL FOTO STASIUN"
+					custom_text = "[ F / E / Spasi ] LAB POLISI: CUCI ROL FOTO STASIUN"
 				elif inv_mgr.has_developed_photos:
-					custom_text = "👉 [ F / E / Spasi ] BICARA DENGAN PETUGAS POLISI"
+					custom_text = "[ F / E / Spasi ] BICARA DENGAN PETUGAS POLISI"
 			elif active_poi_id == "hospital":
 				if not inv_mgr.is_clue_unlocked("developed_photos"):
-					custom_text = "👉 [ F / E / Spasi ] RUMAH SAKIT (BUTUH FOTO FORENSIK)"
+					custom_text = "[ F / E / Spasi ] RUMAH SAKIT (BUTUH FOTO FORENSIK)"
 				else:
-					custom_text = "👉 [ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
+					custom_text = "[ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
 			interact_prompt.text = custom_text
 			var vp = get_viewport().get_visible_rect().size
 			interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
@@ -1210,11 +1250,11 @@ func _input(event: InputEvent) -> void:
 		elif event.keycode == KEY_3:
 			if is_instance_valid(minigame_photo_wash):
 				if not inv_mgr.is_clue_unlocked("photo_envelope"):
-					_show_toast("⚠️ [Uji Coba] Belum ada rol foto dari stasiun untuk dicuci.")
+					_show_toast("[Uji Coba] Belum ada rol foto dari stasiun untuk dicuci.")
 				else:
 					player.can_move = false
 					minigame_photo_wash.start_minigame()
-					_show_toast("🧪 Uji Coba: Minigame Cuci Foto Polaroid Dimulai!")
+					_show_toast("Uji Coba: Minigame Cuci Foto Polaroid Dimulai!")
 				get_viewport().set_input_as_handled()
 				return
 		elif event.keycode == KEY_4:
@@ -1257,11 +1297,11 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
-				_show_toast("🗝️ Membuka Brankas Baja Keluarga!")
+				_show_toast("Membuka Brankas Baja Keluarga!")
 
 		"indoor_photo_basin":
 			if not inv_mgr.is_clue_unlocked("photo_envelope"):
-				_show_toast("⚠️ Belum ada rol foto yang perlu dicuci. Selidiki stasiun terlebih dahulu!")
+				_show_toast("Belum ada rol foto yang perlu dicuci. Selidiki stasiun terlebih dahulu!")
 				if is_instance_valid(dialog_box):
 					var lines: Array[String] = [
 						"Baskom larutan kimia kamar gelap ini masih kosong.",
@@ -1273,10 +1313,10 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if is_instance_valid(minigame_photo_wash):
 				player.can_move = false
 				minigame_photo_wash.start_minigame()
-				_show_toast("🧪 Masuk ke Kamar Gelap: Cuci Foto Polaroid!")
+				_show_toast("Masuk ke Kamar Gelap: Cuci Foto Polaroid!")
 
 		"indoor_stairs":
-			_show_toast("🪜 Tangga: Menuju ruang arsip & loteng lantai atas (terkunci).")
+			_show_toast("Tangga: Menuju ruang arsip & loteng lantai atas (terkunci).")
 
 		"indoor_exit":
 			_exit_house()
@@ -1290,11 +1330,11 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				]
 				dialog_box.start_monologue(clock_lines, "Detektif Benedict", "[ Jam Membeku ]", "res://karakter/MC_Bingung.png")
 			inv_mgr.unlock_clue("street_clock_freeze")
-			_show_toast("⏱️ Jam Kota Terhenti di Pukul 16:04!")
+			_show_toast("Jam Kota Terhenti di Pukul 16:04!")
 
 		"police":
 			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-				_show_toast("⚠️ Selidiki rumah korban di timur terlebih dahulu!")
+				_show_toast("Selidiki rumah korban di timur terlebih dahulu!")
 				if is_instance_valid(dialog_box):
 					var p_lines: Array[String] = [
 						"Petugas Polisi: 'Selamat bertugas, Detektif Benedict.'",
@@ -1308,7 +1348,7 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 				if is_instance_valid(minigame_photo_wash):
 					player.can_move = false
 					minigame_photo_wash.start_minigame()
-					_show_toast("🧪 Masuk ke Kamar Gelap Lab Forensik Kepolisian!")
+					_show_toast("Masuk ke Kamar Gelap Lab Forensik Kepolisian!")
 					return
 
 			var marcus_npc = find_child("NPC_Police_Marcus", true, false)
@@ -1338,13 +1378,13 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if is_instance_valid(minigame_hidden_objects):
 				player.can_move = false
 				minigame_hidden_objects.start_minigame()
-				_show_toast("🔍 Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!")
+				_show_toast("Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!")
 			else:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
 		"hospital":
 			if not inv_mgr.is_clue_unlocked("developed_photos"):
-				_show_toast("⚠️ Akses ditolak: Belum ada identifikasi foto forensik korban!")
+				_show_toast("Akses ditolak: Belum ada identifikasi foto forensik korban!")
 				if is_instance_valid(dialog_box):
 					var rej_lines: Array[String] = [
 						"Resepsionis RS: 'Mohon maaf, Detektif. Kamar mayat steril ditutup rapat.'",
@@ -1364,14 +1404,14 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 						"Benedict: 'Satu-satunya jalan adalah menyelinap langsung ke Kamar Jenazah (Ruang Mayat) di lorong bawah tanah!'"
 					]
 					dialog_box.start_monologue(recep_lines, "Penyelidikan RS", "[ Akses Ditolak ]", "res://karakter/MC_Bingung.png")
-					_show_toast("⚠️ Akses Resmi Ditolak: Menyelinap ke Kamar Jenazah!")
+					_show_toast("Akses Resmi Ditolak: Menyelinap ke Kamar Jenazah!")
 			else:
 				if is_instance_valid(morgue_inspection):
 					if is_inside_house:
 						_exit_house()
 					player.can_move = false
 					morgue_inspection.open_morgue()
-					_show_toast("🚪 Menyelinap ke Kamar Jenazah...")
+					_show_toast("Menyelinap ke Kamar Jenazah...")
 				else:
 					_show_toast("Kamar jenazah rumah sakit terkunci rapat.")
 
@@ -1379,10 +1419,10 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
-				_show_toast("🗝️ Membuka Brankas Baja Rumah Ibu!")
+				_show_toast("Membuka Brankas Baja Rumah Ibu!")
 
 		"phone":
-			_show_toast("📞 Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
+			_show_toast("Gagang telepon berdering hening... 'Waktu kematian tidak dapat diulang...'")
 
 func _start_marcus_tailgate(marcus_npc: Node) -> void:
 	if is_instance_valid(minigame_tailgate) and is_instance_valid(marcus_npc):
@@ -1394,7 +1434,7 @@ func _start_marcus_tailgate(marcus_npc: Node) -> void:
 		if marcus_npc.has_method("start_patrol"):
 			marcus_npc.start_patrol()
 		minigame_tailgate.start_minigame(player, marcus_npc)
-		_show_toast("🕵️ Marcus bergegas pergi! Ikuti dari kejauhan dan jaga jarak aman!")
+		_show_toast("Marcus bergegas pergi! Ikuti dari kejauhan dan jaga jarak aman!")
 	else:
 		_show_toast("Kantor Polisi: 'Detektif, kami sedang menangani penyelidikan kasus 404.'")
 
@@ -1522,9 +1562,9 @@ func _update_hud_objective() -> void:
 	if is_instance_valid(inv_mgr) and inv_mgr.has_method("get_current_objective_title"):
 		title_str = inv_mgr.get_current_objective_title()
 	if is_instance_valid(hud_objective_label):
-		hud_objective_label.text = "🎯 Target: " + title_str
+		hud_objective_label.text = "Target: " + title_str
 	if is_instance_valid(hud_objective_text):
-		hud_objective_text.text = "🎯 Target: " + title_str
+		hud_objective_text.text = "Target: " + title_str
 	if is_instance_valid(hud_phase_badge) and is_instance_valid(inv_mgr):
 		match inv_mgr.current_phase:
 			inv_mgr.Phase.PROLOGUE_HOME:
