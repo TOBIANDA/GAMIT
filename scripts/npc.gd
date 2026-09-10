@@ -28,17 +28,20 @@ const SHARED_DESTINATIONS = [
 	Vector2(1750, 480)
 ]
 
+signal reached_station
+
 const POLICE_PATROL_WAYPOINTS = [
 	Vector2(350, 865),
 	Vector2(577, 865),
 	Vector2(577, 619),
 	Vector2(1270, 619),
 	Vector2(1850, 619),
-	Vector2(2088, 690),
-	Vector2(1581, 780),
-	Vector2(411, 1278),
-	Vector2(280, 915)
+	Vector2(2088, 690)
 ]
+
+var is_patrolling_to_station: bool = false
+var patrol_formation_offset: Vector2 = Vector2.ZERO
+var is_departing: bool = false
 
 var target_destination: Vector2 = Vector2.ZERO
 var current_patrol_idx: int = 0
@@ -308,6 +311,57 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _handle_travel_state(delta: float, dist_to_player: float) -> void:
+	if is_patrolling_to_station:
+		var dist_to_goal = global_position.distance_to(target_destination)
+		if dist_to_goal < 38.0:
+			current_patrol_idx += 1
+			if current_patrol_idx < POLICE_PATROL_WAYPOINTS.size():
+				target_destination = POLICE_PATROL_WAYPOINTS[current_patrol_idx] + patrol_formation_offset
+				if is_instance_valid(nav_agent):
+					nav_agent.target_position = target_destination
+				if current_patrol_idx == 2 and npc_type == NPCType.INSPECTOR_MARCUS:
+					show_chat_bubble("Marcus: Lewat jalan utama, jangan sampai terlambat!", 3.0)
+				elif current_patrol_idx == 4 and npc_type == NPCType.INSPECTOR_MARCUS:
+					show_chat_bubble("Marcus: Stasiun sudah dekat di depan!", 3.0)
+			else:
+				# Tiba di stasiun!
+				is_patrolling_to_station = false
+				current_state = State.IDLE
+				velocity = Vector2.ZERO
+				is_moving = false
+				move_dir_facing = Vector2.UP
+				if npc_type == NPCType.INSPECTOR_MARCUS:
+					show_chat_bubble("Marcus: Kita sudah sampai di depan peron stasiun.", 3.5)
+					reached_station.emit()
+				return
+
+		var move_dir = (target_destination - global_position).normalized()
+		move_dir_facing = move_dir
+		is_moving = true
+		step_cycle += delta * 4.5
+		body_bob_y = abs(sin(step_cycle)) * -1.5
+		velocity = move_dir * 78.0
+		move_and_slide()
+		return
+
+	if is_departing:
+		var dist_to_goal = global_position.distance_to(target_destination)
+		if dist_to_goal < 35.0:
+			is_departing = false
+			current_state = State.IDLE
+			velocity = Vector2.ZERO
+			is_moving = false
+			return
+
+		var move_dir = (target_destination - global_position).normalized()
+		move_dir_facing = move_dir
+		is_moving = true
+		step_cycle += delta * 4.5
+		body_bob_y = abs(sin(step_cycle)) * -1.5
+		velocity = move_dir * 65.0
+		move_and_slide()
+		return
+
 	var is_civilian: bool = (npc_type == NPCType.BOY or npc_type == NPCType.GIRL)
 
 	if is_civilian and player_stationary_timer < 3.0 and social_cooldown <= 0.0:
@@ -390,24 +444,70 @@ func _handle_stuck_recovery() -> void:
 	_pick_next_destination()
 	global_position += Vector2(randf_range(-10, 10), randf_range(-10, 10))
 
-func start_patrol() -> void:
+func start_patrol(is_partner: bool = false) -> void:
+	is_patrolling_to_station = true
+	is_departing = false
 	current_state = State.GO_TO_DESTINATION
 	idle_hangout_timer = 0.0
 	current_patrol_idx = 0
-	target_destination = POLICE_PATROL_WAYPOINTS[0]
 	stuck_timer = 0.0
 	last_check_pos = global_position
+	
+	if is_partner:
+		patrol_formation_offset = Vector2(-26.0, 14.0)
+	else:
+		patrol_formation_offset = Vector2.ZERO
+		# Jika ini Marcus, ajak polisi rekannya (NPC1_Police) untuk ikut bersama
+		if npc_type == NPCType.INSPECTOR_MARCUS:
+			var partner_found: bool = false
+			if is_inside_tree() and get_tree() != null:
+				var npcs = get_tree().get_nodes_in_group("npcs")
+				for other in npcs:
+					if other != self and is_instance_valid(other) and other.get("npc_type") == NPCType.POLICE:
+						if other.has_method("start_patrol"):
+							other.start_patrol(true)
+						partner_found = true
+						break
+			if not partner_found and get_parent() != null:
+				for sibling in get_parent().get_children():
+					if sibling != self and is_instance_valid(sibling) and sibling.get("npc_type") == NPCType.POLICE:
+						if sibling.has_method("start_patrol"):
+							sibling.start_patrol(true)
+						break
+
+	target_destination = POLICE_PATROL_WAYPOINTS[0] + patrol_formation_offset
 	if is_instance_valid(nav_agent):
 		nav_agent.target_position = target_destination
-	show_chat_bubble("Marcus: Ayo bergegas, kita harus segera periksa peron stasiun kereta!", 3.0)
+
+	if npc_type == NPCType.INSPECTOR_MARCUS:
+		show_chat_bubble("Marcus: Ayo bergegas, kita harus segera periksa peron stasiun kereta!", 3.5)
+	else:
+		show_chat_bubble("Polisi: Siap, Inspektur Marcus! Mengamankan rute stasiun!", 3.5)
+
+func depart_from_station() -> void:
+	is_patrolling_to_station = false
+	is_departing = true
+	current_state = State.GO_TO_DESTINATION
+	current_patrol_idx = 0
+	stuck_timer = 0.0
+	last_check_pos = global_position
+
+	if npc_type == NPCType.INSPECTOR_MARCUS:
+		target_destination = Vector2(280, 915) # Kembali ke kantor polisi
+		show_chat_bubble("Marcus: Aku harus segera menyusun berkas di kantor.", 3.0)
+	else:
+		target_destination = Vector2(1104, 780) # Berkeliling pos jaga kota
+		show_chat_bubble("Polisi: Saya akan kembali berpatroli ke pos luar!", 3.0)
+
+	if is_instance_valid(nav_agent):
+		nav_agent.target_position = target_destination
 
 func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
-		if dist_to_player <= 180.0 and npc_type == NPCType.INSPECTOR_MARCUS:
-			start_patrol()
+		if is_patrolling_to_station or is_departing:
 			return
-		
-		# Mengobrol berkala santai di depan kantor polisi
+
+		# Mengobrol berkala santai di depan kantor polisi jika belum patroli
 		social_cooldown -= delta
 		if social_cooldown <= 0.0:
 			var pool = CLUE_MESSAGES_POLICE

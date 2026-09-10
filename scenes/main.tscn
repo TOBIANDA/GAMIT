@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" path="res://scenes/dialog_box.tscn" id="5_dialog_scene"]
 [ext_resource type="PackedScene" path="res://scenes/npc.tscn" id="6_npc_scene"]
 [ext_resource type="PackedScene" path="res://scenes/train.tscn" id="7_train_scene"]
-[ext_resource type="PackedScene" path="res://scenes/death_god_shrine.tscn" id="8_shrine_scene"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 content_margin_left = 16.0
@@ -108,9 +107,6 @@ npc_type = 2
 
 [node name="Train" parent="." unique_id=1392418782 instance=ExtResource("7_train_scene")]
 position = Vector2(2240, -950)
-
-[node name="DeathGodShrine" parent="." instance=ExtResource("8_shrine_scene")]
-position = Vector2(750, 1095)
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1229094225]
 layer = 2

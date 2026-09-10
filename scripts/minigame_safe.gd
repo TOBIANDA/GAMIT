@@ -3,28 +3,23 @@ extends CanvasLayer
 signal safe_opened(success: bool)
 
 var is_active: bool = false
-var digit1: int = 0
-var digit2: int = 0
-var digit3: int = 0
-var active_digit_idx: int = 0
+var entered_digits: Array[int] = []
 
-const CODE_1 = 1
-const CODE_2 = 6
-const CODE_3 = 4
+const CODE = [1, 6, 4]
 
-var digit_labels: Array[Label] = []
-var dial_boxes: Array[Control] = []
+var lcd_status_lbl: Label
+var lcd_digits_lbl: Label
 var status_label: Label
 var riddle_label: Label
 var safe_image_rect: TextureRect
-var numpad_image_rect: TextureRect
-var unlock_btn: Button
+var numpad_container: Control
 var close_btn: Button
 var reward_panel: PanelContainer
 var reward_label: Label
 
 var click_player: AudioStreamPlayer
 var door_player: AudioStreamPlayer
+var buzzer_player: AudioStreamPlayer
 
 var tex_safe_closed: Texture2D
 var tex_safe_opened: Texture2D
@@ -48,7 +43,7 @@ func _setup_audio() -> void:
 	var c_stream = load("res://sound/Click sound.mp3")
 	if c_stream:
 		click_player.stream = c_stream
-		click_player.volume_db = -3.0
+		click_player.volume_db = -2.0
 	add_child(click_player)
 
 	door_player = AudioStreamPlayer.new()
@@ -56,16 +51,30 @@ func _setup_audio() -> void:
 	var d_stream = load("res://sound/Door Open.mp3")
 	if d_stream:
 		door_player.stream = d_stream
-		door_player.volume_db = -1.0
+		door_player.volume_db = 0.0
 	add_child(door_player)
 
-func _play_click() -> void:
-	if is_instance_valid(click_player) and click_player.stream:
+	buzzer_player = AudioStreamPlayer.new()
+	buzzer_player.name = "SafeBuzzerPlayer"
+	var b_stream = load("res://sound/Click sound.mp3")
+	if b_stream:
+		buzzer_player.stream = b_stream
+		buzzer_player.volume_db = 2.0
+		buzzer_player.pitch_scale = 0.6
+	add_child(buzzer_player)
+
+func _play_click(pitch: float = 1.0) -> void:
+	if is_instance_valid(click_player) and click_player.is_inside_tree() and click_player.stream:
+		click_player.pitch_scale = pitch
 		click_player.play()
 
 func _play_door() -> void:
-	if is_instance_valid(door_player) and door_player.stream:
+	if is_instance_valid(door_player) and door_player.is_inside_tree() and door_player.stream:
 		door_player.play()
+
+func _play_buzzer() -> void:
+	if is_instance_valid(buzzer_player) and buzzer_player.is_inside_tree() and buzzer_player.stream:
+		buzzer_player.play()
 
 func start_minigame() -> void:
 	if not is_instance_valid(status_label):
@@ -74,11 +83,8 @@ func start_minigame() -> void:
 		_build_scene_ui()
 	is_active = true
 	visible = true
-	digit1 = 0
-	digit2 = 0
-	digit3 = 0
-	active_digit_idx = 0
-	
+	entered_digits.clear()
+
 	if is_instance_valid(safe_image_rect) and is_instance_valid(tex_safe_closed):
 		safe_image_rect.texture = tex_safe_closed
 
@@ -86,73 +92,80 @@ func start_minigame() -> void:
 		reward_panel.visible = false
 
 	if is_instance_valid(status_label):
-		status_label.text = "Masukkan 3 digit kombinasi brankas (Gunakan Angka Keyboard atau Tombol ▲/▼):"
+		status_label.text = "Klik tombol angka pada Numpad atau tekan Keyboard (1-9):"
 		status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	
-	if is_instance_valid(unlock_btn):
-		unlock_btn.text = "BUKA BRANKAS [ENTER]"
-		unlock_btn.disabled = false
 
-	_update_digits_display()
+	_update_lcd_display()
 
-func _update_digits_display() -> void:
-	var digits = [digit1, digit2, digit3]
-	for i in range(3):
-		if i < digit_labels.size() and is_instance_valid(digit_labels[i]):
-			digit_labels[i].text = str(digits[i])
-			if i == active_digit_idx:
-				digit_labels[i].add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
+func _update_lcd_display(custom_status: String = "", status_col: Color = Color(0.3, 0.9, 1.0)) -> void:
+	if is_instance_valid(lcd_status_lbl):
+		if custom_status.is_empty():
+			lcd_status_lbl.text = "✦ INPUT PIN KEAMANAN ✦"
+			lcd_status_lbl.add_theme_color_override("font_color", Color(0.3, 0.85, 1.0))
+		else:
+			lcd_status_lbl.text = custom_status
+			lcd_status_lbl.add_theme_color_override("font_color", status_col)
+
+	if is_instance_valid(lcd_digits_lbl):
+		var d_texts: Array[String] = []
+		for i in range(3):
+			if i < entered_digits.size():
+				d_texts.append(str(entered_digits[i]))
 			else:
-				digit_labels[i].add_theme_color_override("font_color", Color(0.8, 0.85, 0.9))
+				d_texts.append("_")
+		lcd_digits_lbl.text = "[ %s ]  [ %s ]  [ %s ]" % [d_texts[0], d_texts[1], d_texts[2]]
 
-		if i < dial_boxes.size() and is_instance_valid(dial_boxes[i]):
-			var border_color = Color(1.0, 0.8, 0.2, 1.0) if i == active_digit_idx else Color(0.3, 0.35, 0.45, 0.6)
-			var sb = dial_boxes[i].get_theme_stylebox("panel") as StyleBoxFlat
-			if sb:
-				sb.border_color = border_color
-				sb.set_border_width_all(2 if i == active_digit_idx else 1)
+func _on_key_pressed(digit: int) -> void:
+	if not is_active:
+		return
+	if entered_digits.size() >= 3:
+		return
+	_play_click(1.0 + float(digit) * 0.04)
+	entered_digits.append(digit)
+	_update_lcd_display()
 
-func _change_digit(digit_idx: int, amount: int) -> void:
-	_play_click()
-	active_digit_idx = digit_idx - 1
-	if digit_idx == 1:
-		digit1 = posmod(digit1 + amount, 10)
-	elif digit_idx == 2:
-		digit2 = posmod(digit2 + amount, 10)
-	elif digit_idx == 3:
-		digit3 = posmod(digit3 + amount, 10)
-	_update_digits_display()
+	if entered_digits.size() == 3:
+		_try_unlock()
 
-func _set_digit_direct(val: int) -> void:
-	_play_click()
-	if active_digit_idx == 0:
-		digit1 = val
-		active_digit_idx = 1
-	elif active_digit_idx == 1:
-		digit2 = val
-		active_digit_idx = 2
-	elif active_digit_idx == 2:
-		digit3 = val
-		active_digit_idx = 0
-	_update_digits_display()
+func _on_backspace_pressed() -> void:
+	if not is_active:
+		return
+	_play_click(0.85)
+	if entered_digits.size() > 0:
+		entered_digits.pop_back()
+	_update_lcd_display()
+
+func _on_enter_pressed() -> void:
+	if not is_active:
+		return
+	if entered_digits.size() == 3:
+		_try_unlock()
+	else:
+		_play_click(0.7)
+		_update_lcd_display("PIN HARUS 3 DIGIT!", Color(1.0, 0.7, 0.2))
 
 func _try_unlock() -> void:
-	if digit1 == CODE_1 and digit2 == CODE_2 and digit3 == CODE_3:
+	if entered_digits.size() != 3:
+		return
+
+	if entered_digits == CODE:
 		_play_door()
 		if is_instance_valid(safe_image_rect) and is_instance_valid(tex_safe_opened):
 			safe_image_rect.texture = tex_safe_opened
 
-		status_label.text = "KLIK! MEKANISME BRANKAS TERBUKA!"
-		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
-		unlock_btn.text = "BRANKAS BERHASIL DIBUKA"
-		unlock_btn.disabled = true
+		_update_lcd_display("★ AKSES DITERIMA ★", Color(0.2, 1.0, 0.5))
+		if is_instance_valid(status_label):
+			status_label.text = "KLIK! MEKANISME BRANKAS TERBUKA!"
+			status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
 		if is_instance_valid(reward_panel):
 			reward_panel.visible = true
 
-		var inv_mgr = get_node_or_null("/root/InvestigationManager")
-		if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
-			inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
+		var inv_mgr = null
+		if is_inside_tree():
+			inv_mgr = get_node_or_null("/root/InvestigationManager")
+			if not is_instance_valid(inv_mgr) and get_tree() and get_tree().root:
+				inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("mother_emotional_locket")
 			inv_mgr.safe_unlocked = true
@@ -161,9 +174,17 @@ func _try_unlock() -> void:
 			await get_tree().create_timer(2.4).timeout
 		_close_safe(true)
 	else:
-		_play_click()
-		status_label.text = "KOMBINASI SALAH! Perhatikan teka-teki ibu di catatan (1-6-4)..."
-		status_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+		_play_buzzer()
+		_update_lcd_display("✖ KODE SALAH! ✖", Color(1.0, 0.3, 0.3))
+		if is_instance_valid(status_label):
+			status_label.text = "KOMBINASI SALAH! Perhatikan teka-teki ibu di catatan (1-6-4)..."
+			status_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+
+		if is_inside_tree() and get_tree():
+			await get_tree().create_timer(0.9).timeout
+		if is_active:
+			entered_digits.clear()
+			_update_lcd_display()
 
 func _close_safe(success: bool = false) -> void:
 	is_active = false
@@ -178,61 +199,42 @@ func _unhandled_input(event: InputEvent) -> void:
 			_close_safe(false)
 			get_viewport().set_input_as_handled()
 			return
-		elif event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+		elif event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
 			if is_instance_valid(reward_panel) and reward_panel.visible:
 				_close_safe(true)
 			else:
-				_try_unlock()
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_LEFT:
-			active_digit_idx = posmod(active_digit_idx - 1, 3)
-			_update_digits_display()
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_RIGHT:
-			active_digit_idx = posmod(active_digit_idx + 1, 3)
-			_update_digits_display()
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_UP:
-			_change_digit(active_digit_idx + 1, 1)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_DOWN:
-			_change_digit(active_digit_idx + 1, -1)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode >= KEY_0 and event.keycode <= KEY_9:
-			_set_digit_direct(event.keycode - KEY_0)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode >= KEY_KP_0 and event.keycode <= KEY_KP_9:
-			_set_digit_direct(event.keycode - KEY_KP_0)
+				_on_enter_pressed()
 			get_viewport().set_input_as_handled()
 			return
 		elif event.keycode == KEY_BACKSPACE:
-			active_digit_idx = posmod(active_digit_idx - 1, 3)
-			_update_digits_display()
+			_on_backspace_pressed()
+			get_viewport().set_input_as_handled()
+			return
+		elif event.keycode >= KEY_0 and event.keycode <= KEY_9:
+			_on_key_pressed(event.keycode - KEY_0)
+			get_viewport().set_input_as_handled()
+			return
+		elif event.keycode >= KEY_KP_0 and event.keycode <= KEY_KP_9:
+			_on_key_pressed(event.keycode - KEY_KP_0)
 			get_viewport().set_input_as_handled()
 			return
 
 func _build_scene_ui() -> void:
 	var bg = ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.04, 0.05, 0.07, 0.96)
+	bg.color = Color(0.03, 0.04, 0.06, 0.96)
 	add_child(bg)
 
 	var margin = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 60)
-	margin.add_theme_constant_override("margin_right", 60)
-	margin.add_theme_constant_override("margin_top", 24)
-	margin.add_theme_constant_override("margin_bottom", 24)
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_right", 48)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
 	add_child(margin)
 
 	var main_box = VBoxContainer.new()
-	main_box.add_theme_constant_override("separation", 12)
+	main_box.add_theme_constant_override("separation", 10)
 	margin.add_child(main_box)
 
 	# 1. Header
@@ -242,27 +244,28 @@ func _build_scene_ui() -> void:
 	var title = Label.new()
 	title.text = "BRANKAS BAJA KELUARGA — RUMAH MEDELINE"
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", 17)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
 	close_btn = Button.new()
 	close_btn.text = "Tutup [ESC]"
 	close_btn.focus_mode = Control.FOCUS_NONE
+	close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	close_btn.pressed.connect(func(): _close_safe(false))
 	header.add_child(close_btn)
 
-	# 2. Main Content (3 Columns: Note, Safe Image, Dials)
+	# 2. Main Content (3 Columns: Riddle Note, Safe Illustration, Interactive Numpad)
 	var content_hb = HBoxContainer.new()
 	content_hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_hb.add_theme_constant_override("separation", 24)
+	content_hb.add_theme_constant_override("separation", 20)
 	main_box.add_child(content_hb)
 
 	# Kolom Kiri: Catatan Pesan Ibu Medeline
 	var riddle_panel = PanelContainer.new()
-	riddle_panel.custom_minimum_size = Vector2(340, 0)
+	riddle_panel.custom_minimum_size = Vector2(330, 0)
 	var r_style = StyleBoxFlat.new()
-	r_style.bg_color = Color(0.10, 0.12, 0.16, 0.95)
+	r_style.bg_color = Color(0.09, 0.11, 0.15, 0.95)
 	r_style.border_color = Color(0.85, 0.70, 0.35, 0.8)
 	r_style.set_border_width_all(2)
 	r_style.set_corner_radius_all(8)
@@ -276,7 +279,7 @@ func _build_scene_ui() -> void:
 	riddle_label = Label.new()
 	riddle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	riddle_label.add_theme_color_override("font_color", Color(0.92, 0.92, 0.96))
-	riddle_label.add_theme_font_size_override("font_size", 14)
+	riddle_label.add_theme_font_size_override("font_size", 13.5)
 	riddle_label.text = "Catatan di Balik Foto Masa Kecil:\n\n'Untuk anakku tersayang Benedict...\n\nTiga angka ini menyimpan kenangan abadi keluarga kita:\n\n1. Angka Pertama:\nAwal waktu dunia ini membeku... (1)\n\n2. Angka Kedua:\nBulan kelahiranmu saat kita merayakannya... (6)\n\n3. Angka Ketiga:\nDetik terakhir pada jam tangan pemberian ibu... (4)\n\nKombinasi Rahasia: 1 - 6 - 4'"
 	riddle_panel.add_child(riddle_label)
 
@@ -288,101 +291,134 @@ func _build_scene_ui() -> void:
 	safe_image_rect = TextureRect.new()
 	if is_instance_valid(tex_safe_closed):
 		safe_image_rect.texture = tex_safe_closed
-	safe_image_rect.custom_minimum_size = Vector2(280, 280)
+	safe_image_rect.custom_minimum_size = Vector2(270, 270)
 	safe_image_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	safe_image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	safe_center.add_child(safe_image_rect)
 
-	# Kolom Kanan: Dial Kontrol Kombinasi & Tombol
+	# Kolom Kanan: Visual Keypad Numpad Asli (zoom-in numpad.png)
 	var right_vb = VBoxContainer.new()
-	right_vb.custom_minimum_size = Vector2(340, 0)
+	right_vb.custom_minimum_size = Vector2(300, 0)
 	right_vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	right_vb.add_theme_constant_override("separation", 14)
+	right_vb.add_theme_constant_override("separation", 8)
 	content_hb.add_child(right_vb)
 
 	status_label = Label.new()
-	status_label.text = "Masukkan 3 digit kombinasi brankas:"
+	status_label.text = "Klik tombol angka pada Numpad atau tekan Keyboard:"
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status_label.add_theme_font_size_override("font_size", 14)
+	status_label.add_theme_font_size_override("font_size", 12.5)
 	status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	right_vb.add_child(status_label)
 
-	var dials_hbox = HBoxContainer.new()
-	dials_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	dials_hbox.add_theme_constant_override("separation", 16)
-	right_vb.add_child(dials_hbox)
+	var numpad_center = CenterContainer.new()
+	right_vb.add_child(numpad_center)
 
-	digit_labels.clear()
-	dial_boxes.clear()
+	# Container Numpad Asli berukuran proporsional 250 x 385 px
+	numpad_container = Control.new()
+	numpad_container.custom_minimum_size = Vector2(250, 385)
+	numpad_center.add_child(numpad_container)
 
-	for i in range(1, 4):
-		var dial_panel = PanelContainer.new()
-		var dp_style = StyleBoxFlat.new()
-		dp_style.bg_color = Color(0.06, 0.08, 0.11, 0.95)
-		dp_style.border_color = Color(0.3, 0.35, 0.45, 0.6)
-		dp_style.set_border_width_all(1)
-		dp_style.set_corner_radius_all(8)
-		dp_style.content_margin_left = 12
-		dp_style.content_margin_right = 12
-		dp_style.content_margin_top = 8
-		dp_style.content_margin_bottom = 8
-		dial_panel.add_theme_stylebox_override("panel", dp_style)
-		dials_hbox.add_child(dial_panel)
-		dial_boxes.append(dial_panel)
+	var numpad_img = TextureRect.new()
+	numpad_img.set_anchors_preset(Control.PRESET_FULL_RECT)
+	if is_instance_valid(tex_numpad):
+		numpad_img.texture = tex_numpad
+	numpad_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	numpad_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	numpad_container.add_child(numpad_img)
 
-		var vb_dial = VBoxContainer.new()
-		vb_dial.add_theme_constant_override("separation", 6)
-		dial_panel.add_child(vb_dial)
+	# 1. Overlay Display LCD Screen di area atas layar monitor hitam numpad
+	var lcd_screen = PanelContainer.new()
+	lcd_screen.position = Vector2(22, 16)
+	lcd_screen.size = Vector2(206, 82)
+	var lcd_style = StyleBoxFlat.new()
+	lcd_style.bg_color = Color(0.02, 0.05, 0.03, 0.95)
+	lcd_style.border_color = Color(0.15, 0.45, 0.25, 0.8)
+	lcd_style.set_border_width_all(1)
+	lcd_style.set_corner_radius_all(4)
+	lcd_screen.add_theme_stylebox_override("panel", lcd_style)
+	numpad_container.add_child(lcd_screen)
 
-		var btn_up = Button.new()
-		btn_up.text = "▲"
-		btn_up.custom_minimum_size = Vector2(50, 32)
-		btn_up.focus_mode = Control.FOCUS_NONE
-		var idx = i
-		btn_up.pressed.connect(func(): _change_digit(idx, 1))
-		vb_dial.add_child(btn_up)
+	var lcd_vb = VBoxContainer.new()
+	lcd_vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	lcd_vb.add_theme_constant_override("separation", 2)
+	lcd_screen.add_child(lcd_vb)
 
-		var lbl = Label.new()
-		lbl.text = "0"
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-		lbl.add_theme_font_size_override("font_size", 34)
-		vb_dial.add_child(lbl)
-		digit_labels.append(lbl)
+	lcd_status_lbl = Label.new()
+	lcd_status_lbl.text = "✦ INPUT PIN KEAMANAN ✦"
+	lcd_status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lcd_status_lbl.add_theme_font_size_override("font_size", 10)
+	lcd_status_lbl.add_theme_color_override("font_color", Color(0.3, 0.85, 1.0))
+	lcd_vb.add_child(lcd_status_lbl)
 
-		var btn_down = Button.new()
-		btn_down.text = "▼"
-		btn_down.custom_minimum_size = Vector2(50, 32)
-		btn_down.focus_mode = Control.FOCUS_NONE
-		btn_down.pressed.connect(func(): _change_digit(idx, -1))
-		vb_dial.add_child(btn_down)
+	lcd_digits_lbl = Label.new()
+	lcd_digits_lbl.text = "[ _ ]  [ _ ]  [ _ ]"
+	lcd_digits_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lcd_digits_lbl.add_theme_font_size_override("font_size", 22)
+	lcd_digits_lbl.add_theme_color_override("font_color", Color(0.25, 1.0, 0.55))
+	lcd_vb.add_child(lcd_digits_lbl)
 
-	unlock_btn = Button.new()
-	unlock_btn.text = "BUKA BRANKAS [ENTER]"
-	unlock_btn.custom_minimum_size = Vector2(260, 44)
-	unlock_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	unlock_btn.focus_mode = Control.FOCUS_NONE
-	var u_style = StyleBoxFlat.new()
-	u_style.bg_color = Color(0.15, 0.55, 0.35, 1.0)
-	u_style.border_color = Color(0.4, 0.9, 0.6, 1.0)
-	u_style.set_border_width_all(2)
-	u_style.set_corner_radius_all(6)
-	unlock_btn.add_theme_stylebox_override("normal", u_style)
-	unlock_btn.pressed.connect(_try_unlock)
-	right_vb.add_child(unlock_btn)
+	# 2. Overlay 12 Tombol Interaktif di atas 12 tuts numpad asli
+	var col_xs = [25.0, 94.0, 164.0]
+	var row_ys = [104.0, 169.0, 234.0, 299.0]
+	var btn_w = 61.0
+	var btn_h = 55.0
+
+	var key_definitions = [
+		{"label": "1", "row": 0, "col": 0, "action": func(): _on_key_pressed(1)},
+		{"label": "2", "row": 0, "col": 1, "action": func(): _on_key_pressed(2)},
+		{"label": "3", "row": 0, "col": 2, "action": func(): _on_key_pressed(3)},
+		{"label": "4", "row": 1, "col": 0, "action": func(): _on_key_pressed(4)},
+		{"label": "5", "row": 1, "col": 1, "action": func(): _on_key_pressed(5)},
+		{"label": "6", "row": 1, "col": 2, "action": func(): _on_key_pressed(6)},
+		{"label": "7", "row": 2, "col": 0, "action": func(): _on_key_pressed(7)},
+		{"label": "8", "row": 2, "col": 1, "action": func(): _on_key_pressed(8)},
+		{"label": "9", "row": 2, "col": 2, "action": func(): _on_key_pressed(9)},
+		{"label": "DEL", "row": 3, "col": 0, "action": func(): _on_backspace_pressed()},
+		{"label": "0", "row": 3, "col": 1, "action": func(): _on_key_pressed(0)},
+		{"label": "ENT", "row": 3, "col": 2, "action": func(): _on_enter_pressed()},
+	]
+
+	for kd in key_definitions:
+		var btn = Button.new()
+		btn.position = Vector2(col_xs[kd["col"]], row_ys[kd["row"]])
+		btn.size = Vector2(btn_w, btn_h)
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn.flat = true
+
+		var b_norm = StyleBoxFlat.new()
+		b_norm.bg_color = Color(0, 0, 0, 0.0)
+		btn.add_theme_stylebox_override("normal", b_norm)
+
+		var b_hov = StyleBoxFlat.new()
+		b_hov.bg_color = Color(1.0, 1.0, 1.0, 0.16)
+		b_hov.border_color = Color(1.0, 0.85, 0.35, 0.75)
+		b_hov.set_border_width_all(2)
+		b_hov.set_corner_radius_all(6)
+		btn.add_theme_stylebox_override("hover", b_hov)
+
+		var b_press = StyleBoxFlat.new()
+		b_press.bg_color = Color(1.0, 0.85, 0.25, 0.32)
+		b_press.border_color = Color(1.0, 0.95, 0.6, 1.0)
+		b_press.set_border_width_all(2)
+		b_press.set_corner_radius_all(6)
+		btn.add_theme_stylebox_override("pressed", b_press)
+
+		btn.pressed.connect(kd["action"])
+		numpad_container.add_child(btn)
 
 	# 3. Reward Banner saat terbuka
 	reward_panel = PanelContainer.new()
 	var rew_style = StyleBoxFlat.new()
-	rew_style.bg_color = Color(0.08, 0.20, 0.14, 0.98)
+	rew_style.bg_color = Color(0.06, 0.18, 0.12, 0.98)
 	rew_style.border_color = Color(0.4, 1.0, 0.6, 1.0)
 	rew_style.set_border_width_all(2)
 	rew_style.set_corner_radius_all(8)
-	rew_style.content_margin_left = 20
-	rew_style.content_margin_right = 20
-	rew_style.content_margin_top = 10
-	rew_style.content_margin_bottom = 10
+	rew_style.content_margin_left = 18
+	rew_style.content_margin_right = 18
+	rew_style.content_margin_top = 8
+	rew_style.content_margin_bottom = 8
 	reward_panel.add_theme_stylebox_override("panel", rew_style)
 	reward_panel.visible = false
 	main_box.add_child(reward_panel)
@@ -391,7 +427,8 @@ func _build_scene_ui() -> void:
 	reward_label.text = "ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Bukti cinta sejati yang mengikat arwahmu menuju Kedamaian Sejati (True Ending)!"
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.9))
-	reward_label.add_theme_font_size_override("font_size", 14)
+	reward_label.add_theme_font_size_override("font_size", 13.5)
 	reward_panel.add_child(reward_label)
 
-	_update_digits_display()
+	_update_lcd_display()
+

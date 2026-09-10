@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var player: CharacterBody2D = $Player
-@onready var shrine: Node2D = get_node_or_null("DeathGodShrine")
+var shrine: Node2D = null
 @onready var dialog_box: CanvasLayer = $DialogBox
 @onready var hud_speed_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/SpeedLabel
 @onready var hud_pos_label: Label = $HUD/MarginContainer/PanelContainer/VBoxContainer/PosLabel
@@ -82,16 +82,11 @@ func _ready() -> void:
 
 	_update_hud_objective()
 
-	if _is_test_run():
-		if is_instance_valid(main_menu_layer):
-			main_menu_layer.close_menu()
-		_check_and_launch_intro_cutscene()
-	else:
-		if is_instance_valid(main_menu_layer):
-			main_menu_layer.open_menu()
-			if is_instance_valid(player):
-				player.can_move = false
-				player.set_physics_process(false)
+	if is_instance_valid(main_menu_layer):
+		main_menu_layer.open_menu()
+		if is_instance_valid(player):
+			player.can_move = false
+			player.set_physics_process(false)
 
 func _setup_dialog_box() -> void:
 	if not is_instance_valid(dialog_box):
@@ -109,18 +104,11 @@ func _setup_dialog_box() -> void:
 			dialog_box.dialog_closed.connect(_on_dialog_closed)
 
 func _setup_death_god_shrine() -> void:
-	if not is_instance_valid(shrine):
-		shrine = get_node_or_null("DeathGodShrine")
-	if not is_instance_valid(shrine):
-		var shrine_scene = load("res://scenes/death_god_shrine.tscn")
-		if shrine_scene:
-			shrine = shrine_scene.instantiate()
-			shrine.name = "DeathGodShrine"
-			shrine.position = Vector2(750, 1095)
-			add_child(shrine)
-	if is_instance_valid(shrine):
-		if not shrine.interaction_triggered.is_connected(_on_shrine_interaction):
-			shrine.interaction_triggered.connect(_on_shrine_interaction)
+	# Altar fisik Dewa Kematian di map dihilangkan, pemanggilan Dewa Kematian dilakukan via shortcut [X]
+	var old_shrine = get_node_or_null("DeathGodShrine")
+	if is_instance_valid(old_shrine):
+		old_shrine.queue_free()
+	shrine = null
 
 func _on_shrine_interaction() -> void:
 	_summon_death_god()
@@ -332,13 +320,18 @@ func _enter_house() -> void:
 	if not is_instance_valid(player):
 		return
 	player.can_move = false
+	input_grace_timer = 0.35
 	play_door_sfx()
 
 	var tw = create_tween()
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_house = true
-		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 365.0)
+		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 310.0)
+		if player.has_method("setup_camera_limits"):
+			player.setup_camera_limits(3600, 400, 4400, 1000)
+		if player.has_method("reset_camera_smoothing"):
+			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Dalam Rumah Benedict.")
 		if is_instance_valid(house_interior) and house_interior.has_method("set_editor_available"):
 			house_interior.set_editor_available(true)
@@ -346,19 +339,25 @@ func _enter_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
 	tw.tween_callback(func():
 		player.can_move = true
+		input_grace_timer = 0.35
 	)
 
 func _exit_house() -> void:
 	if not is_instance_valid(player):
 		return
 	player.can_move = false
+	input_grace_timer = 0.35
 	play_door_sfx()
 
 	var tw = create_tween()
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_house = false
-		player.global_position = Vector2(1170.0, 250.0)
+		player.global_position = Vector2(1170.0, 260.0)
+		if player.has_method("setup_camera_limits"):
+			player.setup_camera_limits(0, 0, 2400, 1450)
+		if player.has_method("reset_camera_smoothing"):
+			player.reset_camera_smoothing()
 		_show_toast("Keluar ke Jalan Kota.")
 		if is_instance_valid(house_interior) and house_interior.has_method("set_editor_available"):
 			house_interior.set_editor_available(false)
@@ -366,9 +365,14 @@ func _exit_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
 	tw.tween_callback(func():
 		player.can_move = true
+		input_grace_timer = 0.35
 	)
 
 func _trigger_indoor_letter_monologue() -> void:
+	if is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("victim_letter"):
+		_open_victim_letter()
+		return
+
 	if not is_instance_valid(dialog_box):
 		_open_victim_letter()
 		return
@@ -485,41 +489,76 @@ func _on_minigame_ended() -> void:
 	_update_hud_objective()
 
 func _on_tailgate_completed(success: bool) -> void:
-	if is_instance_valid(player):
-		player.can_move = true
-	_update_hud_objective()
-
 	if not success:
+		if is_instance_valid(player):
+			player.can_move = true
+		_update_hud_objective()
 		return
 
-	# Marcus berjalan melewati stasiun, Benedict terpicu force dialogue:
-	# "hmm sepertinya aku hrus ke stasiun"
+	# Scene Paksaan setibanya di stasiun:
+	# 1. Posisi Detektif Benedict bersembunyi di dekat peron
 	if is_instance_valid(player):
 		player.can_move = false
 		player.global_position = Vector2(1950.0, 720.0)
+		var cam = player.get_node_or_null("Camera2D")
+		if is_instance_valid(cam):
+			cam.global_position = Vector2(2020.0, 700.0)
+			if player.has_method("reset_camera_smoothing"):
+				player.reset_camera_smoothing()
 
+	# 2. Posisi kedua polisi di peron stasiun
+	var marcus_npc = find_child("NPC_Police_Marcus", true, false)
+	var police_npc = find_child("NPC1_Police", true, false)
+	if is_instance_valid(marcus_npc):
+		marcus_npc.global_position = Vector2(2088.0, 690.0)
+	if is_instance_valid(police_npc):
+		police_npc.global_position = Vector2(2058.0, 705.0)
+
+	_trigger_station_eavesdrop_sequence(marcus_npc, police_npc)
+
+func _trigger_station_eavesdrop_sequence(marcus_npc: Node, police_npc: Node) -> void:
 	if is_instance_valid(dialog_box):
-		var station_prompt_lines: Array[String] = [
-			"Inspektur Marcus: 'Cepat amankan peron sebelum kereta malam tiba... Saksi melihat korban di stasiun!'",
-			"Hmm... obrolan Marcus dan rekannya menuntunku tepat ke area stasiun ini.",
-			"Mereka bergegas ke sudut lain, tapi jejak korban dan barang bawaannya tertinggal di peron stasiun.",
-			"Aku harus segera memeriksa peron dan mencari amplop foto serta barang bukti korban sebelum kereta tiba!"
+		# Dialog Pembicaraan Kedua Polisi di Peron
+		var police_dialogue_lines: Array[String] = [
+			"Inspektur Marcus: 'Pastikan peron stasiun ini tetap steril. Jangan biarkan siapapun mendekati area bangku tunggu peron!'",
+			"Polisi Rekan: 'Siap, Inspektur Marcus! Bagaimana dengan barang bukti korban yang tertinggal?'",
+			"Inspektur Marcus: 'Ada rol film foto penting yang terjatuh di sekitar peron stasiun sebelum korban tewas. Jasadnya sendiri sudah dibawa ke Kamar Jenazah Rumah Sakit.'",
+			"Polisi Rekan: 'Baik, saya akan segera kembali ke pos jaga kota sekarang untuk melanjutkan patroli luar.'",
+			"Inspektur Marcus: 'Bagus. Aku juga harus segera kembali ke kantor polisi untuk mengurus berkas kasus. Bergerak sekarang!'"
 		]
-		dialog_box.start_monologue(station_prompt_lines, "Detektif Benedict", "[ Menuju Stasiun ]", "res://karakter/MC_Bingung.png")
+		dialog_box.start_monologue(police_dialogue_lines, "Obrolan Rahasia Polisi", "[ Menguping Peron ]", "res://NPC_Inspecture/jalan-depan-1.png")
 		dialog_box.monologue_finished.connect(func():
-			if is_instance_valid(minigame_hidden_objects):
-				player.can_move = false
-				minigame_hidden_objects.start_minigame()
-				_show_toast("Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
-			else:
-				if is_instance_valid(player):
-					player.can_move = true
+			# Kedua polisi kembali ke urusan masing-masing (meninggalkan peron)
+			if is_instance_valid(marcus_npc) and marcus_npc.has_method("depart_from_station"):
+				marcus_npc.depart_from_station()
+			if is_instance_valid(police_npc) and police_npc.has_method("depart_from_station"):
+				police_npc.depart_from_station()
+
+			_show_toast("Kedua polisi meninggalkan stasiun. Peron kini sepi!")
+
+			# Monolog batin Detektif Benedict setelah mendengarkan pembicaraan
+			var mc_lines: Array[String] = [
+				"Mereka membicarakan rol film foto penting yang tertinggal di peron stasiun dan jasad korban di Rumah Sakit...",
+				"Sekarang kedua polisi itu sudah pergi ke urusan masing-masing dan peron stasiun kosong.",
+				"Ini kesempatan terbaikku. Aku harus segera masuk memeriksa peron stasiun dan mencari barang bukti korban!"
+			]
+			dialog_box.start_monologue(mc_lines, "Detektif Benedict", "[ Menyelidiki Stasiun ]", "res://karakter/MC_Bingung.png")
+			dialog_box.monologue_finished.connect(func():
+				# Benedict langsung masuk ke peron stasiun
+				if is_instance_valid(minigame_hidden_objects):
+					player.can_move = false
+					minigame_hidden_objects.start_minigame()
+					_show_toast("Menyelinap ke Peron Stasiun: Cari Objek Bukti Tersembunyi!")
+				else:
+					if is_instance_valid(player):
+						player.can_move = true
+			, CONNECT_ONE_SHOT)
 		, CONNECT_ONE_SHOT)
 	else:
 		if is_instance_valid(minigame_hidden_objects):
 			player.can_move = false
 			minigame_hidden_objects.start_minigame()
-			_show_toast("Minigame Stasiun: Cari Objek Bukti Tersembunyi di Peron!")
+			_show_toast("Menyelinap ke Peron Stasiun: Cari Objek Bukti Tersembunyi!")
 
 func _setup_main_menu() -> void:
 	var mm_script = load("res://scripts/main_menu_ui.gd")
@@ -679,7 +718,7 @@ func _setup_letter_viewer() -> void:
 
 	# Wadah lembaran kertas surat asli (surat close up.png)
 	var paper_container = Control.new()
-	paper_container.custom_minimum_size = Vector2(560, 600)
+	paper_container.custom_minimum_size = Vector2(620, 640)
 	paper_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	paper_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	vb.add_child(paper_container)
@@ -697,14 +736,14 @@ func _setup_letter_viewer() -> void:
 	# Margin teks agar pas di dalam area lembaran kertas surat
 	var paper_margin = MarginContainer.new()
 	paper_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	paper_margin.add_theme_constant_override("margin_left", 54)
-	paper_margin.add_theme_constant_override("margin_right", 54)
-	paper_margin.add_theme_constant_override("margin_top", 44)
-	paper_margin.add_theme_constant_override("margin_bottom", 36)
+	paper_margin.add_theme_constant_override("margin_left", 64)
+	paper_margin.add_theme_constant_override("margin_right", 64)
+	paper_margin.add_theme_constant_override("margin_top", 40)
+	paper_margin.add_theme_constant_override("margin_bottom", 30)
 	paper_container.add_child(paper_margin)
 
 	var card_vb = VBoxContainer.new()
-	card_vb.add_theme_constant_override("separation", 8)
+	card_vb.add_theme_constant_override("separation", 6)
 	paper_margin.add_child(card_vb)
 
 	# Header Dokumen (Anaktoria Font / Vintage Bold)
@@ -713,10 +752,10 @@ func _setup_letter_viewer() -> void:
 	letter_header_lbl.add_theme_color_override("font_color", Color(0.18, 0.12, 0.08))
 	if font_anaktoria:
 		letter_header_lbl.add_theme_font_override("font", font_anaktoria)
-		letter_header_lbl.add_theme_font_size_override("font_size", 16)
+		letter_header_lbl.add_theme_font_size_override("font_size", 22)
 	elif font_vintage_bold:
 		letter_header_lbl.add_theme_font_override("font", font_vintage_bold)
-		letter_header_lbl.add_theme_font_size_override("font_size", 15)
+		letter_header_lbl.add_theme_font_size_override("font_size", 20)
 	card_vb.add_child(letter_header_lbl)
 
 	# Subtitle Dokumen
@@ -725,10 +764,10 @@ func _setup_letter_viewer() -> void:
 	letter_sub_lbl.add_theme_color_override("font_color", Color(0.42, 0.32, 0.20))
 	if font_anaktoria:
 		letter_sub_lbl.add_theme_font_override("font", font_anaktoria)
-		letter_sub_lbl.add_theme_font_size_override("font_size", 12)
+		letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
 	elif font_vintage:
 		letter_sub_lbl.add_theme_font_override("font", font_vintage)
-		letter_sub_lbl.add_theme_font_size_override("font_size", 11)
+		letter_sub_lbl.add_theme_font_size_override("font_size", 13)
 	card_vb.add_child(letter_sub_lbl)
 
 	var sep = HSeparator.new()
@@ -740,10 +779,20 @@ func _setup_letter_viewer() -> void:
 
 	# Scroll Container Teks Surat
 	var scroll = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(452, 430)
+	scroll.custom_minimum_size = Vector2(492, 480)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	card_vb.add_child(scroll)
+
+	# Margin teks agar tidak mentok di kiri dan kanan kertas
+	var text_margin = MarginContainer.new()
+	text_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	text_margin.add_theme_constant_override("margin_left", 18)
+	text_margin.add_theme_constant_override("margin_right", 18)
+	text_margin.add_theme_constant_override("margin_top", 4)
+	text_margin.add_theme_constant_override("margin_bottom", 8)
+	scroll.add_child(text_margin)
 
 	letter_body_lbl = Label.new()
 	letter_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -753,13 +802,15 @@ func _setup_letter_viewer() -> void:
 		letter_body_lbl.add_theme_font_override("font", font_anaktoria)
 	elif font_vintage:
 		letter_body_lbl.add_theme_font_override("font", font_vintage)
-	letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
-	letter_body_lbl.add_theme_constant_override("line_spacing", 6)
-	scroll.add_child(letter_body_lbl)
+	letter_body_lbl.add_theme_font_size_override("font_size", 18.0)
+	letter_body_lbl.add_theme_constant_override("line_spacing", 4)
+	text_margin.add_child(letter_body_lbl)
 
-	# Tombol Tutup / Aksi (Gaya vintage noir, tanpa icon AI slop)
+	# Tombol Tutup / Aksi (Gaya vintage noir)
 	letter_close_btn = Button.new()
-	letter_close_btn.custom_minimum_size = Vector2(460, 40)
+	letter_close_btn.focus_mode = Control.FOCUS_NONE
+	letter_close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	letter_close_btn.custom_minimum_size = Vector2(492, 44)
 	letter_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var lcb_style = StyleBoxFlat.new()
 	lcb_style.bg_color = Color(0.16, 0.13, 0.11, 0.95)
@@ -773,6 +824,7 @@ func _setup_letter_viewer() -> void:
 	letter_close_btn.add_theme_stylebox_override("hover", lcb_hov)
 	letter_close_btn.add_theme_stylebox_override("pressed", lcb_hov)
 	letter_close_btn.add_theme_color_override("font_color", Color(0.95, 0.88, 0.75))
+	letter_close_btn.add_theme_font_size_override("font_size", 15.5)
 	if font_anaktoria:
 		letter_close_btn.add_theme_font_override("font", font_anaktoria)
 	elif font_vintage_bold:
@@ -792,30 +844,18 @@ func _open_police_letter() -> void:
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Departemen Kepolisian Kota • Ditujukan kepada: Detektif Benedict"
 
-	var police_text = """Sesosok jenazah telah ditemukan di gang sempit dekat area kota. Hingga saat ini belum ada yang berhasil mengungkap siapa dia sebenarnya, apa yang terjadi padanya, atau mengapa semuanya terasa begitu janggal sejak kematian itu terjadi.
-
-Aku dengar kau terkenal sebagai orang yang tidak pernah puas dengan jawaban di permukaan, orang yang selalu menggali lebih dalam ketika orang lain sudah berhenti mencari. Kami percaya, dari semua orang, Andalah yang paling memahami kasus ini.
-
-Carilah bantuan, mungkin kau bisa mulai dari menemui orang yang paling sering berurusan dengan kasus semacam ini, seseorang yang duduk di balik meja penuh berkas di gedung tempat hukum ditegakkan. Dialah yang paling mungkin tahu ke mana korban terakhir kali melangkah.
-
-Ikuti jejaknya, dengarkan apa yang tidak ia katakan secara langsung, dan biarkan satu petunjuk membawamu ke petunjuk berikutnya.
-
-Semakin dalam kau menggali, semakin banyak yang akan terungkap.
-
-Selesaikan semua ini sebelum semuanya benar-benar terlambat. 
-
-Jangan lupa untuk mengingat apa yang telah kau pelajari.
-
-Mampukah kau menyelesaikan kasus ini, Detektif?"""
+	var police_text = "Sesosok jenazah telah ditemukan di gang sempit dekat area kota. Hingga saat ini belum ada yang berhasil mengungkap siapa dia sebenarnya, apa yang terjadi padanya, atau mengapa semuanya terasa begitu janggal sejak kematian itu terjadi. Aku dengar kau terkenal sebagai orang yang tidak pernah puas dengan jawaban di permukaan, orang yang selalu menggali lebih dalam ketika orang lain sudah berhenti mencari. Kami percaya, dari semua orang, Andalah yang paling memahami kasus ini.\n" + \
+		"Carilah bantuan, mungkin kau bisa mulai dari menemui orang yang paling sering berurusan dengan kasus semacam ini, seseorang yang duduk di balik meja penuh berkas di gedung tempat hukum ditegakkan. Dialah yang paling mungkin tahu ke mana korban terakhir kali melangkah. Ikuti jejaknya, dengarkan apa yang tidak ia katakan secara langsung, dan biarkan satu petunjuk membawamu ke petunjuk berikutnya. Semakin dalam kau menggali, semakin banyak yang akan terungkap.\n" + \
+		"Selesaikan semua ini sebelum semuanya benar-benar terlambat. Jangan lupa untuk mengingat apa yang telah kau pelajari. Mampukah kau menyelesaikan kasus ini, Detektif?"
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = police_text
 		if font_anaktoria:
 			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
-			letter_body_lbl.add_theme_font_size_override("font_size", 14.0)
+			letter_body_lbl.add_theme_font_size_override("font_size", 18.0)
 		elif font_typewriter:
 			letter_body_lbl.add_theme_font_override("font", font_typewriter)
-			letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
+			letter_body_lbl.add_theme_font_size_override("font_size", 17.0)
 
 	if is_instance_valid(letter_close_btn):
 		letter_close_btn.text = "TERIMA TUGAS & MULAI PENYELIDIKAN [ESC / SPASI]"
@@ -836,27 +876,21 @@ func _open_victim_letter() -> void:
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Ditemukan di Meja Kerja Rumah Korban • Tulisan Tangan Gemetar"
 
-	var victim_text = """Aku tidak tahu harus bilang ke siapa lagi soal ini.
-
-Sudah beberapa hari aku merasa terus diawasi. Bukan cuma perasaan biasa namun beberapa kali aku yakin melihat orang yang sama berdiri di seberang jalan, terlalu lama untuk sekadar kebetulan. Aku sudah mencoba meyakinkan diriku sendiri kalau ini cuma paranoia karena kerjaan yang belakangan ini terlalu berat.
-
-Tapi tadi malam, seseorang mengetuk pintu larut sekali, dan saat kubuka, tidak ada siapa-siapa. Hanya jejak sepatu basah di depan teras, padahal tidak hujan.
-
-Aku sudah coba cerita ke Marcus soal ini. Dia cuma bilang aku terlalu capek dan butuh istirahat. Tapi tiap kali aku coba tanya lebih jauh kenapa dia terlihat tergesa-gesa mengganti topik, kenapa dia tidak mau menatapku lama-lama, aku jadi curiga dia tahu sesuatu yang tidak dia katakan padaku.
-
-Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu."""
+	var victim_text = "Aku tidak tahu harus bilang ke siapa lagi soal ini. Sudah beberapa hari aku merasa terus diawasi. Bukan cuma perasaan biasa, namun beberapa kali aku yakin melihat orang yang sama berdiri di seberang jalan, terlalu lama untuk sekadar kebetulan. Tadi malam pun seseorang mengetuk pintu larut sekali, dan saat kubuka, tidak ada siapa-siapa. Hanya jejak sepatu basah di depan teras, padahal tidak hujan.\n" + \
+		"Aku sudah coba cerita ke Marcus soal ini. Dia cuma bilang aku terlalu capek dan butuh istirahat. Tapi tiap kali aku coba tanya lebih jauh, kenapa dia terlihat tergesa-gesa mengganti topik dan tidak mau menatapku lama-lama? Aku jadi curiga dia tahu sesuatu yang tidak dia katakan padaku.\n" + \
+		"Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu."
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = victim_text
 		if font_riwaya_informal:
 			letter_body_lbl.add_theme_font_override("font", font_riwaya_informal)
-			letter_body_lbl.add_theme_font_size_override("font_size", 14.5)
+			letter_body_lbl.add_theme_font_size_override("font_size", 18.0)
 		elif font_anaktoria:
 			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
-			letter_body_lbl.add_theme_font_size_override("font_size", 14.0)
+			letter_body_lbl.add_theme_font_size_override("font_size", 18.0)
 		elif font_vintage:
 			letter_body_lbl.add_theme_font_override("font", font_vintage)
-			letter_body_lbl.add_theme_font_size_override("font_size", 13.5)
+			letter_body_lbl.add_theme_font_size_override("font_size", 17.0)
 
 	if is_instance_valid(letter_close_btn):
 		letter_close_btn.text = "SIMPAN SURAT & CARI INSPEKTUR MARCUS [ESC / SPASI]"
@@ -873,6 +907,7 @@ func _open_letter_closeup() -> void:
 
 func _close_letter_viewer() -> void:
 	play_paper_sfx()
+	input_grace_timer = 0.35
 	if is_instance_valid(letter_root_control):
 		letter_root_control.visible = false
 	if is_instance_valid(player):
@@ -880,10 +915,11 @@ func _close_letter_viewer() -> void:
 		player.set_physics_process(true)
 
 	if letter_current_type == "police":
+		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("police_letter")
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("police_letter")
 		_show_toast("Tugas Diterima: Periksa rumah korban di ujung timur!")
-		if is_instance_valid(dialog_box):
+		if not already_unlocked and is_instance_valid(dialog_box):
 			var p_lines: Array[String] = [
 				"Surat penugasan kasus jenazah tanpa identitas...",
 				"Pengirim memintaku mencari bantuan pada orang di gedung penegakan hukum (Kantor Polisi).",
@@ -892,13 +928,14 @@ func _close_letter_viewer() -> void:
 			dialog_box.start_monologue(p_lines, "Detektif Benedict", "[ Surat Penugasan ]", "res://karakter/MC_Bingung.png")
 
 	elif letter_current_type == "victim":
+		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("victim_letter")
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("victim_letter")
 			inv_mgr.unlock_clue("mother_photo_riddle")
 			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
 				inv_mgr.set_phase(inv_mgr.Phase.INVESTIGATION_1_POLICE)
 		_show_toast("Marcus dicurigai! Segera temui Marcus di Kantor Polisi!")
-		if is_instance_valid(dialog_box):
+		if not already_unlocked and is_instance_valid(dialog_box):
 			var v_lines: Array[String] = [
 				"Surat wasiat ini... korban merasa terus diawasi selama berhari-hari sebelum kematiannya!",
 				"Dan pesan terakhirnya sangat jelas: 'Kalau memang terjadi sesuatu padaku, tolong periksa Marcus lebih dulu.'",
@@ -1017,7 +1054,7 @@ func _setup_hud_prompts() -> void:
 	detective_hud_panel = PanelContainer.new()
 	detective_hud_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	detective_hud_panel.position = Vector2(20, 20)
-	detective_hud_panel.custom_minimum_size = Vector2(390, 76)
+	detective_hud_panel.custom_minimum_size = Vector2(430, 80)
 	
 	var dh_style = StyleBoxFlat.new()
 	dh_style.bg_color = Color(0.06, 0.08, 0.12, 0.94)
@@ -1101,6 +1138,12 @@ func _setup_hud_prompts() -> void:
 	)
 	btns_hb.add_child(p_btn)
 
+	var beta_lbl = Label.new()
+	beta_lbl.text = "Beta: [X] Dewa Maut  [Y] Bypass"
+	beta_lbl.add_theme_color_override("font_color", Color(0.82, 0.74, 1.0))
+	beta_lbl.add_theme_font_size_override("font_size", 11)
+	btns_hb.add_child(beta_lbl)
+
 func _is_fullscreen_now() -> bool:
 	var mode = DisplayServer.window_get_mode()
 	return mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
@@ -1181,7 +1224,7 @@ func _check_poi_proximity() -> void:
 			active_poi_id = "indoor_photo_basin"
 		elif p_pos.distance_to(stairs_pos) <= 45.0:
 			active_poi_id = "indoor_stairs"
-		elif p_pos.distance_to(exit_door_pos) <= 38.0 or (p_pos.y >= (400.0 + 375.0) and abs(p_pos.x - (3600.0 + 110.0)) <= 38.0):
+		elif p_pos.distance_to(exit_door_pos) <= 30.0 or (p_pos.y >= (400.0 + 382.0) and abs(p_pos.x - (3600.0 + 110.0)) <= 30.0):
 			active_poi_id = "indoor_exit"
 		else:
 			active_poi_id = ""
@@ -1195,18 +1238,19 @@ func _check_poi_proximity() -> void:
 					"indoor_letter":
 						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
-						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
 					"indoor_photo_basin":
 						if inv_mgr.is_clue_unlocked("photo_envelope"):
-							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN"
+							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN\n[Y] BYPASS CERITA (FITUR BETA)"
 						else:
-							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)"
+							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)\n[Y] BYPASS CERITA (FITUR BETA)"
 					"indoor_stairs":
 						interact_prompt.text = "[ F / E / Spasi ] TANGGA: MENUJU LANTAI ATAS"
 					"indoor_exit":
 						interact_prompt.text = "[ F / E / Spasi ] KELUAR KE KOTA"
 				var vp = get_viewport().get_visible_rect().size
-				interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
+				interact_prompt.custom_minimum_size = Vector2(520, 56)
+				interact_prompt.position = Vector2(vp.x * 0.5 - 260, vp.y - 95)
 				interact_prompt.visible = true
 		return
 
@@ -1222,10 +1266,10 @@ func _check_poi_proximity() -> void:
 	elif p_pos.x >= 1850.0 and p_pos.x <= 2350.0 and p_pos.y >= 670.0 and p_pos.y <= 1310.0:
 		best_poi = "station"
 		closest_dist = 0.0
-	# 2. Rumah Benedict (halaman, gerbang, dan jalan depan rumah: x 1050..1350, y 20..330)
-	elif not is_inside_house and p_pos.x >= 1050.0 and p_pos.x <= 1350.0 and p_pos.y >= 20.0 and p_pos.y <= 330.0:
+	# 2. Pintu Masuk Rumah Benedict (pintu beranda depan)
+	elif not is_inside_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 65.0:
 		best_poi = "desk"
-		closest_dist = 0.0
+		closest_dist = p_pos.distance_to(Vector2(1170.0, 230.0))
 	else:
 		for poi_key in POI_LOCATIONS.keys():
 			var poi = POI_LOCATIONS[poi_key]
@@ -1244,7 +1288,7 @@ func _check_poi_proximity() -> void:
 			var poi_info = POI_LOCATIONS[active_poi_id]
 			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
 			if active_poi_id == "police":
-				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
+				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME and not inv_mgr.is_clue_unlocked("victim_letter"):
 					custom_text = "[ F / E / Spasi ] KANTOR POLISI (PERIKSA RUMAH DULU)"
 				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
 					custom_text = "[ F / E / Spasi ] TEMUI & KUNTIT INSPEKTUR MARCUS"
@@ -1252,20 +1296,47 @@ func _check_poi_proximity() -> void:
 					custom_text = "[ F / E / Spasi ] LAB POLISI: CUCI ROL FOTO STASIUN"
 				elif inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] BICARA DENGAN PETUGAS POLISI"
+			elif active_poi_id == "station":
+				if not inv_mgr.has_tailgated_marcus:
+					custom_text = "[ F / E / Spasi ] STASIUN KERETA (KUNTIT MARCUS DULU)"
+				else:
+					custom_text = "[ F / E / Spasi ] STASIUN KERETA: CARI BUKTI"
 			elif active_poi_id == "hospital":
 				if not inv_mgr.is_clue_unlocked("developed_photos"):
 					custom_text = "[ F / E / Spasi ] RUMAH SAKIT (BUTUH FOTO FORENSIK)"
 				else:
 					custom_text = "[ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
-			interact_prompt.text = custom_text
+			
+			if active_poi_id in ["police", "station", "hospital", "safe"]:
+				interact_prompt.text = custom_text + "\n[Y] BYPASS CERITA (FITUR BETA)"
+			else:
+				interact_prompt.text = custom_text
+
 			var vp = get_viewport().get_visible_rect().size
-			interact_prompt.position = Vector2(vp.x * 0.5 - 230, vp.y - 85)
+			interact_prompt.custom_minimum_size = Vector2(520, 56)
+			interact_prompt.position = Vector2(vp.x * 0.5 - 260, vp.y - 95)
 			interact_prompt.visible = true
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode == KEY_F11 or (event.alt_pressed and event.keycode == KEY_ENTER):
 			toggle_fullscreen()
+			get_viewport().set_input_as_handled()
+			return
+
+		# Shortcut Fitur Versi Beta: Panggil Dewa Kematian
+		if event.keycode == KEY_X:
+			if is_instance_valid(dialog_box) and dialog_box.is_active:
+				dialog_box.close_dialog()
+			_trigger_death_god()
+			get_viewport().set_input_as_handled()
+			return
+
+		# Shortcut Fitur Versi Beta: Bypass Pembatas Cerita & Paksa Main Minigame
+		if event.keycode == KEY_Y:
+			if is_instance_valid(dialog_box) and dialog_box.is_active:
+				dialog_box.close_dialog()
+			_trigger_beta_bypass_interaction()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -1293,38 +1364,27 @@ func _input(event: InputEvent) -> void:
 				return
 			return
 
-		if event.keycode == KEY_X:
-			_trigger_death_god()
-			get_viewport().set_input_as_handled()
-			return
-
 		# Pintasan cepat tombol angka untuk langsung uji coba semua minigame kapan saja:
 		if event.keycode == KEY_1:
-			_trigger_poi_interaction("police")
+			_trigger_poi_interaction("police", true)
 			get_viewport().set_input_as_handled()
 			return
 		elif event.keycode == KEY_2:
-			_trigger_poi_interaction("station")
+			_trigger_poi_interaction("station", true)
 			get_viewport().set_input_as_handled()
 			return
 		elif event.keycode == KEY_3:
-			if is_instance_valid(minigame_photo_wash):
-				if not inv_mgr.is_clue_unlocked("photo_envelope"):
-					_show_toast("[Uji Coba] Belum ada rol foto dari stasiun untuk dicuci.")
-				else:
-					player.can_move = false
-					minigame_photo_wash.start_minigame()
-					_show_toast("Uji Coba: Minigame Cuci Foto Polaroid Dimulai!")
-				get_viewport().set_input_as_handled()
-				return
+			_trigger_poi_interaction("indoor_photo_basin", true)
+			get_viewport().set_input_as_handled()
+			return
 		elif event.keycode == KEY_4:
-			_trigger_poi_interaction("indoor_safe" if is_inside_house else "safe")
+			_trigger_poi_interaction("indoor_safe" if is_inside_house else "safe", true)
 			get_viewport().set_input_as_handled()
 			return
 
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE, KEY_ENTER]:
 			if not active_poi_id.is_empty():
-				_trigger_poi_interaction(active_poi_id)
+				_trigger_poi_interaction(active_poi_id, false)
 				get_viewport().set_input_as_handled()
 				return
 		elif event.keycode == KEY_J:
@@ -1342,7 +1402,38 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-func _trigger_poi_interaction(poi_id: String) -> void:
+func _trigger_beta_bypass_interaction() -> void:
+	# Fitur Versi Beta: Membuka paksa minigame/interaksi pada lokasi saat ini mengabaikan batasan cerita
+	var target_poi = active_poi_id
+	if target_poi.is_empty():
+		var p_pos = player.global_position if is_instance_valid(player) else Vector2.ZERO
+		var closest_dist = 320.0
+		if is_inside_house:
+			var house_pois = {
+				"indoor_letter": Vector2(3600.0 + 110.0, 400.0 - 20.0),
+				"indoor_safe": Vector2(3600.0 + 350.0, 400.0 - 80.0),
+				"indoor_photo_basin": Vector2(3600.0 + 260.0, 400.0 + 250.0)
+			}
+			for k in house_pois.keys():
+				var d = p_pos.distance_to(house_pois[k])
+				if d < closest_dist:
+					closest_dist = d
+					target_poi = k
+		else:
+			for k in POI_LOCATIONS.keys():
+				var d = p_pos.distance_to(POI_LOCATIONS[k]["pos"])
+				if d < closest_dist:
+					closest_dist = d
+					target_poi = k
+
+	if target_poi.is_empty():
+		_show_toast("[Fitur Versi Beta] Berdirilah di dekat lokasi minigame (Polisi, Stasiun, Kamar Mayat, Baskom Foto, atau Brankas) lalu tekan [Y]!")
+		return
+
+	_show_toast("[Fitur Versi Beta] Bypass Cerita [Y] Aktif: " + target_poi.to_upper())
+	_trigger_poi_interaction(target_poi, true)
+
+func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> void:
 	if not is_instance_valid(inv_mgr):
 		return
 
@@ -1353,15 +1444,15 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 		"indoor_letter":
 			_trigger_indoor_letter_monologue()
 
-		"indoor_safe":
+		"indoor_safe", "safe":
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
-				_show_toast("Membuka Brankas Baja Keluarga!")
+				_show_toast("Membuka Brankas Baja Keluarga!" if not bypass_story else "[Fitur Beta] Bypass: Membuka Brankas Baja Keluarga!")
 
 		"indoor_photo_basin":
-			if not inv_mgr.is_clue_unlocked("photo_envelope"):
-				_show_toast("Belum ada rol foto yang perlu dicuci. Selidiki stasiun terlebih dahulu!")
+			if not bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
+				_show_toast("Alur Cerita Terkunci: Belum ada rol foto dari stasiun! (Tekan [Y] untuk bypass fitur beta)")
 				if is_instance_valid(dialog_box):
 					var lines: Array[String] = [
 						"Baskom larutan kimia kamar gelap ini masih kosong.",
@@ -1371,9 +1462,11 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 					dialog_box.start_monologue(lines, "Detektif Benedict", "[ Kamar Gelap ]", "res://karakter/MC_Bingung.png")
 				return
 			if is_instance_valid(minigame_photo_wash):
+				if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
+					inv_mgr.unlock_clue("photo_envelope")
 				player.can_move = false
 				minigame_photo_wash.start_minigame()
-				_show_toast("Masuk ke Kamar Gelap: Cuci Foto Polaroid!")
+				_show_toast("Masuk ke Kamar Gelap: Cuci Foto Polaroid!" if not bypass_story else "[Fitur Beta] Bypass: Masuk ke Kamar Gelap Cuci Foto!")
 
 		"indoor_stairs":
 			_show_toast("Tangga: Menuju ruang arsip & loteng lantai atas (terkunci).")
@@ -1393,8 +1486,8 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 			_show_toast("Jam Kota Terhenti di Pukul 16:04!")
 
 		"police":
-			if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME:
-				_show_toast("Selidiki rumah korban di timur terlebih dahulu!")
+			if not bypass_story and (inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME or not inv_mgr.is_clue_unlocked("victim_letter")):
+				_show_toast("Alur Cerita Terkunci: Selidiki rumah korban di timur terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
 				if is_instance_valid(dialog_box):
 					var p_lines: Array[String] = [
 						"Petugas Polisi: 'Selamat bertugas, Detektif Benedict.'",
@@ -1403,7 +1496,7 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 					dialog_box.start_monologue(p_lines, "Kantor Polisi", "[ Instruksi Tugas ]", "res://NPC_Police/front.png")
 				return
 
-			if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
+			if not bypass_story and inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
 				# Cuci foto di lab forensik kantor polisi
 				if is_instance_valid(minigame_photo_wash):
 					player.can_move = false
@@ -1419,12 +1512,18 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 					if n.get("npc_type") == 1 or n.get("npc_type") == 3:
 						marcus_npc = n
 						break
+
+			if bypass_story:
+				_show_toast("[Fitur Beta] Bypass: Memulai Minigame Menguntit Marcus!")
+				_start_marcus_tailgate(marcus_npc)
+				return
+
 			if is_instance_valid(dialog_box) and not inv_mgr.has_tailgated_marcus:
 				var marcus_lines: Array[String] = [
 					"Detektif Benedict! Maaf, aku sedang sangat terburu-buru!",
 					"Ada urusan darurat terkait kasus kematian di stasiun, aku harus keluar sekarang!"
 				]
-				dialog_box.start_monologue(marcus_lines, "Inspektur Marcus", "[ Terburu-buru ]", "res://NPC_Inspecture/jalan-depan-1.png")
+				dialog_box.start_monologue(marcus_lines, "Inspektur Marcus", "[ Terburu-buru ]", "res://NPC_Inspecture/front.png")
 				dialog_box.monologue_finished.connect(func():
 					_start_marcus_tailgate(marcus_npc)
 				, CONNECT_ONE_SHOT)
@@ -1435,16 +1534,27 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 					_start_marcus_tailgate(marcus_npc)
 
 		"station":
+			if not bypass_story and not inv_mgr.has_tailgated_marcus:
+				_show_toast("Alur Cerita Terkunci: Kuntit Marcus di Kantor Polisi terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
+				if is_instance_valid(dialog_box):
+					var st_lines: Array[String] = [
+						"Peron stasiun kereta api tampak sepi dan hening...",
+						"Aku belum tahu apa keterkaitan stasiun ini dengan kasus kematian 404.",
+						"Aku harus menemui dan mencari tahu petunjuk dari Inspektur Marcus di Kantor Polisi terlebih dahulu."
+					]
+					dialog_box.start_monologue(st_lines, "Detektif Benedict", "[ Stasiun Kereta ]", "res://karakter/MC_Bingung.png")
+				return
+
 			if is_instance_valid(minigame_hidden_objects):
 				player.can_move = false
 				minigame_hidden_objects.start_minigame()
-				_show_toast("Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!")
+				_show_toast("Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!" if not bypass_story else "[Fitur Beta] Bypass: Minigame Stasiun Dimulai!")
 			else:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
 		"hospital":
-			if not inv_mgr.is_clue_unlocked("developed_photos"):
-				_show_toast("Akses ditolak: Belum ada identifikasi foto forensik korban!")
+			if not bypass_story and not inv_mgr.is_clue_unlocked("developed_photos"):
+				_show_toast("Alur Cerita Terkunci: Butuh identifikasi foto forensik korban! (Tekan [Y] untuk bypass fitur beta)")
 				if is_instance_valid(dialog_box):
 					var rej_lines: Array[String] = [
 						"Resepsionis RS: 'Mohon maaf, Detektif. Kamar mayat steril ditutup rapat.'",
@@ -1453,7 +1563,7 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 					dialog_box.start_monologue(rej_lines, "Rumah Sakit", "[ Akses Ditolak ]", "res://karakter/MC_Bingung.png")
 				return
 
-			if not hospital_status_reception_rejected and not inv_mgr.has_inspected_morgue:
+			if not bypass_story and not hospital_status_reception_rejected and not inv_mgr.has_inspected_morgue:
 				hospital_status_reception_rejected = true
 				if is_instance_valid(dialog_box):
 					var recep_lines: Array[String] = [
@@ -1471,7 +1581,7 @@ func _trigger_poi_interaction(poi_id: String) -> void:
 						_exit_house()
 					player.can_move = false
 					morgue_inspection.open_morgue()
-					_show_toast("Menyelinap ke Kamar Jenazah...")
+					_show_toast("Menyelinap ke Kamar Jenazah..." if not bypass_story else "[Fitur Beta] Bypass: Menyelinap ke Kamar Jenazah RS!")
 				else:
 					_show_toast("Kamar jenazah rumah sakit terkunci rapat.")
 
@@ -1493,10 +1603,18 @@ func _start_marcus_tailgate(marcus_npc: Node) -> void:
 			player.global_position = marcus_npc.global_position + Vector2(-120, 10)
 		if marcus_npc.has_method("start_patrol"):
 			marcus_npc.start_patrol()
+		if marcus_npc.has_signal("reached_station") and not marcus_npc.reached_station.is_connected(_on_police_reached_station):
+			marcus_npc.reached_station.connect(_on_police_reached_station)
 		minigame_tailgate.start_minigame(player, marcus_npc)
-		_show_toast("Marcus bergegas pergi! Ikuti dari kejauhan dan jaga jarak aman!")
+		_show_toast("Marcus & rekannya bergegas pergi! Ikuti dari kejauhan dan jaga jarak aman!")
 	else:
 		_show_toast("Kantor Polisi: 'Detektif, kami sedang menangani penyelidikan kasus 404.'")
+
+func _on_police_reached_station() -> void:
+	if is_instance_valid(minigame_tailgate) and minigame_tailgate.is_active:
+		minigame_tailgate.is_active = false
+		minigame_tailgate.visible = false
+	_on_tailgate_completed(true)
 
 func _trigger_death_god() -> void:
 	if is_instance_valid(player):
@@ -1510,14 +1628,8 @@ func _summon_death_god() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
 
-	# Periksa apakah pemain sudah berada tepat di dekat Altar Kuil Utama
-	var near_shrine = false
-	if is_instance_valid(shrine) and is_instance_valid(player):
-		if shrine.global_position.distance_to(player.global_position) < 180.0:
-			near_shrine = true
-
-	# Jika dipanggil di luar kuil, munculkan wujud Dewa Kematian Chibi di dunia game tepat di depan Benedict
-	if not near_shrine and is_instance_valid(player):
+	# Munculkan wujud Dewa Kematian Chibi di dunia game tepat di depan Benedict
+	if is_instance_valid(player):
 		_spawn_summoned_chibi_grim()
 
 	var prompt = ""
@@ -1601,6 +1713,7 @@ func _on_dialog_opened() -> void:
 	play_afterlife_music()
 
 func _on_dialog_closed() -> void:
+	input_grace_timer = 0.35
 	if is_instance_valid(player):
 		player.can_move = true
 	if is_instance_valid(shrine) and shrine.has_method("set_dialog_active"):

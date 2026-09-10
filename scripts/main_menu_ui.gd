@@ -21,6 +21,7 @@ var sfx_slider: HSlider
 var fullscreen_toggle_btn: Button
 
 var click_player: AudioStreamPlayer
+var menu_bgm_player: AudioStreamPlayer
 
 var tex_menu_bg: Texture2D
 
@@ -42,6 +43,17 @@ func _setup_audio() -> void:
 		click_player.volume_db = -3.0
 	add_child(click_player)
 
+	menu_bgm_player = AudioStreamPlayer.new()
+	menu_bgm_player.name = "MenuBGMPlayer"
+	var m_stream = load("res://main menu.mp3")
+	if not m_stream:
+		m_stream = load("res://sound/BGM.mp3")
+	if m_stream:
+		menu_bgm_player.stream = m_stream
+		menu_bgm_player.volume_db = -8.0
+		menu_bgm_player.finished.connect(func(): if is_instance_valid(menu_bgm_player) and is_active: menu_bgm_player.play())
+	add_child(menu_bgm_player)
+
 func _play_click() -> void:
 	if is_instance_valid(click_player) and click_player.stream:
 		click_player.play()
@@ -56,10 +68,14 @@ func open_menu() -> void:
 	if is_instance_valid(credit_modal):
 		credit_modal.visible = false
 	_update_button_positions()
+	if is_instance_valid(menu_bgm_player) and menu_bgm_player.stream and not menu_bgm_player.playing:
+		menu_bgm_player.play()
 
 func close_menu() -> void:
 	is_active = false
 	visible = false
+	if is_instance_valid(menu_bgm_player) and menu_bgm_player.playing:
+		menu_bgm_player.stop()
 
 func _build_menu_ui() -> void:
 	if is_instance_valid(root_control):
@@ -74,7 +90,7 @@ func _build_menu_ui() -> void:
 		bg_texture_rect.texture = tex_menu_bg
 	bg_texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	root_control.add_child(bg_texture_rect)
 
 	# 2. Header Judul Game di Pojok Atas Tengah
@@ -144,7 +160,7 @@ func _update_button_positions() -> void:
 		vp_size = Vector2(1600, 900)
 
 	var img_orig = Vector2(5760.0, 3240.0)
-	var scale_factor = max(vp_size.x / img_orig.x, vp_size.y / img_orig.y)
+	var scale_factor = min(vp_size.x / img_orig.x, vp_size.y / img_orig.y)
 	var displayed_size = img_orig * scale_factor
 	var offset = (vp_size - displayed_size) * 0.5
 

@@ -60,6 +60,12 @@ var tex_cs1: Texture2D
 var tex_cs2: Texture2D
 
 func _ready() -> void:
+	# Jika scene opening_cutscene.tscn dibuka langsung (misal tekan F6 di editor),
+	# langsung alihkan ke scene utama (main.tscn) agar pemain selalu memulai dari Main Menu!
+	if get_tree().current_scene == self or get_parent() == get_tree().root:
+		get_tree().change_scene_to_file("res://scenes/main.tscn")
+		return
+
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 

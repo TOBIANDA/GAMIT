@@ -33,8 +33,8 @@ var footsteps_player: AudioStreamPlayer2D
 @onready var camera: Camera2D = $Camera2D
 
 @export var target_zoom_val: float = 2.0
-@export var min_zoom_val: float = 0.35
-@export var max_zoom_val: float = 3.5
+@export var min_zoom_val: float = 1.40
+@export var max_zoom_val: float = 2.60
 @export var zoom_step: float = 0.20
 
 var player_light: PointLight2D
@@ -51,11 +51,27 @@ func _ready() -> void:
 		camera.make_current()
 		target_zoom_val = clampf(target_zoom_val, min_zoom_val, max_zoom_val)
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
+		setup_camera_limits(0, 0, 2400, 1450)
 
 	_setup_player_ambient_light()
 	_setup_footsteps_audio()
 	_load_all_mc_sprite_sets()
 	queue_redraw()
+
+func setup_camera_limits(l: int, t: int, r: int, b: int) -> void:
+	if not is_instance_valid(camera):
+		camera = get_node_or_null("Camera2D")
+	if is_instance_valid(camera):
+		camera.limit_left = l
+		camera.limit_top = t
+		camera.limit_right = r
+		camera.limit_bottom = b
+
+func reset_camera_smoothing() -> void:
+	if not is_instance_valid(camera):
+		camera = get_node_or_null("Camera2D")
+	if is_instance_valid(camera):
+		camera.reset_smoothing()
 
 func _setup_player_ambient_light() -> void:
 	player_light = PointLight2D.new()
@@ -133,9 +149,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			zoom_out()
 
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_I or event.keycode == KEY_BRACKETRIGHT:
+		if event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS:
 			zoom_in()
-		elif event.keycode == KEY_MINUS or event.keycode == KEY_O or event.keycode == KEY_BRACKETLEFT:
+		elif event.keycode == KEY_MINUS:
 			zoom_out()
 		elif event.keycode == KEY_0:
 			reset_zoom()
