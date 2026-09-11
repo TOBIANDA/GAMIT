@@ -113,26 +113,10 @@ func _build_menu_ui() -> void:
 	root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root_control)
 
-	# Latar Belakang Gelap Serasi di Luar Panggung (untuk Monitor Ultrawide 21:9 atau 16:10)
-	var root_bg = ColorRect.new()
-	root_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root_bg.color = Color(0.04, 0.02, 0.03, 1.0)
-	root_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.add_child(root_bg)
-
-	# Panggung 16:9 Proporsional Penuh (Menjamin seluruh meja terlihat utuh tanpa terpotong di resolusi apa pun)
-	aspect_container = AspectRatioContainer.new()
-	aspect_container.ratio = 16.0 / 9.0
-	aspect_container.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
-	aspect_container.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
-	aspect_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	aspect_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.add_child(aspect_container)
-
 	menu_canvas = Control.new()
 	menu_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
 	menu_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	aspect_container.add_child(menu_canvas)
+	root_control.add_child(menu_canvas)
 
 	# 1. Background Ilustrasi Meja Investigasi (5760x3240 Asli)
 	bg_texture_rect = TextureRect.new()

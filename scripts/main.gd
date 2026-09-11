@@ -112,7 +112,6 @@ func _ready() -> void:
 	if is_instance_valid(root_win):
 		root_win.content_scale_size = Vector2i(1600, 900)
 		root_win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-		root_win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 
 	_load_station_trigger_config()
 	_setup_audio_system()
@@ -1591,107 +1590,39 @@ func _setup_hud_prompts() -> void:
 	toast_banner.add_child(toast_label)
 
 
-	# Detective Case Status HUD Card (Pojok Kiri Atas)
+	# Detective Case Status HUD (Pojok Kiri Atas - Tanpa Background, Minimalis)
 	detective_hud_panel = PanelContainer.new()
 	detective_hud_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	detective_hud_panel.position = Vector2(20, 20)
-	detective_hud_panel.custom_minimum_size = Vector2(430, 80)
+	detective_hud_panel.position = Vector2(24, 20)
+	detective_hud_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	var dh_style = StyleBoxFlat.new()
-	dh_style.bg_color = Color(0.06, 0.08, 0.12, 0.94)
-	dh_style.border_color = Color(0.85, 0.70, 0.35, 0.9)
-	dh_style.set_border_width_all(2)
-	dh_style.set_corner_radius_all(10)
-	dh_style.content_margin_left = 12
-	dh_style.content_margin_right = 14
-	dh_style.content_margin_top = 8
-	dh_style.content_margin_bottom = 8
-	dh_style.shadow_color = Color(0, 0, 0, 0.45)
-	dh_style.shadow_size = 6
+	# Tanpa Background (Gada BG sama sekali)
+	var dh_style = StyleBoxEmpty.new()
 	detective_hud_panel.add_theme_stylebox_override("panel", dh_style)
 	hud_layer.add_child(detective_hud_panel)
 
-	var hud_hb = HBoxContainer.new()
-	hud_hb.add_theme_constant_override("separation", 12)
-	detective_hud_panel.add_child(hud_hb)
-
-	hud_avatar_rect = TextureRect.new()
-	var mc_tex = load("res://UI/mc_portrait.png")
-	if mc_tex:
-		hud_avatar_rect.texture = mc_tex
-	hud_avatar_rect.custom_minimum_size = Vector2(56, 56)
-	hud_avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hud_avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hud_hb.add_child(hud_avatar_rect)
-
 	var info_vb = VBoxContainer.new()
-	info_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info_vb.add_theme_constant_override("separation", 3)
-	hud_hb.add_child(info_vb)
+	info_vb.add_theme_constant_override("separation", 4)
+	info_vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detective_hud_panel.add_child(info_vb)
 
-	var name_hb = HBoxContainer.new()
-	info_vb.add_child(name_hb)
-
-	var name_lbl = Label.new()
-	name_lbl.text = "Detektif Benedict"
-	name_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	name_lbl.add_theme_font_size_override("font_size", 13)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_hb.add_child(name_lbl)
-
-	hud_phase_badge = Label.new()
-	hud_phase_badge.text = "[ Prolog ]"
-	hud_phase_badge.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
-	hud_phase_badge.add_theme_font_size_override("font_size", 11)
-	name_hb.add_child(hud_phase_badge)
-
+	# 1. Tugas Berikutnya
 	hud_objective_text = Label.new()
-	hud_objective_text.text = "Target: Periksa Meja Kerja"
-	hud_objective_text.add_theme_color_override("font_color", Color(0.92, 0.94, 0.98))
-	hud_objective_text.add_theme_font_size_override("font_size", 12)
-	hud_objective_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hud_objective_text.text = "Tugas Berikutnya: Periksa Meja Kerja"
+	hud_objective_text.add_theme_color_override("font_color", Color(1.0, 0.95, 0.70))
+	hud_objective_text.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
+	hud_objective_text.add_theme_constant_override("outline_size", 4)
+	hud_objective_text.add_theme_font_size_override("font_size", 16)
 	info_vb.add_child(hud_objective_text)
 
-	var btns_hb = HBoxContainer.new()
-	btns_hb.add_theme_constant_override("separation", 6)
-	info_vb.add_child(btns_hb)
-
-	var j_btn = Button.new()
-	j_btn.text = "Jurnal [J]"
-	j_btn.focus_mode = Control.FOCUS_NONE
-	j_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	j_btn.add_theme_font_size_override("font_size", 11)
-	j_btn.pressed.connect(func():
-		play_click_sfx()
-		if is_instance_valid(clue_journal):
-			clue_journal.toggle_journal()
-	)
-	btns_hb.add_child(j_btn)
-
-	var p_btn = Button.new()
-	p_btn.text = "Menu [ESC]"
-	p_btn.focus_mode = Control.FOCUS_NONE
-	p_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	p_btn.add_theme_font_size_override("font_size", 11)
-	p_btn.pressed.connect(func():
-		play_click_sfx()
-		toggle_pause_menu()
-	)
-	btns_hb.add_child(p_btn)
-
+	# 2. Ngasih tau Shift untuk Lari
 	var sprint_hint = Label.new()
-	sprint_hint.text = "[SHIFT] Tahan untuk Berlari"
-	sprint_hint.add_theme_color_override("font_color", Color(0.92, 0.96, 1.0, 0.85))
-	sprint_hint.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	sprint_hint.text = "Tahan [Shift] untuk Berlari"
+	sprint_hint.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0, 0.85))
+	sprint_hint.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
 	sprint_hint.add_theme_constant_override("outline_size", 3)
 	sprint_hint.add_theme_font_size_override("font_size", 13)
-	btns_hb.add_child(sprint_hint)
-
-	var beta_lbl = Label.new()
-	beta_lbl.text = "Beta: [X] Dewa Maut  [Y] Bypass"
-	beta_lbl.add_theme_color_override("font_color", Color(0.82, 0.74, 1.0))
-	beta_lbl.add_theme_font_size_override("font_size", 11)
-	btns_hb.add_child(beta_lbl)
+	info_vb.add_child(sprint_hint)
 
 func _is_fullscreen_now() -> bool:
 	var mode = DisplayServer.window_get_mode()
