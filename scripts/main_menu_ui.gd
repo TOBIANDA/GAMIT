@@ -27,6 +27,7 @@ var tex_menu_bg: Texture2D
 var tex_credit: Texture2D
 var tex_title: Texture2D
 var title_texture_rect: TextureRect
+var title_backdrop: Panel
 
 func _ready() -> void:
 	layer = 100
@@ -109,7 +110,20 @@ func _build_menu_ui() -> void:
 	bg_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	root_control.add_child(bg_texture_rect)
 
-	# 2. Header Judul Game (res://judul.png)
+	# 2a. Backdrop Gelap di Belakang Judul (Lebih Gelap & Berkontras Tinggi)
+	title_backdrop = Panel.new()
+	title_backdrop.name = "TitleBackdrop"
+	var tb_style = StyleBoxFlat.new()
+	tb_style.bg_color = Color(0.01, 0.01, 0.02, 0.94)
+	tb_style.set_corner_radius_all(8)
+	tb_style.shadow_color = Color(0.0, 0.0, 0.0, 0.90)
+	tb_style.shadow_size = 20
+	tb_style.shadow_offset = Vector2(0, 3)
+	title_backdrop.add_theme_stylebox_override("panel", tb_style)
+	title_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(title_backdrop)
+
+	# 2b. Header Judul Game (res://judul.png)
 	title_texture_rect = TextureRect.new()
 	title_texture_rect.name = "TitleTextureRect"
 	if is_instance_valid(tex_title):
@@ -178,8 +192,20 @@ func _update_button_positions() -> void:
 	if is_instance_valid(title_texture_rect):
 		var title_w: float = clamp(vp_size.x * 0.54, 420.0, 960.0)
 		var title_h: float = title_w * (200.0 / 1920.0)
+		var title_x: float = (vp_size.x - title_w) * 0.5
+		# Dinaikkan sedikit agar lebih seimbang dan berjarak dari pin & foto di bawahnya
+		var title_y: float = -2.0 * (vp_size.y / 900.0)
 		title_texture_rect.size = Vector2(title_w, title_h)
-		title_texture_rect.position = Vector2((vp_size.x - title_w) * 0.5, 10.0 * (vp_size.y / 900.0))
+		title_texture_rect.position = Vector2(title_x, title_y)
+
+		if is_instance_valid(title_backdrop):
+			var pad_x: float = 24.0 * (vp_size.x / 1600.0)
+			var bd_w: float = title_w + (pad_x * 2.0)
+			var bd_h: float = title_h * 0.68 + 10.0
+			var bd_x: float = title_x - pad_x
+			var bd_y: float = title_y + (title_h * 0.22) - 4.0
+			title_backdrop.size = Vector2(bd_w, bd_h)
+			title_backdrop.position = Vector2(bd_x, bd_y)
 
 	if is_instance_valid(options_modal):
 		var opt_w = options_modal.size.x if options_modal.size.x > 100.0 else options_modal.custom_minimum_size.x
