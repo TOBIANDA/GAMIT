@@ -460,7 +460,7 @@ func close_interface() -> void:
 	death_god_closed.emit()
 
 func _play_afterlife_sound() -> void:
-	if is_instance_valid(afterlife_audio) and afterlife_audio.stream:
+	if is_inside_tree() and is_instance_valid(afterlife_audio) and afterlife_audio.stream:
 		if not afterlife_audio.playing:
 			afterlife_audio.play()
 
