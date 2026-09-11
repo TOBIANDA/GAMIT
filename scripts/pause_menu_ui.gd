@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal resumed
+signal restart_requested
 signal journal_requested
 signal main_menu_requested
 
@@ -35,6 +36,7 @@ var menu_box: Control
 var objective_hint_label: Label
 
 var btn_resume: Button
+var btn_restart: Button
 var btn_journal: Button
 var btn_options: Button
 var btn_main_menu: Button
@@ -50,6 +52,7 @@ var click_player: AudioStreamPlayer
 var tex_paused: Texture2D
 var tex_pause_button: Texture2D
 var tex_btn_resume: Texture2D
+var tex_btn_restart: Texture2D
 var tex_btn_options: Texture2D
 var tex_btn_main_menu: Texture2D
 var tex_credit: Texture2D
@@ -71,6 +74,7 @@ func _load_assets() -> void:
 	tex_paused = load("res://PAUSED/PAUSED.png")
 	tex_pause_button = load("res://PAUSED/pause button.png")
 	tex_btn_resume = load("res://PAUSED/btn_resume.png")
+	tex_btn_restart = load("res://PAUSED/btn_restart.png")
 	tex_btn_options = load("res://PAUSED/btn_options.png")
 	tex_btn_main_menu = load("res://PAUSED/btn_main_menu.png")
 	tex_credit = load("res://Main Menu/credit.png")
@@ -80,6 +84,8 @@ func _load_assets() -> void:
 		a0.atlas = tex_paused
 		a0.region = Rect2(301, 286, 434, 126)
 		tex_btn_resume = a0
+	if not tex_btn_restart and tex_btn_resume:
+		tex_btn_restart = tex_btn_resume
 	if not tex_btn_options and tex_paused:
 		var a1 = AtlasTexture.new()
 		a1.atlas = tex_paused
@@ -92,8 +98,17 @@ func _load_assets() -> void:
 		tex_btn_main_menu = a2
 
 func _setup_audio() -> void:
+	# Pastikan bus audio "SFX" tersedia di AudioServer
+	var sfx_idx = AudioServer.get_bus_index("SFX")
+	if sfx_idx == -1:
+		AudioServer.add_bus()
+		var new_b = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(new_b, "SFX")
+		AudioServer.set_bus_send(new_b, "Master")
+
 	click_player = AudioStreamPlayer.new()
 	click_player.name = "PauseClickPlayer"
+	click_player.bus = "SFX"
 	var c_stream = load("res://sound/Click sound.mp3")
 	if c_stream:
 		click_player.stream = c_stream
