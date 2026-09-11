@@ -162,8 +162,8 @@ var default_furniture_config: Dictionary = {
 		"scale": 1.0,
 		"base_w": 22.0,
 		"has_col": true,
-		"col_w": 22.0, "col_h": 22.0,
-		"col_off_x": 0.0, "col_y_off": 0.0,
+		"col_w": 28.0, "col_h": 26.0,
+		"col_off_x": 0.0, "col_y_off": 6.0,
 		"z_idx": 0
 	},
 	"jam_weker": {
@@ -173,9 +173,9 @@ var default_furniture_config: Dictionary = {
 		"x": 355.0, "y": 50.0,
 		"scale": 0.55,
 		"base_w": 28.0,
-		"has_col": false,
-		"col_w": 18.0, "col_h": 18.0,
-		"col_off_x": 0.0, "col_y_off": 0.0,
+		"has_col": true,
+		"col_w": 26.0, "col_h": 24.0,
+		"col_off_x": 0.0, "col_y_off": 4.0,
 		"z_idx": 2,
 		"rot": 0.0,
 		"flip_x": false,
@@ -386,6 +386,8 @@ func _build_room_collisions() -> void:
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 24.0))
+	# Penghalang celah atas belakang ranjang & nakas jam weker (X=330..385, Y=32..46)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 330.0, ROOM_ORIGIN.y + 32.0, 55.0, 14.0))
 
 	# 2. DINDING SEKAT VERTIKAL
 	# Sekat Ruang Tamu - Ruang Kerja (X=125, dari Y=32 sampai Y=130)
