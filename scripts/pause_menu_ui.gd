@@ -8,17 +8,17 @@ signal main_menu_requested
 # ⚙️ PENGATURAN MANUAL UKURAN & POSISI TOMBOL PAUSE (BISA DIEDIT BEBAS DI SINI)
 # ==============================================================================
 @export_group("Tombol Pause di Layar (HUD)")
-## Lebar tombol pause HUD di pojok kanan atas (dalam piksel, default: 84.0)
-@export var hud_pause_button_width: float = 84.0
+## Lebar tombol pause HUD di pojok kanan atas (dalam piksel, default: 67.0)
+@export var hud_pause_button_width: float = 67.0
 
-## Tinggi tombol pause HUD di pojok kanan atas (dalam piksel, default: 84.0)
-@export var hud_pause_button_height: float = 84.0
+## Tinggi tombol pause HUD di pojok kanan atas (dalam piksel, default: 67.0)
+@export var hud_pause_button_height: float = 67.0
 
-## Jarak tombol pause dari tepi kanan layar (margin kanan, default: 20.0)
-@export var hud_pause_margin_right: float = 20.0
+## Jarak tombol pause dari tepi kanan layar (margin kanan, default: 18.0)
+@export var hud_pause_margin_right: float = 18.0
 
-## Jarak tombol pause dari tepi atas layar (margin atas, default: 20.0)
-@export var hud_pause_margin_top: float = 20.0
+## Jarak tombol pause dari tepi atas layar (margin atas, default: 18.0)
+@export var hud_pause_margin_top: float = 18.0
 
 @export_group("Tombol Resume di Menu Pause")
 ## Tinggi tombol 'Lanjutkan Permainan' di dalam menu pause (default: 58.0)
@@ -41,6 +41,7 @@ var btn_main_menu: Button
 var btn_quit: Button
 
 var options_modal: PanelContainer
+var credit_modal: PanelContainer
 var bgm_slider: HSlider
 var sfx_slider: HSlider
 
@@ -51,6 +52,8 @@ var tex_pause_button: Texture2D
 var tex_btn_resume: Texture2D
 var tex_btn_options: Texture2D
 var tex_btn_main_menu: Texture2D
+var tex_credit: Texture2D
+var btn_credit: Button
 var hud_pause_button: BaseButton
 
 func _ready() -> void:
@@ -70,6 +73,7 @@ func _load_assets() -> void:
 	tex_btn_resume = load("res://PAUSED/btn_resume.png")
 	tex_btn_options = load("res://PAUSED/btn_options.png")
 	tex_btn_main_menu = load("res://PAUSED/btn_main_menu.png")
+	tex_credit = load("res://Main Menu/credit.png")
 
 	if not tex_btn_resume and tex_paused:
 		var a0 = AtlasTexture.new()
@@ -132,6 +136,8 @@ func open_pause() -> void:
 	_refresh_objective_hint()
 	if is_instance_valid(options_modal):
 		options_modal.visible = false
+	if is_instance_valid(credit_modal):
+		credit_modal.visible = false
 
 func close_pause() -> void:
 	is_paused = false
@@ -141,6 +147,8 @@ func close_pause() -> void:
 		hud_pause_button.visible = true
 	if is_instance_valid(options_modal):
 		options_modal.visible = false
+	if is_instance_valid(credit_modal):
+		credit_modal.visible = false
 
 func toggle_pause() -> void:
 	if is_paused:
@@ -168,7 +176,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
 			if is_paused:
-				if is_instance_valid(options_modal) and options_modal.visible:
+				if is_instance_valid(credit_modal) and credit_modal.visible:
+					_play_click()
+					credit_modal.visible = false
+				elif is_instance_valid(options_modal) and options_modal.visible:
+					_play_click()
 					options_modal.visible = false
 				else:
 					resume_game()
@@ -186,6 +198,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			resume_game()
 			journal_requested.emit()
 			get_viewport().set_input_as_handled()
+		elif is_paused and event.keycode == KEY_C:
+			if is_instance_valid(credit_modal):
+				_play_click()
+				credit_modal.visible = not credit_modal.visible
+				get_viewport().set_input_as_handled()
 
 func _build_pause_ui() -> void:
 	root_control = Control.new()
@@ -308,7 +325,7 @@ func _build_pause_ui() -> void:
 	)
 	vb.add_child(btn_main_menu)
 
-	# Footer Links (Journal & Quit)
+	# Footer Links (Journal, Credit, Quit)
 	var footer_hb = HBoxContainer.new()
 	footer_hb.alignment = BoxContainer.ALIGNMENT_CENTER
 	footer_hb.add_theme_constant_override("separation", 24)
@@ -322,6 +339,14 @@ func _build_pause_ui() -> void:
 	)
 	footer_hb.add_child(btn_journal)
 
+	btn_credit = _create_text_link_button("[C] Kredit Game", Color(0.95, 0.85, 0.45))
+	btn_credit.pressed.connect(func():
+		_play_click()
+		if is_instance_valid(credit_modal):
+			credit_modal.visible = true
+	)
+	footer_hb.add_child(btn_credit)
+
 	btn_quit = _create_text_link_button("[Q] Keluar ke Desktop", Color(0.85, 0.45, 0.45))
 	btn_quit.pressed.connect(func():
 		_play_click()
@@ -331,6 +356,9 @@ func _build_pause_ui() -> void:
 
 	# 3. Settings Modal
 	_build_settings_modal(center)
+
+	# 4. Credit Modal
+	_build_credit_modal()
 
 func _create_paper_tag_button(tex: Texture2D) -> Button:
 	var btn = Button.new()
@@ -394,57 +422,167 @@ func _create_text_link_button(label_text: String, col: Color = Color(0.8, 0.85, 
 	btn.add_theme_stylebox_override("pressed", empty_sb)
 	return btn
 
+func _create_step_button(txt: String) -> Button:
+	var btn = Button.new()
+	btn.text = txt
+	btn.custom_minimum_size = Vector2(30, 26)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.14, 0.17, 0.24, 0.95)
+	sb.border_color = Color(0.75, 0.65, 0.35, 0.8)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("normal", sb)
+	var sb_h = sb.duplicate()
+	sb_h.bg_color = Color(0.24, 0.28, 0.38, 1.0)
+	sb_h.border_color = Color(1.0, 0.85, 0.45, 1.0)
+	btn.add_theme_stylebox_override("hover", sb_h)
+	btn.add_theme_stylebox_override("pressed", sb_h)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
+	btn.add_theme_font_size_override("font_size", 13)
+	return btn
+
+func _create_custom_sound_slider(title_text: String, initial_val: float, on_change: Callable) -> Control:
+	var container = VBoxContainer.new()
+	container.add_theme_constant_override("separation", 6)
+
+	var header_hb = HBoxContainer.new()
+	container.add_child(header_hb)
+
+	var title_lbl = Label.new()
+	title_lbl.text = title_text
+	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	title_lbl.add_theme_font_size_override("font_size", 13)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_hb.add_child(title_lbl)
+
+	var val_lbl = Label.new()
+	val_lbl.text = "%d%%" % int(round(initial_val * 100.0))
+	val_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
+	val_lbl.add_theme_font_size_override("font_size", 13)
+	header_hb.add_child(val_lbl)
+
+	var control_hb = HBoxContainer.new()
+	control_hb.add_theme_constant_override("separation", 8)
+	container.add_child(control_hb)
+
+	var btn_minus = _create_step_button("—")
+	btn_minus.tooltip_text = "Perkecil Suara (-5%)"
+	control_hb.add_child(btn_minus)
+
+	var slider = HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = initial_val
+	slider.custom_minimum_size = Vector2(230, 24)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slider.focus_mode = Control.FOCUS_NONE
+
+	var tex_back = load("res://UI/options/sound_backbar.png")
+	var tex_front = load("res://UI/options/sound_frontbar.png")
+	var tex_btn = load("res://UI/options/sound_button.png")
+	var tex_btn_h = load("res://UI/options/sound_button_hover.png")
+
+	if tex_back and tex_front and tex_btn:
+		var sb_back = StyleBoxTexture.new()
+		sb_back.texture = tex_back
+		sb_back.texture_margin_left = 6
+		sb_back.texture_margin_right = 6
+		sb_back.texture_margin_top = 4
+		sb_back.texture_margin_bottom = 4
+		sb_back.content_margin_top = 5
+		sb_back.content_margin_bottom = 5
+
+		var sb_front = StyleBoxTexture.new()
+		sb_front.texture = tex_front
+		sb_front.texture_margin_left = 6
+		sb_front.texture_margin_right = 6
+		sb_front.texture_margin_top = 4
+		sb_front.texture_margin_bottom = 4
+		sb_front.content_margin_top = 5
+		sb_front.content_margin_bottom = 5
+
+		slider.add_theme_stylebox_override("slider", sb_back)
+		slider.add_theme_stylebox_override("grabber_area", sb_front)
+		slider.add_theme_stylebox_override("grabber_area_highlight", sb_front)
+		slider.add_theme_icon_override("grabber", tex_btn)
+		slider.add_theme_icon_override("grabber_highlight", tex_btn_h if tex_btn_h else tex_btn)
+
+	control_hb.add_child(slider)
+
+	var btn_plus = _create_step_button("+")
+	btn_plus.tooltip_text = "Perbesar Suara (+5%)"
+	control_hb.add_child(btn_plus)
+
+	slider.value_changed.connect(func(v: float):
+		val_lbl.text = "%d%%" % int(round(v * 100.0))
+		on_change.call(v)
+	)
+
+	btn_minus.pressed.connect(func():
+		_play_click()
+		slider.value = max(0.0, slider.value - 0.05)
+	)
+
+	btn_plus.pressed.connect(func():
+		_play_click()
+		slider.value = min(1.0, slider.value + 0.05)
+	)
+
+	return container
+
 func _build_settings_modal(parent_center: CenterContainer) -> void:
 	options_modal = PanelContainer.new()
-	options_modal.custom_minimum_size = Vector2(460, 320)
+	options_modal.custom_minimum_size = Vector2(470, 340)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.09, 0.11, 0.16, 0.98)
-	sb.border_color = Color(1.0, 0.8, 0.35, 1.0)
+	sb.bg_color = Color(0.08, 0.10, 0.15, 0.98)
+	sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 24
-	sb.content_margin_right = 24
-	sb.content_margin_top = 18
-	sb.content_margin_bottom = 18
+	sb.set_corner_radius_all(10)
+	sb.content_margin_left = 28
+	sb.content_margin_right = 28
+	sb.content_margin_top = 20
+	sb.content_margin_bottom = 20
 	options_modal.add_theme_stylebox_override("panel", sb)
 	options_modal.visible = false
 	parent_center.add_child(options_modal)
 
 	var vb = VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 14)
+	vb.add_theme_constant_override("separation", 16)
 	options_modal.add_child(vb)
 
 	var t = Label.new()
-	t.text = "PENGATURAN"
+	t.text = "PENGATURAN SUARA & TAMPILAN"
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	t.add_theme_font_size_override("font_size", 16)
 	vb.add_child(t)
 
-	var bgm_hb = HBoxContainer.new()
-	vb.add_child(bgm_hb)
-	var bgm_lbl = Label.new()
-	bgm_lbl.text = "Volume Musik (BGM):"
-	bgm_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bgm_hb.add_child(bgm_lbl)
-	bgm_slider = HSlider.new()
-	bgm_slider.custom_minimum_size = Vector2(160, 20)
-	bgm_slider.min_value = 0.0
-	bgm_slider.max_value = 1.0
-	bgm_slider.step = 0.05
-	bgm_slider.value = 0.8
-	bgm_slider.value_changed.connect(func(v):
+	# 1. BGM Sound Slider (Sound backbar + frontbar + button)
+	var bgm_ctrl = _create_custom_sound_slider("Volume Musik (BGM):", 0.8, func(v: float):
 		var master_bus = AudioServer.get_bus_index("Master")
 		if master_bus != -1:
 			var db = linear_to_db(v) if v > 0.0 else -80.0
 			AudioServer.set_bus_volume_db(master_bus, db)
 	)
-	bgm_hb.add_child(bgm_slider)
+	vb.add_child(bgm_ctrl)
 
+	# 2. SFX Sound Slider
+	var sfx_ctrl = _create_custom_sound_slider("Volume Efek Suara (SFX):", 1.0, func(_v: float):
+		_play_click()
+	)
+	vb.add_child(sfx_ctrl)
+
+	# 3. Fullscreen Button
 	var fs_hb = HBoxContainer.new()
 	vb.add_child(fs_hb)
 	var fs_lbl = Label.new()
 	fs_lbl.text = "Mode Layar (Fullscreen):"
+	fs_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	fs_lbl.add_theme_font_size_override("font_size", 13)
 	fs_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fs_hb.add_child(fs_lbl)
 	var fs_btn = Button.new()
@@ -454,6 +592,7 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 		fs_btn.text = "Layar Jendela (F11)" if is_fs else "Layar Penuh (F11)"
 	update_fs_text.call()
 	fs_btn.focus_mode = Control.FOCUS_NONE
+	fs_btn.custom_minimum_size = Vector2(160, 32)
 	fs_btn.pressed.connect(func():
 		_play_click()
 		var mode = DisplayServer.window_get_mode()
@@ -465,9 +604,10 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	)
 	fs_hb.add_child(fs_btn)
 
+	# 4. Close Button
 	var close_opt = Button.new()
-	close_opt.text = "Selesai"
-	close_opt.custom_minimum_size = Vector2(140, 36)
+	close_opt.text = "Simpan & Kembali"
+	close_opt.custom_minimum_size = Vector2(160, 36)
 	close_opt.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_opt.focus_mode = Control.FOCUS_NONE
 	close_opt.pressed.connect(func():
@@ -475,3 +615,76 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 		options_modal.visible = false
 	)
 	vb.add_child(close_opt)
+
+func _build_credit_modal() -> void:
+	credit_modal = PanelContainer.new()
+	credit_modal.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var empty_sb = StyleBoxEmpty.new()
+	credit_modal.add_theme_stylebox_override("panel", empty_sb)
+	credit_modal.visible = false
+	root_control.add_child(credit_modal)
+
+	# 1. Dim Background
+	var dim = Button.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.focus_mode = Control.FOCUS_NONE
+	var dim_sb = StyleBoxFlat.new()
+	dim_sb.bg_color = Color(0.02, 0.03, 0.05, 0.90)
+	dim.add_theme_stylebox_override("normal", dim_sb)
+	dim.add_theme_stylebox_override("hover", dim_sb)
+	dim.add_theme_stylebox_override("pressed", dim_sb)
+	dim.pressed.connect(func():
+		_play_click()
+		credit_modal.visible = false
+	)
+	credit_modal.add_child(dim)
+
+	# 2. 16:9 Aspect Ratio Container
+	var asp = AspectRatioContainer.new()
+	asp.ratio = 16.0 / 9.0
+	asp.set_anchors_preset(Control.PRESET_FULL_RECT)
+	asp.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
+	asp.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
+	asp.mouse_filter = Control.MOUSE_FILTER_STOP
+	credit_modal.add_child(asp)
+
+	var credit_img = TextureRect.new()
+	if is_instance_valid(tex_credit):
+		credit_img.texture = tex_credit
+	credit_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	credit_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	credit_img.mouse_filter = Control.MOUSE_FILTER_PASS
+	asp.add_child(credit_img)
+
+	# 3. Close Button
+	var close_crd_btn = Button.new()
+	close_crd_btn.text = "✖ TUTUP KREDIT [ESC]"
+	close_crd_btn.custom_minimum_size = Vector2(190, 40)
+	close_crd_btn.anchor_left = 1.0
+	close_crd_btn.anchor_top = 0.0
+	close_crd_btn.anchor_right = 1.0
+	close_crd_btn.anchor_bottom = 0.0
+	close_crd_btn.offset_left = -215
+	close_crd_btn.offset_top = 25
+	close_crd_btn.offset_right = -25
+	close_crd_btn.offset_bottom = 65
+	close_crd_btn.focus_mode = Control.FOCUS_NONE
+	close_crd_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var c_sb = StyleBoxFlat.new()
+	c_sb.bg_color = Color(0.12, 0.14, 0.18, 0.95)
+	c_sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
+	c_sb.set_border_width_all(2)
+	c_sb.set_corner_radius_all(6)
+	close_crd_btn.add_theme_stylebox_override("normal", c_sb)
+	var c_hov = c_sb.duplicate()
+	c_hov.bg_color = Color(0.20, 0.24, 0.30, 1.0)
+	c_hov.border_color = Color(1.0, 0.85, 0.45, 1.0)
+	close_crd_btn.add_theme_stylebox_override("hover", c_hov)
+	close_crd_btn.add_theme_stylebox_override("pressed", c_hov)
+	close_crd_btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
+	close_crd_btn.add_theme_font_size_override("font_size", 13)
+	close_crd_btn.pressed.connect(func():
+		_play_click()
+		credit_modal.visible = false
+	)
+	credit_modal.add_child(close_crd_btn)

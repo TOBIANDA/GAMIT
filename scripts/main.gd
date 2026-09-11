@@ -71,10 +71,10 @@ var auto_police_escort_triggered: bool = false
 # ==============================================================================
 @export_group("Pause Button Settings")
 ## Ukuran tombol pause HUD di pojok kanan atas (Vector2: lebar, tinggi)
-@export var hud_pause_button_size: Vector2 = Vector2(84.0, 84.0)
+@export var hud_pause_button_size: Vector2 = Vector2(67.0, 67.0)
 
 ## Posisi jarak tombol pause dari tepi layar (Vector2: margin kanan, margin atas)
-@export var hud_pause_button_margin: Vector2 = Vector2(20.0, 20.0)
+@export var hud_pause_button_margin: Vector2 = Vector2(18.0, 18.0)
 # ==============================================================================
 
 func _ready() -> void:

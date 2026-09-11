@@ -220,6 +220,118 @@ func _create_paper_hotspot(btn_text: String, pos: Vector2, btn_size: Vector2) ->
 	btn.add_theme_stylebox_override("pressed", hover_sb)
 	return btn
 
+func _create_step_button(txt: String) -> Button:
+	var btn = Button.new()
+	btn.text = txt
+	btn.custom_minimum_size = Vector2(30, 26)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.14, 0.17, 0.24, 0.95)
+	sb.border_color = Color(0.75, 0.65, 0.35, 0.8)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("normal", sb)
+	var sb_h = sb.duplicate()
+	sb_h.bg_color = Color(0.24, 0.28, 0.38, 1.0)
+	sb_h.border_color = Color(1.0, 0.85, 0.45, 1.0)
+	btn.add_theme_stylebox_override("hover", sb_h)
+	btn.add_theme_stylebox_override("pressed", sb_h)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
+	btn.add_theme_font_size_override("font_size", 13)
+	return btn
+
+func _create_custom_sound_slider(title_text: String, initial_val: float, on_change: Callable) -> Control:
+	var container = VBoxContainer.new()
+	container.add_theme_constant_override("separation", 6)
+
+	var header_hb = HBoxContainer.new()
+	container.add_child(header_hb)
+
+	var title_lbl = Label.new()
+	title_lbl.text = title_text
+	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	title_lbl.add_theme_font_size_override("font_size", 13)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_hb.add_child(title_lbl)
+
+	var val_lbl = Label.new()
+	val_lbl.text = "%d%%" % int(round(initial_val * 100.0))
+	val_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
+	val_lbl.add_theme_font_size_override("font_size", 13)
+	header_hb.add_child(val_lbl)
+
+	var control_hb = HBoxContainer.new()
+	control_hb.add_theme_constant_override("separation", 8)
+	container.add_child(control_hb)
+
+	var btn_minus = _create_step_button("—")
+	btn_minus.tooltip_text = "Perkecil Suara (-5%)"
+	control_hb.add_child(btn_minus)
+
+	var slider = HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = initial_val
+	slider.custom_minimum_size = Vector2(230, 24)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slider.focus_mode = Control.FOCUS_NONE
+
+	var tex_back = load("res://UI/options/sound_backbar.png")
+	var tex_front = load("res://UI/options/sound_frontbar.png")
+	var tex_btn = load("res://UI/options/sound_button.png")
+	var tex_btn_h = load("res://UI/options/sound_button_hover.png")
+
+	if tex_back and tex_front and tex_btn:
+		var sb_back = StyleBoxTexture.new()
+		sb_back.texture = tex_back
+		sb_back.texture_margin_left = 6
+		sb_back.texture_margin_right = 6
+		sb_back.texture_margin_top = 4
+		sb_back.texture_margin_bottom = 4
+		sb_back.content_margin_top = 5
+		sb_back.content_margin_bottom = 5
+
+		var sb_front = StyleBoxTexture.new()
+		sb_front.texture = tex_front
+		sb_front.texture_margin_left = 6
+		sb_front.texture_margin_right = 6
+		sb_front.texture_margin_top = 4
+		sb_front.texture_margin_bottom = 4
+		sb_front.content_margin_top = 5
+		sb_front.content_margin_bottom = 5
+
+		slider.add_theme_stylebox_override("slider", sb_back)
+		slider.add_theme_stylebox_override("grabber_area", sb_front)
+		slider.add_theme_stylebox_override("grabber_area_highlight", sb_front)
+		slider.add_theme_icon_override("grabber", tex_btn)
+		slider.add_theme_icon_override("grabber_highlight", tex_btn_h if tex_btn_h else tex_btn)
+
+	control_hb.add_child(slider)
+
+	var btn_plus = _create_step_button("+")
+	btn_plus.tooltip_text = "Perbesar Suara (+5%)"
+	control_hb.add_child(btn_plus)
+
+	slider.value_changed.connect(func(v: float):
+		val_lbl.text = "%d%%" % int(round(v * 100.0))
+		on_change.call(v)
+	)
+
+	btn_minus.pressed.connect(func():
+		_play_click()
+		slider.value = max(0.0, slider.value - 0.05)
+	)
+
+	btn_plus.pressed.connect(func():
+		_play_click()
+		slider.value = min(1.0, slider.value + 0.05)
+	)
+
+	return container
+
 func _build_options_modal() -> void:
 	options_modal = PanelContainer.new()
 	options_modal.set_anchors_preset(Control.PRESET_CENTER)
@@ -250,52 +362,35 @@ func _build_options_modal() -> void:
 	title.add_theme_font_size_override("font_size", 16)
 	vb.add_child(title)
 
-	# BGM Slider
-	var bgm_hb = HBoxContainer.new()
-	vb.add_child(bgm_hb)
-	var bgm_lbl = Label.new()
-	bgm_lbl.text = "Volume Musik (BGM):"
-	bgm_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bgm_hb.add_child(bgm_lbl)
-	bgm_slider = HSlider.new()
-	bgm_slider.custom_minimum_size = Vector2(180, 20)
-	bgm_slider.min_value = 0.0
-	bgm_slider.max_value = 1.0
-	bgm_slider.step = 0.05
-	bgm_slider.value = 0.8
-	bgm_slider.value_changed.connect(_on_bgm_volume_changed)
-	bgm_hb.add_child(bgm_slider)
+	# 1. BGM Slider (Sound backbar + frontbar + button)
+	var bgm_ctrl = _create_custom_sound_slider("Volume Musik (BGM):", 0.8, func(v: float):
+		_on_bgm_volume_changed(v)
+	)
+	vb.add_child(bgm_ctrl)
 
-	# SFX Slider
-	var sfx_hb = HBoxContainer.new()
-	vb.add_child(sfx_hb)
-	var sfx_lbl = Label.new()
-	sfx_lbl.text = "Volume Efek Suara (SFX):"
-	sfx_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sfx_hb.add_child(sfx_lbl)
-	sfx_slider = HSlider.new()
-	sfx_slider.custom_minimum_size = Vector2(180, 20)
-	sfx_slider.min_value = 0.0
-	sfx_slider.max_value = 1.0
-	sfx_slider.step = 0.05
-	sfx_slider.value = 1.0
-	sfx_slider.value_changed.connect(_on_sfx_volume_changed)
-	sfx_hb.add_child(sfx_slider)
+	# 2. SFX Slider
+	var sfx_ctrl = _create_custom_sound_slider("Volume Efek Suara (SFX):", 1.0, func(v: float):
+		_on_sfx_volume_changed(v)
+	)
+	vb.add_child(sfx_ctrl)
 
-	# Fullscreen Toggle
+	# 3. Fullscreen Toggle
 	var fs_hb = HBoxContainer.new()
 	vb.add_child(fs_hb)
 	var fs_lbl = Label.new()
 	fs_lbl.text = "Mode Layar Penuh (F11):"
+	fs_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	fs_lbl.add_theme_font_size_override("font_size", 13)
 	fs_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fs_hb.add_child(fs_lbl)
 	fullscreen_toggle_btn = Button.new()
 	fullscreen_toggle_btn.text = "Toggle Fullscreen"
 	fullscreen_toggle_btn.focus_mode = Control.FOCUS_NONE
+	fullscreen_toggle_btn.custom_minimum_size = Vector2(160, 32)
 	fullscreen_toggle_btn.pressed.connect(_on_toggle_fullscreen)
 	fs_hb.add_child(fullscreen_toggle_btn)
 
-	# Close Button
+	# 4. Close Button
 	var close_opt_btn = Button.new()
 	close_opt_btn.text = "Simpan & Kembali"
 	close_opt_btn.custom_minimum_size = Vector2(180, 38)
@@ -316,12 +411,12 @@ func _build_credit_modal() -> void:
 	credit_modal.visible = false
 	root_control.add_child(credit_modal)
 
-	# Dim background overlay (klik untuk tutup)
+	# Dim background overlay (klik background untuk tutup)
 	var dim = Button.new()
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.focus_mode = Control.FOCUS_NONE
 	var dim_sb = StyleBoxFlat.new()
-	dim_sb.bg_color = Color(0.02, 0.03, 0.05, 0.88)
+	dim_sb.bg_color = Color(0.02, 0.03, 0.05, 0.90)
 	dim.add_theme_stylebox_override("normal", dim_sb)
 	dim.add_theme_stylebox_override("hover", dim_sb)
 	dim.add_theme_stylebox_override("pressed", dim_sb)
@@ -331,13 +426,13 @@ func _build_credit_modal() -> void:
 	)
 	credit_modal.add_child(dim)
 
-	# Tampilan 16:9 Image Credit.png
+	# Tampilan 16:9 Image Credit.png (tetap proporsional dan presisi di semua resolusi)
 	var asp = AspectRatioContainer.new()
 	asp.ratio = 16.0 / 9.0
 	asp.set_anchors_preset(Control.PRESET_FULL_RECT)
 	asp.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
 	asp.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
-	asp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	asp.mouse_filter = Control.MOUSE_FILTER_STOP
 	credit_modal.add_child(asp)
 
 	var credit_img = TextureRect.new()
@@ -345,7 +440,7 @@ func _build_credit_modal() -> void:
 		credit_img.texture = tex_credit
 	credit_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	credit_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	credit_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	credit_img.mouse_filter = Control.MOUSE_FILTER_PASS
 	asp.add_child(credit_img)
 
 	# Tombol Tutup di Pojok Kanan Atas
