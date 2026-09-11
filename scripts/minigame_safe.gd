@@ -407,11 +407,7 @@ func _build_scene_ui() -> void:
 		b_press.set_corner_radius_all(6)
 		btn.add_theme_stylebox_override("pressed", b_press)
 
-		btn.text = kd["label"]
-		btn.add_theme_font_size_override("font_size", 16)
-		btn.add_theme_color_override("font_color", Color(0.92, 0.95, 1.0, 0.9))
-		btn.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.5))
-		btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 0.8))
+		btn.text = ""
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		btn.z_index = 5
 		btn.pressed.connect(kd["action"])
