@@ -49,8 +49,8 @@ var transition_overlay: ColorRect
 var transition_layer: CanvasLayer
 
 const POI_LOCATIONS = {
-	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1170, 230), "radius": 150.0},
-	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1170), "radius": 75.0},
+	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1170, 230), "radius": 48.0},
+	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1170), "radius": 48.0},
 	"street_clock": {"name": "Jam Jalan (Berhenti di 16:04)", "pos": Vector2(480, 220), "radius": 120.0},
 	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(280, 915), "radius": 220.0},
 	"police_darkroom": {"name": "Lab Forensik Polisi (Kamar Gelap Cuci Foto)", "pos": Vector2(170, 1050), "radius": 110.0},
@@ -1622,13 +1622,17 @@ func _check_poi_proximity() -> void:
 		best_poi = "station"
 		closest_dist = 0.0
 	# 2. Pintu Masuk Rumah Benedict (pintu beranda depan)
-	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 65.0:
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 48.0:
 		best_poi = "desk"
 		closest_dist = p_pos.distance_to(Vector2(1170.0, 230.0))
 	# 3. Pintu Masuk Rumah Ibu Korban (Hanya Rumah Paling Bawah di 3 Rumah Dekat Stasiun)
-	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1170.0)) <= 70.0:
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1170.0)) <= 48.0:
 		best_poi = "mother_house"
 		closest_dist = p_pos.distance_to(Vector2(1714.0, 1170.0))
+	# 4. Pintu Rumah Warga Lain (Terkunci Rapat dari Dalam)
+	elif not is_inside_house and not is_inside_exploration_house and _is_near_locked_civilian_house(p_pos):
+		best_poi = "locked_civilian_house"
+		closest_dist = 40.0
 
 	# 5. Meja Lab Forensik / Kamar Gelap Cuci Foto Kantor Polisi
 	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(170.0, 1050.0)) <= 90.0:
@@ -1653,6 +1657,8 @@ func _check_poi_proximity() -> void:
 			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
 			if active_poi_id == "mother_house":
 				custom_text = "[ F / E / Spasi ] MASUK KE RUMAH IBU KORBAN"
+			elif active_poi_id == "locked_civilian_house":
+				custom_text = "[ F / E / Spasi ] PINTU RUMAH WARGA (TERKUNCI RAPAT)"
 			elif active_poi_id == "police_darkroom":
 				if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] LAB FORENSIK POLISI: CUCI ROL FOTO"
@@ -1843,6 +1849,17 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 
 		"mother_house":
 			_enter_exploration_house()
+
+		"locked_civilian_house":
+			if is_instance_valid(door_sfx_player):
+				door_sfx_player.play()
+			if is_instance_valid(dialog_box):
+				var locked_lines: Array[String] = [
+					"Pintu rumah warga ini terkunci rapat dengan grendel dari dalam.",
+					"Hanya rumah Benedict dan rumah Ibu yang bisa dimasuki."
+				]
+				dialog_box.start_monologue(locked_lines, "Detektif Benedict", "[ Pintu Terkunci ]", "res://karakter/MC_Normal.png")
+			_show_toast("Pintu rumah warga terkunci rapat dari dalam.")
 
 
 		"indoor_expl_exit":
@@ -2284,3 +2301,22 @@ func _notification(what: int) -> void:
 			OS.kill(server_pid)
 			print("[Main] Server AI dihentikan.")
 		get_tree().quit()
+
+func _is_near_locked_civilian_house(p_pos: Vector2) -> bool:
+	# 1. Deretan 11 rumah di utara (i = 0..10, kecuali rumah Benedict di i = 6)
+	for i in range(11):
+		if i == 6:
+			continue
+		var hx = 210.0 + float(i) * 160.0
+		if p_pos.distance_to(Vector2(hx + 78.0, 175.0)) <= 48.0 or p_pos.distance_to(Vector2(hx, 230.0)) <= 48.0:
+			return true
+
+	# 2. Dua rumah lain di tenggara (se_0 dan se_1, bukan se_2 yang merupakan rumah Ibu)
+	if p_pos.distance_to(Vector2(1714.0, 840.0)) <= 48.0 or p_pos.distance_to(Vector2(1714.0, 1015.0)) <= 48.0:
+		return true
+
+	# 3. Dua rumah di timur laut (ne_0 dan ne_1)
+	if p_pos.distance_to(Vector2(1730.0, 496.0)) <= 48.0 or p_pos.distance_to(Vector2(1912.0, 496.0)) <= 48.0:
+		return true
+
+	return false
