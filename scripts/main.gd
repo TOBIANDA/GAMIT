@@ -338,6 +338,7 @@ func _setup_house_interior() -> void:
 		house_interior = Node2D.new()
 		house_interior.name = "HouseInterior"
 		house_interior.set_script(hi_script)
+		house_interior.visible = is_inside_house
 		add_child(house_interior)
 		if house_interior.has_method("set_editor_available"):
 			house_interior.set_editor_available(is_inside_house)
@@ -353,6 +354,11 @@ func _enter_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_house = true
+		is_inside_exploration_house = false
+		if is_instance_valid(house_interior):
+			house_interior.visible = true
+		if is_instance_valid(exploration_house_interior):
+			exploration_house_interior.visible = false
 		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 310.0)
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(3600, 400, 4400, 1000)
@@ -379,6 +385,10 @@ func _exit_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_house = false
+		if is_instance_valid(house_interior):
+			house_interior.visible = false
+		if is_instance_valid(exploration_house_interior):
+			exploration_house_interior.visible = false
 		player.global_position = Vector2(1170.0, 260.0)
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(0, 0, 2400, 1450)
@@ -400,6 +410,7 @@ func _setup_exploration_house_interior() -> void:
 		exploration_house_interior = Node2D.new()
 		exploration_house_interior.name = "ExplorationHouseInterior"
 		exploration_house_interior.set_script(ehi_script)
+		exploration_house_interior.visible = is_inside_exploration_house
 		add_child(exploration_house_interior)
 
 func _enter_exploration_house() -> void:
@@ -413,6 +424,11 @@ func _enter_exploration_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_exploration_house = true
+		is_inside_house = false
+		if is_instance_valid(exploration_house_interior):
+			exploration_house_interior.visible = true
+		if is_instance_valid(house_interior):
+			house_interior.visible = false
 		player.global_position = Vector2(4600.0 + 110.0, 400.0 + 330.0)
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(4580, 380, 5260, 840)
@@ -437,6 +453,10 @@ func _exit_exploration_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_exploration_house = false
+		if is_instance_valid(exploration_house_interior):
+			exploration_house_interior.visible = false
+		if is_instance_valid(house_interior):
+			house_interior.visible = false
 		player.global_position = Vector2(1714.0, 1200.0)
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(0, 0, 2400, 1450)

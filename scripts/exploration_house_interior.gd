@@ -1,4 +1,4 @@
-﻿extends Node2D
+extends Node2D
 class_name ExplorationHouseInterior
 
 # ==============================================================================
@@ -117,55 +117,58 @@ func _add_box_collider(body: StaticBody2D, rect: Rect2) -> CollisionShape2D:
 func _setup_furniture_sprites() -> void:
 	# 1. Karpet Ruang Tamu
 	if tex_karpet:
-		_create_sprite("karpet_tamu", tex_karpet, ROOM_ORIGIN + Vector2(110.0, 205.0), 1.2, -1)
-		_create_sprite("karpet_kamar", tex_karpet, ROOM_ORIGIN + Vector2(480.0, 160.0), 1.1, -1)
+		_create_sprite("karpet_tamu", tex_karpet, ROOM_ORIGIN + Vector2(110.0, 205.0), 100.0, -1)
+		_create_sprite("karpet_kamar", tex_karpet, ROOM_ORIGIN + Vector2(480.0, 160.0), 90.0, -1)
 
 	# 2. Sofa Tamu
 	if tex_sofa_panjang:
-		_create_sprite("sofa_tamu", tex_sofa_panjang, ROOM_ORIGIN + Vector2(110.0, 160.0), 0.95, 0)
+		_create_sprite("sofa_tamu", tex_sofa_panjang, ROOM_ORIGIN + Vector2(110.0, 160.0), 70.0, 0)
 
 	# 3. Meja Kopi Tamu
 	if tex_meja_panjang:
-		_create_sprite("meja_tamu", tex_meja_panjang, ROOM_ORIGIN + Vector2(110.0, 210.0), 1.1, 0)
+		_create_sprite("meja_tamu", tex_meja_panjang, ROOM_ORIGIN + Vector2(110.0, 210.0), 50.0, 0)
 
 	# 4. Nakas & Jam Weker (Jam Antik)
 	if tex_laci:
-		_create_sprite("laci_tamu", tex_laci, ROOM_ORIGIN + Vector2(60.0, 115.0), 1.2, 0)
+		_create_sprite("laci_tamu", tex_laci, ROOM_ORIGIN + Vector2(60.0, 115.0), 24.0, 0)
 	if tex_jam_weker:
-		_create_sprite("jam_weker", tex_jam_weker, ROOM_ORIGIN + Vector2(60.0, 105.0), 0.35, 1)
+		_create_sprite("jam_weker", tex_jam_weker, ROOM_ORIGIN + Vector2(60.0, 105.0), 18.0, 1)
 
 	# 5. Brankas Baja Keluarga
 	if tex_berangkas:
-		_create_sprite("brankas_keluarga", tex_berangkas, ROOM_ORIGIN + Vector2(280.0, 75.0), 1.05, 0)
+		_create_sprite("brankas_keluarga", tex_berangkas, ROOM_ORIGIN + Vector2(280.0, 75.0), 32.0, 0)
 
 	# 6. Ranjang Ibu
 	if tex_bed:
-		_create_sprite("bed_ibu", tex_bed, ROOM_ORIGIN + Vector2(480.0, 95.0), 1.3, 0)
+		_create_sprite("bed_ibu", tex_bed, ROOM_ORIGIN + Vector2(480.0, 95.0), 65.0, 0)
 
 	# 7. Lemari Pakaian Kayu
 	if tex_lemari:
-		_create_sprite("lemari_kamar", tex_lemari, ROOM_ORIGIN + Vector2(575.0, 80.0), 1.4, 0)
+		_create_sprite("lemari_kamar", tex_lemari, ROOM_ORIGIN + Vector2(575.0, 80.0), 55.0, 0)
 
 	# 8. Nakas Kamar & Kalender / Foto Kenangan
 	if tex_laci:
-		_create_sprite("laci_kamar", tex_laci, ROOM_ORIGIN + Vector2(420.0, 75.0), 1.2, 0)
+		_create_sprite("laci_kamar", tex_laci, ROOM_ORIGIN + Vector2(420.0, 75.0), 24.0, 0)
 	if tex_kalender:
-		_create_sprite("kalender_ibu", tex_kalender, ROOM_ORIGIN + Vector2(420.0, 60.0), 0.35, 1)
+		_create_sprite("kalender_ibu", tex_kalender, ROOM_ORIGIN + Vector2(420.0, 60.0), 20.0, 1)
 
 	# 9. Meja Resep & Buku Resep Ibu
 	if tex_meja_panjang:
-		_create_sprite("meja_resep", tex_meja_panjang, ROOM_ORIGIN + Vector2(340.0, 260.0), 1.2, 0)
+		_create_sprite("meja_resep", tex_meja_panjang, ROOM_ORIGIN + Vector2(340.0, 260.0), 60.0, 0)
 	if tex_buku_resep:
-		_create_sprite("buku_resep", tex_buku_resep, ROOM_ORIGIN + Vector2(335.0, 255.0), 0.38, 1)
+		_create_sprite("buku_resep", tex_buku_resep, ROOM_ORIGIN + Vector2(335.0, 255.0), 20.0, 1)
 	if tex_surat:
-		_create_sprite("catatan_ibu", tex_surat, ROOM_ORIGIN + Vector2(358.0, 255.0), 0.8, 1)
+		_create_sprite("catatan_ibu", tex_surat, ROOM_ORIGIN + Vector2(358.0, 255.0), 16.0, 1)
 
-func _create_sprite(id: String, tex: Texture2D, pos: Vector2, custom_scale: float = 1.0, z_idx: int = 0) -> Sprite2D:
+func _create_sprite(id: String, tex: Texture2D, pos: Vector2, target_w: float = 40.0, z_idx: int = 0) -> Sprite2D:
 	var sp = Sprite2D.new()
 	sp.name = "Sprite_" + id
 	sp.texture = tex
 	sp.position = pos
-	sp.scale = Vector2(custom_scale, custom_scale)
+	var ratio: float = 1.0
+	if tex and tex.get_width() > 0:
+		ratio = target_w / float(tex.get_width())
+	sp.scale = Vector2(ratio, ratio)
 	sp.z_index = z_idx
 	add_child(sp)
 	sprites[id] = sp

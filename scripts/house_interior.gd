@@ -681,7 +681,12 @@ func _setup_editor_ui() -> void:
 	edit_toggle_btn = Button.new()
 	edit_toggle_btn.text = "Atur Perabot [F2]"
 	edit_toggle_btn.focus_mode = Control.FOCUS_NONE
-	edit_toggle_btn.position = Vector2(1410, 24)
+	edit_toggle_btn.anchor_left = 1.0
+	edit_toggle_btn.anchor_right = 1.0
+	edit_toggle_btn.offset_left = -285.0
+	edit_toggle_btn.offset_right = -115.0
+	edit_toggle_btn.offset_top = 22.0
+	edit_toggle_btn.offset_bottom = 58.0
 	edit_toggle_btn.custom_minimum_size = Vector2(170, 36)
 
 	var btn_style = StyleBoxFlat.new()
