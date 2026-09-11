@@ -1226,6 +1226,8 @@ var font_vintage_bold: FontFile
 var font_typewriter: FontFile
 var font_anaktoria: FontFile
 var font_riwaya_informal: FontFile
+var font_atma: FontFile
+var font_atma_bold: FontFile
 
 func _load_letter_fonts() -> void:
 	if not font_vintage:
@@ -1273,6 +1275,35 @@ func _load_letter_fonts() -> void:
 				if ff.load_dynamic_font(p) == OK:
 					font_riwaya_informal = ff
 					print("[LetterViewer] Font 29LT Riwaya Informal berhasil dimuat dari: ", p)
+					break
+
+	# Pemuatan Font Atma (Regular & Bold)
+	if not font_atma:
+		var atma_candidates = [
+			"res://fonts/atma_regular.ttf",
+			"res://fonts/atma_medium.ttf",
+			"res://fonts/atma_semibold.ttf"
+		]
+		for p in atma_candidates:
+			if FileAccess.file_exists(p):
+				var ff = FontFile.new()
+				if ff.load_dynamic_font(p) == OK:
+					font_atma = ff
+					print("[LetterViewer] Font Atma berhasil dimuat dari: ", p)
+					break
+
+	if not font_atma_bold:
+		var atma_b_candidates = [
+			"res://fonts/atma_bold.ttf",
+			"res://fonts/atma_semibold.ttf",
+			"res://fonts/atma_medium.ttf"
+		]
+		for p in atma_b_candidates:
+			if FileAccess.file_exists(p):
+				var ff = FontFile.new()
+				if ff.load_dynamic_font(p) == OK:
+					font_atma_bold = ff
+					print("[LetterViewer] Font Atma Bold berhasil dimuat dari: ", p)
 					break
 
 func _setup_letter_viewer() -> void:
@@ -1339,7 +1370,10 @@ func _setup_letter_viewer() -> void:
 	letter_header_lbl = Label.new()
 	letter_header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter_header_lbl.add_theme_color_override("font_color", Color(0.18, 0.12, 0.08))
-	if font_anaktoria:
+	if font_atma_bold:
+		letter_header_lbl.add_theme_font_override("font", font_atma_bold)
+		letter_header_lbl.add_theme_font_size_override("font_size", 22)
+	elif font_anaktoria:
 		letter_header_lbl.add_theme_font_override("font", font_anaktoria)
 		letter_header_lbl.add_theme_font_size_override("font_size", 21)
 	elif font_vintage_bold:
@@ -1352,7 +1386,10 @@ func _setup_letter_viewer() -> void:
 	letter_sub_lbl = Label.new()
 	letter_sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter_sub_lbl.add_theme_color_override("font_color", Color(0.42, 0.32, 0.20))
-	if font_anaktoria:
+	if font_atma:
+		letter_sub_lbl.add_theme_font_override("font", font_atma)
+		letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
+	elif font_anaktoria:
 		letter_sub_lbl.add_theme_font_override("font", font_anaktoria)
 		letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
 	elif font_vintage:
@@ -1388,7 +1425,9 @@ func _setup_letter_viewer() -> void:
 	letter_body_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	letter_body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	letter_body_lbl.add_theme_color_override("font_color", Color(0.14, 0.10, 0.06))
-	if font_anaktoria:
+	if font_atma:
+		letter_body_lbl.add_theme_font_override("font", font_atma)
+	elif font_anaktoria:
 		letter_body_lbl.add_theme_font_override("font", font_anaktoria)
 	elif font_vintage:
 		letter_body_lbl.add_theme_font_override("font", font_vintage)
@@ -1428,8 +1467,21 @@ func _open_police_letter() -> void:
 
 	if is_instance_valid(letter_header_lbl):
 		letter_header_lbl.text = "BERKAS PENUGASAN KEPOLISIAN\n(KASUS #404)"
+		if font_atma_bold:
+			letter_header_lbl.add_theme_font_override("font", font_atma_bold)
+			letter_header_lbl.add_theme_font_size_override("font_size", 22)
+		elif font_anaktoria:
+			letter_header_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_header_lbl.add_theme_font_size_override("font_size", 21)
+
 	if is_instance_valid(letter_sub_lbl):
 		letter_sub_lbl.text = "Departemen Kepolisian Kota • Ditujukan kepada: Detektif Benedict"
+		if font_atma:
+			letter_sub_lbl.add_theme_font_override("font", font_atma)
+			letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
+		elif font_anaktoria:
+			letter_sub_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
 
 	var police_text = "Sesosok jenazah telah ditemukan di gang sempit dekat area kota. Hingga saat ini belum ada yang berhasil mengungkap siapa dia sebenarnya, apa yang terjadi padanya, atau mengapa semuanya terasa begitu janggal sejak kematian itu terjadi. Aku dengar kau terkenal sebagai orang yang tidak pernah puas dengan jawaban di permukaan, orang yang selalu menggali lebih dalam ketika orang lain sudah berhenti mencari. Kami percaya, dari semua orang, Andalah yang paling memahami kasus ini.\n\n" + \
 		"Carilah bantuan, mungkin kau bisa mulai dari menemui orang yang paling sering berurusan dengan kasus semacam ini, seseorang yang duduk di balik meja penuh berkas di gedung tempat hukum ditegakkan. Dialah yang paling mungkin tahu ke mana korban terakhir kali melangkah. Ikuti jejaknya, dengarkan apa yang tidak ia katakan secara langsung, dan biarkan satu petunjuk membawamu ke petunjuk berikutnya. Semakin dalam kau menggali, semakin banyak yang akan terungkap.\n\n" + \
@@ -1437,7 +1489,10 @@ func _open_police_letter() -> void:
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = police_text
-		if font_anaktoria:
+		if font_atma:
+			letter_body_lbl.add_theme_font_override("font", font_atma)
+			letter_body_lbl.add_theme_font_size_override("font_size", 17.5)
+		elif font_anaktoria:
 			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
 			letter_body_lbl.add_theme_font_size_override("font_size", 17.5)
 		elif font_typewriter:
@@ -2114,7 +2169,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				if is_instance_valid(dialog_box):
 					var d_lines: Array[String] = [
 						"Meja bak kimia kamar gelap lab forensik kepolisian...",
-						"Aku belum menemukan rol film foto ataupun bukti kasus di stasiun.",
+						"Aku belum menemukan bukti kasus di stasiun.",
 						"Aku harus menyelidiki peron stasiun terlebih dahulu untuk mencari bukti tersebut."
 					]
 					dialog_box.start_monologue(d_lines, "Detektif Benedict", "[ Lab Forensik ]", "res://karakter/MC_Bingung.png")
@@ -2179,7 +2234,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 
 		"station":
 			if not bypass_story and not inv_mgr.has_tailgated_marcus:
-				_show_toast("Alur Cerita Terkunci: Kuntit Marcus di Kantor Polisi terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
+				_show_toast("Alur Cerita Terkunci: Ikuti Marcus di Kantor Polisi terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
 				if is_instance_valid(dialog_box):
 					var st_lines: Array[String] = [
 						"Peron stasiun kereta api tampak sepi dan hening...",
