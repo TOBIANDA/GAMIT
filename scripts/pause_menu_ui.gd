@@ -403,23 +403,16 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 	val_lbl.add_theme_font_size_override("font_size", 13)
 	header_hb.add_child(val_lbl)
 
-	var control_hb = HBoxContainer.new()
-	control_hb.add_theme_constant_override("separation", 10)
-	container.add_child(control_hb)
-
-	var btn_minus = _create_step_button("—")
-	btn_minus.tooltip_text = "Perkecil Suara (-5%)"
-	control_hb.add_child(btn_minus)
-
 	var slider = HSlider.new()
 	slider.min_value = 0.0
 	slider.max_value = 1.0
-	slider.step = 0.05
+	slider.step = 0.01
 	slider.value = initial_val
-	slider.custom_minimum_size = Vector2(240, 26)
+	slider.custom_minimum_size = Vector2(300, 26)
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	slider.focus_mode = Control.FOCUS_NONE
+	slider.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 	var tex_back = load("res://UI/options/sound_backbar.png")
 	var tex_front = load("res://UI/options/sound_frontbar.png")
@@ -429,21 +422,23 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 	if tex_back and tex_front and tex_btn:
 		var sb_back = StyleBoxTexture.new()
 		sb_back.texture = tex_back
-		sb_back.texture_margin_left = 6
-		sb_back.texture_margin_right = 6
+		sb_back.texture_margin_left = 7
+		sb_back.texture_margin_right = 7
 		sb_back.texture_margin_top = 2
 		sb_back.texture_margin_bottom = 2
 		sb_back.content_margin_top = 6
 		sb_back.content_margin_bottom = 6
+		sb_back.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 
 		var sb_front = StyleBoxTexture.new()
 		sb_front.texture = tex_front
-		sb_front.texture_margin_left = 6
-		sb_front.texture_margin_right = 6
+		sb_front.texture_margin_left = 7
+		sb_front.texture_margin_right = 7
 		sb_front.texture_margin_top = 2
 		sb_front.texture_margin_bottom = 2
 		sb_front.content_margin_top = 6
 		sb_front.content_margin_bottom = 6
+		sb_front.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 
 		slider.add_theme_stylebox_override("slider", sb_back)
 		slider.add_theme_stylebox_override("grabber_area", sb_front)
@@ -451,25 +446,11 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 		slider.add_theme_icon_override("grabber", tex_btn)
 		slider.add_theme_icon_override("grabber_highlight", tex_btn_h if tex_btn_h else tex_btn)
 
-	control_hb.add_child(slider)
-
-	var btn_plus = _create_step_button("+")
-	btn_plus.tooltip_text = "Perbesar Suara (+5%)"
-	control_hb.add_child(btn_plus)
+	container.add_child(slider)
 
 	slider.value_changed.connect(func(v: float):
 		val_lbl.text = "%d%%" % int(round(v * 100.0))
 		on_change.call(v)
-	)
-
-	btn_minus.pressed.connect(func():
-		_play_click()
-		slider.value = max(0.0, slider.value - 0.05)
-	)
-
-	btn_plus.pressed.connect(func():
-		_play_click()
-		slider.value = min(1.0, slider.value + 0.05)
 	)
 
 	return container
