@@ -68,14 +68,11 @@ var cutscene_layer: CanvasLayer
 static var cutscene_played: bool = false
 @export var show_intro_cutscene: bool = true
 var auto_police_escort_triggered: bool = false
-<<<<<<< HEAD
-=======
 var auto_station_scene_triggered: bool = false
 var station_arrival_cutscene_running: bool = false
 var station_arrival_cutscene_done: bool = false
 var is_respawning_to_checkpoint: bool = false
 var last_completed_checkpoint: Dictionary = {}
->>>>>>> 51efc9a (feat: sync latest hospital bed, morgue wall, replay reset, and sprint hint)
 
 # ==============================================================================
 # ⚙️ PENGATURAN UKURAN TOMBOL PAUSE (BISA DIEDIT DARI INSPECTOR / KODE)
@@ -750,16 +747,12 @@ func _start_station_arrival_cutscene() -> void:
 				police_npc = n
 				break
 
-<<<<<<< HEAD
-	# 1. Posisikan Detektif Benedict bersembunyi dari jarak aman di dekat peron
-=======
 	# Matikan minigame tailgate dan batalkan patroli jalan polisi agar tidak jalan sendiri
 	if is_instance_valid(minigame_tailgate) and minigame_tailgate.is_active:
 		minigame_tailgate.is_active = false
 		minigame_tailgate.visible = false
 
-	# 1. Kunci pergerakan pemain di posisi parkiran mobil tempat dia melangkah (Gambar 2)
->>>>>>> 51efc9a (feat: sync latest hospital bed, morgue wall, replay reset, and sprint hint)
+	# 1. Kunci pergerakan pemain di posisi parkiran mobil tempat dia melangkah
 	if is_instance_valid(player):
 		player.can_move = false
 		player.global_position = Vector2(1920.0, 730.0)
