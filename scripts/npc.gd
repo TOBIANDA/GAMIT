@@ -18,6 +18,10 @@ var run_timer: float = 0.0
 var run_direction: Vector2 = Vector2.ZERO
 var tremble_offset: Vector2 = Vector2.ZERO
 
+var player_in_spook_radius_timer: float = 0.0
+var spook_merinding_timer: float = 0.0
+const SPOOK_RADIUS: float = 70.0
+
 const SHARED_DESTINATIONS = [
 	Vector2(2088, 520),
 	Vector2(1090, 435),
@@ -368,6 +372,25 @@ func _physics_process(delta: float) -> void:
 		else:
 			player_stationary_timer = 0.0
 
+	# Deteksi Merinding Spook: Pemain harus berada 0.8 detik secara kontinu dalam radius 70px
+	if _is_spook_active() and current_state != State.AFRAID and current_state != State.PANIC_RUN and current_state != State.DESPAWNED:
+		if dist_to_player <= SPOOK_RADIUS and social_cooldown <= 0.0:
+			player_in_spook_radius_timer += delta
+			if player_in_spook_radius_timer >= 0.8:
+				# 0.8 detik terpenuhi -> mulai merinding selama 5.0 detik!
+				current_state = State.AFRAID
+				spook_merinding_timer = 5.0
+				player_in_spook_radius_timer = 0.0
+				velocity = Vector2.ZERO
+				is_moving = false
+				if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
+					var spk_pool = SPOOK_CHATS_POLICE
+					show_chat_bubble(spk_pool[randi() % spk_pool.size()], 4.5)
+				else:
+					_trigger_new_clue_dialogue()
+		else:
+			player_in_spook_radius_timer = 0.0
+
 	match current_state:
 		State.IDLE:
 			_handle_idle_state(delta, dist_to_player)
@@ -412,14 +435,7 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 					reached_station.emit()
 				return
 
-		if _is_spook_active() and dist_to_player <= 68.0:
-			tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
-			if social_cooldown <= 0.0:
-				var spk_pool = SPOOK_CHATS_POLICE
-				show_chat_bubble(spk_pool[randi() % spk_pool.size()], 2.8)
-				social_cooldown = 4.0
-		else:
-			tremble_offset = Vector2.ZERO
+		tremble_offset = Vector2.ZERO
 
 		var move_dir = (target_destination - global_position).normalized()
 		move_dir_facing = move_dir
@@ -445,14 +461,7 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 				is_moving = false
 				return
 
-		if _is_spook_active() and dist_to_player <= 68.0:
-			tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
-			if social_cooldown <= 0.0:
-				var spk_pool = SPOOK_CHATS_POLICE
-				show_chat_bubble(spk_pool[randi() % spk_pool.size()], 2.8)
-				social_cooldown = 4.0
-		else:
-			tremble_offset = Vector2.ZERO
+		tremble_offset = Vector2.ZERO
 
 		var move_dir = (target_destination - global_position).normalized()
 		move_dir_facing = move_dir
@@ -466,21 +475,7 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	var is_civilian: bool = (npc_type == NPCType.BOY or npc_type == NPCType.GIRL)
 
 	if is_civilian and player_stationary_timer < 3.0 and social_cooldown <= 0.0:
-		if _is_spook_active():
-			if dist_to_player <= too_close_radius:
-				current_state = State.AFRAID
-				spook_freeze_timer = 2.0
-				panic_timer = 0.0
-				_trigger_new_clue_dialogue()
-				social_cooldown = 4.0
-				return
-			elif dist_to_player <= eavesdrop_radius:
-				current_state = State.EAVESDROP
-				spook_freeze_timer = 1.8
-				_trigger_new_clue_dialogue()
-				social_cooldown = 4.0
-				return
-		else:
+		if not _is_spook_active():
 			if dist_to_player <= 48.0:
 				var normal_pool = NORMAL_CHATS_CIVILIAN
 				show_chat_bubble(normal_pool[randi() % normal_pool.size()], 2.5)
@@ -613,50 +608,19 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 		if is_patrolling_to_station or is_departing:
 			return
 
-		if _is_spook_active():
-			# Jika kondisi merinding aktif, polisi tidak boleh didekati terlalu dekat!
-			if dist_to_player <= 68.0:
-				tremble_offset = Vector2(randf_range(-1.8, 1.8), randf_range(-1.8, 1.8))
-				if social_cooldown <= 0.0:
-					var spook_pool = SPOOK_CHATS_POLICE
-					show_chat_bubble(spook_pool[randi() % spook_pool.size()], 3.0)
-					social_cooldown = 4.0
+		tremble_offset = Vector2.ZERO
+		velocity = Vector2.ZERO
+		is_moving = false
 
-				# Melangkah mundur menjaga jarak dari Benedict
-				if is_instance_valid(player_ref):
-					var push_away = (global_position - player_ref.global_position).normalized()
-					if push_away == Vector2.ZERO:
-						push_away = Vector2.UP
-					move_dir_facing = push_away
-					velocity = push_away * 42.0
-					move_and_slide()
-					is_moving = true
-					step_cycle += delta * 4.0
-					body_bob_y = abs(sin(step_cycle)) * -1.2
-				return
-			else:
-				tremble_offset = Vector2.ZERO
-				velocity = Vector2.ZERO
-				is_moving = false
-
-		# Mengobrol berkala santai di depan kantor polisi jika belum patroli atau tidak didekati
+		# Mengobrol berkala santai di depan kantor polisi jika belum patroli
 		social_cooldown -= delta
 		if social_cooldown <= 0.0:
-			var pool = CLUE_MESSAGES_POLICE
+			var pool = SPOOK_CHATS_POLICE if _is_spook_active() else CLUE_MESSAGES_POLICE
 			show_chat_bubble(pool[randi() % pool.size()], 2.8)
 			social_cooldown = randf_range(8.0, 14.0)
 		return
 
-	# Warga sipil merinding jika didekati Benedict (hanya jika _is_spook_active())
-	if _is_spook_active():
-		if dist_to_player <= eavesdrop_radius and social_cooldown <= 0.0 and player_stationary_timer < 3.0:
-			current_state = State.AFRAID
-			spook_freeze_timer = 2.0
-			panic_timer = 0.0
-			_trigger_new_clue_dialogue()
-			social_cooldown = 4.0
-			return
-	else:
+	if not _is_spook_active():
 		if dist_to_player <= 48.0 and social_cooldown <= 0.0 and player_stationary_timer < 3.0:
 			var normal_pool = NORMAL_CHATS_CIVILIAN
 			show_chat_bubble(normal_pool[randi() % normal_pool.size()], 2.5)
@@ -703,44 +667,44 @@ func _handle_eavesdrop_state(delta: float, dist_to_player: float) -> void:
 		tremble_offset = Vector2.ZERO
 		_pick_next_destination()
 
-func _handle_afraid_state(delta: float, dist_to_player: float) -> void:
+func _handle_afraid_state(delta: float, _dist_to_player: float) -> void:
 	velocity = Vector2.ZERO
 	is_moving = false
-	tremble_offset = Vector2(randf_range(-1.8, 1.8), randf_range(-1.8, 1.8))
-	panic_timer += delta
-	spook_freeze_timer -= delta
+	# Merinding selama 5 detik penuh dengan getaran tremble
+	tremble_offset = Vector2(randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
+	spook_merinding_timer -= delta
 
-	if panic_timer >= 1.8:
+	if spook_merinding_timer <= 0.0:
+		# Setelah merinding 5 detik, baru lari cepat menjauh!
 		current_state = State.PANIC_RUN
-		run_timer = 1.6
+		run_timer = 3.5
 		current_text_msg = PANIC_MESSAGES[randi() % PANIC_MESSAGES.size()]
-		show_chat_bubble(current_text_msg, 2.0)
+		show_chat_bubble(current_text_msg, 2.5)
 		if is_instance_valid(player_ref):
 			run_direction = (global_position - player_ref.global_position).normalized()
 			if run_direction == Vector2.ZERO:
 				run_direction = Vector2.RIGHT
 		else:
 			run_direction = Vector2.RIGHT
-	elif spook_freeze_timer <= 0.0 or player_stationary_timer >= 3.0 or dist_to_player > too_close_radius + 25.0:
-		current_state = State.GO_TO_DESTINATION
-		tremble_offset = Vector2.ZERO
-		_pick_next_destination()
 
 func _handle_panic_run(delta: float) -> void:
 	run_timer -= delta
-	velocity = run_direction * (run_speed * 0.55)
+	# Lari cepat menjauh dari Benedict (kecepatan tinggi 180.0 px/s)
+	var fast_run_speed: float = 180.0
+	velocity = run_direction * fast_run_speed
 	is_moving = true
 	move_and_slide()
-	step_cycle += delta * 12.0
+	step_cycle += delta * 14.0
 	body_bob_y = abs(sin(step_cycle)) * -3.0
-	tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
+	tremble_offset = Vector2(randf_range(-1.2, 1.2), randf_range(-1.2, 1.2))
 
 	if run_timer <= 0.0:
-		# Jangan queue_free! Kembalikan ke keadaan jalan normal
+		# Tidak sampai hilang dari map! Lari menjauh lalu kembali tenang / jalan normal
 		current_state = State.GO_TO_DESTINATION
 		tremble_offset = Vector2.ZERO
 		is_moving = false
-		social_cooldown = 3.5
+		social_cooldown = 8.0
+		player_in_spook_radius_timer = 0.0
 		_pick_next_destination()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -751,10 +715,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 			if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
 				if _is_spook_active():
-					tremble_offset = Vector2(randf_range(-1.8, 1.8), randf_range(-1.8, 1.8))
+					current_state = State.AFRAID
+					spook_merinding_timer = 5.0
+					player_in_spook_radius_timer = 0.0
+					velocity = Vector2.ZERO
+					is_moving = false
 					var pool = SPOOK_CHATS_POLICE
-					show_chat_bubble(pool[randi() % pool.size()], 3.0)
-					social_cooldown = 3.5
+					show_chat_bubble(pool[randi() % pool.size()], 4.5)
+					social_cooldown = 6.0
 				else:
 					var pool = CLUE_MESSAGES_POLICE
 					show_chat_bubble(pool[randi() % pool.size()], 2.8)
@@ -763,12 +731,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 			# Civilian
 			if _is_spook_active():
-				if social_cooldown <= 0.0:
-					current_state = State.AFRAID
-					spook_freeze_timer = 2.2
-					panic_timer = 0.0
-					_trigger_new_clue_dialogue()
-					social_cooldown = 3.5
+				current_state = State.AFRAID
+				spook_merinding_timer = 5.0
+				player_in_spook_radius_timer = 0.0
+				velocity = Vector2.ZERO
+				is_moving = false
+				_trigger_new_clue_dialogue()
+				social_cooldown = 6.0
 			else:
 				var normal_pool = NORMAL_CHATS_CIVILIAN
 				show_chat_bubble(normal_pool[randi() % normal_pool.size()], 2.5)
