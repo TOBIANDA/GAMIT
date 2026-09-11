@@ -19,6 +19,11 @@ var step_cycle: float = 0.0
 var is_moving: bool = false
 var is_sprinting: bool = false
 
+signal cutscene_walk_finished
+var cutscene_target_pos: Vector2 = Vector2.ZERO
+var is_in_cutscene_walk: bool = false
+var cutscene_speed: float = 75.0
+
 @export_group("Stamina & Energi Lari")
 @export var max_stamina: float = 100.0
 var stamina: float = 100.0
@@ -171,7 +176,45 @@ func get_zoom_level() -> float:
 func get_mc_model_name() -> String:
 	return "Detektif Benedict (MC)"
 
+func walk_to_point(target_pos: Vector2, speed: float = 75.0) -> void:
+	can_move = false
+	set_physics_process(true)
+	cutscene_target_pos = target_pos
+	cutscene_speed = speed
+	is_in_cutscene_walk = true
+
+func cancel_cutscene_walk() -> void:
+	is_in_cutscene_walk = false
+	velocity = Vector2.ZERO
+	is_moving = false
+	if is_instance_valid(footsteps_player) and footsteps_player.playing:
+		footsteps_player.stop()
+
 func _physics_process(delta: float) -> void:
+	if is_in_cutscene_walk:
+		var dist = global_position.distance_to(cutscene_target_pos)
+		if dist <= 5.0:
+			global_position = cutscene_target_pos
+			velocity = Vector2.ZERO
+			is_moving = false
+			is_in_cutscene_walk = false
+			if is_instance_valid(footsteps_player) and footsteps_player.playing:
+				footsteps_player.stop()
+			queue_redraw()
+			cutscene_walk_finished.emit()
+			return
+
+		var dir = (cutscene_target_pos - global_position).normalized()
+		facing_direction = dir
+		velocity = dir * cutscene_speed
+		is_moving = true
+		step_cycle += delta * base_step_anim_speed
+		if is_instance_valid(footsteps_player) and not footsteps_player.playing:
+			footsteps_player.play()
+		move_and_slide()
+		queue_redraw()
+		return
+
 	if not can_move:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		is_moving = false

@@ -568,7 +568,7 @@ func _setup_minigames() -> void:
 		minigame_hidden_objects.name = "MinigameHiddenObjects"
 		minigame_hidden_objects.set_script(mg2_script)
 		add_child(minigame_hidden_objects)
-		minigame_hidden_objects.minigame_completed.connect(func(_ok): _on_minigame_ended())
+		minigame_hidden_objects.minigame_completed.connect(func(ok): _on_station_minigame_ended(ok))
 
 	var mg3_script = load("res://scripts/minigame_photo_wash.gd")
 	if mg3_script:
@@ -627,70 +627,177 @@ func _on_tailgate_completed(success: bool) -> void:
 		_update_hud_objective()
 		return
 
-	# Scene Paksaan setibanya di stasiun:
-	# 1. Posisi Detektif Benedict bersembunyi di dekat peron
+	# Force cutscene setibanya di stasiun
+	_start_station_arrival_cutscene()
+
+func _start_station_arrival_cutscene() -> void:
+	var marcus_npc = find_child("NPC_Police_Marcus", true, false)
+	var police_npc = find_child("NPC1_Police", true, false)
+	if not is_instance_valid(marcus_npc):
+		for n in get_tree().get_nodes_in_group("npcs"):
+			if n.get("npc_type") == 3:
+				marcus_npc = n
+				break
+	if not is_instance_valid(police_npc):
+		for n in get_tree().get_nodes_in_group("npcs"):
+			if n.get("npc_type") == 1:
+				police_npc = n
+				break
+
+	# 1. Posisikan Detektif Benedict bersembunyi dari jarak aman di dekat peron
 	if is_instance_valid(player):
 		player.can_move = false
-		player.global_position = Vector2(1950.0, 720.0)
+		player.global_position = Vector2(1920.0, 730.0)
 		var cam = player.get_node_or_null("Camera2D")
 		if is_instance_valid(cam):
-			cam.global_position = Vector2(2020.0, 700.0)
+			cam.global_position = Vector2(2010.0, 700.0)
 			if player.has_method("reset_camera_smoothing"):
 				player.reset_camera_smoothing()
 
-	# 2. Posisi kedua polisi di peron stasiun
-	var marcus_npc = find_child("NPC_Police_Marcus", true, false)
-	var police_npc = find_child("NPC1_Police", true, false)
+	# 2. Posisikan kedua polisi di peron stasiun berhadapan
 	if is_instance_valid(marcus_npc):
 		marcus_npc.global_position = Vector2(2088.0, 690.0)
+		marcus_npc.move_dir_facing = Vector2.LEFT
+		marcus_npc.velocity = Vector2.ZERO
+		marcus_npc.is_moving = false
 	if is_instance_valid(police_npc):
-		police_npc.global_position = Vector2(2058.0, 705.0)
+		police_npc.global_position = Vector2(2048.0, 705.0)
+		police_npc.move_dir_facing = Vector2.RIGHT
+		police_npc.velocity = Vector2.ZERO
+		police_npc.is_moving = false
 
-	_trigger_station_eavesdrop_sequence(marcus_npc, police_npc)
+	# 3. Percakapan kedua polisi MURNI DENGAN CHATBOX (speech bubble di atas kepala, bukan dialog box)
+	var conv_tween = create_tween()
 
-func _trigger_station_eavesdrop_sequence(marcus_npc: Node, police_npc: Node) -> void:
-	if is_instance_valid(dialog_box):
-		# Dialog Pembicaraan Kedua Polisi di Peron
-		var police_dialogue_lines: Array[String] = [
-			"Inspektur Marcus: 'Pastikan peron stasiun ini tetap steril. Jangan biarkan siapapun mendekati area bangku tunggu peron!'",
-			"Polisi Rekan: 'Siap, Inspektur Marcus! Bagaimana dengan barang bukti korban yang tertinggal?'",
-			"Inspektur Marcus: 'Ada rol film foto penting yang terjatuh di sekitar peron stasiun sebelum korban tewas. Jasadnya sendiri sudah dibawa ke Kamar Jenazah Rumah Sakit.'",
-			"Polisi Rekan: 'Baik, saya akan segera kembali ke pos jaga kota sekarang untuk melanjutkan patroli luar.'",
-			"Inspektur Marcus: 'Bagus. Aku juga harus segera kembali ke kantor polisi untuk mengurus berkas kasus. Bergerak sekarang!'"
-		]
-		dialog_box.start_monologue(police_dialogue_lines, "Obrolan Rahasia Polisi", "[ Menguping Peron ]", "res://NPC_Inspecture/jalan-depan-1.png")
-		dialog_box.monologue_finished.connect(func():
-			# Kedua polisi kembali ke urusan masing-masing (meninggalkan peron)
-			if is_instance_valid(marcus_npc) and marcus_npc.has_method("depart_from_station"):
-				marcus_npc.depart_from_station()
-			if is_instance_valid(police_npc) and police_npc.has_method("depart_from_station"):
-				police_npc.depart_from_station()
+	# Baris 1: Marcus
+	conv_tween.tween_callback(func():
+		if is_instance_valid(marcus_npc) and marcus_npc.has_method("show_chat_bubble"):
+			marcus_npc.show_chat_bubble("Marcus: Pastikan peron stasiun ini tetap steril! Jangan biarkan siapapun mendekat.", 3.0)
+	)
+	conv_tween.tween_interval(3.2)
 
-			_show_toast("Kedua polisi meninggalkan stasiun. Peron kini sepi!")
+	# Baris 2: Polisi Rekan
+	conv_tween.tween_callback(func():
+		if is_instance_valid(police_npc) and police_npc.has_method("show_chat_bubble"):
+			police_npc.show_chat_bubble("Polisi: Siap, Inspektur! Bagaimana dengan barang bukti korban yang tertinggal?", 3.0)
+	)
+	conv_tween.tween_interval(3.2)
 
-			# Monolog batin Detektif Benedict setelah mendengarkan pembicaraan
+	# Baris 3: Marcus
+	conv_tween.tween_callback(func():
+		if is_instance_valid(marcus_npc) and marcus_npc.has_method("show_chat_bubble"):
+			marcus_npc.show_chat_bubble("Marcus: Ada rol film foto terjatuh di peron stasiun. Jasadnya sudah di RS!", 3.5)
+	)
+	conv_tween.tween_interval(3.5)
+
+	# Baris 4: Polisi Rekan
+	conv_tween.tween_callback(func():
+		if is_instance_valid(police_npc) and police_npc.has_method("show_chat_bubble"):
+			police_npc.show_chat_bubble("Polisi: Baik, saya segera kembali ke pos jaga kota sekarang.", 2.8)
+	)
+	conv_tween.tween_interval(3.0)
+
+	# Baris 5: Marcus
+	conv_tween.tween_callback(func():
+		if is_instance_valid(marcus_npc) and marcus_npc.has_method("show_chat_bubble"):
+			marcus_npc.show_chat_bubble("Marcus: Bagus. Aku juga segera kembali ke kantor polisi. Bergerak sekarang!", 3.0)
+	)
+	conv_tween.tween_interval(3.2)
+
+	# 4. Kedua polisi berangkat pergi meninggalkan stasiun
+	conv_tween.tween_callback(func():
+		if is_instance_valid(marcus_npc) and marcus_npc.has_method("depart_from_station"):
+			marcus_npc.depart_from_station()
+		if is_instance_valid(police_npc) and police_npc.has_method("depart_from_station"):
+			police_npc.depart_from_station()
+		_show_toast("Kedua polisi meninggalkan stasiun. Peron kini sepi!")
+	)
+	conv_tween.tween_interval(1.6)
+
+	# 5. Monolog Batin Benedict & Force Scene Berjalan Masuk ke Stasiun
+	conv_tween.tween_callback(func():
+		if is_instance_valid(dialog_box):
 			var mc_lines: Array[String] = [
-				"Mereka membicarakan rol film foto penting yang tertinggal di peron stasiun dan jasad korban di Rumah Sakit...",
-				"Sekarang kedua polisi itu sudah pergi ke urusan masing-masing dan peron stasiun kosong.",
-				"Ini kesempatan terbaikku. Aku harus segera masuk memeriksa peron stasiun dan mencari barang bukti korban!"
+				"Mereka membicarakan rol film foto penting yang tertinggal di peron stasiun...",
+				"Sekarang kedua polisi itu sudah pergi dan peron stasiun sepi.",
+				"Ini kesempatan terbaikku. Aku harus segera menyelinap masuk mencari bukti!"
 			]
 			dialog_box.start_monologue(mc_lines, "Detektif Benedict", "[ Menyelidiki Stasiun ]", "res://karakter/MC_Bingung.png")
 			dialog_box.monologue_finished.connect(func():
-				# Benedict langsung masuk ke peron stasiun
-				if is_instance_valid(minigame_hidden_objects):
-					player.can_move = false
-					minigame_hidden_objects.start_minigame()
-					_show_toast("Menyelinap ke Peron Stasiun: Cari Objek Bukti Tersembunyi!")
-				else:
-					if is_instance_valid(player):
-						player.can_move = true
+				_force_walk_into_station()
 			, CONNECT_ONE_SHOT)
+		else:
+			_force_walk_into_station()
+	)
+
+func _force_walk_into_station() -> void:
+	if not is_instance_valid(player):
+		_start_station_search_minigame()
+		return
+
+	player.can_move = false
+	_show_toast("Menyelinap masuk ke peron stasiun...")
+	if player.has_method("walk_to_point"):
+		player.walk_to_point(Vector2(2080.0, 685.0), 75.0)
+		player.cutscene_walk_finished.connect(func():
+			_start_station_search_minigame()
 		, CONNECT_ONE_SHOT)
 	else:
-		if is_instance_valid(minigame_hidden_objects):
-			player.can_move = false
-			minigame_hidden_objects.start_minigame()
-			_show_toast("Menyelinap ke Peron Stasiun: Cari Objek Bukti Tersembunyi!")
+		_start_station_search_minigame()
+
+func _start_station_search_minigame() -> void:
+	if is_instance_valid(minigame_hidden_objects):
+		player.can_move = false
+		minigame_hidden_objects.start_minigame()
+		_show_toast("Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!")
+	else:
+		if is_instance_valid(player):
+			player.can_move = true
+
+func _on_station_minigame_ended(success: bool) -> void:
+	if not success:
+		if is_instance_valid(player):
+			player.can_move = true
+		_update_hud_objective()
+		return
+
+	# Force Scene Keluar dari Stasiun
+	_force_walk_out_of_station()
+
+func _force_walk_out_of_station() -> void:
+	if not is_instance_valid(player):
+		_finish_station_investigation()
+		return
+
+	player.global_position = Vector2(2080.0, 685.0)
+	player.can_move = false
+	_show_toast("Melangkah keluar dari stasiun...")
+
+	if player.has_method("walk_to_point"):
+		player.walk_to_point(Vector2(1940.0, 740.0), 75.0)
+		player.cutscene_walk_finished.connect(func():
+			_finish_station_investigation()
+		, CONNECT_ONE_SHOT)
+	else:
+		_finish_station_investigation()
+
+func _finish_station_investigation() -> void:
+	if is_instance_valid(dialog_box):
+		var lines: Array[String] = [
+			"Di peron stasiun ini... aku menemukan tiket kereta dan amplop berisi rol film foto milik korban.",
+			"Aku harus segera kembali ke Kantor Polisi (atau Kamar Gelap) untuk mencuci rol foto ini!",
+			"Firasatku mengatakan... foto-foto ini akan mengungkap identitas korban yang sebenarnya."
+		]
+		dialog_box.start_monologue(lines, "Detektif Benedict", "[ Bukti Foto Didapatkan ]", "res://karakter/MC_Bingung.png")
+		dialog_box.monologue_finished.connect(func():
+			if is_instance_valid(player):
+				player.can_move = true
+			_update_hud_objective()
+		, CONNECT_ONE_SHOT)
+	else:
+		if is_instance_valid(player):
+			player.can_move = true
+		_update_hud_objective()
 
 func _setup_main_menu() -> void:
 	var mm_script = load("res://scripts/main_menu_ui.gd")
@@ -1745,12 +1852,9 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 		"police":
 			if not bypass_story and (inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME or not inv_mgr.is_clue_unlocked("victim_letter")):
 				_show_toast("Alur Cerita Terkunci: Selidiki rumah korban di timur terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
-				if is_instance_valid(dialog_box):
-					var p_lines: Array[String] = [
-						"Petugas Polisi: 'Selamat bertugas, Detektif Benedict.'",
-						"Petugas Polisi: 'Inspektur Marcus meminta Anda memeriksa TKP rumah korban di ujung timur terlebih dahulu untuk mencari berkas atau petunjuk awal.'"
-					]
-					dialog_box.start_monologue(p_lines, "Kantor Polisi", "[ Instruksi Tugas ]", "res://NPC_Police/front.png")
+				var police_npc = find_child("NPC1_Police", true, false)
+				if is_instance_valid(police_npc) and police_npc.has_method("show_chat_bubble"):
+					police_npc.show_chat_bubble("Polisi: Selamat bertugas, Detektif. Periksa TKP rumah korban di ujung timur terlebih dahulu!", 3.5)
 				return
 
 			if (bypass_story or inv_mgr.is_clue_unlocked("photo_envelope")) and not inv_mgr.has_developed_photos:
@@ -1779,20 +1883,17 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				_start_marcus_tailgate(marcus_npc)
 				return
 
-			if is_instance_valid(dialog_box) and not inv_mgr.has_tailgated_marcus:
-				var marcus_lines: Array[String] = [
-					"Detektif Benedict! Maaf, aku sedang sangat terburu-buru!",
-					"Ada urusan darurat terkait kasus kematian di stasiun, aku harus keluar sekarang!"
-				]
-				dialog_box.start_monologue(marcus_lines, "Inspektur Marcus", "[ Terburu-buru ]", "res://NPC_Inspecture/front.png")
-				dialog_box.monologue_finished.connect(func():
+			if not inv_mgr.has_tailgated_marcus:
+				if is_instance_valid(marcus_npc) and marcus_npc.has_method("show_chat_bubble"):
+					marcus_npc.show_chat_bubble("Marcus: Benedict! Maaf, aku terburu-buru ada urusan darurat di stasiun!", 3.0)
+				_show_toast("Inspektur Marcus terburu-buru keluar menuju stasiun!")
+				var tw = create_tween()
+				tw.tween_interval(1.4)
+				tw.tween_callback(func():
 					_start_marcus_tailgate(marcus_npc)
-				, CONNECT_ONE_SHOT)
+				)
 			else:
-				if inv_mgr.has_tailgated_marcus:
-					_show_toast("Petugas Polisi: 'Inspektur Marcus sedang berpatroli ke arah stasiun.'")
-				else:
-					_start_marcus_tailgate(marcus_npc)
+				_show_toast("Petugas Polisi: 'Inspektur Marcus sedang berpatroli ke arah stasiun.'")
 
 		"station":
 			if not bypass_story and not inv_mgr.has_tailgated_marcus:
@@ -1807,9 +1908,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				return
 
 			if is_instance_valid(minigame_hidden_objects):
-				player.can_move = false
-				minigame_hidden_objects.start_minigame()
-				_show_toast("Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!" if not bypass_story else "[Fitur Beta] Bypass: Minigame Stasiun Dimulai!")
+				_force_walk_into_station()
 			else:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
