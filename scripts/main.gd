@@ -1617,17 +1617,17 @@ func _setup_hud_prompts() -> void:
 	hud_objective_text.text = "Tugas Berikutnya: Periksa Meja Kerja"
 	hud_objective_text.add_theme_color_override("font_color", Color(1.0, 0.95, 0.70))
 	hud_objective_text.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
-	hud_objective_text.add_theme_constant_override("outline_size", 4)
-	hud_objective_text.add_theme_font_size_override("font_size", 16)
+	hud_objective_text.add_theme_constant_override("outline_size", 5)
+	hud_objective_text.add_theme_font_size_override("font_size", 20)
 	info_vb.add_child(hud_objective_text)
 
 	# 2. Ngasih tau Shift untuk Lari
 	var sprint_hint = Label.new()
 	sprint_hint.text = "Tahan [Shift] untuk Berlari"
-	sprint_hint.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0, 0.85))
+	sprint_hint.add_theme_color_override("font_color", Color(0.88, 0.94, 1.0, 0.90))
 	sprint_hint.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
-	sprint_hint.add_theme_constant_override("outline_size", 3)
-	sprint_hint.add_theme_font_size_override("font_size", 13)
+	sprint_hint.add_theme_constant_override("outline_size", 4)
+	sprint_hint.add_theme_font_size_override("font_size", 16)
 	info_vb.add_child(sprint_hint)
 
 func _is_fullscreen_now() -> bool:
@@ -2389,7 +2389,7 @@ func _update_hud_objective() -> void:
 	if is_instance_valid(hud_objective_label):
 		hud_objective_label.text = "Target: " + title_str
 	if is_instance_valid(hud_objective_text):
-		hud_objective_text.text = "Target: " + title_str
+		hud_objective_text.text = "Tugas Berikutnya: " + title_str
 	if is_instance_valid(hud_phase_badge) and is_instance_valid(inv_mgr):
 		match inv_mgr.current_phase:
 			inv_mgr.Phase.PROLOGUE_HOME:
