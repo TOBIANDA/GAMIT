@@ -8,17 +8,17 @@ signal main_menu_requested
 # ⚙️ PENGATURAN MANUAL UKURAN & POSISI TOMBOL PAUSE (BISA DIEDIT BEBAS DI SINI)
 # ==============================================================================
 @export_group("Tombol Pause di Layar (HUD)")
-## Lebar tombol pause HUD di pojok kanan atas (dalam piksel, default: 68.0)
-@export var hud_pause_button_width: float = 68.0
+## Lebar tombol pause HUD di pojok kanan atas (dalam piksel, default: 84.0)
+@export var hud_pause_button_width: float = 84.0
 
-## Tinggi tombol pause HUD di pojok kanan atas (dalam piksel, default: 68.0)
-@export var hud_pause_button_height: float = 68.0
+## Tinggi tombol pause HUD di pojok kanan atas (dalam piksel, default: 84.0)
+@export var hud_pause_button_height: float = 84.0
 
-## Jarak tombol pause dari tepi kanan layar (margin kanan, default: 18.0)
-@export var hud_pause_margin_right: float = 18.0
+## Jarak tombol pause dari tepi kanan layar (margin kanan, default: 20.0)
+@export var hud_pause_margin_right: float = 20.0
 
-## Jarak tombol pause dari tepi atas layar (margin atas, default: 18.0)
-@export var hud_pause_margin_top: float = 18.0
+## Jarak tombol pause dari tepi atas layar (margin atas, default: 20.0)
+@export var hud_pause_margin_top: float = 20.0
 
 @export_group("Tombol Resume di Menu Pause")
 ## Tinggi tombol 'Lanjutkan Permainan' di dalam menu pause (default: 58.0)
@@ -51,7 +51,7 @@ var tex_pause_button: Texture2D
 var tex_btn_resume: Texture2D
 var tex_btn_options: Texture2D
 var tex_btn_main_menu: Texture2D
-var hud_pause_button: Button
+var hud_pause_button: BaseButton
 
 func _ready() -> void:
 	layer = 90
@@ -111,6 +111,7 @@ func update_hud_pause_button_transform() -> void:
 	hud_pause_button.offset_top = hud_pause_margin_top
 	hud_pause_button.offset_right = -hud_pause_margin_right
 	hud_pause_button.offset_bottom = hud_pause_margin_top + hud_pause_button_height
+	hud_pause_button.pivot_offset = Vector2(hud_pause_button_width * 0.5, hud_pause_button_height * 0.5)
 
 func set_hud_pause_size(new_width: float, new_height: float, new_margin_right: float = -1.0, new_margin_top: float = -1.0) -> void:
 	hud_pause_button_width = new_width
@@ -239,37 +240,48 @@ func _build_pause_ui() -> void:
 	vb.add_child(sep)
 
 	# Tombol Jeda di Layar (HUD Pause Button)
-	hud_pause_button = Button.new()
-	hud_pause_button.name = "HudPauseButton"
-	hud_pause_button.anchor_left = 1.0
-	hud_pause_button.anchor_top = 0.0
-	hud_pause_button.anchor_right = 1.0
-	hud_pause_button.anchor_bottom = 0.0
-	update_hud_pause_button_transform()
-	hud_pause_button.focus_mode = Control.FOCUS_NONE
-	hud_pause_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	hud_pause_button.tooltip_text = "Jeda Permainan [ESC / P]"
+	var tb = TextureButton.new()
+	tb.name = "HudPauseButton"
+	tb.texture_normal = tex_pause_button
+	tb.ignore_texture_size = true
+	tb.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	tb.anchor_left = 1.0
+	tb.anchor_top = 0.0
+	tb.anchor_right = 1.0
+	tb.anchor_bottom = 0.0
+	tb.focus_mode = Control.FOCUS_NONE
+	tb.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	tb.tooltip_text = "Jeda Permainan [ESC / P]"
 
-	var p_empty = StyleBoxEmpty.new()
-	hud_pause_button.add_theme_stylebox_override("normal", p_empty)
-	hud_pause_button.add_theme_stylebox_override("focus", p_empty)
-	
-	var p_hov = StyleBoxFlat.new()
-	p_hov.bg_color = Color(1.0, 1.0, 1.0, 0.18)
-	p_hov.set_corner_radius_all(14)
-	hud_pause_button.add_theme_stylebox_override("hover", p_hov)
-	hud_pause_button.add_theme_stylebox_override("pressed", p_hov)
-
+	# Bidang pencet (click mask) mengikuti persis bentuk lingkaran & 2 batang
 	if is_instance_valid(tex_pause_button):
-		var p_icon = TextureRect.new()
-		p_icon.texture = tex_pause_button
-		p_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		p_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		p_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
-		p_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hud_pause_button.add_child(p_icon)
+		var img = tex_pause_button.get_image()
+		if img:
+			var mask = BitMap.new()
+			mask.create_from_image_alpha(img)
+			tb.texture_click_mask = mask
 
-	hud_pause_button.pressed.connect(toggle_pause)
+	# Hover micro-animation
+	tb.mouse_entered.connect(func():
+		tb.modulate = Color(1.18, 1.18, 1.15)
+		var tw = tb.create_tween()
+		tw.tween_property(tb, "scale", Vector2(1.06, 1.06), 0.08)
+	)
+	tb.mouse_exited.connect(func():
+		tb.modulate = Color.WHITE
+		var tw = tb.create_tween()
+		tw.tween_property(tb, "scale", Vector2(1.0, 1.0), 0.08)
+	)
+	tb.button_down.connect(func():
+		tb.modulate = Color(0.85, 0.85, 0.85)
+	)
+	tb.button_up.connect(func():
+		tb.modulate = Color(1.18, 1.18, 1.15)
+	)
+
+	tb.pressed.connect(toggle_pause)
+	hud_pause_button = tb
+	update_hud_pause_button_transform()
 	add_child(hud_pause_button)
 
 	# Tombol Aset Kertas (RESUME, OPTIONS, MAIN MENU)
