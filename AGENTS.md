@@ -13,3 +13,7 @@ Setiap kali agent menyelesaikan suatu tugas atau sebelum mengakhiri giliran:
    - Selesaikan resolusi konflik (jika ada) dan pastikan kedua working tree bersih (`working tree clean`).
 3. **Verifikasi**:
    - Pastikan kedua branch berada pada commit yang sama atau terintegrasi secara harmonis tanpa kehilangan fitur dari masing-masing agent.
+4. **Push ke Git Remote (Wajib)**:
+   - Lakukan push commit terbaru ke remote repository GitHub agar selalu tersimpan di cloud:
+     - `git push origin main`
+     - `git push origin feature/parallel-worker`
