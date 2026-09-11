@@ -125,16 +125,21 @@ func _is_spook_active() -> bool:
 	if is_spook_disabled or is_departing:
 		return false
 
-	# Polisi tidak merinding saat cutscene kedatangan stasiun berlangsung
+	# Polisi HANYA boleh merinding saat sudah mulai patroli dan sudah berada di jalan selatan
 	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
-		var st_tree = get_tree()
-		if is_inside_tree() and is_instance_valid(st_tree) and is_instance_valid(st_tree.root):
-			var main_n = st_tree.root.find_child("Main", true, false)
-			if is_instance_valid(main_n):
-				if main_n.get("station_arrival_cutscene_running") or main_n.get("station_arrival_cutscene_done"):
-					return false
-
-	if is_patrolling_to_station:
+		# Belum mulai patroli / belum menguntit polisi -> jangan pernah merinding
+		if not is_patrolling_to_station:
+			return false
+		# Belum sampai di jalan selatan (Y >= 1050 atau waypoint selatan) -> jangan merinding
+		if global_position.y < 1050.0 and current_patrol_idx < 2:
+			return false
+		if is_inside_tree():
+			var st_tree = get_tree()
+			if is_instance_valid(st_tree) and is_instance_valid(st_tree.root):
+				var main_n = st_tree.root.find_child("Main", true, false)
+				if is_instance_valid(main_n):
+					if main_n.get("station_arrival_cutscene_running") or main_n.get("station_arrival_cutscene_done"):
+						return false
 		return true
 
 	var inv_mgr = null
@@ -824,15 +829,38 @@ func _handle_eavesdrop_state(delta: float, dist_to_player: float) -> void:
 		tremble_offset = Vector2.ZERO
 		_pick_next_destination()
 
-func _handle_afraid_state(delta: float, _dist_to_player: float) -> void:
+func _handle_afraid_state(delta: float, dist_to_player: float) -> void:
 	velocity = Vector2.ZERO
 	is_moving = false
-	# Merinding selama 5 detik penuh dengan getaran tremble
+
+	# Jika saat mereka merinding pemain menjauh / lari (jarak melebihi radius merinding + toleransi),
+	# NPC kembali tenang dan TIDAK JADI LARI!
+	if dist_to_player > (SPOOK_RADIUS + 25.0):
+		tremble_offset = Vector2.ZERO
+		spook_merinding_timer = 0.0
+		player_in_spook_radius_timer = 0.0
+		social_cooldown = 5.0
+		if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
+			if is_patrolling_to_station:
+				current_state = State.GO_TO_DESTINATION
+				if npc_type == NPCType.INSPECTOR_MARCUS:
+					show_chat_bubble("Marcus: ...Fyuuh, hawa dinginnya mereda. Ayo lanjut jalan!", 2.5)
+				else:
+					show_chat_bubble("Polisi: ...Hawa dinginnya menjauh. Ayo tetap waspada!", 2.5)
+			else:
+				current_state = State.IDLE
+		else:
+			current_state = State.GO_TO_DESTINATION
+			show_chat_bubble("...Eh? Bulu kudukku normal lagi. Tadi ada apa ya?", 2.5)
+			_pick_next_destination()
+		return
+
+	# Pemain masih menempel dekat: getaran merinding terus berjalan
 	tremble_offset = Vector2(randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
 	spook_merinding_timer -= delta
 
 	if spook_merinding_timer <= 0.0:
-		# Setelah merinding 5 detik, lari cepat menjauh mengikuti grid rute jalan!
+		# Setelah merinding dan pemain tetap menempel terus sampai habis waktu, baru lari ketakutan!
 		current_state = State.PANIC_RUN
 		run_timer = 3.5
 		current_text_msg = PANIC_MESSAGES[randi() % PANIC_MESSAGES.size()]
