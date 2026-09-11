@@ -146,9 +146,9 @@ var default_furniture_config: Dictionary = {
 		"tex": "tex_polaroid_ibu",
 		"x": 385.0, "y": 218.0,
 		"scale": 1.0,
-		"base_w": 18.0,
+		"base_w": 24.0,
 		"has_col": false,
-		"z_idx": 1
+		"z_idx": 2
 	},
 
 	# --- 3. KAMAR TIDUR ---
@@ -489,6 +489,7 @@ func update_furniture_transform(id: String) -> void:
 			var ratio = (base_w * s) / float(tex.get_width())
 			sp.scale = Vector2(ratio * fx, ratio * fy)
 		sp.rotation_degrees = rot_deg
+		sp.z_index = data.get("z_idx", 0)
 
 	if furniture_colliders.has(id):
 		var col = furniture_colliders[id]
@@ -507,21 +508,23 @@ func update_furniture_transform(id: String) -> void:
 	queue_redraw()
 
 func _load_furniture_config() -> void:
-	# Prioritaskan user:// sebagai save file pemain lokal yang paling update
-	var path_to_load = ""
-	if FileAccess.file_exists(USER_CONFIG_FILE_PATH):
-		path_to_load = USER_CONFIG_FILE_PATH
-	elif FileAccess.file_exists(CONFIG_FILE_PATH):
-		path_to_load = CONFIG_FILE_PATH
+	# 1. Muat konfigurasi dasar proyek dari CONFIG_FILE_PATH
+	if FileAccess.file_exists(CONFIG_FILE_PATH):
+		var file_base = FileAccess.open(CONFIG_FILE_PATH, FileAccess.READ)
+		if file_base:
+			var parsed_base = JSON.parse_string(file_base.get_as_text())
+			file_base.close()
+			if parsed_base is Dictionary:
+				_apply_config_dict(parsed_base)
 
-	if not path_to_load.is_empty():
-		var file = FileAccess.open(path_to_load, FileAccess.READ)
-		if file:
-			var json_str = file.get_as_text()
-			file.close()
-			var parsed = JSON.parse_string(json_str)
-			if parsed is Dictionary:
-				_apply_config_dict(parsed)
+	# 2. Muat save file lokal pemain jika ada perubahan di user://
+	if FileAccess.file_exists(USER_CONFIG_FILE_PATH):
+		var file_user = FileAccess.open(USER_CONFIG_FILE_PATH, FileAccess.READ)
+		if file_user:
+			var parsed_user = JSON.parse_string(file_user.get_as_text())
+			file_user.close()
+			if parsed_user is Dictionary:
+				_apply_config_dict(parsed_user)
 
 func _apply_config_dict(parsed: Dictionary) -> void:
 	# Migrasi kitchen_unit lama jika ada
@@ -539,23 +542,15 @@ func _apply_config_dict(parsed: Dictionary) -> void:
 			furniture_config["kulkas"]["y"] = ky
 			furniture_config["kulkas"]["scale"] = ks
 
-	# 1. Hapus SEMUA item yang tercatat dalam daftar _deleted_items
+	# 1. Hapus item yang tercatat dalam daftar _deleted_items (kecuali item cerita esensial)
 	if parsed.has("_deleted_items") and parsed["_deleted_items"] is Array:
 		for del_id in parsed["_deleted_items"]:
+			if del_id == "polaroid_ibu" or del_id == "surat":
+				continue
 			if furniture_config.has(del_id):
 				furniture_config.erase(del_id)
 
-	# 2. Hapus juga item default yang tidak ada di dalam parsed (jika file simpanan valid)
-	var active_keys = parsed.keys()
-	if active_keys.size() > 1: # Ada data perabot tersimpan selain/termasuk _deleted_items
-		var to_del = []
-		for id in furniture_config.keys():
-			if not parsed.has(id):
-				to_del.append(id)
-		for id in to_del:
-			furniture_config.erase(id)
-
-	# 3. Update data transformasi item yang aktif
+	# 2. Update data transformasi item yang aktif
 	for id in parsed.keys():
 		if id == "_deleted_items":
 			continue
