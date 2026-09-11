@@ -1519,6 +1519,7 @@ func _check_poi_proximity() -> void:
 		var desk_letter_pos = house_interior.get_desk_letter_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_desk_letter_pos") else Vector2(3600.0 + 295.0, 400.0 + 95.0)
 		var safe_pos = house_interior.get_safe_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_safe_pos") else Vector2(3600.0 + 235.0, 400.0 + 65.0)
 		var photo_basin_pos = house_interior.get_photo_basin_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_basin_pos") else Vector2(3600.0 + 250.0, 400.0 + 360.0)
+		var clock_pos = house_interior.get_alarm_clock_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_alarm_clock_pos") else Vector2(3600.0 + 355.0, 400.0 + 50.0)
 		var exit_door_pos = house_interior.get_exit_door_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_exit_door_pos") else Vector2(3600.0 + 85.0, 400.0 + 265.0)
 
 		if p_pos.distance_to(desk_letter_pos) <= 52.0:
@@ -1527,6 +1528,8 @@ func _check_poi_proximity() -> void:
 			active_poi_id = "indoor_safe"
 		elif p_pos.distance_to(photo_basin_pos) <= 42.0:
 			active_poi_id = "indoor_photo_basin"
+		elif p_pos.distance_to(clock_pos) <= 45.0:
+			active_poi_id = "indoor_clock"
 		elif p_pos.distance_to(exit_door_pos) <= 38.0 or (p_pos.y >= (400.0 + 245.0) and abs(p_pos.x - (3600.0 + 85.0)) <= 35.0):
 			active_poi_id = "indoor_exit"
 		else:
@@ -1547,6 +1550,8 @@ func _check_poi_proximity() -> void:
 							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN\n[Y] BYPASS CERITA (FITUR BETA)"
 						else:
 							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)\n[Y] BYPASS CERITA (FITUR BETA)"
+					"indoor_clock":
+						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER DI NAKAS"
 					"indoor_exit":
 						interact_prompt.text = "[ F / E / Spasi ] KELUAR KE KOTA"
 
@@ -1882,6 +1887,15 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 
 		"indoor_letter":
 			_trigger_indoor_letter_monologue()
+
+		"indoor_clock":
+			if is_instance_valid(dialog_box):
+				var clk_lines: Array[String] = [
+					"Sebuah jam weker analog tua di atas nakas samping tempat tidur...",
+					"Detik jarumnya berbunyi konstan: 'Tik... Tok... Tik... Tok...'",
+					"Waktu terus berjalan tanpa henti. Aku harus lekas menuntaskan penyelidikan kasus ini."
+				]
+				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kamar ]", "res://karakter/MC_Bingung.png")
 
 		"indoor_safe", "safe":
 			if is_instance_valid(minigame_safe):
