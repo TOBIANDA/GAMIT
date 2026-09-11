@@ -542,10 +542,11 @@ func _enter_exploration_house() -> void:
 			exploration_house_interior.visible = true
 		if is_instance_valid(house_interior):
 			house_interior.visible = false
-		player.global_position = Vector2(4600.0 + 110.0, 400.0 + 330.0)
-		player.target_zoom_val = 2.50
+		var spawn_p = exploration_house_interior.get_entrance_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_entrance_pos") else Vector2(4600.0 + 85.0, 400.0 + 245.0)
+		player.global_position = spawn_p
+		player.target_zoom_val = 2.85
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(4460, 220, 5360, 980)
+			player.setup_camera_limits(4580, 380, 5100, 720)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Rumah Ibu Korban (Ibu Medeline).")
@@ -1460,11 +1461,11 @@ func _check_poi_proximity() -> void:
 		return
 
 	elif is_inside_exploration_house:
-		var expl_exit_pos = exploration_house_interior.get_exit_door_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_exit_door_pos") else Vector2(4600.0 + 110.0, 400.0 + 400.0)
-		var expl_safe_pos = exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 280.0, 400.0 + 75.0)
-		var expl_clock_pos = exploration_house_interior.get_clock_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_clock_pos") else Vector2(4600.0 + 60.0, 400.0 + 110.0)
-		var expl_photo_pos = exploration_house_interior.get_calendar_photo_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_photo_pos") else Vector2(4600.0 + 420.0, 400.0 + 75.0)
-		var expl_recipe_pos = exploration_house_interior.get_recipe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_recipe_pos") else Vector2(4600.0 + 340.0, 400.0 + 260.0)
+		var expl_exit_pos = exploration_house_interior.get_exit_door_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_exit_door_pos") else Vector2(4600.0 + 85.0, 400.0 + 280.0)
+		var expl_safe_pos = exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 150.0, 400.0 + 52.0)
+		var expl_clock_pos = exploration_house_interior.get_clock_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_clock_pos") else Vector2(4600.0 + 355.0, 400.0 + 56.0)
+		var expl_photo_pos = exploration_house_interior.get_calendar_photo_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_photo_pos") else Vector2(4600.0 + 195.0, 400.0 + 72.0)
+		var expl_recipe_pos = exploration_house_interior.get_recipe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_recipe_pos") else Vector2(4600.0 + 260.0, 400.0 + 245.0)
 
 		if p_pos.distance_to(expl_safe_pos) <= 52.0:
 			active_poi_id = "indoor_expl_safe"
@@ -1474,7 +1475,7 @@ func _check_poi_proximity() -> void:
 			active_poi_id = "indoor_expl_recipe"
 		elif p_pos.distance_to(expl_clock_pos) <= 50.0:
 			active_poi_id = "indoor_expl_clock"
-		elif p_pos.distance_to(expl_exit_pos) <= 32.0 or (p_pos.y >= (400.0 + 382.0) and abs(p_pos.x - (4600.0 + 110.0)) <= 32.0):
+		elif p_pos.distance_to(expl_exit_pos) <= 32.0 or (p_pos.y >= (400.0 + 268.0) and abs(p_pos.x - (4600.0 + 85.0)) <= 32.0):
 			active_poi_id = "indoor_expl_exit"
 		else:
 			active_poi_id = ""
@@ -1704,10 +1705,10 @@ func _trigger_beta_bypass_interaction() -> void:
 
 		elif is_inside_exploration_house:
 			var expl_pois = {
-				"indoor_expl_safe": Vector2(4600.0 + 280.0, 400.0 + 75.0),
-				"indoor_expl_photo": Vector2(4600.0 + 420.0, 400.0 + 75.0),
-				"indoor_expl_recipe": Vector2(4600.0 + 340.0, 400.0 + 260.0),
-				"indoor_expl_clock": Vector2(4600.0 + 60.0, 400.0 + 110.0)
+				"indoor_expl_safe": exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 150.0, 400.0 + 52.0),
+				"indoor_expl_photo": exploration_house_interior.get_calendar_photo_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_photo_pos") else Vector2(4600.0 + 195.0, 400.0 + 72.0),
+				"indoor_expl_recipe": exploration_house_interior.get_recipe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_recipe_pos") else Vector2(4600.0 + 260.0, 400.0 + 245.0),
+				"indoor_expl_clock": exploration_house_interior.get_clock_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_clock_pos") else Vector2(4600.0 + 355.0, 400.0 + 56.0)
 			}
 			for k in expl_pois.keys():
 				var d = p_pos.distance_to(expl_pois[k])
