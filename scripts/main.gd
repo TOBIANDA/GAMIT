@@ -467,9 +467,10 @@ func _enter_hospital() -> void:
 			house_interior.visible = false
 		if is_instance_valid(exploration_house_interior):
 			exploration_house_interior.visible = false
-		player.global_position = Vector2(7000.0 + 100.0, 400.0 + 520.0)
+		player.global_position = Vector2(7000.0 + 50.0, 400.0 + 260.0)
+		player.target_zoom_val = 2.85
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(6980, 380, 7000 + 2030, 400 + 1150)
+			player.setup_camera_limits(6980, 380, 7000 + 1020, 400 + 580)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Lorong Rumah Sakit & Ruang Jenazah.")
@@ -496,6 +497,7 @@ func _exit_hospital() -> void:
 			if hospital_interior.has_method("stop_hospital"):
 				hospital_interior.stop_hospital()
 		player.global_position = Vector2(750.0, 1150.0)
+		player.target_zoom_val = 2.0
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(0, 0, 2400, 1450)
 		if player.has_method("reset_camera_smoothing"):
@@ -511,6 +513,7 @@ func _exit_hospital() -> void:
 func _on_hospital_completed() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
+		player.target_zoom_val = 2.0
 	_show_toast("✦ Jiwamu Ditarik Menuju Pengadilan Dewa Kematian... ✦")
 	play_afterlife_music()
 	var tw = create_tween()

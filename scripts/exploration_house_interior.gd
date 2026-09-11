@@ -178,7 +178,11 @@ var furniture_config: Dictionary = {
 		"x": 355.0, "y": 48.0,
 		"scale": 1.0,
 		"base_w": 16.0,
-		"has_col": false,
+		"has_col": true,
+		"col_w": 18.0,
+		"col_h": 18.0,
+		"col_off_x": 0.0,
+		"col_y_off": 0.0,
 		"z_idx": 1
 	},
 	"lemari": {

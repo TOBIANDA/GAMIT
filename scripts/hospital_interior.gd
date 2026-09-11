@@ -10,34 +10,34 @@ signal hospital_completed
 signal exit_requested
 
 const ROOM_ORIGIN := Vector2(7000.0, 400.0)
-const ROOM_SIZE   := Vector2(2016.0, 1134.0)
+const ROOM_SIZE   := Vector2(1008.0, 567.0)
 
-const ENTRANCE_POS  := Vector2(7000.0 + 100.0, 400.0 + 520.0)
-const EXIT_DOOR_POS := Vector2(7000.0 + 35.0, 400.0 + 520.0)
-const COFFIN_POS    := Vector2(7000.0 + 1850.0, 400.0 + 520.0)
+const ENTRANCE_POS  := Vector2(7000.0 + 50.0, 400.0 + 260.0)
+const EXIT_DOOR_POS := Vector2(7000.0 + 18.0, 400.0 + 260.0)
+const COFFIN_POS    := Vector2(7000.0 + 925.0, 400.0 + 260.0)
 
-# 20 Blok Tembok Presisi hasil dekomposisi area biru layout rumah sakit.png (skala 0.35)
+# 20 Blok Tembok Presisi hasil dekomposisi area biru layout rumah sakit.png (skala 0.175)
 const WALL_RECTS: Array[Rect2] = [
-	Rect2(0.0, 0.0, 2016.0, 70.0),
-	Rect2(0.0, 70.0, 70.0, 371.0),
-	Rect2(343.0, 70.0, 182.0, 175.0),
-	Rect2(1239.0, 70.0, 147.0, 161.0),
-	Rect2(1645.0, 70.0, 182.0, 161.0),
-	Rect2(1946.0, 70.0, 70.0, 385.0),
-	Rect2(924.0, 231.0, 182.0, 182.0),
-	Rect2(70.0, 259.0, 161.0, 189.0),
-	Rect2(497.0, 392.0, 196.0, 175.0),
-	Rect2(1477.0, 413.0, 168.0, 175.0),
-	Rect2(49.0, 441.0, 21.0, 7.0),
-	Rect2(1071.0, 567.0, 189.0, 147.0),
-	Rect2(0.0, 595.0, 70.0, 539.0),
-	Rect2(1946.0, 602.0, 70.0, 532.0),
-	Rect2(784.0, 714.0, 175.0, 154.0),
-	Rect2(350.0, 882.0, 252.0, 252.0),
-	Rect2(1267.0, 882.0, 231.0, 252.0),
-	Rect2(70.0, 1064.0, 280.0, 70.0),
-	Rect2(602.0, 1064.0, 665.0, 70.0),
-	Rect2(1498.0, 1064.0, 448.0, 70.0)
+	Rect2(0.0, 0.0, 1008.0, 35.0),
+	Rect2(0.0, 35.0, 35.0, 185.5),
+	Rect2(171.5, 35.0, 91.0, 87.5),
+	Rect2(619.5, 35.0, 73.5, 80.5),
+	Rect2(822.5, 35.0, 91.0, 80.5),
+	Rect2(973.0, 35.0, 35.0, 192.5),
+	Rect2(462.0, 115.5, 91.0, 91.0),
+	Rect2(35.0, 129.5, 80.5, 94.5),
+	Rect2(248.5, 196.0, 98.0, 87.5),
+	Rect2(738.5, 206.5, 84.0, 87.5),
+	Rect2(24.5, 220.5, 10.5, 3.5),
+	Rect2(535.5, 283.5, 94.5, 73.5),
+	Rect2(0.0, 297.5, 35.0, 269.5),
+	Rect2(973.0, 301.0, 35.0, 266.0),
+	Rect2(392.0, 357.0, 87.5, 77.0),
+	Rect2(175.0, 441.0, 126.0, 126.0),
+	Rect2(633.5, 441.0, 115.5, 126.0),
+	Rect2(35.0, 532.0, 140.0, 35.0),
+	Rect2(301.0, 532.0, 332.5, 35.0),
+	Rect2(749.0, 532.0, 224.0, 35.0)
 ]
 
 var bg_sprite: Sprite2D
@@ -80,7 +80,7 @@ func _setup_background_and_walls() -> void:
 		tex = load("res://Environment/RS/layout rumah sakit.png")
 	bg_sprite.texture = tex
 	bg_sprite.position = ROOM_ORIGIN
-	bg_sprite.scale = Vector2(0.35, 0.35)
+	bg_sprite.scale = Vector2(0.175, 0.175)
 	bg_sprite.centered = false
 	bg_sprite.z_index = -2
 	add_child(bg_sprite)
@@ -112,7 +112,7 @@ func _setup_coffin() -> void:
 	coffin_sprite.position = COFFIN_POS
 	# Rotasi 90 derajat horizontal agar seperti ranjang membujur
 	coffin_sprite.rotation_degrees = -90.0
-	coffin_sprite.scale = Vector2(0.14, 0.14)
+	coffin_sprite.scale = Vector2(0.07, 0.07)
 	coffin_sprite.z_index = 0
 	add_child(coffin_sprite)
 
@@ -122,7 +122,7 @@ func _setup_coffin() -> void:
 	coffin_collision.position = COFFIN_POS
 	var col = CollisionShape2D.new()
 	var box = RectangleShape2D.new()
-	box.size = Vector2(140.0, 75.0)
+	box.size = Vector2(70.0, 38.0)
 	col.shape = box
 	coffin_collision.add_child(col)
 	add_child(coffin_collision)
@@ -132,7 +132,7 @@ func _setup_coffin() -> void:
 	coffin_glow.position = COFFIN_POS
 	coffin_glow.color = Color(0.65, 0.85, 1.0, 0.9)
 	coffin_glow.energy = 1.3
-	coffin_glow.texture_scale = 1.6
+	coffin_glow.texture_scale = 0.8
 	if ResourceLoader.exists("res://Environment/RS/FloorTile/FloorTileDiffuse.png"):
 		coffin_glow.texture = load("res://Environment/RS/FloorTile/FloorTileDiffuse.png")
 	add_child(coffin_glow)
@@ -234,18 +234,18 @@ func _process(_delta: float) -> void:
 	var d_coffin = player.global_position.distance_to(COFFIN_POS)
 	var d_exit   = player.global_position.distance_to(EXIT_DOOR_POS)
 
-	if d_coffin <= 110.0 and not has_revealed:
+	if d_coffin <= 65.0 and not has_revealed:
 		is_player_near_coffin = true
 		is_player_near_exit = false
 		prompt_label.visible = true
 		prompt_label.text = "[ F / E / Spasi ] PERIKSA PETI JENAZAH"
-		prompt_label.position = COFFIN_POS + Vector2(-150.0, -80.0)
-	elif d_exit <= 80.0 and not has_revealed:
+		prompt_label.position = COFFIN_POS + Vector2(-110.0, -45.0)
+	elif d_exit <= 50.0 and not has_revealed:
 		is_player_near_exit = true
 		is_player_near_coffin = false
 		prompt_label.visible = true
 		prompt_label.text = "[ F / E / Spasi ] KELUAR KE KOTA"
-		prompt_label.position = EXIT_DOOR_POS + Vector2(20.0, -50.0)
+		prompt_label.position = EXIT_DOOR_POS + Vector2(15.0, -35.0)
 	else:
 		is_player_near_coffin = false
 		is_player_near_exit = false
