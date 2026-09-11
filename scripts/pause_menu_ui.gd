@@ -48,6 +48,9 @@ var click_player: AudioStreamPlayer
 
 var tex_paused: Texture2D
 var tex_pause_button: Texture2D
+var tex_btn_resume: Texture2D
+var tex_btn_options: Texture2D
+var tex_btn_main_menu: Texture2D
 var hud_pause_button: Button
 
 func _ready() -> void:
@@ -64,6 +67,25 @@ func _ready() -> void:
 func _load_assets() -> void:
 	tex_paused = load("res://PAUSED/PAUSED.png")
 	tex_pause_button = load("res://PAUSED/pause button.png")
+	tex_btn_resume = load("res://PAUSED/btn_resume.png")
+	tex_btn_options = load("res://PAUSED/btn_options.png")
+	tex_btn_main_menu = load("res://PAUSED/btn_main_menu.png")
+
+	if not tex_btn_resume and tex_paused:
+		var a0 = AtlasTexture.new()
+		a0.atlas = tex_paused
+		a0.region = Rect2(301, 286, 434, 126)
+		tex_btn_resume = a0
+	if not tex_btn_options and tex_paused:
+		var a1 = AtlasTexture.new()
+		a1.atlas = tex_paused
+		a1.region = Rect2(304, 475, 434, 126)
+		tex_btn_options = a1
+	if not tex_btn_main_menu and tex_paused:
+		var a2 = AtlasTexture.new()
+		a2.atlas = tex_paused
+		a2.region = Rect2(301, 655, 434, 126)
+		tex_btn_main_menu = a2
 
 func _setup_audio() -> void:
 	click_player = AudioStreamPlayer.new()
@@ -198,21 +220,12 @@ func _build_pause_ui() -> void:
 	vb.add_theme_constant_override("separation", 14)
 	menu_box.add_child(vb)
 
-	# Banner PAUSED.png
-	if is_instance_valid(tex_paused):
-		var pause_banner = TextureRect.new()
-		pause_banner.texture = tex_paused
-		pause_banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		pause_banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		pause_banner.custom_minimum_size = Vector2(0, 85)
-		vb.add_child(pause_banner)
-	else:
-		var title = Label.new()
-		title.text = "PERMAINAN DIJEDA (PAUSE)"
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
-		title.add_theme_font_size_override("font_size", 18)
-		vb.add_child(title)
+	var title = Label.new()
+	title.text = "PERMAINAN DIJEDA"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
+	title.add_theme_font_size_override("font_size", 17)
+	vb.add_child(title)
 
 	objective_hint_label = Label.new()
 	objective_hint_label.text = "Target: Menyelidiki Kasus..."
@@ -259,22 +272,14 @@ func _build_pause_ui() -> void:
 	hud_pause_button.pressed.connect(toggle_pause)
 	add_child(hud_pause_button)
 
-	# Buttons
-	btn_resume = _create_menu_button("▶  Lanjutkan Permainan [ESC]", Color(0.18, 0.65, 0.38))
-	btn_resume.custom_minimum_size = Vector2(0, menu_resume_button_height)
-	btn_resume.add_theme_font_size_override("font_size", menu_resume_font_size)
+	# Tombol Aset Kertas (RESUME, OPTIONS, MAIN MENU)
+	btn_resume = _create_paper_tag_button(tex_btn_resume)
+	btn_resume.tooltip_text = "Lanjutkan Permainan [ESC]"
 	btn_resume.pressed.connect(resume_game)
 	vb.add_child(btn_resume)
 
-	btn_journal = _create_menu_button("Buka Jurnal Kasus & Bukti [J]", Color(0.2, 0.45, 0.7))
-	btn_journal.pressed.connect(func():
-		_play_click()
-		close_pause()
-		journal_requested.emit()
-	)
-	vb.add_child(btn_journal)
-
-	btn_options = _create_menu_button("Pengaturan Audio & Layar", Color(0.35, 0.35, 0.45))
+	btn_options = _create_paper_tag_button(tex_btn_options)
+	btn_options.tooltip_text = "Buka Pengaturan Audio & Layar"
 	btn_options.pressed.connect(func():
 		_play_click()
 		if is_instance_valid(options_modal):
@@ -282,7 +287,8 @@ func _build_pause_ui() -> void:
 	)
 	vb.add_child(btn_options)
 
-	btn_main_menu = _create_menu_button("Kembali ke Menu Utama", Color(0.6, 0.4, 0.2))
+	btn_main_menu = _create_paper_tag_button(tex_btn_main_menu)
+	btn_main_menu.tooltip_text = "Kembali ke Menu Utama"
 	btn_main_menu.pressed.connect(func():
 		_play_click()
 		close_pause()
@@ -290,39 +296,90 @@ func _build_pause_ui() -> void:
 	)
 	vb.add_child(btn_main_menu)
 
-	btn_quit = _create_menu_button("Keluar ke Desktop", Color(0.6, 0.2, 0.2))
+	# Footer Links (Journal & Quit)
+	var footer_hb = HBoxContainer.new()
+	footer_hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	footer_hb.add_theme_constant_override("separation", 24)
+	vb.add_child(footer_hb)
+
+	btn_journal = _create_text_link_button("[J] Jurnal Kasus & Bukti", Color(0.45, 0.75, 1.0))
+	btn_journal.pressed.connect(func():
+		_play_click()
+		close_pause()
+		journal_requested.emit()
+	)
+	footer_hb.add_child(btn_journal)
+
+	btn_quit = _create_text_link_button("[Q] Keluar ke Desktop", Color(0.85, 0.45, 0.45))
 	btn_quit.pressed.connect(func():
 		_play_click()
 		get_tree().quit()
 	)
-	vb.add_child(btn_quit)
+	footer_hb.add_child(btn_quit)
 
 	# 3. Settings Modal
 	_build_settings_modal(center)
 
-func _create_menu_button(label: String, tint_col: Color) -> Button:
+func _create_paper_tag_button(tex: Texture2D) -> Button:
 	var btn = Button.new()
-	btn.text = label
-	btn.custom_minimum_size = Vector2(0, 44)
+	var w = 310.0
+	var h = 90.0
+	btn.custom_minimum_size = Vector2(w, h)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	btn.add_theme_font_size_override("font_size", 14)
 
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(tint_col.r * 0.4, tint_col.g * 0.4, tint_col.b * 0.4, 0.9)
-	sb.border_color = tint_col
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	btn.add_theme_stylebox_override("normal", sb)
+	var empty_sb = StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty_sb)
+	btn.add_theme_stylebox_override("focus", empty_sb)
 
-	var sb_h = sb.duplicate()
-	sb_h.bg_color = tint_col
-	sb_h.border_color = Color.WHITE
-	btn.add_theme_stylebox_override("hover", sb_h)
-	btn.add_theme_stylebox_override("pressed", sb_h)
+	var hov_sb = StyleBoxFlat.new()
+	hov_sb.bg_color = Color(1.0, 1.0, 1.0, 0.08)
+	hov_sb.border_color = Color(1.0, 0.88, 0.45, 0.8)
+	hov_sb.set_border_width_all(2)
+	hov_sb.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("hover", hov_sb)
 
+	var press_sb = StyleBoxFlat.new()
+	press_sb.bg_color = Color(0.0, 0.0, 0.0, 0.25)
+	press_sb.border_color = Color(1.0, 0.88, 0.45, 1.0)
+	press_sb.set_border_width_all(2)
+	press_sb.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("pressed", press_sb)
+
+	if is_instance_valid(tex):
+		var trect = TextureRect.new()
+		trect.texture = tex
+		trect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		trect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		trect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		trect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		trect.pivot_offset = Vector2(w * 0.5, h * 0.5)
+		btn.add_child(trect)
+
+		btn.mouse_entered.connect(func():
+			var tw = btn.create_tween()
+			tw.tween_property(trect, "scale", Vector2(1.03, 1.03), 0.08)
+		)
+		btn.mouse_exited.connect(func():
+			var tw = btn.create_tween()
+			tw.tween_property(trect, "scale", Vector2(1.0, 1.0), 0.08)
+		)
+	return btn
+
+func _create_text_link_button(label_text: String, col: Color = Color(0.8, 0.85, 0.95)) -> Button:
+	var btn = Button.new()
+	btn.text = label_text
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn.add_theme_font_size_override("font_size", 12)
+	btn.add_theme_color_override("font_color", col)
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	var empty_sb = StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty_sb)
+	btn.add_theme_stylebox_override("focus", empty_sb)
+	btn.add_theme_stylebox_override("hover", empty_sb)
+	btn.add_theme_stylebox_override("pressed", empty_sb)
 	return btn
 
 func _build_settings_modal(parent_center: CenterContainer) -> void:
