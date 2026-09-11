@@ -23,6 +23,7 @@ const TYPING_SPEED = 0.028
 @onready var margin_container: MarginContainer = $RootControl/BottomPanel/MarginContainer
 @onready var portrait_box: VBoxContainer = $RootControl/BottomPanel/MarginContainer/HBoxContainer/PortraitBox
 @onready var large_portrait: TextureRect = $RootControl/LargePortrait
+@onready var right_portrait: TextureRect = get_node_or_null("RootControl/RightPortrait")
 @onready var continue_prompt: Label = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel/Margin/ContinuePrompt")
 
 var full_text: String = ""
@@ -51,7 +52,7 @@ func _load_textbox_assets() -> void:
 		tex_grim_textbox = load("res://textBox/GrimReaperTextBox.png")
 
 func _ready() -> void:
-	layer = 35
+	layer = 60
 	_ensure_nodes()
 	visible = false
 	if is_instance_valid(root_control):
@@ -94,6 +95,8 @@ func _ensure_nodes() -> void:
 		large_portrait = $RootControl/LargePortrait
 	if large_portrait == null and has_node("RootControl/LargePortrait"):
 		large_portrait = $RootControl/LargePortrait
+	if right_portrait == null and has_node("RootControl/RightPortrait"):
+		right_portrait = $RootControl/RightPortrait
 	if bottom_panel == null and has_node("RootControl/BottomPanel"):
 		bottom_panel = $RootControl/BottomPanel
 	if margin_container == null and has_node("RootControl/BottomPanel/MarginContainer"):
@@ -119,11 +122,15 @@ func _ensure_nodes() -> void:
 		_on_submit_pressed()
 	)
 
-	layer = 35
+	layer = 60
 	if is_instance_valid(large_portrait):
 		large_portrait.z_index = 2
 		large_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		large_portrait.move_to_front()
+	if is_instance_valid(right_portrait):
+		right_portrait.z_index = 2
+		right_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		right_portrait.move_to_front()
 	if is_instance_valid(text_label):
 		text_label.add_theme_font_size_override("font_size", 18)
 		text_label.add_theme_constant_override("line_spacing", 4)
@@ -318,9 +325,8 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 
 	if is_instance_valid(name_tag):
 		if is_grim:
-			name_tag.text = speaker_name
-			name_tag.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
-		elif speaker_name == "Detektif Benedict":
+			name_tag.text = ""
+		elif speaker_name.contains("Benedict"):
 			name_tag.text = ""
 		else:
 			name_tag.text = speaker_name
@@ -347,24 +353,6 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 			if is_instance_valid(name_tag):
 				name_tag.size_flags_horizontal = 0
 
-	if is_instance_valid(large_portrait):
-		var resolved_path = portrait_path
-		if not resolved_path.begins_with("res://"):
-			if not resolved_path.ends_with(".png"):
-				resolved_path += ".png"
-			resolved_path = "res://karakter/" + resolved_path
-		
-		var tex = load(resolved_path)
-		if not tex and resolved_path.contains("karakter/"):
-			tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
-		if not tex:
-			tex = load("res://UI/mc_portrait.png")
-		if tex:
-			large_portrait.texture = tex
-		large_portrait.z_index = 2
-		large_portrait.move_to_front()
-		large_portrait.visible = true
-
 	if is_instance_valid(portrait_box):
 		portrait_box.visible = false
 	if is_instance_valid(portrait_glow):
@@ -374,8 +362,67 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 	if is_instance_valid(portrait_texture):
 		portrait_texture.visible = false
 
-	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 115)
+	# Layout switching: Grim Reaper on right vs Benedict on left
+	if is_grim:
+		if is_instance_valid(large_portrait):
+			large_portrait.visible = false
+		if is_instance_valid(right_portrait):
+			var g_tex = load("res://karakter/grim.png")
+			if not g_tex and portrait_path.contains("grim"):
+				g_tex = load(portrait_path)
+			if g_tex:
+				right_portrait.texture = g_tex
+			right_portrait.visible = true
+			right_portrait.z_index = 2
+			right_portrait.move_to_front()
+		if is_instance_valid(bottom_panel):
+			bottom_panel.anchor_left = 0.03
+			bottom_panel.anchor_right = 0.82
+			bottom_panel.anchor_top = 0.68
+			bottom_panel.anchor_bottom = 0.98
+			bottom_panel.offset_left = 0.0
+			bottom_panel.offset_right = 0.0
+			bottom_panel.offset_top = 0.0
+			bottom_panel.offset_bottom = 0.0
+		if is_instance_valid(margin_container):
+			margin_container.add_theme_constant_override("margin_left", 40)
+			margin_container.add_theme_constant_override("margin_right", 110)
+			margin_container.add_theme_constant_override("margin_top", 40)
+			margin_container.add_theme_constant_override("margin_bottom", 24)
+	else:
+		if is_instance_valid(right_portrait):
+			right_portrait.visible = false
+		if is_instance_valid(large_portrait):
+			var resolved_path = portrait_path
+			if not resolved_path.begins_with("res://"):
+				if not resolved_path.ends_with(".png"):
+					resolved_path += ".png"
+				resolved_path = "res://karakter/" + resolved_path
+			
+			var tex = load(resolved_path)
+			if not tex and resolved_path.contains("karakter/"):
+				tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
+			if not tex:
+				tex = load("res://UI/mc_portrait.png")
+			if tex:
+				large_portrait.texture = tex
+			large_portrait.z_index = 2
+			large_portrait.move_to_front()
+			large_portrait.visible = true
+		if is_instance_valid(bottom_panel):
+			bottom_panel.anchor_left = 0.20
+			bottom_panel.anchor_right = 0.98
+			bottom_panel.anchor_top = 0.68
+			bottom_panel.anchor_bottom = 0.98
+			bottom_panel.offset_left = 0.0
+			bottom_panel.offset_right = 0.0
+			bottom_panel.offset_top = 0.0
+			bottom_panel.offset_bottom = 0.0
+		if is_instance_valid(margin_container):
+			margin_container.add_theme_constant_override("margin_left", 115)
+			margin_container.add_theme_constant_override("margin_right", 36)
+			margin_container.add_theme_constant_override("margin_top", 40)
+			margin_container.add_theme_constant_override("margin_bottom", 24)
 
 	dialogue_line_started.emit(entry)
 	_start_typewriter(text_to_say)
@@ -478,37 +525,74 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 	if is_instance_valid(margin_container):
 		margin_container.add_theme_constant_override("margin_left", 115)
 
-	# Tampilkan gambar MC 5x lipat tanpa frame kotak (cutout transparan)
-	if is_instance_valid(large_portrait):
-		var resolved_path = portrait_path
-		if not resolved_path.begins_with("res://"):
-			if not resolved_path.ends_with(".png"):
-				resolved_path += ".png"
-			resolved_path = "res://karakter/" + resolved_path
-		
-		var tex = load(resolved_path)
-		if not tex and resolved_path.contains("karakter/"):
-			tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
-		if not tex:
-			tex = load("res://UI/mc_portrait.png")
-		if tex:
-			large_portrait.texture = tex
+	# Tampilkan gambar potret (Grim di kanan atau Benedict di kiri)
+	if is_grim:
+		if is_instance_valid(large_portrait):
+			large_portrait.visible = false
+		if is_instance_valid(right_portrait):
+			var g_tex = load("res://karakter/grim.png")
+			if not g_tex and portrait_path.contains("grim"):
+				g_tex = load(portrait_path)
+			if g_tex:
+				right_portrait.texture = g_tex
+			right_portrait.visible = true
+			right_portrait.z_index = 2
+			right_portrait.move_to_front()
+		if is_instance_valid(bottom_panel):
+			bottom_panel.anchor_left = 0.03
+			bottom_panel.anchor_right = 0.82
+			bottom_panel.anchor_top = 0.68
+			bottom_panel.anchor_bottom = 0.98
+			bottom_panel.offset_left = 0.0
+			bottom_panel.offset_right = 0.0
+			bottom_panel.offset_top = 0.0
+			bottom_panel.offset_bottom = 0.0
+		if is_instance_valid(margin_container):
+			margin_container.add_theme_constant_override("margin_left", 40)
+			margin_container.add_theme_constant_override("margin_right", 110)
+			margin_container.add_theme_constant_override("margin_top", 40)
+			margin_container.add_theme_constant_override("margin_bottom", 24)
+	else:
+		if is_instance_valid(right_portrait):
+			right_portrait.visible = false
+		if is_instance_valid(large_portrait):
+			var resolved_path = portrait_path
+			if not resolved_path.begins_with("res://"):
+				if not resolved_path.ends_with(".png"):
+					resolved_path += ".png"
+				resolved_path = "res://karakter/" + resolved_path
+			
+			var tex = load(resolved_path)
+			if not tex and resolved_path.contains("karakter/"):
+				tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
+			if not tex:
+				tex = load("res://UI/mc_portrait.png")
+			if tex:
+				large_portrait.texture = tex
 
-		if is_grim:
-			large_portrait.offset_left = 20.0
-			large_portrait.offset_right = 380.0
-			large_portrait.offset_top = -620.0
-			large_portrait.offset_bottom = -20.0
-		else:
-			# Benedict menapak pada batas bawah layar (tidak mengambang)
 			large_portrait.offset_left = 24.0
-			large_portrait.offset_right = 404.0
-			large_portrait.offset_top = -480.0
+			large_portrait.offset_right = 414.0
+			large_portrait.offset_top = -500.0
 			large_portrait.offset_bottom = 14.0
 
-		large_portrait.z_index = 2
-		large_portrait.move_to_front()
-		large_portrait.visible = true
+			large_portrait.z_index = 2
+			large_portrait.move_to_front()
+			large_portrait.visible = true
+
+		if is_instance_valid(bottom_panel):
+			bottom_panel.anchor_left = 0.20
+			bottom_panel.anchor_right = 0.98
+			bottom_panel.anchor_top = 0.68
+			bottom_panel.anchor_bottom = 0.98
+			bottom_panel.offset_left = 0.0
+			bottom_panel.offset_right = 0.0
+			bottom_panel.offset_top = 0.0
+			bottom_panel.offset_bottom = 0.0
+		if is_instance_valid(margin_container):
+			margin_container.add_theme_constant_override("margin_left", 115)
+			margin_container.add_theme_constant_override("margin_right", 36)
+			margin_container.add_theme_constant_override("margin_top", 40)
+			margin_container.add_theme_constant_override("margin_bottom", 24)
 
 	dialog_opened.emit()
 
@@ -542,18 +626,24 @@ func open_dialog(initial_prompt: String = "") -> void:
 	if is_instance_valid(tp):
 		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
+	var dim_ov = get_node_or_null("RootControl/DimOverlay")
+	if is_instance_valid(dim_ov):
+		dim_ov.color = Color(0, 0, 0, 0.0)
+
 	if is_instance_valid(text_label):
-		text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.98))
+		text_label.add_theme_font_size_override("font_size", 18)
+		text_label.add_theme_constant_override("line_spacing", 4)
+		text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 1.0))
 	if is_instance_valid(name_tag):
-		name_tag.text = "❖ DEWA KEMATIAN ❖"
-		name_tag.add_theme_color_override("font_color", Color(0.95, 0.85, 1.0))
+		name_tag.text = ""
+	if is_instance_valid(status_badge):
+		status_badge.text = "[ DIALOG AKHIRAT ]"
+		status_badge.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+		status_badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v_sep = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/VSeparator")
 	if is_instance_valid(v_sep):
-		v_sep.visible = true
-	if is_instance_valid(status_badge):
-		status_badge.visible = true
-		status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
-		status_badge.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+		v_sep.visible = false
+
 	if is_instance_valid(close_btn):
 		var empty_sb = StyleBoxEmpty.new()
 		close_btn.add_theme_stylebox_override("normal", empty_sb)
@@ -566,7 +656,6 @@ func open_dialog(initial_prompt: String = "") -> void:
 	if is_instance_valid(continue_prompt):
 		continue_prompt.add_theme_color_override("font_color", Color(0.8, 0.7, 0.95, 0.8))
 
-	# Sembunyikan frame kotak potret kecil dan figur dummy ColorRect
 	if is_instance_valid(portrait_box):
 		portrait_box.visible = false
 	if is_instance_valid(portrait_glow):
@@ -576,20 +665,34 @@ func open_dialog(initial_prompt: String = "") -> void:
 	if is_instance_valid(avatar_visual_container):
 		avatar_visual_container.visible = false
 
-	# Atur margin dialog agar teks dialog dan input LineEdit tertata rapi di samping potret Dewa Kematian
-	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 32)
-
-	# Tampilkan potret visual novel megah Dewa Kematian (grim.png non-chibi)
 	if is_instance_valid(large_portrait):
+		large_portrait.visible = false
+	if is_instance_valid(right_portrait):
 		var grim_tex = load("res://karakter/grim.png")
 		if not grim_tex:
 			grim_tex = load("res://UI/portraits/grim.png")
 		if not grim_tex:
 			grim_tex = load("res://grim.png")
 		if grim_tex:
-			large_portrait.texture = grim_tex
-		large_portrait.visible = true
+			right_portrait.texture = grim_tex
+		right_portrait.visible = true
+		right_portrait.z_index = 2
+		right_portrait.move_to_front()
+
+	if is_instance_valid(bottom_panel):
+		bottom_panel.anchor_left = 0.03
+		bottom_panel.anchor_right = 0.82
+		bottom_panel.anchor_top = 0.68
+		bottom_panel.anchor_bottom = 0.98
+		bottom_panel.offset_left = 0.0
+		bottom_panel.offset_right = 0.0
+		bottom_panel.offset_top = 0.0
+		bottom_panel.offset_bottom = 0.0
+	if is_instance_valid(margin_container):
+		margin_container.add_theme_constant_override("margin_left", 40)
+		margin_container.add_theme_constant_override("margin_right", 110)
+		margin_container.add_theme_constant_override("margin_top", 40)
+		margin_container.add_theme_constant_override("margin_bottom", 24)
 
 	input_container.visible = false
 	input_edit.text = ""
@@ -619,6 +722,8 @@ func close_dialog() -> void:
 		typewriter_player.stop()
 	if is_instance_valid(large_portrait):
 		large_portrait.visible = false
+	if is_instance_valid(right_portrait):
+		right_portrait.visible = false
 	if is_instance_valid(margin_container):
 		margin_container.add_theme_constant_override("margin_left", 16)
 	var dim_ov = get_node_or_null("RootControl/DimOverlay")

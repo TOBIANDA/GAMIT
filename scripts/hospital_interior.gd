@@ -268,9 +268,14 @@ func start_hospital() -> void:
 	has_revealed = false
 	is_glitching = false
 	glitch_current_intensity = 0.0
-	fade_rect.color = Color(0, 0, 0, 0)
-	glitch_distortion_rect.visible = false
-	glitch_status_label.visible = false
+	if is_instance_valid(glitch_layer):
+		glitch_layer.visible = true
+	if is_instance_valid(fade_rect):
+		fade_rect.color = Color(0, 0, 0, 0)
+	if is_instance_valid(glitch_distortion_rect):
+		glitch_distortion_rect.visible = false
+	if is_instance_valid(glitch_status_label):
+		glitch_status_label.visible = false
 	if is_instance_valid(glitch_material):
 		glitch_material.set_shader_parameter("distortion_intensity", 0.0)
 	if is_instance_valid(hospital_audio) and not hospital_audio.playing:
@@ -278,6 +283,14 @@ func start_hospital() -> void:
 
 func stop_hospital() -> void:
 	visible = false
+	if is_instance_valid(glitch_layer):
+		glitch_layer.visible = false
+	if is_instance_valid(fade_rect):
+		fade_rect.color = Color(0, 0, 0, 0)
+	if is_instance_valid(glitch_distortion_rect):
+		glitch_distortion_rect.visible = false
+	if is_instance_valid(glitch_status_label):
+		glitch_status_label.visible = false
 	if is_instance_valid(hospital_audio) and hospital_audio.playing:
 		hospital_audio.stop()
 	if is_instance_valid(shock_audio) and shock_audio.playing:
@@ -444,7 +457,7 @@ func _trigger_distortion_glitch_sequence() -> void:
 	var tw_fade = create_tween()
 	tw_fade.tween_interval(glitch_duration - 1.2)
 	tw_fade.tween_property(fade_rect, "color:a", 1.0, 1.2)
-	tw_fade.tween_interval(0.6)
+	tw_fade.tween_interval(1.0) # Jeda hening di kegelapan total (0.8-1.2 detik)
 	tw_fade.tween_callback(func():
 		var player = get_tree().get_first_node_in_group("player")
 		if is_instance_valid(player):
