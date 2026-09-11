@@ -494,7 +494,7 @@ func _exit_hospital() -> void:
 				hospital_interior.stop_hospital()
 		player.global_position = Vector2(750.0, 1150.0)
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(0, 0, 2400, 1450)
+			player.setup_camera_limits(0, -120, 2400, 1450)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Keluar ke Halaman Rumah Sakit.")
