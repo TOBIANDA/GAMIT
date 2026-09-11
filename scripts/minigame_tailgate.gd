@@ -116,7 +116,7 @@ func _process(delta: float) -> void:
 	if dist < MIN_SAFE_DIST:
 		if grace_period <= 0.0:
 			suspicion_meter += delta * 35.0
-		status_hint.text = "TERLALU DEKAT! Marcus mulai menoleh curiga!"
+		status_hint.text = "TERLALU DEKAT! Marcus mulai menoleh curiga & merinding!"
 		status_hint.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	elif dist > MAX_SAFE_DIST and dist <= MAX_TRAIL_DIST:
 		status_hint.text = "Jarak mulai merenggang... Kejar Marcus!"

@@ -65,7 +65,7 @@ const STUCK_DIST_MIN: float = 4.0
 
 var social_cooldown: float = 0.0
 
-# Warga sipil merinding dan gemetar karena Benedict sejatinya adalah arwah/orang mati
+# Warga sipil merinding dan gemetar karena Benedict sejatinya adalah arwah/orang mati (aktif setelah misi rumah selesai)
 const SOCIAL_CHATS_CIVILIAN = [
 	"...Hii! Tiba-tiba bulu kudukku meremang hebat...",
 	"...Dingin sekali, rasanya seperti ada arwah orang mati berdiri di sebelahku...",
@@ -75,6 +75,15 @@ const SOCIAL_CHATS_CIVILIAN = [
 	"...Ih merinding! Jangan-jangan ada arwah korban pembunuhan yang berkeliaran..."
 ]
 
+# Sapaan warga sipil di awal cerita sebelum misi rumah selesai (kondisi normal, santai & ramah)
+const NORMAL_CHATS_CIVILIAN = [
+	"Selamat pagi, Detektif Benedict. Hari yang berkabut ya?",
+	"Semoga penyelidikanmu lancar hari ini, Pak Detektif.",
+	"Jalanan kota terasa cukup sunyi dan tenang pagi ini.",
+	"Pak Detektif sedang bertugas? Semoga harimu menyenangkan!",
+	"Udara hari ini cukup sejuk dan segar, Benedict."
+]
+
 const SOCIAL_CHATS_POLICE = [
 	"Marcus: Cepat! Kasus ini harus segera kita tuntaskan.",
 	"Marcus: Saksi mata melihat korban terakhir menuju stasiun kereta api.",
@@ -82,6 +91,36 @@ const SOCIAL_CHATS_POLICE = [
 	"Polisi: Korban berencana keluar kota untuk liburan sebelum tewas.",
 	"Marcus: Jangan sampai terlambat, kita amankan bukti di peron!"
 ]
+
+# Dialog polisi saat merinding hebat karena Benedict (arwah) berada terlalu dekat
+const SPOOK_CHATS_POLICE = [
+	"Marcus: Brrr... hawa dingin apa ini?! Bulu kudukku meremang hebat!",
+	"Polisi: Kenapa tiba-tiba merinding begini? Seperti ada arwah orang mati di dekatku...",
+	"Marcus: Dingin sekali... rasanya ada sosok tak kasat mata yang berdiri terlalu dekat!",
+	"Polisi: Hii! Bulu romaku berdiri semua, hawa kematian apa ini?!",
+	"Marcus: Jangan-jangan arwah korban pembunuhan itu ada di samping kita?!"
+]
+
+func _is_spook_active() -> bool:
+	if is_patrolling_to_station or is_departing:
+		return true
+
+	var inv_mgr = null
+	if is_inside_tree() and get_tree() and get_tree().root:
+		inv_mgr = get_tree().root.get_node_or_null("InvestigationManager")
+		if not is_instance_valid(inv_mgr):
+			inv_mgr = get_tree().root.find_child("InvestigationManager", true, false)
+	else:
+		var main_loop = Engine.get_main_loop()
+		if main_loop is SceneTree and is_instance_valid(main_loop.root):
+			inv_mgr = main_loop.root.get_node_or_null("InvestigationManager")
+			if not is_instance_valid(inv_mgr):
+				inv_mgr = main_loop.root.find_child("InvestigationManager", true, false)
+
+	if is_instance_valid(inv_mgr):
+		return inv_mgr.current_phase >= inv_mgr.Phase.INVESTIGATION_1_POLICE or inv_mgr.is_clue_unlocked("victim_letter") or inv_mgr.has_tailgated_marcus or inv_mgr.has_cleared_station
+	return false
+
 
 var msg_display_timer: float = 0.0
 var msg_cooldown_timer: float = 0.0
@@ -242,7 +281,11 @@ func show_chat_bubble(msg: String, duration: float = 2.5) -> void:
 	is_textbox_visible = true
 
 func _trigger_new_clue_dialogue() -> void:
-	var msg_pool = CLUE_MESSAGES_POLICE if (npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS) else (SOCIAL_CHATS_CIVILIAN + CLUE_MESSAGES_CIVILIAN)
+	var msg_pool: Array
+	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
+		msg_pool = SPOOK_CHATS_POLICE if _is_spook_active() else CLUE_MESSAGES_POLICE
+	else:
+		msg_pool = (SOCIAL_CHATS_CIVILIAN + CLUE_MESSAGES_CIVILIAN) if _is_spook_active() else NORMAL_CHATS_CIVILIAN
 	var next_idx = randi() % msg_pool.size()
 	if next_idx == last_clue_index:
 		next_idx = (next_idx + 1) % msg_pool.size()
@@ -346,6 +389,15 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 					reached_station.emit()
 				return
 
+		if _is_spook_active() and dist_to_player <= 68.0:
+			tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
+			if social_cooldown <= 0.0:
+				var spk_pool = SPOOK_CHATS_POLICE
+				show_chat_bubble(spk_pool[randi() % spk_pool.size()], 2.8)
+				social_cooldown = 4.0
+		else:
+			tremble_offset = Vector2.ZERO
+
 		var move_dir = (target_destination - global_position).normalized()
 		move_dir_facing = move_dir
 		is_moving = true
@@ -370,6 +422,15 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 				is_moving = false
 				return
 
+		if _is_spook_active() and dist_to_player <= 68.0:
+			tremble_offset = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
+			if social_cooldown <= 0.0:
+				var spk_pool = SPOOK_CHATS_POLICE
+				show_chat_bubble(spk_pool[randi() % spk_pool.size()], 2.8)
+				social_cooldown = 4.0
+		else:
+			tremble_offset = Vector2.ZERO
+
 		var move_dir = (target_destination - global_position).normalized()
 		move_dir_facing = move_dir
 		is_moving = true
@@ -382,19 +443,25 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 	var is_civilian: bool = (npc_type == NPCType.BOY or npc_type == NPCType.GIRL)
 
 	if is_civilian and player_stationary_timer < 3.0 and social_cooldown <= 0.0:
-		if dist_to_player <= too_close_radius:
-			current_state = State.AFRAID
-			spook_freeze_timer = 2.0
-			panic_timer = 0.0
-			_trigger_new_clue_dialogue()
-			social_cooldown = 4.0
-			return
-		elif dist_to_player <= eavesdrop_radius:
-			current_state = State.EAVESDROP
-			spook_freeze_timer = 1.8
-			_trigger_new_clue_dialogue()
-			social_cooldown = 4.0
-			return
+		if _is_spook_active():
+			if dist_to_player <= too_close_radius:
+				current_state = State.AFRAID
+				spook_freeze_timer = 2.0
+				panic_timer = 0.0
+				_trigger_new_clue_dialogue()
+				social_cooldown = 4.0
+				return
+			elif dist_to_player <= eavesdrop_radius:
+				current_state = State.EAVESDROP
+				spook_freeze_timer = 1.8
+				_trigger_new_clue_dialogue()
+				social_cooldown = 4.0
+				return
+		else:
+			if dist_to_player <= 48.0:
+				var normal_pool = NORMAL_CHATS_CIVILIAN
+				show_chat_bubble(normal_pool[randi() % normal_pool.size()], 2.5)
+				social_cooldown = 6.0
 
 	if social_cooldown <= 0.0:
 		_check_for_walking_greeting()
@@ -523,7 +590,33 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 		if is_patrolling_to_station or is_departing:
 			return
 
-		# Mengobrol berkala santai di depan kantor polisi jika belum patroli
+		if _is_spook_active():
+			# Jika kondisi merinding aktif, polisi tidak boleh didekati terlalu dekat!
+			if dist_to_player <= 68.0:
+				tremble_offset = Vector2(randf_range(-1.8, 1.8), randf_range(-1.8, 1.8))
+				if social_cooldown <= 0.0:
+					var spook_pool = SPOOK_CHATS_POLICE
+					show_chat_bubble(spook_pool[randi() % spook_pool.size()], 3.0)
+					social_cooldown = 4.0
+
+				# Melangkah mundur menjaga jarak dari Benedict
+				if is_instance_valid(player_ref):
+					var push_away = (global_position - player_ref.global_position).normalized()
+					if push_away == Vector2.ZERO:
+						push_away = Vector2.UP
+					move_dir_facing = push_away
+					velocity = push_away * 42.0
+					move_and_slide()
+					is_moving = true
+					step_cycle += delta * 4.0
+					body_bob_y = abs(sin(step_cycle)) * -1.2
+				return
+			else:
+				tremble_offset = Vector2.ZERO
+				velocity = Vector2.ZERO
+				is_moving = false
+
+		# Mengobrol berkala santai di depan kantor polisi jika belum patroli atau tidak didekati
 		social_cooldown -= delta
 		if social_cooldown <= 0.0:
 			var pool = CLUE_MESSAGES_POLICE
@@ -531,14 +624,20 @@ func _handle_idle_state(delta: float, dist_to_player: float) -> void:
 			social_cooldown = randf_range(8.0, 14.0)
 		return
 
-	# Warga sipil merinding jika didekati Benedict
-	if dist_to_player <= eavesdrop_radius and social_cooldown <= 0.0 and player_stationary_timer < 3.0:
-		current_state = State.AFRAID
-		spook_freeze_timer = 2.0
-		panic_timer = 0.0
-		_trigger_new_clue_dialogue()
-		social_cooldown = 4.0
-		return
+	# Warga sipil merinding jika didekati Benedict (hanya jika _is_spook_active())
+	if _is_spook_active():
+		if dist_to_player <= eavesdrop_radius and social_cooldown <= 0.0 and player_stationary_timer < 3.0:
+			current_state = State.AFRAID
+			spook_freeze_timer = 2.0
+			panic_timer = 0.0
+			_trigger_new_clue_dialogue()
+			social_cooldown = 4.0
+			return
+	else:
+		if dist_to_player <= 48.0 and social_cooldown <= 0.0 and player_stationary_timer < 3.0:
+			var normal_pool = NORMAL_CHATS_CIVILIAN
+			show_chat_bubble(normal_pool[randi() % normal_pool.size()], 2.5)
+			social_cooldown = 6.0
 
 	if dist_to_player <= too_close_radius:
 		_pick_next_destination()
@@ -560,7 +659,11 @@ func _check_for_walking_greeting() -> void:
 			if other.current_state == State.GO_TO_DESTINATION:
 				var dist = global_position.distance_to(other.global_position)
 				if dist < 60.0 and other.social_cooldown <= 0.0:
-					var pool = SOCIAL_CHATS_POLICE if npc_type == NPCType.POLICE else SOCIAL_CHATS_CIVILIAN
+					var pool: Array
+					if npc_type == NPCType.POLICE:
+						pool = SOCIAL_CHATS_POLICE
+					else:
+						pool = SOCIAL_CHATS_CIVILIAN if _is_spook_active() else NORMAL_CHATS_CIVILIAN
 					var msg = pool[randi() % pool.size()]
 					show_chat_bubble(msg, 2.5)
 					social_cooldown = 16.0
@@ -618,17 +721,35 @@ func _handle_panic_run(delta: float) -> void:
 		_pick_next_destination()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
-		return
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE]:
-			if is_instance_valid(player_ref) and global_position.distance_to(player_ref.global_position) <= 65.0:
+			if not is_instance_valid(player_ref) or global_position.distance_to(player_ref.global_position) > 68.0:
+				return
+
+			if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
+				if _is_spook_active():
+					tremble_offset = Vector2(randf_range(-1.8, 1.8), randf_range(-1.8, 1.8))
+					var pool = SPOOK_CHATS_POLICE
+					show_chat_bubble(pool[randi() % pool.size()], 3.0)
+					social_cooldown = 3.5
+				else:
+					var pool = CLUE_MESSAGES_POLICE
+					show_chat_bubble(pool[randi() % pool.size()], 2.8)
+					social_cooldown = 4.0
+				return
+
+			# Civilian
+			if _is_spook_active():
 				if social_cooldown <= 0.0:
 					current_state = State.AFRAID
 					spook_freeze_timer = 2.2
 					panic_timer = 0.0
 					_trigger_new_clue_dialogue()
 					social_cooldown = 3.5
+			else:
+				var normal_pool = NORMAL_CHATS_CIVILIAN
+				show_chat_bubble(normal_pool[randi() % normal_pool.size()], 2.5)
+				social_cooldown = 4.0
 
 func _animate_textbox_scale(delta: float) -> void:
 	var target_scale = 1.0 if is_textbox_visible else 0.0
