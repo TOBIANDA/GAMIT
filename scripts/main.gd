@@ -421,7 +421,7 @@ func _exit_house() -> void:
 		player.global_position = Vector2(1248.0, 155.0)
 		player.target_zoom_val = 2.0
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(0, 0, 2400, 1450)
+			player.setup_camera_limits(0, -120, 2400, 1450)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Keluar ke Jalan Kota.")
@@ -582,7 +582,7 @@ func _exit_exploration_house() -> void:
 		player.target_zoom_val = 2.0
 
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(0, 0, 2400, 1450)
+			player.setup_camera_limits(0, -120, 2400, 1450)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Keluar ke Jalan Kota Selatan.")

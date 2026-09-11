@@ -7,6 +7,8 @@ signal options_closed
 var is_active: bool = false
 
 var root_control: Control
+var aspect_container: AspectRatioContainer
+var menu_canvas: Control
 var bg_texture_rect: TextureRect
 var btn_play: Button
 var btn_options: Button
@@ -31,6 +33,15 @@ var title_backdrop: Panel
 
 func _ready() -> void:
 	layer = 100
+	var root_w = get_tree().root
+	if root_w:
+		root_w.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root_w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root_w.content_scale_size = Vector2i(1600, 900)
+	var scr_size = DisplayServer.screen_get_size()
+	var win_size = DisplayServer.window_get_size()
+	if win_size.x > scr_size.x or win_size.y > scr_size.y:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
 	_load_assets()
 	_setup_audio()
 	_build_menu_ui()
@@ -99,7 +110,29 @@ func _build_menu_ui() -> void:
 		return
 	root_control = Control.new()
 	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root_control)
+
+	# Latar Belakang Gelap Serasi di Luar Panggung (untuk Monitor Ultrawide 21:9 atau 16:10)
+	var root_bg = ColorRect.new()
+	root_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root_bg.color = Color(0.04, 0.02, 0.03, 1.0)
+	root_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(root_bg)
+
+	# Panggung 16:9 Proporsional Penuh (Menjamin seluruh meja terlihat utuh tanpa terpotong di resolusi apa pun)
+	aspect_container = AspectRatioContainer.new()
+	aspect_container.ratio = 16.0 / 9.0
+	aspect_container.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
+	aspect_container.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
+	aspect_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	aspect_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(aspect_container)
+
+	menu_canvas = Control.new()
+	menu_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
+	menu_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	aspect_container.add_child(menu_canvas)
 
 	# 1. Background Ilustrasi Meja Investigasi (5760x3240 Asli)
 	bg_texture_rect = TextureRect.new()
@@ -108,7 +141,8 @@ func _build_menu_ui() -> void:
 	bg_texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	root_control.add_child(bg_texture_rect)
+	bg_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_canvas.add_child(bg_texture_rect)
 
 	# 2a. Backdrop Gelap di Belakang Judul (Lebih Gelap & Berkontras Tinggi)
 	title_backdrop = Panel.new()
@@ -121,7 +155,7 @@ func _build_menu_ui() -> void:
 	tb_style.shadow_offset = Vector2(0, 3)
 	title_backdrop.add_theme_stylebox_override("panel", tb_style)
 	title_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.add_child(title_backdrop)
+	menu_canvas.add_child(title_backdrop)
 
 	# 2b. Header Judul Game (res://judul.png)
 	title_texture_rect = TextureRect.new()
@@ -131,25 +165,28 @@ func _build_menu_ui() -> void:
 	title_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	title_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	title_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root_control.add_child(title_texture_rect)
+	menu_canvas.add_child(title_texture_rect)
 
-	# 3. Hotspot Buttons Presisi Sesuai Kertas Papan Investigasi:
-	# Ukuran asli di latar 5760x3240 adalah 742x209 px (di 1600x900 adalah 206x58 px)
-	btn_play = _create_paper_hotspot("PLAY", Vector2(140, 117), Vector2(206, 58))
+	# 3. Hotspot Buttons Presisi Berbasis Anchor Relatif terhadap Latar 5760x3240:
+	# PLAY: x:504..1246, y:421..630
+	btn_play = _create_paper_hotspot("PLAY", Vector4(504.0/5760.0, 421.0/3240.0, 1246.0/5760.0, 630.0/3240.0))
 	btn_play.pressed.connect(_on_play_pressed)
-	root_control.add_child(btn_play)
+	menu_canvas.add_child(btn_play)
 
-	btn_options = _create_paper_hotspot("OPTIONS", Vector2(141, 271), Vector2(206, 58))
+	# OPTIONS: x:507..1249, y:975..1184
+	btn_options = _create_paper_hotspot("OPTIONS", Vector4(507.0/5760.0, 975.0/3240.0, 1249.0/5760.0, 1184.0/3240.0))
 	btn_options.pressed.connect(_on_options_pressed)
-	root_control.add_child(btn_options)
+	menu_canvas.add_child(btn_options)
 
-	btn_credit = _create_paper_hotspot("CREDIT", Vector2(428, 479), Vector2(206, 58))
+	# CREDIT: x:1541..2283, y:1724..1933
+	btn_credit = _create_paper_hotspot("CREDIT", Vector4(1541.0/5760.0, 1724.0/3240.0, 2283.0/5760.0, 1933.0/3240.0))
 	btn_credit.pressed.connect(_on_credit_pressed)
-	root_control.add_child(btn_credit)
+	menu_canvas.add_child(btn_credit)
 
-	btn_quit = _create_paper_hotspot("QUIT", Vector2(160, 743), Vector2(206, 58))
+	# QUIT: x:576..1318, y:2675..2884 (100% Selalu Terlihat & Utuh di Pojok Kiri Bawah!)
+	btn_quit = _create_paper_hotspot("QUIT", Vector4(576.0/5760.0, 2675.0/3240.0, 1318.0/5760.0, 2884.0/3240.0))
 	btn_quit.pressed.connect(_on_quit_pressed)
-	root_control.add_child(btn_quit)
+	menu_canvas.add_child(btn_quit)
 
 	# 4. Modals (Options & Credits)
 	_build_options_modal()
@@ -161,45 +198,21 @@ func _build_menu_ui() -> void:
 func _update_button_positions() -> void:
 	if not is_instance_valid(root_control):
 		return
-	var vp_size = get_viewport().get_visible_rect().size if is_inside_tree() and get_viewport() else root_control.size
+	var vp_size = root_control.size
 	if vp_size.x <= 0 or vp_size.y <= 0:
 		vp_size = Vector2(1600, 900)
-	if root_control.anchor_right != 1.0 or root_control.anchor_bottom != 1.0:
-		root_control.size = vp_size
-		root_control.position = Vector2.ZERO
-
-	var img_orig = Vector2(5760.0, 3240.0)
-	var scale_factor = min(vp_size.x / img_orig.x, vp_size.y / img_orig.y)
-	var displayed_size = img_orig * scale_factor
-	var offset = (vp_size - displayed_size) * 0.5
-
-	# Data posisi tag kertas pada resolusi asli ilustrasi meja 5760x3240
-	var tag_data = {
-		btn_play: [Vector2(504, 421), Vector2(742, 209)],
-		btn_options: [Vector2(507, 975), Vector2(742, 209)],
-		btn_credit: [Vector2(1541, 1724), Vector2(742, 209)],
-		btn_quit: [Vector2(576, 2675), Vector2(742, 209)]
-	}
-
-	for btn in tag_data:
-		if is_instance_valid(btn):
-			var orig_pos: Vector2 = tag_data[btn][0]
-			var orig_size: Vector2 = tag_data[btn][1]
-			btn.position = offset + orig_pos * scale_factor
-			btn.size = orig_size * scale_factor
-			btn.custom_minimum_size = btn.size
+	var canvas_size = menu_canvas.size if is_instance_valid(menu_canvas) and menu_canvas.size.x > 0 else vp_size
 
 	if is_instance_valid(title_texture_rect):
-		var title_w: float = clamp(vp_size.x * 0.54, 420.0, 960.0)
+		var title_w: float = clamp(canvas_size.x * 0.54, 420.0, 960.0)
 		var title_h: float = title_w * (200.0 / 1920.0)
-		var title_x: float = (vp_size.x - title_w) * 0.5
-		# Dinaikkan sedikit agar lebih seimbang dan berjarak dari pin & foto di bawahnya
-		var title_y: float = -2.0 * (vp_size.y / 900.0)
+		var title_x: float = (canvas_size.x - title_w) * 0.5
+		var title_y: float = -2.0 * (canvas_size.y / 900.0)
 		title_texture_rect.size = Vector2(title_w, title_h)
 		title_texture_rect.position = Vector2(title_x, title_y)
 
 		if is_instance_valid(title_backdrop):
-			var pad_x: float = 24.0 * (vp_size.x / 1600.0)
+			var pad_x: float = 24.0 * (canvas_size.x / 1600.0)
 			var bd_w: float = title_w + (pad_x * 2.0)
 			var bd_h: float = title_h * 0.68 + 10.0
 			var bd_x: float = title_x - pad_x
@@ -214,12 +227,17 @@ func _update_button_positions() -> void:
 	if is_instance_valid(credit_modal):
 		credit_modal.set_anchors_preset(Control.PRESET_FULL_RECT)
 
-func _create_paper_hotspot(btn_text: String, pos: Vector2, btn_size: Vector2) -> Button:
+func _create_paper_hotspot(btn_text: String, bounds: Vector4) -> Button:
 	var btn = Button.new()
 	btn.name = "Btn" + btn_text
-	btn.position = pos
-	btn.size = btn_size
-	btn.custom_minimum_size = btn_size
+	btn.anchor_left = bounds.x
+	btn.anchor_top = bounds.y
+	btn.anchor_right = bounds.z
+	btn.anchor_bottom = bounds.w
+	btn.offset_left = 0
+	btn.offset_top = 0
+	btn.offset_right = 0
+	btn.offset_bottom = 0
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	

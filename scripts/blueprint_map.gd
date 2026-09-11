@@ -1884,12 +1884,13 @@ func _draw() -> void:
 
 	draw_rect(Rect2(-200, -200, 2800, 1800), COLOR_VOID, true)
 
-	draw_rect(Rect2(0, 0, 2160, 1311), COLOR_SIDEWALK, true)
+	draw_rect(Rect2(0, -120, 2160, 1431), COLOR_SIDEWALK, true)
 
 	for gx in range(40, 2160, 40):
-		draw_line(Vector2(gx, 0), Vector2(gx, 1311), Color(0, 0, 0, 0.08), 1.0)
-	for gy in range(40, 1311, 40):
+		draw_line(Vector2(gx, -120), Vector2(gx, 1311), Color(0, 0, 0, 0.08), 1.0)
+	for gy in range(-120, 1311, 40):
 		draw_line(Vector2(0, gy), Vector2(2160, gy), Color(0, 0, 0, 0.08), 1.0)
+	draw_line(Vector2(0, -120), Vector2(2160, -120), COLOR_CURB_LINE, 2.5)
 
 	for i in range(11):
 		var sq_x = (13.0 + i * 62.0) * 3.0

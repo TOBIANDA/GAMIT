@@ -56,7 +56,7 @@ func _ready() -> void:
 		camera.make_current()
 		target_zoom_val = clampf(target_zoom_val, min_zoom_val, max_zoom_val)
 		camera.zoom = Vector2(target_zoom_val, target_zoom_val)
-		setup_camera_limits(0, 0, 2400, 1450)
+		setup_camera_limits(0, -120, 2400, 1450)
 
 	_setup_player_ambient_light()
 	_setup_footsteps_audio()
