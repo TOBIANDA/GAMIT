@@ -576,6 +576,8 @@ func _setup_exploration_house_interior() -> void:
 		exploration_house_interior.set_script(ehi_script)
 		exploration_house_interior.visible = is_inside_exploration_house
 		add_child(exploration_house_interior)
+		if exploration_house_interior.has_method("set_editor_available"):
+			exploration_house_interior.set_editor_available(is_inside_exploration_house)
 
 func _enter_exploration_house() -> void:
 	if not is_instance_valid(player):
@@ -601,6 +603,8 @@ func _enter_exploration_house() -> void:
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Rumah Ibu Korban (Ibu Medeline).")
+		if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("set_editor_available"):
+			exploration_house_interior.set_editor_available(true)
 	)
 	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
 	tw.tween_callback(func():
@@ -623,6 +627,8 @@ func _exit_exploration_house() -> void:
 			exploration_house_interior.visible = false
 		if is_instance_valid(house_interior):
 			house_interior.visible = false
+		if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("set_editor_available"):
+			exploration_house_interior.set_editor_available(false)
 		player.global_position = Vector2(1714.0, 1200.0)
 		player.target_zoom_val = 2.0
 
@@ -1951,6 +1957,16 @@ func _check_poi_proximity() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_F2:
+			if is_inside_exploration_house and is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("toggle_editor"):
+				exploration_house_interior.toggle_editor()
+				get_viewport().set_input_as_handled()
+				return
+			elif is_inside_house and is_instance_valid(house_interior) and house_interior.has_method("toggle_editor"):
+				house_interior.toggle_editor()
+				get_viewport().set_input_as_handled()
+				return
+
 		if event.keycode == KEY_F11 or (event.alt_pressed and event.keycode == KEY_ENTER):
 			toggle_fullscreen()
 			get_viewport().set_input_as_handled()
