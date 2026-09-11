@@ -89,6 +89,12 @@ func start_minigame() -> void:
 	is_active = true
 	visible = true
 	time_left = 60.0
+
+	# Sembunyikan tombol HUD pause agar tidak tumpang tindih
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var pm = get_tree().root.find_child("PauseMenuLayer", true, false)
+		if is_instance_valid(pm) and pm.has_method("set_hud_button_visible"):
+			pm.set_hud_button_visible(false)
 	for k in items_to_find.keys():
 		items_to_find[k]["found"] = false
 		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
@@ -220,6 +226,12 @@ func _finish_and_close(success: bool = true) -> void:
 	visible = false
 	minigame_completed.emit(success)
 
+	# Kembalikan tombol HUD pause saat minigame selesai/ditutup
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var pm = get_tree().root.find_child("PauseMenuLayer", true, false)
+		if is_instance_valid(pm) and pm.has_method("set_hud_button_visible"):
+			pm.set_hud_button_visible(true)
+
 	if success and is_inside_tree() and get_tree() and get_tree().root:
 		var dlg = get_tree().root.find_child("DialogBox", true, false)
 		if is_instance_valid(dlg) and dlg.has_method("start_monologue"):
@@ -246,7 +258,7 @@ func _build_scene_ui() -> void:
 	var margin = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 24)
-	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_right", 110)
 	margin.add_theme_constant_override("margin_top", 12)
 	margin.add_theme_constant_override("margin_bottom", 12)
 	root_control.add_child(margin)

@@ -520,15 +520,24 @@ func _on_quit_pressed() -> void:
 
 func _on_bgm_volume_changed(val: float) -> void:
 	if is_instance_valid(menu_bgm_player):
-		var db = linear_to_db(val) if val > 0.0 else -80.0
+		var db = linear_to_db(val) if val > 0.001 else -80.0
 		menu_bgm_player.volume_db = db - 4.0
-	var master_bus = AudioServer.get_bus_index("Master")
-	# Atur audio bus Master jika belum ada bus BGM terpisah
-	if master_bus != -1:
-		var db = linear_to_db(val) if val > 0.0 else -80.0
-		AudioServer.set_bus_volume_db(master_bus, db)
+	var bgm_bus = AudioServer.get_bus_index("BGM")
+	if bgm_bus == -1:
+		bgm_bus = AudioServer.get_bus_index("Master")
+	if bgm_bus != -1:
+		var db = linear_to_db(val) if val > 0.001 else -80.0
+		AudioServer.set_bus_volume_db(bgm_bus, db)
 
-func _on_sfx_volume_changed(_val: float) -> void:
+func _on_sfx_volume_changed(val: float) -> void:
+	var sfx_idx = AudioServer.get_bus_index("SFX")
+	if sfx_idx == -1:
+		AudioServer.add_bus()
+		sfx_idx = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(sfx_idx, "SFX")
+		AudioServer.set_bus_send(sfx_idx, "Master")
+	var db = linear_to_db(val) if val > 0.001 else -80.0
+	AudioServer.set_bus_volume_db(sfx_idx, db)
 	_play_click()
 
 func _refresh_fullscreen_btn_label() -> void:
@@ -543,6 +552,12 @@ func _on_toggle_fullscreen() -> void:
 	var mode = DisplayServer.window_get_mode()
 	if mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+		var screen_size = DisplayServer.screen_get_size()
+		var win_w = 1280
+		var win_h = 720
+		DisplayServer.window_set_size(Vector2i(win_w, win_h))
+		DisplayServer.window_set_position(Vector2i((screen_size.x - win_w) / 2, (screen_size.y - win_h) / 2))
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	_refresh_fullscreen_btn_label()

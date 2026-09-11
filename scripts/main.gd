@@ -50,10 +50,12 @@ var transition_layer: CanvasLayer
 
 const POI_LOCATIONS = {
 	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1170, 230), "radius": 150.0},
-	"south_house": {"name": "Masuk ke Rumah Eksplorasi (Rumah Selatan)", "pos": Vector2(1714, 1170), "radius": 75.0},
+	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1020), "radius": 75.0},
+	"south_house": {"name": "Masuk ke Rumah Selatan", "pos": Vector2(1714, 1170), "radius": 75.0},
 	"street_clock": {"name": "Jam Jalan (Berhenti di 16:04)", "pos": Vector2(480, 220), "radius": 120.0},
 	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(280, 915), "radius": 220.0},
-	"station": {"name": "Stasiun Kereta Api (Minigame Cari Bukti)", "pos": Vector2(2020, 930), "radius": 320.0},
+	"police_darkroom": {"name": "Lab Forensik Polisi (Kamar Gelap Cuci Foto)", "pos": Vector2(170, 1050), "radius": 110.0},
+	"station": {"name": "Stasiun Kereta Api (Minigame Cari Bukti)", "pos": Vector2(2020, 850), "radius": 125.0},
 	"hospital": {"name": "Rumah Sakit & Kamar Jenazah", "pos": Vector2(750, 1095), "radius": 160.0},
 	"phone": {"name": "Bilik Telepon Umum (Peron Stasiun)", "pos": Vector2(2018, 1269), "radius": 75.0}
 }
@@ -143,9 +145,25 @@ func _on_shrine_interaction() -> void:
 	_summon_death_god()
 
 func _setup_audio_system() -> void:
+	# Pastikan bus audio BGM dan SFX tersedia di AudioServer
+	var bgm_idx = AudioServer.get_bus_index("BGM")
+	if bgm_idx == -1:
+		AudioServer.add_bus()
+		bgm_idx = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(bgm_idx, "BGM")
+		AudioServer.set_bus_send(bgm_idx, "Master")
+
+	var sfx_idx = AudioServer.get_bus_index("SFX")
+	if sfx_idx == -1:
+		AudioServer.add_bus()
+		sfx_idx = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(sfx_idx, "SFX")
+		AudioServer.set_bus_send(sfx_idx, "Master")
+
 	# 1. Background Music Player (BGM.mp3)
 	bgm_player = AudioStreamPlayer.new()
 	bgm_player.name = "BGMPlayer"
+	bgm_player.bus = "BGM"
 	var bgm_stream = load("res://sound/BGM.mp3")
 	if bgm_stream:
 		bgm_player.stream = bgm_stream
@@ -158,6 +176,7 @@ func _setup_audio_system() -> void:
 	# 2. Global Click SFX Player (Click sound.mp3)
 	click_sfx_player = AudioStreamPlayer.new()
 	click_sfx_player.name = "ClickSFXPlayer"
+	click_sfx_player.bus = "SFX"
 	var click_stream = load("res://sound/Click sound.mp3")
 	if click_stream:
 		click_sfx_player.stream = click_stream
@@ -167,6 +186,7 @@ func _setup_audio_system() -> void:
 	# 3. Door SFX Player (Door Open.mp3)
 	door_sfx_player = AudioStreamPlayer.new()
 	door_sfx_player.name = "DoorSFXPlayer"
+	door_sfx_player.bus = "SFX"
 	var door_stream = load("res://sound/Door Open.mp3")
 	if door_stream:
 		door_sfx_player.stream = door_stream
@@ -176,6 +196,7 @@ func _setup_audio_system() -> void:
 	# 4. Afterlife Music Player (Afterlife.mp3) saat bertemu Dewa Kematian
 	afterlife_audio_player = AudioStreamPlayer.new()
 	afterlife_audio_player.name = "AfterlifeAudioPlayer"
+	afterlife_audio_player.bus = "BGM"
 	var afterlife_stream: AudioStream = null
 	if ResourceLoader.exists("res://sound/Afterlife.mp3"):
 		afterlife_stream = load("res://sound/Afterlife.mp3")
@@ -190,6 +211,7 @@ func _setup_audio_system() -> void:
 	# 5. Paper SFX Player (Paper.mp3)
 	paper_sfx_player = AudioStreamPlayer.new()
 	paper_sfx_player.name = "PaperSFXPlayer"
+	paper_sfx_player.bus = "SFX"
 	var p_stream = load("res://sound/Paper.mp3")
 	if p_stream:
 		paper_sfx_player.stream = p_stream
@@ -362,9 +384,10 @@ func _enter_house() -> void:
 			house_interior.visible = true
 		if is_instance_valid(exploration_house_interior):
 			exploration_house_interior.visible = false
-		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 310.0)
+		player.global_position = Vector2(3600.0 + 80.0, 400.0 + 240.0)
+		player.target_zoom_val = 2.85
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(3460, 220, 4400, 980)
+			player.setup_camera_limits(3580, 380, 4100, 720)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Dalam Rumah Benedict.")
@@ -393,6 +416,7 @@ func _exit_house() -> void:
 		if is_instance_valid(exploration_house_interior):
 			exploration_house_interior.visible = false
 		player.global_position = Vector2(1170.0, 260.0)
+		player.target_zoom_val = 2.0
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(0, 0, 2400, 1450)
 		if player.has_method("reset_camera_smoothing"):
@@ -519,11 +543,12 @@ func _enter_exploration_house() -> void:
 		if is_instance_valid(house_interior):
 			house_interior.visible = false
 		player.global_position = Vector2(4600.0 + 110.0, 400.0 + 330.0)
+		player.target_zoom_val = 2.50
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(4460, 220, 5360, 980)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
-		_show_toast("Masuk ke Rumah Eksplorasi (Rumah Kenangan).")
+		_show_toast("Masuk ke Rumah Ibu Korban (Ibu Medeline).")
 	)
 	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
 	tw.tween_callback(func():
@@ -542,6 +567,10 @@ func _exit_exploration_house() -> void:
 	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
 	tw.tween_callback(func():
 		is_inside_exploration_house = false
+		if is_instance_valid(exploration_house_interior):
+			exploration_house_interior.visible = false
+		player.global_position = Vector2(1714.0, 1070.0)
+		player.target_zoom_val = 2.0
 		if is_instance_valid(exploration_house_interior):
 			exploration_house_interior.visible = false
 		if is_instance_valid(house_interior):
@@ -781,6 +810,12 @@ func _setup_pause_menu() -> void:
 				clue_journal.open_journal()
 		)
 		pause_menu_layer.main_menu_requested.connect(_on_return_to_main_menu)
+		pause_menu_layer.restart_requested.connect(_on_restart_game_requested)
+
+func _on_restart_game_requested() -> void:
+	play_click_sfx()
+	cutscene_played = true # Hindari memutar intro berulang saat restart in-game
+	get_tree().reload_current_scene()
 
 func _on_main_menu_play_requested() -> void:
 	if not cutscene_played:
@@ -1310,6 +1345,12 @@ func toggle_fullscreen() -> void:
 	play_click_sfx()
 	if _is_fullscreen_now():
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+		var screen_size = DisplayServer.screen_get_size()
+		var win_w = 1280
+		var win_h = 720
+		DisplayServer.window_set_size(Vector2i(win_w, win_h))
+		DisplayServer.window_set_position(Vector2i((screen_size.x - win_w) / 2, (screen_size.y - win_h) / 2))
 		_update_fullscreen_button_text(false)
 		_show_toast("Mode Jendela (Windowed)")
 	else:
@@ -1476,10 +1517,18 @@ func _check_poi_proximity() -> void:
 	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 65.0:
 		best_poi = "desk"
 		closest_dist = p_pos.distance_to(Vector2(1170.0, 230.0))
-	# 3. Pintu Masuk Rumah Selatan (Rumah Eksplorasi)
+	# 3. Pintu Masuk Rumah Ibu Korban (Rumah Tengah Seberang Stasiun)
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1020.0)) <= 70.0:
+		best_poi = "mother_house"
+		closest_dist = p_pos.distance_to(Vector2(1714.0, 1020.0))
+	# 4. Pintu Masuk Rumah Selatan
 	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1170.0)) <= 70.0:
 		best_poi = "south_house"
 		closest_dist = p_pos.distance_to(Vector2(1714.0, 1170.0))
+	# 5. Meja Lab Forensik / Kamar Gelap Cuci Foto Kantor Polisi
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(170.0, 1050.0)) <= 90.0:
+		best_poi = "police_darkroom"
+		closest_dist = p_pos.distance_to(Vector2(170.0, 1050.0))
 	else:
 		for poi_key in POI_LOCATIONS.keys():
 			var poi = POI_LOCATIONS[poi_key]
@@ -1497,7 +1546,16 @@ func _check_poi_proximity() -> void:
 		if is_instance_valid(interact_prompt):
 			var poi_info = POI_LOCATIONS[active_poi_id]
 			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
-			if active_poi_id == "police":
+			if active_poi_id == "mother_house":
+				custom_text = "[ F / E / Spasi ] MASUK KE RUMAH IBU KORBAN"
+			elif active_poi_id == "police_darkroom":
+				if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
+					custom_text = "[ F / E / Spasi ] LAB FORENSIK POLISI: CUCI ROL FOTO"
+				elif inv_mgr.has_developed_photos:
+					custom_text = "[ F / E / Spasi ] LAB FORENSIK: FOTO SELESAI DICUCI"
+				else:
+					custom_text = "[ F / E / Spasi ] LAB FORENSIK POLISI (BUTUH FOTO STASIUN)"
+			elif active_poi_id == "police":
 				# Otomatisasi: Pas keluar dari rumah korban, ketika dalam radius tertentu disekitar polisi,
 				# langsung ikuti polisi pergi ke stasiun tanpa harus menekan tombol apa pun!
 				if not auto_police_escort_triggered and inv_mgr.is_clue_unlocked("victim_letter") and not inv_mgr.has_tailgated_marcus:
@@ -1526,7 +1584,7 @@ func _check_poi_proximity() -> void:
 				else:
 					custom_text = "[ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
 			
-			if active_poi_id in ["police", "station", "hospital", "safe"]:
+			if active_poi_id in ["police", "police_darkroom", "station", "hospital", "safe"]:
 				interact_prompt.text = custom_text + "\n[Y] BYPASS CERITA (FITUR BETA)"
 			else:
 				interact_prompt.text = custom_text
@@ -1678,7 +1736,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 		"desk":
 			_enter_house()
 
-		"south_house":
+		"mother_house", "south_house":
 			_enter_exploration_house()
 
 		"indoor_expl_exit":
@@ -1765,6 +1823,26 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			inv_mgr.unlock_clue("street_clock_freeze")
 			_show_toast("Jam Kota Terhenti di Pukul 16:04!")
 
+		"police_darkroom":
+			if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
+				inv_mgr.unlock_clue("photo_envelope")
+			if not inv_mgr.is_clue_unlocked("photo_envelope"):
+				_show_toast("Alur Cerita Terkunci: Butuh rol foto dari stasiun! (Tekan [Y] untuk bypass)")
+				if is_instance_valid(dialog_box):
+					var d_lines: Array[String] = [
+						"Meja bak kimia kamar gelap lab forensik kepolisian...",
+						"Aku belum menemukan rol film foto ataupun bukti kasus di stasiun.",
+						"Aku harus menyelidiki peron stasiun terlebih dahulu untuk mencari bukti tersebut."
+					]
+					dialog_box.start_monologue(d_lines, "Detektif Benedict", "[ Lab Forensik ]", "res://karakter/MC_Bingung.png")
+				return
+			if is_instance_valid(minigame_photo_wash):
+				player.can_move = false
+				if is_instance_valid(pause_menu_layer):
+					pause_menu_layer.set_hud_button_visible(false)
+				minigame_photo_wash.start_minigame()
+				_show_toast("Masuk ke Kamar Gelap Lab Forensik Kepolisian!")
+
 		"police":
 			if not bypass_story and (inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME or not inv_mgr.is_clue_unlocked("victim_letter")):
 				_show_toast("Alur Cerita Terkunci: Selidiki rumah korban di timur terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
@@ -1776,10 +1854,14 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 					dialog_box.start_monologue(p_lines, "Kantor Polisi", "[ Instruksi Tugas ]", "res://NPC_Police/front.png")
 				return
 
-			if not bypass_story and inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
+			if (bypass_story or inv_mgr.is_clue_unlocked("photo_envelope")) and not inv_mgr.has_developed_photos:
 				# Cuci foto di lab forensik kantor polisi
+				if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
+					inv_mgr.unlock_clue("photo_envelope")
 				if is_instance_valid(minigame_photo_wash):
 					player.can_move = false
+					if is_instance_valid(pause_menu_layer):
+						pause_menu_layer.set_hud_button_visible(false)
 					minigame_photo_wash.start_minigame()
 					_show_toast("Masuk ke Kamar Gelap Lab Forensik Kepolisian!")
 					return

@@ -285,11 +285,20 @@ func _build_pause_ui() -> void:
 	update_hud_pause_button_transform()
 	add_child(hud_pause_button)
 
-	# 3 Tombol Aset Kertas (RESUME, OPTIONS, MAIN MENU)
+	# 4 Tombol Aset Kertas (RESUME, RESTART, OPTIONS, MAIN MENU)
 	btn_resume = _create_paper_tag_button(tex_btn_resume)
 	btn_resume.tooltip_text = "Lanjutkan Permainan [ESC]"
 	btn_resume.pressed.connect(resume_game)
 	vb.add_child(btn_resume)
+
+	btn_restart = _create_paper_tag_button(tex_btn_restart)
+	btn_restart.tooltip_text = "Mulai Ulang Investigasi dari Awal"
+	btn_restart.pressed.connect(func():
+		_play_click()
+		close_pause()
+		restart_requested.emit()
+	)
+	vb.add_child(btn_restart)
 
 	btn_options = _create_paper_tag_button(tex_btn_options)
 	btn_options.tooltip_text = "Buka Pengaturan Suara & Layar"
@@ -502,15 +511,25 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 
 	# 1. BGM Sound Slider (Sound backbar + frontbar + button)
 	var bgm_ctrl = _create_custom_sound_slider("Volume Musik (BGM):", 0.8, func(v: float):
-		var master_bus = AudioServer.get_bus_index("Master")
-		if master_bus != -1:
-			var db = linear_to_db(v) if v > 0.0 else -80.0
-			AudioServer.set_bus_volume_db(master_bus, db)
+		var bgm_idx = AudioServer.get_bus_index("BGM")
+		if bgm_idx == -1:
+			bgm_idx = AudioServer.get_bus_index("Master")
+		if bgm_idx != -1:
+			var db = linear_to_db(v) if v > 0.001 else -80.0
+			AudioServer.set_bus_volume_db(bgm_idx, db)
 	)
 	vb.add_child(bgm_ctrl)
 
 	# 2. SFX Sound Slider
-	var sfx_ctrl = _create_custom_sound_slider("Volume Efek Suara (SFX):", 1.0, func(_v: float):
+	var sfx_ctrl = _create_custom_sound_slider("Volume Efek Suara (SFX):", 1.0, func(v: float):
+		var sfx_idx = AudioServer.get_bus_index("SFX")
+		if sfx_idx == -1:
+			AudioServer.add_bus()
+			sfx_idx = AudioServer.bus_count - 1
+			AudioServer.set_bus_name(sfx_idx, "SFX")
+			AudioServer.set_bus_send(sfx_idx, "Master")
+		var db = linear_to_db(v) if v > 0.001 else -80.0
+		AudioServer.set_bus_volume_db(sfx_idx, db)
 		_play_click()
 	)
 	vb.add_child(sfx_ctrl)
@@ -552,6 +571,12 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 		var mode = DisplayServer.window_get_mode()
 		if mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			var screen_size = DisplayServer.screen_get_size()
+			var win_w = 1280
+			var win_h = 720
+			DisplayServer.window_set_size(Vector2i(win_w, win_h))
+			DisplayServer.window_set_position(Vector2i((screen_size.x - win_w) / 2, (screen_size.y - win_h) / 2))
 		else:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		update_fs_text.call()
