@@ -25,7 +25,7 @@ var tex_safe_opened: Texture2D
 var tex_numpad: Texture2D
 
 func _ready() -> void:
-	layer = 14
+	layer = 16
 	_load_assets()
 	_setup_audio()
 	_build_scene_ui()
@@ -190,7 +190,7 @@ func _close_safe(success: bool = false) -> void:
 	visible = false
 	safe_opened.emit(success)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not is_active or not visible:
 		return
 	if event is InputEventKey and event.pressed and not event.is_echo():
@@ -307,6 +307,7 @@ func _build_scene_ui() -> void:
 		numpad_img.texture = tex_numpad
 	numpad_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	numpad_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	numpad_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	numpad_container.add_child(numpad_img)
 
 	# 1. Overlay Display LCD Screen di area atas layar monitor hitam numpad
@@ -387,6 +388,13 @@ func _build_scene_ui() -> void:
 		b_press.set_corner_radius_all(6)
 		btn.add_theme_stylebox_override("pressed", b_press)
 
+		btn.text = kd["label"]
+		btn.add_theme_font_size_override("font_size", 16)
+		btn.add_theme_color_override("font_color", Color(0.92, 0.95, 1.0, 0.9))
+		btn.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.5))
+		btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 0.8))
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		btn.z_index = 5
 		btn.pressed.connect(kd["action"])
 		numpad_container.add_child(btn)
 

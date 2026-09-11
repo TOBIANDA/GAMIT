@@ -783,8 +783,8 @@ func _hide_hud_for_death_god() -> void:
 func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
-	if not cutscene_played and is_instance_valid(inv_mgr):
-		inv_mgr.reset_investigation_state()
+		if is_inside_house or is_inside_exploration_house:
+			player.target_zoom_val = 2.85
 	_update_hud_objective()
 
 func _on_tailgate_completed(success: bool) -> void:
@@ -1559,6 +1559,15 @@ func _close_letter_viewer() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
 		player.set_physics_process(true)
+		if is_inside_house or is_inside_exploration_house:
+			player.target_zoom_val = 2.85
+			if player.has_method("setup_camera_limits"):
+				if is_inside_house:
+					player.setup_camera_limits(3580, 380, 4100, 720)
+				elif is_inside_exploration_house:
+					player.setup_camera_limits(4580, 380, 5100, 720)
+			if player.has_method("reset_camera_smoothing"):
+				player.reset_camera_smoothing()
 
 	if letter_current_type == "police":
 		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("police_letter")
@@ -2043,6 +2052,11 @@ func _input(event: InputEvent) -> void:
 		return
 	if input_grace_timer > 0.0:
 		return
+	if is_instance_valid(minigame_safe) and minigame_safe.is_active:
+		return
+	if is_instance_valid(minigame_photo_wash) and minigame_photo_wash.is_active:
+		return
+
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if is_instance_valid(letter_root_control) and letter_root_control.visible:
 			if event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER, KEY_F, KEY_E]:
@@ -2061,24 +2075,6 @@ func _input(event: InputEvent) -> void:
 				dialog_box.close_dialog()
 				get_viewport().set_input_as_handled()
 				return
-			return
-
-		# Pintasan cepat tombol angka untuk langsung uji coba semua minigame kapan saja:
-		if event.keycode == KEY_1:
-			_trigger_poi_interaction("police", true)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_2:
-			_trigger_poi_interaction("station", true)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_3:
-			_trigger_poi_interaction("indoor_photo_basin", true)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_4:
-			_trigger_poi_interaction("indoor_expl_safe" if is_inside_exploration_house else ("indoor_safe" if is_inside_house else "safe"), true)
-			get_viewport().set_input_as_handled()
 			return
 
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE, KEY_ENTER]:
@@ -2166,6 +2162,9 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			_exit_exploration_house()
 
 		"indoor_expl_safe":
+			if is_instance_valid(minigame_photo_wash):
+				minigame_photo_wash.visible = false
+				minigame_photo_wash.is_active = false
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
@@ -2226,6 +2225,9 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kamar ]", "res://karakter/MC_Bingung.png")
 
 		"indoor_safe", "safe":
+			if is_instance_valid(minigame_photo_wash):
+				minigame_photo_wash.visible = false
+				minigame_photo_wash.is_active = false
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
