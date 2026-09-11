@@ -69,6 +69,10 @@ var auto_police_escort_triggered: bool = false
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
 
+	# Pastikan game berjalan dalam true fullscreen responsif di seluruh monitor/laptop
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN and DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
 	_setup_audio_system()
 	_setup_dialog_box()
 	_setup_death_god_shrine()
@@ -1105,9 +1109,9 @@ func _setup_hud_prompts() -> void:
 	fullscreen_btn.anchor_right = 1.0
 	fullscreen_btn.anchor_top = 0.0
 	fullscreen_btn.anchor_bottom = 0.0
-	fullscreen_btn.offset_left = -185
+	fullscreen_btn.offset_left = -240
 	fullscreen_btn.offset_top = 16
-	fullscreen_btn.offset_right = -16
+	fullscreen_btn.offset_right = -72
 	fullscreen_btn.offset_bottom = 56
 
 	fullscreen_btn.pressed.connect(func():

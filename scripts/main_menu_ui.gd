@@ -391,6 +391,7 @@ func _on_options_pressed() -> void:
 	if is_instance_valid(credit_modal):
 		credit_modal.visible = false
 	if is_instance_valid(options_modal):
+		_refresh_fullscreen_btn_label()
 		options_modal.visible = true
 		options_opened.emit()
 
@@ -419,6 +420,13 @@ func _on_bgm_volume_changed(val: float) -> void:
 func _on_sfx_volume_changed(_val: float) -> void:
 	_play_click()
 
+func _refresh_fullscreen_btn_label() -> void:
+	if not is_instance_valid(fullscreen_toggle_btn):
+		return
+	var mode = DisplayServer.window_get_mode()
+	var is_fs = (mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+	fullscreen_toggle_btn.text = "Layar Jendela (F11)" if is_fs else "Layar Penuh (F11)"
+
 func _on_toggle_fullscreen() -> void:
 	_play_click()
 	var mode = DisplayServer.window_get_mode()
@@ -426,6 +434,7 @@ func _on_toggle_fullscreen() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	_refresh_fullscreen_btn_label()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active or not visible:

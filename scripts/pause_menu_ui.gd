@@ -339,7 +339,11 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	fs_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fs_hb.add_child(fs_lbl)
 	var fs_btn = Button.new()
-	fs_btn.text = "Toggle F11"
+	var update_fs_text = func():
+		var m = DisplayServer.window_get_mode()
+		var is_fs = (m == DisplayServer.WINDOW_MODE_FULLSCREEN or m == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+		fs_btn.text = "Layar Jendela (F11)" if is_fs else "Layar Penuh (F11)"
+	update_fs_text.call()
 	fs_btn.focus_mode = Control.FOCUS_NONE
 	fs_btn.pressed.connect(func():
 		_play_click()
@@ -348,6 +352,7 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		else:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		update_fs_text.call()
 	)
 	fs_hb.add_child(fs_btn)
 
