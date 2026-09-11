@@ -32,9 +32,9 @@ var clues: Dictionary = {
 	},
 	"street_clock_freeze": {
 		"unlocked": false,
-		"title": "Jam Kota Membeku (16:04)",
-		"desc": "Jam kota terhenti kaku tepat di pukul 16:04. Orang-orang di sekitar merinding dan ketakutan saat disapa.",
-		"phase": 0
+		"title": "Jam Membeku di 16:04",
+		"desc": "Jam di peron stasiun terhenti kaku tepat di pukul 16:04. Ada hawa dingin menusuk tengkuk di tengah aktivitas kota.",
+		"phase": 2
 	},
 	"mother_photo_riddle": {
 		"unlocked": false,
@@ -122,11 +122,11 @@ func get_current_objective_title() -> String:
 func get_current_objective_desc() -> String:
 	match current_phase:
 		Phase.PROLOGUE_HOME:
-			return "Berjalanlah di sepanjang trotoar menuju rumah korban di timur. Periksa keanehan waktu 16:04 dan cari petunjuk di dalam rumah."
+			return "Berjalanlah di sepanjang trotoar menuju rumah korban di timur dan cari petunjuk di dalam rumah."
 		Phase.INVESTIGATION_1_POLICE:
 			return "Rumah korban buntu. Temui Inspektur Marcus di Kantor Polisi barat untuk menguping petunjuk arah kepergian korban."
 		Phase.INVESTIGATION_2_STATION:
-			return "Marcus menyebut korban pergi ke stasiun kereta api untuk liburan. Amankan amplop rol foto korban di peron stasiun!"
+			return "Marcus menyebut korban pergi ke stasiun kereta api. Selidiki peron stasiun dan amankan amplop rol foto korban!"
 		Phase.INVESTIGATION_3_PHOTO:
 			return "Bawa rol film ke bak cairan kamar gelap. Rendam dan bilas dengan hati-hati untuk menyingkap wajah korban."
 		Phase.INVESTIGATION_4_HOSPITAL:
