@@ -40,15 +40,15 @@ const POLICE_PATROL_WAYPOINTS = [
 	Vector2(411, 880),
 	Vector2(411, 1278),
 	Vector2(950, 1278),
-	Vector2(1820, 1278),
-	Vector2(1820, 850),
-	Vector2(2020, 850)
+	Vector2(1880, 1278),
+	Vector2(1880, 820),
+	Vector2(2020, 820)
 ]
 
 const POLICE_RETURN_WAYPOINTS = [
-	Vector2(2020, 850),
-	Vector2(1820, 850),
-	Vector2(1820, 1278),
+	Vector2(2020, 820),
+	Vector2(1880, 820),
+	Vector2(1880, 1278),
 	Vector2(950, 1278),
 	Vector2(411, 1278),
 	Vector2(411, 880),
@@ -439,6 +439,20 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		tremble_offset = Vector2.ZERO
 
 		var move_dir = (target_destination - global_position).normalized()
+
+		# Anti-stuck watchdog
+		if global_position.distance_to(last_check_pos) < STUCK_DIST_MIN:
+			stuck_timer += delta
+			if stuck_timer > STUCK_THRESHOLD:
+				if dist_to_goal < 65.0:
+					current_patrol_idx += 1
+				else:
+					global_position += move_dir * 14.0 + Vector2(randf_range(2.0, 6.0), randf_range(-3.0, 3.0))
+				stuck_timer = 0.0
+		else:
+			stuck_timer = 0.0
+			last_check_pos = global_position
+
 		move_dir_facing = move_dir
 		is_moving = true
 		step_cycle += delta * 4.5
@@ -465,6 +479,20 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		tremble_offset = Vector2.ZERO
 
 		var move_dir = (target_destination - global_position).normalized()
+
+		# Anti-stuck watchdog saat kembali dari stasiun
+		if global_position.distance_to(last_check_pos) < STUCK_DIST_MIN:
+			stuck_timer += delta
+			if stuck_timer > STUCK_THRESHOLD:
+				if dist_to_goal < 65.0:
+					current_patrol_idx += 1
+				else:
+					global_position += move_dir * 14.0 + Vector2(randf_range(-6.0, -2.0), randf_range(-3.0, 3.0))
+				stuck_timer = 0.0
+		else:
+			stuck_timer = 0.0
+			last_check_pos = global_position
+
 		move_dir_facing = move_dir
 		is_moving = true
 		step_cycle += delta * 4.5
@@ -557,7 +585,7 @@ func start_patrol(is_partner: bool = false) -> void:
 	last_check_pos = global_position
 	
 	if is_partner:
-		patrol_formation_offset = Vector2(-26.0, 14.0)
+		patrol_formation_offset = Vector2(14.0, 16.0)
 	else:
 		patrol_formation_offset = Vector2.ZERO
 		# Jika ini Marcus, ajak polisi rekannya (NPC1_Police) untuk ikut bersama

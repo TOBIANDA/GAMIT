@@ -60,6 +60,12 @@ var clues: Dictionary = {
 		"desc": "Amplop berisi rol film foto korban sebelum meninggal yang tercecer di peron stasiun. Perlu dicuci di kamar gelap.",
 		"phase": 2
 	},
+	"pocket_watch": {
+		"unlocked": false,
+		"title": "Jam Saku Korban (16:04)",
+		"desc": "Jam saku logam korban yang terlempar di dekat tangga peron stasiun. Jarum jamnya terhenti di 16:04.",
+		"phase": 2
+	},
 	"developed_photos": {
 		"unlocked": false,
 		"title": "Foto Forensik (Wajah Benedict Sendiri)",
