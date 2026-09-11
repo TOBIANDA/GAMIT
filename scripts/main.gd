@@ -1036,7 +1036,7 @@ func _close_letter_viewer() -> void:
 				"Pengirim memintaku mencari bantuan pada orang di gedung penegakan hukum (Kantor Polisi).",
 				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!"
 			]
-			dialog_box.start_monologue(p_lines, "Detektif Benedict", "[ Surat Penugasan ]", "res://karakter/MC_Bingung.png")
+			dialog_box.start_monologue(p_lines, "Detektif Benedict", "", "res://karakter/MC_Bingung.png")
 
 	elif letter_current_type == "victim":
 		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("victim_letter")

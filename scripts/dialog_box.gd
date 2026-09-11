@@ -263,9 +263,35 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 	if is_instance_valid(name_tag):
 		name_tag.text = speaker_name
 		name_tag.add_theme_color_override("font_color", Color(0.38, 0.20, 0.08))
+
+	var v_sep = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/VSeparator")
 	if is_instance_valid(status_badge):
-		status_badge.text = badge_text
-		status_badge.add_theme_color_override("font_color", Color(0.50, 0.32, 0.15))
+		if badge_text.is_empty():
+			status_badge.visible = false
+			if is_instance_valid(v_sep):
+				v_sep.visible = false
+			if is_instance_valid(name_tag):
+				name_tag.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		else:
+			status_badge.visible = true
+			status_badge.text = badge_text
+			status_badge.add_theme_color_override("font_color", Color(0.50, 0.32, 0.15))
+			status_badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if is_instance_valid(v_sep):
+				v_sep.visible = true
+			if is_instance_valid(name_tag):
+				name_tag.size_flags_horizontal = 0
+
+	if is_instance_valid(close_btn):
+		var empty_sb = StyleBoxEmpty.new()
+		close_btn.add_theme_stylebox_override("normal", empty_sb)
+		close_btn.add_theme_stylebox_override("hover", empty_sb)
+		close_btn.add_theme_stylebox_override("pressed", empty_sb)
+		close_btn.add_theme_stylebox_override("focus", empty_sb)
+		close_btn.add_theme_color_override("font_color", Color(0.42, 0.28, 0.14, 0.85))
+		close_btn.add_theme_color_override("font_hover_color", Color(0.20, 0.10, 0.04, 1.0))
+		close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
 	if is_instance_valid(continue_prompt):
 		continue_prompt.add_theme_color_override("font_color", Color(0.40, 0.25, 0.10, 0.8))
 
@@ -338,9 +364,22 @@ func open_dialog(initial_prompt: String = "") -> void:
 	if is_instance_valid(name_tag):
 		name_tag.text = "❖ DEWA KEMATIAN ❖"
 		name_tag.add_theme_color_override("font_color", Color(0.95, 0.85, 1.0))
+	var v_sep = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/VSeparator")
+	if is_instance_valid(v_sep):
+		v_sep.visible = true
 	if is_instance_valid(status_badge):
+		status_badge.visible = true
 		status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 		status_badge.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+	if is_instance_valid(close_btn):
+		var empty_sb = StyleBoxEmpty.new()
+		close_btn.add_theme_stylebox_override("normal", empty_sb)
+		close_btn.add_theme_stylebox_override("hover", empty_sb)
+		close_btn.add_theme_stylebox_override("pressed", empty_sb)
+		close_btn.add_theme_stylebox_override("focus", empty_sb)
+		close_btn.add_theme_color_override("font_color", Color(0.8, 0.75, 0.95, 0.85))
+		close_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.9, 1.0, 1.0))
+		close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	if is_instance_valid(continue_prompt):
 		continue_prompt.add_theme_color_override("font_color", Color(0.8, 0.7, 0.95, 0.8))
 
