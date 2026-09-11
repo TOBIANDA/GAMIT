@@ -406,7 +406,7 @@ func _build_scene_ui() -> void:
 	main_box.add_child(reward_panel)
 
 	reward_label = Label.new()
-	reward_label.text = "ITEM DIDAPATKAN: Liontin Perak & Surat Kasih Sayang Ibu!\n'Untuk anakku tersayang Benedict... Apapun yang terjadi di dunia ini, ibu akan selalu menemanimu dan mendukung setiap langkahmu.'"
+	reward_label.text = "ITEM DIDAPATKAN: Liontin Perak & Surat Kasih Sayang Ibu Korban!\n'Untuk anakku tersayang... Apapun yang terjadi di dunia ini, ibu akan selalu menemanimu dan mendukung setiap langkahmu.'"
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.9))
 	reward_label.add_theme_font_size_override("font_size", 13.5)

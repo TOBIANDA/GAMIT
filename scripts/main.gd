@@ -1594,10 +1594,10 @@ func _close_letter_viewer() -> void:
 		_show_toast("Liontin & Surat Kasih Ibu tersimpan aman di sakumu.")
 		if is_instance_valid(dialog_box):
 			var m_lines: Array[String] = [
-				"Surat ini... Ibu selalu percaya dan mendukungku, apapun yang terjadi.",
-				"Kehangatan liontin dan doa ibu membuat jiwaku terasa tenang di tengah dinginnya kota ini."
+				"Surat ini... Bukti bahwa ibu korban selalu percaya dan mendukung anaknya, apapun yang terjadi.",
+				"Liontin dan surat wasiat ini adalah bukti kasih sayang keluarga korban yang sangat berharga untuk penyelidikan."
 			]
-			dialog_box.start_monologue(m_lines, "Detektif Benedict", "[ Kasih Sayang Ibu ]", "res://karakter/MC_Normal.png")
+			dialog_box.start_monologue(m_lines, "Detektif Benedict", "[ Kasih Sayang Ibu Korban ]", "res://karakter/MC_Normal.png")
 
 func _open_mother_letter() -> void:
 	letter_current_type = "mother"
@@ -1621,11 +1621,12 @@ func _open_mother_letter() -> void:
 			letter_sub_lbl.add_theme_font_override("font", font_anaktoria)
 			letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
 
-	var mother_text = "Untuk anakku tersayang, Benedict...\n\n" + \
+	var mother_text = "Untuk anakku tersayang...\n\n" + \
 		"Jika kau membaca surat ini, berarti kau telah berhasil membuka brankas rahasia keluarga kita.\n\n" + \
-		"Ibu tahu beban yang kau pikul sebagai detektif begitu berat, dan dunia di luar sana seringkali terasa dingin dan membingungkan. Namun ibu ingin kau selalu mengingat satu hal di dalam lubuk hatimu:\n\n" + \
+		"Ibu tahu beban hidup yang kau pikul begitu berat, dan dunia di luar sana seringkali terasa dingin dan membingungkan. Namun ibu ingin kau selalu mengingat satu hal di dalam lubuk hatimu:\n\n" + \
 		"Apapun yang terjadi, ke mana pun takdir membawamu, dan betapa pun gelapnya jalan yang harus kau lalui... ibu akan selalu ada menemanimu. Doa dan kasih sayang ibu tidak akan pernah putus mendukung setiap langkahmu.\n\n" + \
-		"Simpanlah liontin ini baik-baik. Di dalamnya tersimpan kehangatan rumah kita. Kau tidak pernah sendirian, anakku."
+		"Simpanlah liontin ini baik-baik. Di dalamnya tersimpan kehangatan rumah kita. Kau tidak pernah sendirian, anakku.\n\n" + \
+		"- Ibu Medeline"
 
 	if is_instance_valid(letter_body_lbl):
 		letter_body_lbl.text = mother_text
@@ -1846,7 +1847,7 @@ func _check_poi_proximity() -> void:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
 					"indoor_photo":
-						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO IBU DI DAPUR"
+						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO IBU KORBAN DI DAPUR"
 					"indoor_letter":
 						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
@@ -1902,11 +1903,11 @@ func _check_poi_proximity() -> void:
 					"indoor_expl_safe":
 						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
 					"indoor_expl_calendar":
-						interact_prompt.text = "[ F / E / Spasi ] PERIKSA KALENDER KENANGAN IBU"
+						interact_prompt.text = "[ F / E / Spasi ] PERIKSA KALENDER IBU KORBAN"
 					"indoor_expl_recipe":
-						interact_prompt.text = "[ F / E / Spasi ] BACA BUKU RESEP IBU"
+						interact_prompt.text = "[ F / E / Spasi ] BACA BUKU RESEP IBU KORBAN"
 					"indoor_expl_clock":
-						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER IBU"
+						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER IBU KORBAN"
 					"indoor_expl_exit":
 						interact_prompt.text = "[ F / E / Spasi ] KELUAR KE JALAN KOTA"
 				var vp = get_viewport().get_visible_rect().size
@@ -2173,45 +2174,45 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 		"indoor_expl_clock":
 			if is_instance_valid(dialog_box):
 				var clk_lines: Array[String] = [
-					"Sebuah jam weker kuno peninggalan ibu di atas nakas kamar...",
+					"Sebuah jam weker kuno peninggalan ibu korban di atas nakas kamar...",
 					"Jarum jam ini tampak rusak dan berhenti berdetik tepat membeku di angka 3.",
-					"Di balik jam ini tergores pesan ibu: 'Waktu beristirahat kita saat teh sore disajikan, tepat pukul 3...'",
+					"Di balik jam ini tergores pesan ibu korban: 'Waktu beristirahat kita saat teh sore disajikan, tepat pukul 3...'",
 					"[ Petunjuk Angka Ketiga Brankas: 3 ]"
 				]
-				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kenangan ]", "res://karakter/MC_Bingung.png")
+				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Ibu Korban ]", "res://karakter/MC_Bingung.png")
 
 		"indoor_expl_calendar", "indoor_expl_photo":
 			if is_instance_valid(dialog_box):
 				var cal_lines: Array[String] = [
-					"Sebuah kalender kenangan tergantung rapi di dinding rumah ibu...",
-					"Hanya ada satu tanggal yang dilingkari tinta merah terang oleh ibu: Tanggal 1.",
-					"Di bawahnya ada tulisan tangan ibu: 'Awal dari setiap perjalanan hidup kita berdua...'",
+					"Sebuah kalender kenangan tergantung rapi di dinding rumah ibu korban...",
+					"Hanya ada satu tanggal yang dilingkari tinta merah terang oleh ibu korban: Tanggal 1.",
+					"Di bawahnya ada tulisan tangan ibu korban: 'Awal dari setiap perjalanan hidup kita berdua...'",
 					"[ Petunjuk Angka Pertama Brankas: 1 ]"
 				]
-				dialog_box.start_monologue(cal_lines, "Detektif Benedict", "[ Kalender Kenangan Ibu ]", "res://karakter/MC_Normal.png")
+				dialog_box.start_monologue(cal_lines, "Detektif Benedict", "[ Kalender Ibu Korban ]", "res://karakter/MC_Normal.png")
 
 		"indoor_expl_recipe":
 			if is_instance_valid(dialog_box):
 				var recipe_lines: Array[String] = [
-					"Buku resep masakan tua bersampul kain milik ibu...",
-					"Halamannya terbuka di menu sup hangat kesukaanku. Ada catatan kecil tulisan tangan ibu:",
+					"Buku resep masakan tua bersampul kain milik ibu korban...",
+					"Halamannya terbuka di menu sup hangat keluarga. Ada catatan kecil tulisan tangan ibu korban:",
 					"'Selalu ingat 4 bumbu rahasia yang ibu campurkan agar harimu terasa hangat.'",
 					"[ Petunjuk Angka Kedua Brankas: 4 ]"
 				]
-				dialog_box.start_monologue(recipe_lines, "Detektif Benedict", "[ Buku Resep Ibu ]", "res://karakter/MC_Bingung.png")
+				dialog_box.start_monologue(recipe_lines, "Detektif Benedict", "[ Buku Resep Ibu Korban ]", "res://karakter/MC_Bingung.png")
 
 		"indoor_photo":
 			if is_instance_valid(inv_mgr):
 				inv_mgr.unlock_clue("mother_photo_riddle")
 			if is_instance_valid(dialog_box):
 				var photo_lines: Array[String] = [
-					"Sebuah foto berbingkai perak di atas meja dapur... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
-					"Di balik bingkai foto ada selembar catatan tulisan tangan ibu yang lembut:",
-					"'Untuk anakku tersayang Benedict... Ibu menyiapkan sesuatu yang sangat berharga untukmu.'",
+					"Sebuah foto berbingkai perak di atas meja dapur... Ini foto Ibu Medeline menggendong korban sewaktu masih kecil.",
+					"Di balik bingkai foto ada selembar catatan tulisan tangan ibu korban yang lembut:",
+					"'Untuk anakku tersayang... Ibu menyiapkan sesuatu yang sangat berharga untukmu.'",
 					"'Ibu sekarang sudah pindah rumah ke seberang stasiun kereta api. Carilah rumah yang menyambutmu dan terbuka hangat untukmu...'",
-					"Ibu pindah ke seberang stasiun? Dan berpesan mencari rumah yang 'welcome' dengan pintu pagar yang terbuka otomatis saat kudekati..."
+					"Catatan ini untuk korban. Ternyata ibu korban pindah ke seberang stasiun dan berpesan mencari rumah yang menyambutnya dengan pintu pagar yang terbuka otomatis saat didekati..."
 				]
-				dialog_box.start_monologue(photo_lines, "Detektif Benedict", "[ Foto Kenangan Ibu ]", "res://karakter/MC_Kaget.png")
+				dialog_box.start_monologue(photo_lines, "Detektif Benedict", "[ Foto Ibu Korban ]", "res://karakter/MC_Normal.png")
 
 		"indoor_letter":
 			_trigger_indoor_letter_monologue()

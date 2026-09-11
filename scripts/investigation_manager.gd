@@ -39,7 +39,7 @@ var clues: Dictionary = {
 	"mother_photo_riddle": {
 		"unlocked": false,
 		"title": "Foto Ibu dan Anak (Misi Opsional)",
-		"desc": "Foto ibu bersama anaknya di meja kerja rumah korban. Catatan di balik foto memberitahu bahwa ibu telah pindah ke rumah di seberang stasiun yang pagarnya terbuka otomatis menyambut anaknya.",
+		"desc": "Foto ibu bersama anaknya di dapur rumah korban. Catatan di balik foto memberitahu bahwa ibu telah pindah ke rumah di seberang stasiun yang pagarnya terbuka otomatis menyambut anaknya.",
 		"phase": 0
 	},
 	"police_eavesdrop": {
