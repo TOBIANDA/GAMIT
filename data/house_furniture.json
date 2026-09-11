@@ -178,5 +178,14 @@
 		"scale": 1.0,
 		"x": 195.0,
 		"y": 72.0
+	},
+	"polaroid_ibu": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Foto Polaroid Kenangan Ibu",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 222.0,
+		"y": 70.0
 	}
 }

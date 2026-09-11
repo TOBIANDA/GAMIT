@@ -220,11 +220,11 @@ func _build_tab3_content(parent: VBoxContainer) -> void:
 	safe_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	safe_hint_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.95))
 	safe_hint_label.add_theme_font_size_override("font_size", 14)
-	safe_hint_label.text = "Pesan di balik foto: 'Untuk anakku tersayang, jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.' Di dalam rumah ibu tersimpan sebuah brankas keluarga."
+	safe_hint_label.text = "Pesan di balik foto meja kerja: 'Ibu sekarang sudah pindah ke seberang stasiun kereta api. Carilah rumah yang menyambutmu dan terbuka hangat untukmu...'\nKombinasi brankas keluarga tersimpan pada Kalender, Buku Resep, dan Jam Weker di rumah ibu."
 	vb.add_child(safe_hint_label)
 
 	var reward_info = Label.new()
-	reward_info.text = "✦ Buka brankas untuk memperoleh 'Liontin Kenangan Ibu Medeline'."
+	reward_info.text = "✦ Buka brankas untuk memperoleh 'Liontin & Surat Kasih Ibu Medeline'."
 	reward_info.add_theme_color_override("font_color", Color(0.4, 0.9, 0.6))
 	reward_info.add_theme_font_size_override("font_size", 13)
 	vb.add_child(reward_info)

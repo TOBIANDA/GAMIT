@@ -140,6 +140,16 @@ var default_furniture_config: Dictionary = {
 		"has_col": false,
 		"z_idx": 0
 	},
+	"polaroid_ibu": {
+		"name": "Foto Polaroid Kenangan Ibu",
+		"type": "sprite",
+		"tex": "tex_polaroid_ibu",
+		"x": 222.0, "y": 70.0,
+		"scale": 1.0,
+		"base_w": 18.0,
+		"has_col": false,
+		"z_idx": 1
+	},
 
 	# --- 3. KAMAR TIDUR ---
 	"bed": {
@@ -290,6 +300,7 @@ var tex_surat: Texture2D
 var tex_berangkas: Texture2D
 var tex_baskom: Texture2D
 var tex_jam_weker: Texture2D
+var tex_polaroid_ibu: Texture2D
 
 var letter_glow_time: float = 0.0
 var sprite_letter: Sprite2D
@@ -354,6 +365,7 @@ func _load_textures() -> void:
 	tex_jam_weker = load("res://Environment/RUMAH IBU/jam weker.png")
 	if not tex_jam_weker:
 		tex_jam_weker = load("res://RUMAH IBU/jam weker.png")
+	tex_polaroid_ibu = load("res://UI/Polaroid/polaroidIbu.png")
 
 func _get_texture_by_name(tex_name: String) -> Texture2D:
 	match tex_name:
@@ -374,6 +386,7 @@ func _get_texture_by_name(tex_name: String) -> Texture2D:
 		"tex_berangkas": return tex_berangkas
 		"tex_baskom": return tex_baskom
 		"tex_jam_weker": return tex_jam_weker
+		"tex_polaroid_ibu": return tex_polaroid_ibu
 	return null
 
 func _build_room_collisions() -> void:
@@ -660,6 +673,11 @@ func get_desk_letter_pos() -> Vector2:
 		return ROOM_ORIGIN + Vector2(furniture_config["meja_detektif"].x, furniture_config["meja_detektif"].y)
 	return Vector2(-9999.0, -9999.0)
 
+func get_photo_pos() -> Vector2:
+	if furniture_config.has("polaroid_ibu"):
+		return ROOM_ORIGIN + Vector2(furniture_config["polaroid_ibu"].x, furniture_config["polaroid_ibu"].y)
+	return ROOM_ORIGIN + Vector2(222.0, 70.0)
+
 func get_safe_pos() -> Vector2:
 	if furniture_config.has("brankas"):
 		return ROOM_ORIGIN + Vector2(furniture_config["brankas"].x, furniture_config["brankas"].y)
@@ -830,6 +848,10 @@ func _draw() -> void:
 	var desk_scale = float(furniture_config.get("meja_detektif", {}).get("scale", 1.0))
 	var glow_alpha = 0.22 + 0.08 * sin(letter_glow_time)
 	draw_circle(desk_pos, 18.0 * desk_scale, Color(1.0, 0.90, 0.45, glow_alpha))
+
+	# e. Efek Sorot Cahaya Foto Polaroid Kenangan Ibu
+	var photo_p = get_photo_pos()
+	draw_circle(photo_p, 14.0, Color(0.45, 0.82, 1.0, glow_alpha))
 
 	# 7. SELECTION HIGHLIGHT SAAT MODE EDIT AKTIF
 	if is_edit_mode and not selected_furniture_id.is_empty() and furniture_config.has(selected_furniture_id):

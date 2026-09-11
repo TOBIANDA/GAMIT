@@ -729,7 +729,11 @@ func _setup_minigames() -> void:
 		minigame_safe.name = "MinigameSafe"
 		minigame_safe.set_script(safe_script)
 		add_child(minigame_safe)
-		minigame_safe.safe_opened.connect(func(_ok): _on_minigame_ended())
+		minigame_safe.safe_opened.connect(func(ok):
+			_on_minigame_ended()
+			if ok:
+				_open_mother_letter()
+		)
 
 	var dg_script = load("res://scripts/death_god.gd")
 	if dg_script:
@@ -1587,6 +1591,62 @@ func _close_letter_viewer() -> void:
 			]
 			dialog_box.start_monologue(v_lines, "Detektif Benedict", "[ Wasiat Korban ]", "res://karakter/MC_Bingung.png")
 
+	elif letter_current_type == "mother":
+		_show_toast("Liontin & Surat Kasih Ibu tersimpan aman di sakumu.")
+		if is_instance_valid(dialog_box):
+			var m_lines: Array[String] = [
+				"Surat ini... Ibu selalu percaya dan mendukungku, apapun yang terjadi.",
+				"Kehangatan liontin dan doa ibu membuat jiwaku terasa tenang di tengah dinginnya kota ini."
+			]
+			dialog_box.start_monologue(m_lines, "Detektif Benedict", "[ Kasih Sayang Ibu ]", "res://karakter/MC_Normal.png")
+
+func _open_mother_letter() -> void:
+	letter_current_type = "mother"
+	play_paper_sfx()
+
+	if is_instance_valid(letter_header_lbl):
+		letter_header_lbl.text = "SURAT KASIH SAYANG IBU MEDELINE"
+		if font_atma_bold:
+			letter_header_lbl.add_theme_font_override("font", font_atma_bold)
+			letter_header_lbl.add_theme_font_size_override("font_size", 22)
+		elif font_anaktoria:
+			letter_header_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_header_lbl.add_theme_font_size_override("font_size", 21)
+
+	if is_instance_valid(letter_sub_lbl):
+		letter_sub_lbl.text = "Ditemukan di Brankas Baja Keluarga • Bersama Liontin Kenangan"
+		if font_atma:
+			letter_sub_lbl.add_theme_font_override("font", font_atma)
+			letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
+		elif font_anaktoria:
+			letter_sub_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_sub_lbl.add_theme_font_size_override("font_size", 14.5)
+
+	var mother_text = "Untuk anakku tersayang, Benedict...\n\n" + \
+		"Jika kau membaca surat ini, berarti kau telah berhasil membuka brankas rahasia keluarga kita.\n\n" + \
+		"Ibu tahu beban yang kau pikul sebagai detektif begitu berat, dan dunia di luar sana seringkali terasa dingin dan membingungkan. Namun ibu ingin kau selalu mengingat satu hal di dalam lubuk hatimu:\n\n" + \
+		"Apapun yang terjadi, ke mana pun takdir membawamu, dan betapa pun gelapnya jalan yang harus kau lalui... ibu akan selalu ada menemanimu. Doa dan kasih sayang ibu tidak akan pernah putus mendukung setiap langkahmu.\n\n" + \
+		"Simpanlah liontin ini baik-baik. Di dalamnya tersimpan kehangatan rumah kita. Kau tidak pernah sendirian, anakku."
+
+	if is_instance_valid(letter_body_lbl):
+		letter_body_lbl.text = mother_text
+		if font_atma:
+			letter_body_lbl.add_theme_font_override("font", font_atma)
+			letter_body_lbl.add_theme_font_size_override("font_size", 17.5)
+		elif font_anaktoria:
+			letter_body_lbl.add_theme_font_override("font", font_anaktoria)
+			letter_body_lbl.add_theme_font_size_override("font_size", 17.5)
+
+	if is_instance_valid(letter_close_btn):
+		letter_close_btn.text = "SIMPAN LIONTIN & SURAT IBU [ESC / SPASI]"
+
+	if is_instance_valid(player):
+		player.can_move = false
+		player.set_physics_process(false)
+
+	if is_instance_valid(letter_root_control):
+		letter_root_control.visible = true
+
 
 func _setup_hud_prompts() -> void:
 	var hud_layer = $HUD
@@ -1758,13 +1818,16 @@ func _check_poi_proximity() -> void:
 	var p_pos = player.global_position
 
 	if is_inside_house:
-		var desk_letter_pos = house_interior.get_desk_letter_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_desk_letter_pos") else Vector2(3600.0 + 295.0, 400.0 + 95.0)
-		var safe_pos = house_interior.get_safe_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_safe_pos") else Vector2(3600.0 + 235.0, 400.0 + 65.0)
-		var photo_basin_pos = house_interior.get_photo_basin_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_basin_pos") else Vector2(3600.0 + 250.0, 400.0 + 360.0)
+		var desk_letter_pos = house_interior.get_desk_letter_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_desk_letter_pos") else Vector2(3600.0 + 195.0, 400.0 + 72.0)
+		var photo_pos = house_interior.get_photo_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_pos") else Vector2(3600.0 + 222.0, 400.0 + 70.0)
+		var safe_pos = house_interior.get_safe_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_safe_pos") else Vector2(3600.0 + 150.0, 400.0 + 52.0)
+		var photo_basin_pos = house_interior.get_photo_basin_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_basin_pos") else Vector2(3600.0 + 293.0, 400.0 + 267.0)
 		var clock_pos = house_interior.get_alarm_clock_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_alarm_clock_pos") else Vector2(3600.0 + 355.0, 400.0 + 50.0)
 		var exit_door_pos = house_interior.get_exit_door_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_exit_door_pos") else Vector2(3600.0 + 85.0, 400.0 + 265.0)
 
-		if p_pos.distance_to(desk_letter_pos) <= 52.0:
+		if p_pos.distance_to(photo_pos) <= 46.0:
+			active_poi_id = "indoor_photo"
+		elif p_pos.distance_to(desk_letter_pos) <= 52.0:
 			active_poi_id = "indoor_letter"
 		elif p_pos.distance_to(safe_pos) <= 42.0:
 			active_poi_id = "indoor_safe"
@@ -1783,6 +1846,8 @@ func _check_poi_proximity() -> void:
 		else:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
+					"indoor_photo":
+						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO KENANGAN IBU"
 					"indoor_letter":
 						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
@@ -1813,13 +1878,13 @@ func _check_poi_proximity() -> void:
 		var expl_exit_pos = exploration_house_interior.get_exit_door_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_exit_door_pos") else Vector2(4600.0 + 85.0, 400.0 + 280.0)
 		var expl_safe_pos = exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 150.0, 400.0 + 52.0)
 		var expl_clock_pos = exploration_house_interior.get_clock_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_clock_pos") else Vector2(4600.0 + 355.0, 400.0 + 56.0)
-		var expl_photo_pos = exploration_house_interior.get_calendar_photo_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_photo_pos") else Vector2(4600.0 + 195.0, 400.0 + 72.0)
+		var expl_calendar_pos = exploration_house_interior.get_calendar_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_pos") else Vector2(4600.0 + 210.0, 400.0 + 38.0)
 		var expl_recipe_pos = exploration_house_interior.get_recipe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_recipe_pos") else Vector2(4600.0 + 260.0, 400.0 + 245.0)
 
 		if p_pos.distance_to(expl_safe_pos) <= 52.0:
 			active_poi_id = "indoor_expl_safe"
-		elif p_pos.distance_to(expl_photo_pos) <= 50.0:
-			active_poi_id = "indoor_expl_photo"
+		elif p_pos.distance_to(expl_calendar_pos) <= 50.0:
+			active_poi_id = "indoor_expl_calendar"
 		elif p_pos.distance_to(expl_recipe_pos) <= 50.0:
 			active_poi_id = "indoor_expl_recipe"
 		elif p_pos.distance_to(expl_clock_pos) <= 50.0:
@@ -1836,13 +1901,13 @@ func _check_poi_proximity() -> void:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
 					"indoor_expl_safe":
-						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA (LIONTIN IBU)\n[Y] BYPASS CERITA (FITUR BETA)"
-					"indoor_expl_photo":
-						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO & KALENDER KENANGAN IBU"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
+					"indoor_expl_calendar":
+						interact_prompt.text = "[ F / E / Spasi ] PERIKSA KALENDER KENANGAN IBU"
 					"indoor_expl_recipe":
-						interact_prompt.text = "[ F / E / Spasi ] BACA BUKU RESEP & CATATAN HARI IBU"
+						interact_prompt.text = "[ F / E / Spasi ] BACA BUKU RESEP IBU"
 					"indoor_expl_clock":
-						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER TUA (PETUNJUK WAKTU)"
+						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER IBU"
 					"indoor_expl_exit":
 						interact_prompt.text = "[ F / E / Spasi ] KELUAR KE JALAN KOTA"
 				var vp = get_viewport().get_visible_rect().size
@@ -2109,31 +2174,45 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 		"indoor_expl_clock":
 			if is_instance_valid(dialog_box):
 				var clk_lines: Array[String] = [
-					"Sebuah jam weker kuno di atas nakas...",
-					"Aneh, kenapa jam dimana mana menunjukkan waktu yang sama?",
-					"Di balik jam ini tergores angka samar: '1 - 6 - 4'. Jam yang berhenti saat petaka terjadi."
+					"Sebuah jam weker kuno peninggalan ibu di atas nakas kamar...",
+					"Jarum jam ini tampak rusak dan berhenti berdetik tepat membeku di angka 3.",
+					"Di balik jam ini tergores pesan ibu: 'Waktu beristirahat kita saat teh sore disajikan, tepat pukul 3...'",
+					"[ Petunjuk Angka Ketiga Brankas: 3 ]"
 				]
 				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kenangan ]", "res://karakter/MC_Bingung.png")
 
-		"indoor_expl_photo":
-			if is_instance_valid(inv_mgr):
-				inv_mgr.unlock_clue("mother_photo_riddle")
+		"indoor_expl_calendar", "indoor_expl_photo":
 			if is_instance_valid(dialog_box):
-				var photo_lines: Array[String] = [
-					"Sebuah kalender tua dan foto berbingkai perak... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
-					"Di balik bingkai foto ada tulisan tangan ibu yang lembut:",
-					"'Untuk anakku tersayang, jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.'"
+				var cal_lines: Array[String] = [
+					"Sebuah kalender kenangan tergantung rapi di dinding rumah ibu...",
+					"Hanya ada satu tanggal yang dilingkari tinta merah terang oleh ibu: Tanggal 1.",
+					"Di bawahnya ada tulisan tangan ibu: 'Awal dari setiap perjalanan hidup kita berdua...'",
+					"[ Petunjuk Angka Pertama Brankas: 1 ]"
 				]
-				dialog_box.start_monologue(photo_lines, "Detektif Benedict", "[ Kenangan Ibu Medeline ]", "res://karakter/MC_Kaget.png")
+				dialog_box.start_monologue(cal_lines, "Detektif Benedict", "[ Kalender Kenangan Ibu ]", "res://karakter/MC_Normal.png")
 
 		"indoor_expl_recipe":
 			if is_instance_valid(dialog_box):
 				var recipe_lines: Array[String] = [
-					"Buku resep masakan tua bersampul kain dan selembar catatan tulisan tangan...",
-					"Halaman buku ini terbuka di menu sup hangat kesukaan anaknya.",
-					"Catatan di sampingnya berbunyi: 'Ibu selalu menyisihkan sepiring hangat untuk anaknya sepulang bertugas.'"
+					"Buku resep masakan tua bersampul kain milik ibu...",
+					"Halamannya terbuka di menu sup hangat kesukaanku. Ada catatan kecil tulisan tangan ibu:",
+					"'Selalu ingat 4 bumbu rahasia yang ibu campurkan agar harimu terasa hangat.'",
+					"[ Petunjuk Angka Kedua Brankas: 4 ]"
 				]
 				dialog_box.start_monologue(recipe_lines, "Detektif Benedict", "[ Buku Resep Ibu ]", "res://karakter/MC_Bingung.png")
+
+		"indoor_photo":
+			if is_instance_valid(inv_mgr):
+				inv_mgr.unlock_clue("mother_photo_riddle")
+			if is_instance_valid(dialog_box):
+				var photo_lines: Array[String] = [
+					"Sebuah foto berbingkai perak di atas meja kerja... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
+					"Di balik bingkai foto ada selembar catatan tulisan tangan ibu yang lembut:",
+					"'Untuk anakku tersayang Benedict... Ibu menyiapkan sesuatu yang sangat berharga untukmu.'",
+					"'Ibu sekarang sudah pindah rumah ke seberang stasiun kereta api. Carilah rumah yang menyambutmu dan terbuka hangat untukmu...'",
+					"Ibu pindah ke seberang stasiun? Dan berpesan mencari rumah yang 'welcome' dengan pintu pagar yang terbuka otomatis saat kudekati..."
+				]
+				dialog_box.start_monologue(photo_lines, "Detektif Benedict", "[ Foto Kenangan Ibu ]", "res://karakter/MC_Kaget.png")
 
 		"indoor_letter":
 			_trigger_indoor_letter_monologue()

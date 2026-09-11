@@ -39,7 +39,7 @@ var clues: Dictionary = {
 	"mother_photo_riddle": {
 		"unlocked": false,
 		"title": "Foto Ibu dan Anak (Misi Opsional)",
-		"desc": "Foto ibu bersama anaknya di meja rumah. Di balik bingkai foto ada tulisan tangan ibu: 'Jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.'",
+		"desc": "Foto ibu bersama anaknya di meja kerja rumah korban. Catatan di balik foto memberitahu bahwa ibu telah pindah ke rumah di seberang stasiun yang pagarnya terbuka otomatis menyambut anaknya.",
 		"phase": 0
 	},
 	"police_eavesdrop": {
@@ -80,8 +80,8 @@ var clues: Dictionary = {
 	},
 	"mother_emotional_locket": {
 		"unlocked": false,
-		"title": "Liontin Kenangan Ibu",
-		"desc": "Liontin peninggalan Ibu Medeline yang tersimpan di dalam brankas keluarga.",
+		"title": "Liontin & Surat Kasih Ibu",
+		"desc": "Liontin perak dan surat wasiat dari brankas keluarga (kombinasi 1-4-3). Bukti cinta abadi seorang ibu yang selalu menemani dan mendukung anaknya apapun yang terjadi.",
 		"phase": 0
 	}
 }

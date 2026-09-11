@@ -5,7 +5,7 @@ signal safe_opened(success: bool)
 var is_active: bool = false
 var entered_digits: Array[int] = []
 
-const CODE = [1, 6, 4]
+const CODE = [1, 4, 3]
 
 var lcd_status_lbl: Label
 var lcd_digits_lbl: Label
@@ -406,7 +406,7 @@ func _build_scene_ui() -> void:
 	main_box.add_child(reward_panel)
 
 	reward_label = Label.new()
-	reward_label.text = "ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Kenangan keluarga yang sangat berharga."
+	reward_label.text = "ITEM DIDAPATKAN: Liontin Perak & Surat Kasih Sayang Ibu!\n'Untuk anakku tersayang Benedict... Apapun yang terjadi di dunia ini, ibu akan selalu menemanimu dan mendukung setiap langkahmu.'"
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.9))
 	reward_label.add_theme_font_size_override("font_size", 13.5)
