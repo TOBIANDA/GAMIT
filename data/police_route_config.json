@@ -1,0 +1,227 @@
+{
+    "_panduan": "Konfigurasi Alur Jalan Polisi (Grid), Arah Lari Merinding, dan Area Forced Scene Stasiun. Anda bebas mengubah nilai di bawah ini.",
+    "grid_system": {
+        "cell_size": 32,
+        "_keterangan": "Ukuran tiap petak grid kecil dalam pixel (misal 32 px). Koordinat [grid_x, grid_y] dikali 32 untuk mendapatkan posisi dunia."
+    },
+    "use_grid_coordinates": true,
+    "police_patrol_route_grid": [
+        [
+            11,
+            27
+        ],
+        [
+            13,
+            27
+        ],
+        [
+            13,
+            40
+        ],
+        [
+            30,
+            40
+        ],
+        [
+            59,
+            40
+        ],
+        [
+            59,
+            26
+        ],
+        [
+            63,
+            26
+        ]
+    ],
+    "police_patrol_route_pixels": [
+        [
+            350,
+            865
+        ],
+        [
+            411,
+            880
+        ],
+        [
+            411,
+            1278
+        ],
+        [
+            950,
+            1278
+        ],
+        [
+            1880,
+            1278
+        ],
+        [
+            1880,
+            820
+        ],
+        [
+            2020,
+            820
+        ]
+    ],
+    "police_return_route_grid": [
+        [
+            63,
+            26
+        ],
+        [
+            59,
+            26
+        ],
+        [
+            59,
+            40
+        ],
+        [
+            30,
+            40
+        ],
+        [
+            13,
+            40
+        ],
+        [
+            13,
+            27
+        ],
+        [
+            9,
+            29
+        ]
+    ],
+    "police_return_route_pixels": [
+        [
+            2020,
+            820
+        ],
+        [
+            1880,
+            820
+        ],
+        [
+            1880,
+            1278
+        ],
+        [
+            950,
+            1278
+        ],
+        [
+            411,
+            1278
+        ],
+        [
+            411,
+            880
+        ],
+        [
+            280,
+            915
+        ]
+    ],
+    "station_forced_scene_trigger": {
+        "shape": "rect",
+        "_keterangan_shape": "Pilih 'rect' (persegi panjang) atau 'circle' (lingkaran) untuk bentuk area pemicu forced scene stasiun.",
+        "rect": {
+            "x": 1820.0,
+            "y": 680.0,
+            "width": 380.0,
+            "height": 280.0
+        },
+        "circle": {
+            "center_x": 1950.0,
+            "center_y": 780.0,
+            "radius": 180.0
+        }
+    },
+    "spook_run_settings": {
+        "follow_grid": true,
+        "fast_run_speed": 180.0,
+        "run_duration": 3.5,
+        "_keterangan": "NPC/Polisi setelah merinding akan lari cepat menyusuri grid jalan kota menjauhi posisi Benedict.",
+        "grid_waypoints": [
+            [
+                9,
+                29
+            ],
+            [
+                11,
+                27
+            ],
+            [
+                13,
+                27
+            ],
+            [
+                13,
+                34
+            ],
+            [
+                13,
+                40
+            ],
+            [
+                22,
+                40
+            ],
+            [
+                30,
+                40
+            ],
+            [
+                42,
+                40
+            ],
+            [
+                50,
+                40
+            ],
+            [
+                59,
+                40
+            ],
+            [
+                59,
+                33
+            ],
+            [
+                59,
+                26
+            ],
+            [
+                63,
+                26
+            ],
+            [
+                54,
+                37
+            ],
+            [
+                54,
+                25
+            ],
+            [
+                30,
+                27
+            ],
+            [
+                30,
+                18
+            ],
+            [
+                36,
+                15
+            ],
+            [
+                36,
+                8
+            ]
+        ]
+    }
+}

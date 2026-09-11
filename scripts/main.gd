@@ -85,6 +85,20 @@ var last_completed_checkpoint: Dictionary = {}
 @export var hud_pause_button_margin: Vector2 = Vector2(18.0, 18.0)
 # ==============================================================================
 
+# ==============================================================================
+# 🚉 PENGATURAN AREA TRIGGER FORCED SCENE STASIUN (BISA DIEDIT DARI INSPECTOR / DATA/POLICE_ROUTE_CONFIG.JSON)
+# ==============================================================================
+@export_group("Station Trigger Configuration")
+## Bentuk area pemicu forced scene stasiun ("rect" untuk persegi panjang atau "circle" untuk lingkaran)
+@export var station_trigger_shape: String = "rect"
+## Area persegi panjang untuk trigger stasiun (X, Y, Lebar, Tinggi)
+@export var station_trigger_rect: Rect2 = Rect2(1820.0, 680.0, 380.0, 280.0)
+## Titik pusat jika menggunakan bentuk lingkaran
+@export var station_trigger_circle_center: Vector2 = Vector2(1950.0, 780.0)
+## Radius area jika menggunakan bentuk lingkaran
+@export var station_trigger_circle_radius: float = 180.0
+# ==============================================================================
+
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
 
@@ -98,6 +112,7 @@ func _ready() -> void:
 		root_win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 		root_win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 
+	_load_station_trigger_config()
 	_setup_audio_system()
 	_setup_dialog_box()
 	_setup_death_god_shrine()
@@ -728,6 +743,56 @@ func _on_tailgate_completed(success: bool) -> void:
 	# Force cutscene setibanya di stasiun
 	_start_station_arrival_cutscene()
 
+func _load_station_trigger_config() -> void:
+	var path = "res://data/police_route_config.json"
+	if not FileAccess.file_exists(path):
+		return
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		return
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	if json.parse(json_text) == OK and json.data is Dictionary:
+		var data: Dictionary = json.data
+		if data.has("station_forced_scene_trigger") and data["station_forced_scene_trigger"] is Dictionary:
+			var trg: Dictionary = data["station_forced_scene_trigger"]
+			station_trigger_shape = String(trg.get("shape", "rect")).to_lower()
+			if trg.has("rect") and trg["rect"] is Dictionary:
+				var r: Dictionary = trg["rect"]
+				station_trigger_rect = Rect2(
+					float(r.get("x", 1820.0)),
+					float(r.get("y", 680.0)),
+					float(r.get("width", 380.0)),
+					float(r.get("height", 280.0))
+				)
+			if trg.has("circle") and trg["circle"] is Dictionary:
+				var c: Dictionary = trg["circle"]
+				station_trigger_circle_center = Vector2(
+					float(c.get("center_x", 1950.0)),
+					float(c.get("center_y", 780.0))
+				)
+				station_trigger_circle_radius = float(c.get("radius", 180.0))
+
+func _check_station_trigger_zone() -> void:
+	if station_arrival_cutscene_running or station_arrival_cutscene_done:
+		return
+	if not is_instance_valid(player):
+		return
+	if is_inside_house or is_inside_exploration_house or is_inside_hospital:
+		return
+
+	var p_pos = player.global_position
+	var is_triggered: bool = false
+	if station_trigger_shape.to_lower() == "rect":
+		is_triggered = station_trigger_rect.has_point(p_pos)
+	elif station_trigger_shape.to_lower() == "circle":
+		is_triggered = p_pos.distance_to(station_trigger_circle_center) <= station_trigger_circle_radius
+
+	if is_triggered:
+		_start_station_arrival_cutscene()
+
 func _start_station_arrival_cutscene() -> void:
 	if station_arrival_cutscene_running or station_arrival_cutscene_done:
 		return
@@ -859,6 +924,36 @@ func _force_walk_into_station(marcus_npc = null, police_npc = null) -> void:
 		_start_station_search_minigame()
 
 func _start_station_search_minigame() -> void:
+	# Polisi sudah kembali standby di kantor polisi saat minigame dimulai
+	var marcus_npc = find_child("NPC_Police_Marcus", true, false)
+	var police_npc = find_child("NPC1_Police", true, false)
+	if not is_instance_valid(marcus_npc):
+		for n in get_tree().get_nodes_in_group("npcs"):
+			if n.get("npc_type") == 3:
+				marcus_npc = n
+				break
+	if not is_instance_valid(police_npc):
+		for n in get_tree().get_nodes_in_group("npcs"):
+			if n.get("npc_type") == 1:
+				police_npc = n
+				break
+	if is_instance_valid(marcus_npc):
+		marcus_npc.is_patrolling_to_station = false
+		marcus_npc.is_departing = false
+		marcus_npc.current_state = 0 # State.IDLE
+		marcus_npc.global_position = Vector2(280.0, 915.0)
+		marcus_npc.velocity = Vector2.ZERO
+		marcus_npc.is_moving = false
+		marcus_npc.move_dir_facing = Vector2.RIGHT
+	if is_instance_valid(police_npc):
+		police_npc.is_patrolling_to_station = false
+		police_npc.is_departing = false
+		police_npc.current_state = 0 # State.IDLE
+		police_npc.global_position = Vector2(294.0, 931.0)
+		police_npc.velocity = Vector2.ZERO
+		police_npc.is_moving = false
+		police_npc.move_dir_facing = Vector2.LEFT
+
 	if is_instance_valid(minigame_hidden_objects):
 		player.can_move = false
 		minigame_hidden_objects.start_minigame()
@@ -1557,6 +1652,7 @@ func _process(delta: float) -> void:
 			if is_instance_valid(sprite):
 				sprite.position.y = sin(Time.get_ticks_msec() * 0.003) * 4.0
 
+		_check_station_trigger_zone()
 		_check_poi_proximity()
 
 func _check_poi_proximity() -> void:

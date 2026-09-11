@@ -35,7 +35,7 @@ const SHARED_DESTINATIONS = [
 signal reached_station
 signal npc_spook_fled(npc_node: CharacterBody2D)
 
-const POLICE_PATROL_WAYPOINTS = [
+const POLICE_PATROL_WAYPOINTS_DEFAULT = [
 	Vector2(350, 865),
 	Vector2(411, 880),
 	Vector2(411, 1278),
@@ -45,7 +45,7 @@ const POLICE_PATROL_WAYPOINTS = [
 	Vector2(2020, 820)
 ]
 
-const POLICE_RETURN_WAYPOINTS = [
+const POLICE_RETURN_WAYPOINTS_DEFAULT = [
 	Vector2(2020, 820),
 	Vector2(1880, 820),
 	Vector2(1880, 1278),
@@ -54,6 +54,20 @@ const POLICE_RETURN_WAYPOINTS = [
 	Vector2(411, 880),
 	Vector2(280, 915)
 ]
+
+static var _cached_route_config_loaded: bool = false
+static var _cached_patrol_waypoints: Array[Vector2] = []
+static var _cached_return_waypoints: Array[Vector2] = []
+static var _cached_spook_grid_waypoints: Array[Vector2] = []
+static var _cached_spook_follow_grid: bool = true
+
+var police_patrol_waypoints: Array[Vector2] = []
+var police_return_waypoints: Array[Vector2] = []
+var spook_grid_waypoints: Array[Vector2] = []
+var spook_follow_grid: bool = true
+
+var panic_grid_path: Array[Vector2] = []
+var panic_grid_idx: int = 0
 
 var is_patrolling_to_station: bool = false
 var patrol_formation_offset: Vector2 = Vector2.ZERO
@@ -182,6 +196,7 @@ func _ready() -> void:
 	collision_mask = 1
 	last_check_pos = global_position
 	
+	_load_police_route_config()
 	_load_all_npc_sprite_sets()
 	_build_growtopia_textbox()
 	
@@ -204,6 +219,97 @@ func _ready() -> void:
 	else:
 		call_deferred("_pick_next_destination")
 	queue_redraw()
+
+func _load_police_route_config() -> void:
+	if _cached_route_config_loaded:
+		police_patrol_waypoints.clear()
+		police_patrol_waypoints.append_array(_cached_patrol_waypoints)
+		police_return_waypoints.clear()
+		police_return_waypoints.append_array(_cached_return_waypoints)
+		spook_grid_waypoints.clear()
+		spook_grid_waypoints.append_array(_cached_spook_grid_waypoints)
+		spook_follow_grid = _cached_spook_follow_grid
+		return
+
+	police_patrol_waypoints.clear()
+	police_patrol_waypoints.append_array(POLICE_PATROL_WAYPOINTS_DEFAULT)
+	police_return_waypoints.clear()
+	police_return_waypoints.append_array(POLICE_RETURN_WAYPOINTS_DEFAULT)
+	spook_grid_waypoints.clear()
+	spook_follow_grid = true
+
+	var path = "res://data/police_route_config.json"
+	if not FileAccess.file_exists(path):
+		_cached_patrol_waypoints.clear()
+		_cached_patrol_waypoints.append_array(police_patrol_waypoints)
+		_cached_return_waypoints.clear()
+		_cached_return_waypoints.append_array(police_return_waypoints)
+		_cached_spook_grid_waypoints.clear()
+		_cached_spook_grid_waypoints.append_array(spook_grid_waypoints)
+		_cached_spook_follow_grid = spook_follow_grid
+		_cached_route_config_loaded = true
+		return
+
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		return
+	var json_text = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	if json.parse(json_text) == OK and json.data is Dictionary:
+		var data: Dictionary = json.data
+		var cell_size: float = 32.0
+		if data.has("grid_system") and data["grid_system"] is Dictionary:
+			cell_size = float(data["grid_system"].get("cell_size", 32.0))
+
+		var use_grid: bool = bool(data.get("use_grid_coordinates", false))
+
+		# 1. Patrol waypoints
+		var parsed_patrol: Array[Vector2] = []
+		if use_grid and data.has("police_patrol_route_grid") and data["police_patrol_route_grid"] is Array:
+			for pt in data["police_patrol_route_grid"]:
+				if pt is Array and pt.size() >= 2:
+					parsed_patrol.append(Vector2(float(pt[0]) * cell_size + cell_size * 0.5, float(pt[1]) * cell_size + cell_size * 0.5))
+		elif data.has("police_patrol_route_pixels") and data["police_patrol_route_pixels"] is Array:
+			for pt in data["police_patrol_route_pixels"]:
+				if pt is Array and pt.size() >= 2:
+					parsed_patrol.append(Vector2(float(pt[0]), float(pt[1])))
+		if not parsed_patrol.is_empty():
+			police_patrol_waypoints.clear()
+			police_patrol_waypoints.append_array(parsed_patrol)
+
+		# 2. Return waypoints
+		var parsed_return: Array[Vector2] = []
+		if use_grid and data.has("police_return_route_grid") and data["police_return_route_grid"] is Array:
+			for pt in data["police_return_route_grid"]:
+				if pt is Array and pt.size() >= 2:
+					parsed_return.append(Vector2(float(pt[0]) * cell_size + cell_size * 0.5, float(pt[1]) * cell_size + cell_size * 0.5))
+		elif data.has("police_return_route_pixels") and data["police_return_route_pixels"] is Array:
+			for pt in data["police_return_route_pixels"]:
+				if pt is Array and pt.size() >= 2:
+					parsed_return.append(Vector2(float(pt[0]), float(pt[1])))
+		if not parsed_return.is_empty():
+			police_return_waypoints.clear()
+			police_return_waypoints.append_array(parsed_return)
+
+		# 3. Spook settings
+		if data.has("spook_run_settings") and data["spook_run_settings"] is Dictionary:
+			var spk: Dictionary = data["spook_run_settings"]
+			spook_follow_grid = bool(spk.get("follow_grid", true))
+			if spk.has("grid_waypoints") and spk["grid_waypoints"] is Array:
+				for pt in spk["grid_waypoints"]:
+					if pt is Array and pt.size() >= 2:
+						spook_grid_waypoints.append(Vector2(float(pt[0]) * cell_size + cell_size * 0.5, float(pt[1]) * cell_size + cell_size * 0.5))
+
+	_cached_patrol_waypoints.clear()
+	_cached_patrol_waypoints.append_array(police_patrol_waypoints)
+	_cached_return_waypoints.clear()
+	_cached_return_waypoints.append_array(police_return_waypoints)
+	_cached_spook_grid_waypoints.clear()
+	_cached_spook_grid_waypoints.append_array(spook_grid_waypoints)
+	_cached_spook_follow_grid = spook_follow_grid
+	_cached_route_config_loaded = true
 
 func _load_all_npc_sprite_sets() -> void:
 	sprite_sets[NPCType.BOY]              = _load_sprites_from_folder("res://NPC_Boy/")
@@ -326,8 +432,9 @@ var spook_freeze_timer: float = 0.0
 
 func _pick_next_destination() -> void:
 	if npc_type == NPCType.POLICE:
-		current_patrol_idx = (current_patrol_idx + 1) % POLICE_PATROL_WAYPOINTS.size()
-		target_destination = POLICE_PATROL_WAYPOINTS[current_patrol_idx]
+		if not police_patrol_waypoints.is_empty():
+			current_patrol_idx = (current_patrol_idx + 1) % police_patrol_waypoints.size()
+			target_destination = police_patrol_waypoints[current_patrol_idx]
 	else:
 		var candidates = SHARED_DESTINATIONS.duplicate()
 		candidates.shuffle()
@@ -416,8 +523,8 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		var dist_to_goal = global_position.distance_to(target_destination)
 		if dist_to_goal < 38.0:
 			current_patrol_idx += 1
-			if current_patrol_idx < POLICE_PATROL_WAYPOINTS.size():
-				target_destination = POLICE_PATROL_WAYPOINTS[current_patrol_idx] + patrol_formation_offset
+			if current_patrol_idx < police_patrol_waypoints.size():
+				target_destination = police_patrol_waypoints[current_patrol_idx] + patrol_formation_offset
 				if is_instance_valid(nav_agent):
 					nav_agent.target_position = target_destination
 				if current_patrol_idx == 3 and npc_type == NPCType.INSPECTOR_MARCUS:
@@ -465,8 +572,8 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 		var dist_to_goal = global_position.distance_to(target_destination)
 		if dist_to_goal < 38.0:
 			current_patrol_idx += 1
-			if current_patrol_idx < POLICE_RETURN_WAYPOINTS.size():
-				target_destination = POLICE_RETURN_WAYPOINTS[current_patrol_idx] + patrol_formation_offset
+			if current_patrol_idx < police_return_waypoints.size():
+				target_destination = police_return_waypoints[current_patrol_idx] + patrol_formation_offset
 				if is_instance_valid(nav_agent):
 					nav_agent.target_position = target_destination
 			else:
@@ -606,7 +713,10 @@ func start_patrol(is_partner: bool = false) -> void:
 							sibling.start_patrol(true)
 						break
 
-	target_destination = POLICE_PATROL_WAYPOINTS[0] + patrol_formation_offset
+	if not police_patrol_waypoints.is_empty():
+		target_destination = police_patrol_waypoints[0] + patrol_formation_offset
+	else:
+		target_destination = POLICE_PATROL_WAYPOINTS_DEFAULT[0] + patrol_formation_offset
 	if is_instance_valid(nav_agent):
 		nav_agent.target_position = target_destination
 
@@ -623,7 +733,10 @@ func depart_from_station() -> void:
 	stuck_timer = 0.0
 	last_check_pos = global_position
 
-	target_destination = POLICE_RETURN_WAYPOINTS[0] + patrol_formation_offset
+	if not police_return_waypoints.is_empty():
+		target_destination = police_return_waypoints[0] + patrol_formation_offset
+	else:
+		target_destination = POLICE_RETURN_WAYPOINTS_DEFAULT[0] + patrol_formation_offset
 	if npc_type == NPCType.INSPECTOR_MARCUS:
 		show_chat_bubble("Marcus: Aku harus segera menyusun berkas di kantor.", 3.0)
 	else:
@@ -704,11 +817,39 @@ func _handle_afraid_state(delta: float, _dist_to_player: float) -> void:
 	spook_merinding_timer -= delta
 
 	if spook_merinding_timer <= 0.0:
-		# Setelah merinding 5 detik, baru lari cepat menjauh!
+		# Setelah merinding 5 detik, lari cepat menjauh mengikuti grid rute jalan!
 		current_state = State.PANIC_RUN
 		run_timer = 3.5
 		current_text_msg = PANIC_MESSAGES[randi() % PANIC_MESSAGES.size()]
 		show_chat_bubble(current_text_msg, 2.5)
+
+		panic_grid_path.clear()
+		panic_grid_idx = 0
+		var p_pos = player_ref.global_position if is_instance_valid(player_ref) else global_position
+
+		# Kumpulkan kandidat titik grid di sekitar NPC
+		var candidates: Array[Vector2] = []
+		candidates.append_array(spook_grid_waypoints)
+		candidates.append_array(police_patrol_waypoints)
+		candidates.append_array(police_return_waypoints)
+
+		if spook_follow_grid and not candidates.is_empty():
+			var nearby_pts: Array[Vector2] = []
+			for pt in candidates:
+				var d_npc = global_position.distance_to(pt)
+				if d_npc > 14.0 and d_npc < 500.0:
+					nearby_pts.append(pt)
+
+			if not nearby_pts.is_empty():
+				# Prioritaskan titik yang memaksimalkan jarak dari player (lari menjauh di sepanjang grid)
+				nearby_pts.sort_custom(func(a: Vector2, b: Vector2) -> bool:
+					var score_a = a.distance_to(p_pos) - global_position.distance_to(a) * 0.35
+					var score_b = b.distance_to(p_pos) - global_position.distance_to(b) * 0.35
+					return score_a > score_b
+				)
+				for i in range(mini(3, nearby_pts.size())):
+					panic_grid_path.append(nearby_pts[i])
+
 		if is_instance_valid(player_ref):
 			run_direction = (global_position - player_ref.global_position).normalized()
 			if run_direction == Vector2.ZERO:
@@ -720,9 +861,22 @@ func _handle_afraid_state(delta: float, _dist_to_player: float) -> void:
 
 func _handle_panic_run(delta: float) -> void:
 	run_timer -= delta
-	# Lari cepat menjauh dari Benedict (kecepatan tinggi 180.0 px/s)
 	var fast_run_speed: float = 180.0
-	velocity = run_direction * fast_run_speed
+	var move_dir = run_direction
+
+	# Navigasi menyusuri waypoint grid jalan kota jika tersedia
+	if not panic_grid_path.is_empty() and panic_grid_idx < panic_grid_path.size():
+		var target_pt = panic_grid_path[panic_grid_idx]
+		if global_position.distance_to(target_pt) < 32.0:
+			panic_grid_idx += 1
+			if panic_grid_idx < panic_grid_path.size():
+				target_pt = panic_grid_path[panic_grid_idx]
+		var steer = (target_pt - global_position).normalized()
+		if steer != Vector2.ZERO:
+			move_dir = steer
+
+	velocity = move_dir * fast_run_speed
+	move_dir_facing = move_dir
 	is_moving = true
 	move_and_slide()
 	step_cycle += delta * 14.0
@@ -736,6 +890,7 @@ func _handle_panic_run(delta: float) -> void:
 		is_moving = false
 		social_cooldown = 8.0
 		player_in_spook_radius_timer = 0.0
+		panic_grid_path.clear()
 		_pick_next_destination()
 
 func _unhandled_input(event: InputEvent) -> void:
