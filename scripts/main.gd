@@ -467,10 +467,10 @@ func _enter_hospital() -> void:
 			house_interior.visible = false
 		if is_instance_valid(exploration_house_interior):
 			exploration_house_interior.visible = false
-		player.global_position = Vector2(7000.0 + 50.0, 400.0 + 260.0)
+		player.global_position = Vector2(7000.0 + 65.0, 400.0 + 300.0)
 		player.target_zoom_val = 2.85
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(6980, 380, 7000 + 1020, 400 + 580)
+			player.setup_camera_limits(6980, 380, 7000 + 880, 400 + 600)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Lorong Rumah Sakit & Ruang Jenazah.")
@@ -855,30 +855,6 @@ func _start_station_search_minigame(marcus_npc = null, police_npc = null) -> voi
 		p_npc.is_moving = false
 		p_npc.is_departing = false
 
-	if is_instance_valid(minigame_hidden_objects):
-		player.can_move = false
-		minigame_hidden_objects.start_minigame()
-		_show_toast("Minigame Stasiun: Cari 3 Objek Bukti Tersembunyi!")
-	else:
-		if is_instance_valid(player):
-			player.can_move = true
-
-func _force_walk_into_station() -> void:
-	if not is_instance_valid(player):
-		_start_station_search_minigame()
-		return
-
-	player.can_move = false
-	_show_toast("Menyelinap masuk ke peron stasiun...")
-	if player.has_method("walk_to_point"):
-		player.walk_to_point(Vector2(2080.0, 685.0), 75.0)
-		player.cutscene_walk_finished.connect(func():
-			_start_station_search_minigame()
-		, CONNECT_ONE_SHOT)
-	else:
-		_start_station_search_minigame()
-
-func _start_station_search_minigame() -> void:
 	if is_instance_valid(minigame_hidden_objects):
 		player.can_move = false
 		minigame_hidden_objects.start_minigame()
@@ -1628,15 +1604,14 @@ func _check_poi_proximity() -> void:
 	if not is_inside_house and not is_inside_exploration_house and not is_inside_hospital:
 		if p_pos.x >= 1780.0 and p_pos.x <= 1950.0 and p_pos.y >= 680.0 and p_pos.y <= 1260.0:
 			if not auto_station_scene_triggered and not inv_mgr.has_cleared_station:
-				if bypass_story or inv_mgr.is_clue_unlocked("victim_letter") or inv_mgr.current_phase >= inv_mgr.Phase.INVESTIGATION_2_POLICE_STATION:
+				if inv_mgr.is_clue_unlocked("victim_letter") or inv_mgr.current_phase >= inv_mgr.Phase.INVESTIGATION_2_STATION:
 					auto_station_scene_triggered = true
 					if is_instance_valid(interact_prompt):
 						interact_prompt.visible = false
 					_start_station_arrival_cutscene()
 					return
 				else:
-					# Jangan kunci auto_station_scene_triggered agar tetap bisa terpicu setelah surat terbuka
-					if not is_near_locked_notice_cooldown:
+					if toast_timer <= 0.0:
 						_show_toast("Selidiki rumah korban terlebih dahulu sebelum ke stasiun!")
 
 	# Check dedicated POIs with priority (e.g. Bilik Telepon di Peron Stasiun)
