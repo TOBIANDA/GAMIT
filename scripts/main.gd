@@ -41,11 +41,14 @@ var active_poi_id: String = ""
 
 var house_interior: Node2D
 var is_inside_house: bool = false
+var exploration_house_interior: Node2D
+var is_inside_exploration_house: bool = false
 var transition_overlay: ColorRect
 var transition_layer: CanvasLayer
 
 const POI_LOCATIONS = {
 	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1170, 230), "radius": 150.0},
+	"south_house": {"name": "Masuk ke Rumah Eksplorasi (Rumah Selatan)", "pos": Vector2(1714, 1170), "radius": 75.0},
 	"street_clock": {"name": "Jam Jalan (Berhenti di 16:04)", "pos": Vector2(480, 220), "radius": 120.0},
 	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(280, 915), "radius": 220.0},
 	"station": {"name": "Stasiun Kereta Api (Minigame Cari Bukti)", "pos": Vector2(2020, 930), "radius": 320.0},
@@ -61,6 +64,7 @@ var door_sfx_player: AudioStreamPlayer
 var cutscene_layer: CanvasLayer
 static var cutscene_played: bool = false
 @export var show_intro_cutscene: bool = true
+var auto_police_escort_triggered: bool = false
 
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
@@ -70,6 +74,7 @@ func _ready() -> void:
 	_setup_death_god_shrine()
 	_setup_transition_overlay()
 	_setup_house_interior()
+	_setup_exploration_house_interior()
 	_setup_investigation_manager()
 	_setup_world_shader()
 	_setup_clue_journal()
@@ -368,6 +373,62 @@ func _exit_house() -> void:
 		input_grace_timer = 0.35
 	)
 
+func _setup_exploration_house_interior() -> void:
+	var ehi_script = load("res://scripts/exploration_house_interior.gd")
+	if ehi_script:
+		exploration_house_interior = Node2D.new()
+		exploration_house_interior.name = "ExplorationHouseInterior"
+		exploration_house_interior.set_script(ehi_script)
+		add_child(exploration_house_interior)
+
+func _enter_exploration_house() -> void:
+	if not is_instance_valid(player):
+		return
+	player.can_move = false
+	input_grace_timer = 0.35
+	play_door_sfx()
+
+	var tw = create_tween()
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
+	tw.tween_callback(func():
+		is_inside_exploration_house = true
+		player.global_position = Vector2(4600.0 + 110.0, 400.0 + 330.0)
+		if player.has_method("setup_camera_limits"):
+			player.setup_camera_limits(4580, 380, 5260, 840)
+		if player.has_method("reset_camera_smoothing"):
+			player.reset_camera_smoothing()
+		_show_toast("Masuk ke Rumah Eksplorasi (Rumah Kenangan).")
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		player.can_move = true
+		input_grace_timer = 0.35
+	)
+
+func _exit_exploration_house() -> void:
+	if not is_instance_valid(player):
+		return
+	player.can_move = false
+	input_grace_timer = 0.35
+	play_door_sfx()
+
+	var tw = create_tween()
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
+	tw.tween_callback(func():
+		is_inside_exploration_house = false
+		player.global_position = Vector2(1714.0, 1200.0)
+		if player.has_method("setup_camera_limits"):
+			player.setup_camera_limits(0, 0, 2400, 1450)
+		if player.has_method("reset_camera_smoothing"):
+			player.reset_camera_smoothing()
+		_show_toast("Keluar ke Jalan Kota Selatan.")
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		player.can_move = true
+		input_grace_timer = 0.35
+	)
+
 func _trigger_indoor_letter_monologue() -> void:
 	if is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("victim_letter"):
 		_open_victim_letter()
@@ -490,6 +551,7 @@ func _on_minigame_ended() -> void:
 
 func _on_tailgate_completed(success: bool) -> void:
 	if not success:
+		auto_police_escort_triggered = false
 		if is_instance_valid(player):
 			player.can_move = true
 		_update_hud_objective()
@@ -602,6 +664,8 @@ func _on_main_menu_play_requested() -> void:
 				_open_police_letter()
 			)
 	_update_hud_objective()
+	if is_instance_valid(pause_menu_layer) and pause_menu_layer.has_method("set_hud_button_visible"):
+		pause_menu_layer.set_hud_button_visible(true)
 
 func _on_return_to_main_menu() -> void:
 	if is_instance_valid(player):
@@ -609,6 +673,8 @@ func _on_return_to_main_menu() -> void:
 		player.set_physics_process(false)
 	if is_instance_valid(bgm_player) and bgm_player.playing:
 		bgm_player.stop()
+	if is_instance_valid(pause_menu_layer) and pause_menu_layer.has_method("set_hud_button_visible"):
+		pause_menu_layer.set_hud_button_visible(false)
 	if is_instance_valid(main_menu_layer):
 		main_menu_layer.open_menu()
 
@@ -1254,6 +1320,48 @@ func _check_poi_proximity() -> void:
 				interact_prompt.visible = true
 		return
 
+	elif is_inside_exploration_house:
+		var expl_exit_pos = exploration_house_interior.get_exit_door_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_exit_door_pos") else Vector2(4600.0 + 110.0, 400.0 + 400.0)
+		var expl_safe_pos = exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 280.0, 400.0 + 75.0)
+		var expl_clock_pos = exploration_house_interior.get_clock_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_clock_pos") else Vector2(4600.0 + 60.0, 400.0 + 110.0)
+		var expl_photo_pos = exploration_house_interior.get_calendar_photo_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_photo_pos") else Vector2(4600.0 + 420.0, 400.0 + 75.0)
+		var expl_recipe_pos = exploration_house_interior.get_recipe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_recipe_pos") else Vector2(4600.0 + 340.0, 400.0 + 260.0)
+
+		if p_pos.distance_to(expl_safe_pos) <= 52.0:
+			active_poi_id = "indoor_expl_safe"
+		elif p_pos.distance_to(expl_photo_pos) <= 50.0:
+			active_poi_id = "indoor_expl_photo"
+		elif p_pos.distance_to(expl_recipe_pos) <= 50.0:
+			active_poi_id = "indoor_expl_recipe"
+		elif p_pos.distance_to(expl_clock_pos) <= 50.0:
+			active_poi_id = "indoor_expl_clock"
+		elif p_pos.distance_to(expl_exit_pos) <= 32.0 or (p_pos.y >= (400.0 + 382.0) and abs(p_pos.x - (4600.0 + 110.0)) <= 32.0):
+			active_poi_id = "indoor_expl_exit"
+		else:
+			active_poi_id = ""
+
+		if active_poi_id.is_empty():
+			if is_instance_valid(interact_prompt):
+				interact_prompt.visible = false
+		else:
+			if is_instance_valid(interact_prompt):
+				match active_poi_id:
+					"indoor_expl_safe":
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA (LIONTIN IBU)\n[Y] BYPASS CERITA (FITUR BETA)"
+					"indoor_expl_photo":
+						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO & KALENDER KENANGAN IBU"
+					"indoor_expl_recipe":
+						interact_prompt.text = "[ F / E / Spasi ] BACA BUKU RESEP & CATATAN HARI IBU"
+					"indoor_expl_clock":
+						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER TUA (PETUNJUK WAKTU)"
+					"indoor_expl_exit":
+						interact_prompt.text = "[ F / E / Spasi ] KELUAR KE JALAN KOTA"
+				var vp = get_viewport().get_visible_rect().size
+				interact_prompt.custom_minimum_size = Vector2(520, 56)
+				interact_prompt.position = Vector2(vp.x * 0.5 - 260, vp.y - 95)
+				interact_prompt.visible = true
+		return
+
 	var closest_dist: float = 999999.0
 	var best_poi: String = ""
 
@@ -1267,9 +1375,13 @@ func _check_poi_proximity() -> void:
 		best_poi = "station"
 		closest_dist = 0.0
 	# 2. Pintu Masuk Rumah Benedict (pintu beranda depan)
-	elif not is_inside_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 65.0:
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 65.0:
 		best_poi = "desk"
 		closest_dist = p_pos.distance_to(Vector2(1170.0, 230.0))
+	# 3. Pintu Masuk Rumah Selatan (Rumah Eksplorasi)
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1170.0)) <= 70.0:
+		best_poi = "south_house"
+		closest_dist = p_pos.distance_to(Vector2(1714.0, 1170.0))
 	else:
 		for poi_key in POI_LOCATIONS.keys():
 			var poi = POI_LOCATIONS[poi_key]
@@ -1288,6 +1400,15 @@ func _check_poi_proximity() -> void:
 			var poi_info = POI_LOCATIONS[active_poi_id]
 			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
 			if active_poi_id == "police":
+				# Otomatisasi: Pas keluar dari rumah korban, ketika dalam radius tertentu disekitar polisi,
+				# langsung ikuti polisi pergi ke stasiun tanpa harus menekan tombol apa pun!
+				if not auto_police_escort_triggered and inv_mgr.is_clue_unlocked("victim_letter") and not inv_mgr.has_tailgated_marcus:
+					auto_police_escort_triggered = true
+					if is_instance_valid(interact_prompt):
+						interact_prompt.visible = false
+					_trigger_poi_interaction("police", false)
+					return
+
 				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME and not inv_mgr.is_clue_unlocked("victim_letter"):
 					custom_text = "[ F / E / Spasi ] KANTOR POLISI (PERIKSA RUMAH DULU)"
 				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
@@ -1378,7 +1499,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		elif event.keycode == KEY_4:
-			_trigger_poi_interaction("indoor_safe" if is_inside_house else "safe", true)
+			_trigger_poi_interaction("indoor_expl_safe" if is_inside_exploration_house else ("indoor_safe" if is_inside_house else "safe"), true)
 			get_viewport().set_input_as_handled()
 			return
 
@@ -1419,6 +1540,18 @@ func _trigger_beta_bypass_interaction() -> void:
 				if d < closest_dist:
 					closest_dist = d
 					target_poi = k
+		elif is_inside_exploration_house:
+			var expl_pois = {
+				"indoor_expl_safe": Vector2(4600.0 + 280.0, 400.0 + 75.0),
+				"indoor_expl_photo": Vector2(4600.0 + 420.0, 400.0 + 75.0),
+				"indoor_expl_recipe": Vector2(4600.0 + 340.0, 400.0 + 260.0),
+				"indoor_expl_clock": Vector2(4600.0 + 60.0, 400.0 + 110.0)
+			}
+			for k in expl_pois.keys():
+				var d = p_pos.distance_to(expl_pois[k])
+				if d < closest_dist:
+					closest_dist = d
+					target_poi = k
 		else:
 			for k in POI_LOCATIONS.keys():
 				var d = p_pos.distance_to(POI_LOCATIONS[k]["pos"])
@@ -1440,6 +1573,49 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 	match poi_id:
 		"desk":
 			_enter_house()
+
+		"south_house":
+			_enter_exploration_house()
+
+		"indoor_expl_exit":
+			_exit_exploration_house()
+
+		"indoor_expl_safe":
+			if is_instance_valid(minigame_safe):
+				player.can_move = false
+				minigame_safe.start_minigame()
+				_show_toast("Membuka Brankas Baja Keluarga!" if not bypass_story else "[Fitur Beta] Bypass: Membuka Brankas Baja Keluarga!")
+
+		"indoor_expl_clock":
+			if is_instance_valid(dialog_box):
+				var clk_lines: Array[String] = [
+					"Sebuah jam weker kuno di atas nakas...",
+					"Anehnya, jarum jam ini juga terhenti kaku tepat di pukul 16:04, sama persis seperti jam jalanan kota.",
+					"Di balik jam ini tergores angka samar: '1 - 6 - 4'. Jam yang berhenti saat petaka terjadi."
+				]
+				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kenangan ]", "res://karakter/MC_Bingung.png")
+
+		"indoor_expl_photo":
+			if is_instance_valid(inv_mgr):
+				inv_mgr.unlock_clue("mother_photo_riddle")
+			if is_instance_valid(dialog_box):
+				var photo_lines: Array[String] = [
+					"Sebuah kalender tua dan foto berbingkai perak... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
+					"Di balik bingkai foto ada tulisan tangan ibu yang lembut:",
+					"'Untuk anakku tersayang Benedict, jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.'",
+					"'Kombinasi brankas keluarga tersimpan pada detik saat waktu kita membeku (1-6-4).'"
+				]
+				dialog_box.start_monologue(photo_lines, "Detektif Benedict", "[ Kenangan Ibu Medeline ]", "res://karakter/MC_Kaget.png")
+
+		"indoor_expl_recipe":
+			if is_instance_valid(dialog_box):
+				var recipe_lines: Array[String] = [
+					"Buku resep masakan tua bersampul kain dan selembar catatan tulisan tangan...",
+					"Halaman buku ini terbuka di menu sup hangat kesukaanku.",
+					"Catatan di sampingnya berbunyi: 'Ibu selalu menyisihkan sepiring hangat untuk Benedict sepulang bertugas.'",
+					"Dadaku terasa sesak... Kenangan hangat ini begitu nyata, meski ragaku terasa begitu dingin."
+				]
+				dialog_box.start_monologue(recipe_lines, "Detektif Benedict", "[ Buku Resep Ibu ]", "res://karakter/MC_Bingung.png")
 
 		"indoor_letter":
 			_trigger_indoor_letter_monologue()
@@ -1579,6 +1755,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				if is_instance_valid(morgue_inspection):
 					if is_inside_house:
 						_exit_house()
+					if is_inside_exploration_house:
+						_exit_exploration_house()
 					player.can_move = false
 					morgue_inspection.open_morgue()
 					_show_toast("Menyelinap ke Kamar Jenazah..." if not bypass_story else "[Fitur Beta] Bypass: Menyelinap ke Kamar Jenazah RS!")
@@ -1599,6 +1777,8 @@ func _start_marcus_tailgate(marcus_npc: Node) -> void:
 		player.can_move = true
 		if is_inside_house:
 			_exit_house()
+		if is_inside_exploration_house:
+			_exit_exploration_house()
 		if player.global_position.distance_to(marcus_npc.global_position) > 280.0:
 			player.global_position = marcus_npc.global_position + Vector2(-120, 10)
 		if marcus_npc.has_method("start_patrol"):

@@ -32,10 +32,11 @@ signal reached_station
 
 const POLICE_PATROL_WAYPOINTS = [
 	Vector2(350, 865),
-	Vector2(577, 865),
-	Vector2(577, 619),
-	Vector2(1270, 619),
-	Vector2(1850, 619),
+	Vector2(411, 880),
+	Vector2(411, 1278),
+	Vector2(950, 1278),
+	Vector2(1581, 1278),
+	Vector2(1581, 780),
 	Vector2(2088, 690)
 ]
 
@@ -319,9 +320,9 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 				target_destination = POLICE_PATROL_WAYPOINTS[current_patrol_idx] + patrol_formation_offset
 				if is_instance_valid(nav_agent):
 					nav_agent.target_position = target_destination
-				if current_patrol_idx == 2 and npc_type == NPCType.INSPECTOR_MARCUS:
-					show_chat_bubble("Marcus: Lewat jalan utama, jangan sampai terlambat!", 3.0)
-				elif current_patrol_idx == 4 and npc_type == NPCType.INSPECTOR_MARCUS:
+				if current_patrol_idx == 3 and npc_type == NPCType.INSPECTOR_MARCUS:
+					show_chat_bubble("Marcus: Lewat jalan lingkar selatan, ayo bergegas!", 3.0)
+				elif current_patrol_idx == 5 and npc_type == NPCType.INSPECTOR_MARCUS:
 					show_chat_bubble("Marcus: Stasiun sudah dekat di depan!", 3.0)
 			else:
 				# Tiba di stasiun!

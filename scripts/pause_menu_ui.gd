@@ -22,12 +22,24 @@ var sfx_slider: HSlider
 
 var click_player: AudioStreamPlayer
 
+var tex_paused: Texture2D
+var tex_pause_button: Texture2D
+var hud_pause_button: Button
+
 func _ready() -> void:
 	layer = 90
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_load_assets()
 	_setup_audio()
 	_build_pause_ui()
-	visible = false
+	visible = true
+	root_control.visible = false
+	if is_instance_valid(hud_pause_button):
+		hud_pause_button.visible = true
+
+func _load_assets() -> void:
+	tex_paused = load("res://PAUSED/PAUSED.png")
+	tex_pause_button = load("res://PAUSED/pause button.png")
 
 func _setup_audio() -> void:
 	click_player = AudioStreamPlayer.new()
@@ -42,16 +54,27 @@ func _play_click() -> void:
 	if is_instance_valid(click_player) and click_player.stream:
 		click_player.play()
 
+func set_hud_button_visible(v: bool) -> void:
+	if is_instance_valid(hud_pause_button):
+		hud_pause_button.visible = v and not is_paused
+
 func open_pause() -> void:
 	is_paused = true
 	visible = true
+	if is_instance_valid(root_control):
+		root_control.visible = true
+	if is_instance_valid(hud_pause_button):
+		hud_pause_button.visible = false
 	_refresh_objective_hint()
 	if is_instance_valid(options_modal):
 		options_modal.visible = false
 
 func close_pause() -> void:
 	is_paused = false
-	visible = false
+	if is_instance_valid(root_control):
+		root_control.visible = false
+	if is_instance_valid(hud_pause_button):
+		hud_pause_button.visible = true
 	if is_instance_valid(options_modal):
 		options_modal.visible = false
 
@@ -78,16 +101,24 @@ func _refresh_objective_hint() -> void:
 		objective_hint_label.text = "Lanjutkan investigasi..."
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not is_paused:
-		return
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
-			if is_instance_valid(options_modal) and options_modal.visible:
-				options_modal.visible = false
+			if is_paused:
+				if is_instance_valid(options_modal) and options_modal.visible:
+					options_modal.visible = false
+				else:
+					resume_game()
+				get_viewport().set_input_as_handled()
 			else:
-				resume_game()
-			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_J:
+				var main_menu = get_parent().find_child("MainMenuLayer", true, false) if get_parent() else null
+				if is_instance_valid(main_menu) and main_menu.get("is_active"):
+					return
+				var dlg = get_parent().find_child("DialogBox", true, false) if get_parent() else null
+				if is_instance_valid(dlg) and dlg.get("is_active"):
+					return
+				open_pause()
+				get_viewport().set_input_as_handled()
+		elif is_paused and event.keycode == KEY_J:
 			resume_game()
 			journal_requested.emit()
 			get_viewport().set_input_as_handled()
@@ -126,13 +157,21 @@ func _build_pause_ui() -> void:
 	vb.add_theme_constant_override("separation", 14)
 	menu_box.add_child(vb)
 
-	# Title & Subtitle
-	var title = Label.new()
-	title.text = "PERMAINAN DIJEDA (PAUSE)"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
-	title.add_theme_font_size_override("font_size", 18)
-	vb.add_child(title)
+	# Banner PAUSED.png
+	if is_instance_valid(tex_paused):
+		var pause_banner = TextureRect.new()
+		pause_banner.texture = tex_paused
+		pause_banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pause_banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pause_banner.custom_minimum_size = Vector2(0, 85)
+		vb.add_child(pause_banner)
+	else:
+		var title = Label.new()
+		title.text = "PERMAINAN DIJEDA (PAUSE)"
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
+		title.add_theme_font_size_override("font_size", 18)
+		vb.add_child(title)
 
 	objective_hint_label = Label.new()
 	objective_hint_label.text = "Target: Menyelidiki Kasus..."
@@ -144,6 +183,43 @@ func _build_pause_ui() -> void:
 
 	var sep = HSeparator.new()
 	vb.add_child(sep)
+
+	# Tombol Jeda di Layar (HUD Pause Button)
+	hud_pause_button = Button.new()
+	hud_pause_button.name = "HudPauseButton"
+	hud_pause_button.anchor_left = 1.0
+	hud_pause_button.anchor_top = 0.0
+	hud_pause_button.anchor_right = 1.0
+	hud_pause_button.anchor_bottom = 0.0
+	hud_pause_button.offset_left = -62
+	hud_pause_button.offset_top = 16
+	hud_pause_button.offset_right = -18
+	hud_pause_button.offset_bottom = 60
+	hud_pause_button.focus_mode = Control.FOCUS_NONE
+	hud_pause_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	hud_pause_button.tooltip_text = "Jeda Permainan [ESC / P]"
+
+	var p_empty = StyleBoxEmpty.new()
+	hud_pause_button.add_theme_stylebox_override("normal", p_empty)
+	hud_pause_button.add_theme_stylebox_override("focus", p_empty)
+	
+	var p_hov = StyleBoxFlat.new()
+	p_hov.bg_color = Color(1.0, 1.0, 1.0, 0.15)
+	p_hov.set_corner_radius_all(8)
+	hud_pause_button.add_theme_stylebox_override("hover", p_hov)
+	hud_pause_button.add_theme_stylebox_override("pressed", p_hov)
+
+	if is_instance_valid(tex_pause_button):
+		var p_icon = TextureRect.new()
+		p_icon.texture = tex_pause_button
+		p_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		p_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		p_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+		p_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hud_pause_button.add_child(p_icon)
+
+	hud_pause_button.pressed.connect(toggle_pause)
+	add_child(hud_pause_button)
 
 	# Buttons
 	btn_resume = _create_menu_button("Lanjutkan Permainan [ESC]", Color(0.2, 0.6, 0.4))

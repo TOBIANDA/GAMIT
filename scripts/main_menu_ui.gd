@@ -24,6 +24,7 @@ var click_player: AudioStreamPlayer
 var menu_bgm_player: AudioStreamPlayer
 
 var tex_menu_bg: Texture2D
+var tex_credit: Texture2D
 
 func _ready() -> void:
 	layer = 100
@@ -34,7 +35,10 @@ func _ready() -> void:
 		menu_bgm_player.play()
 
 func _load_assets() -> void:
-	tex_menu_bg = load("res://UI/Main Menu/main-menu-meja.png")
+	tex_menu_bg = load("res://Main Menu/main-menu-meja.png")
+	if not tex_menu_bg:
+		tex_menu_bg = load("res://UI/Main Menu/main-menu-meja.png")
+	tex_credit = load("res://Main Menu/credit.png")
 
 func _setup_audio() -> void:
 	click_player = AudioStreamPlayer.new()
@@ -187,7 +191,8 @@ func _update_button_positions() -> void:
 	if is_instance_valid(options_modal):
 		options_modal.position = (vp_size - options_modal.size) * 0.5
 	if is_instance_valid(credit_modal):
-		credit_modal.position = (vp_size - credit_modal.size) * 0.5
+		credit_modal.size = vp_size
+		credit_modal.position = Vector2.ZERO
 
 func _create_paper_hotspot(btn_text: String, pos: Vector2, btn_size: Vector2) -> Button:
 	var btn = Button.new()
@@ -305,50 +310,76 @@ func _build_options_modal() -> void:
 
 func _build_credit_modal() -> void:
 	credit_modal = PanelContainer.new()
-	credit_modal.set_anchors_preset(Control.PRESET_CENTER)
-	credit_modal.custom_minimum_size = Vector2(560, 420)
-	credit_modal.position = Vector2(520, 240)
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.10, 0.14, 0.98)
-	sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
-	sb.content_margin_left = 32
-	sb.content_margin_right = 32
-	sb.content_margin_top = 24
-	sb.content_margin_bottom = 24
-	credit_modal.add_theme_stylebox_override("panel", sb)
+	credit_modal.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var empty_sb = StyleBoxEmpty.new()
+	credit_modal.add_theme_stylebox_override("panel", empty_sb)
 	credit_modal.visible = false
 	root_control.add_child(credit_modal)
 
-	var vb = VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 14)
-	credit_modal.add_child(vb)
+	# Dim background overlay (klik untuk tutup)
+	var dim = Button.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.focus_mode = Control.FOCUS_NONE
+	var dim_sb = StyleBoxFlat.new()
+	dim_sb.bg_color = Color(0.02, 0.03, 0.05, 0.88)
+	dim.add_theme_stylebox_override("normal", dim_sb)
+	dim.add_theme_stylebox_override("hover", dim_sb)
+	dim.add_theme_stylebox_override("pressed", dim_sb)
+	dim.pressed.connect(func():
+		_play_click()
+		credit_modal.visible = false
+	)
+	credit_modal.add_child(dim)
 
-	var title = Label.new()
-	title.text = "KREDIT & TIM PENGEMBANG"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	title.add_theme_font_size_override("font_size", 16)
-	vb.add_child(title)
+	# Tampilan 16:9 Image Credit.png
+	var asp = AspectRatioContainer.new()
+	asp.ratio = 16.0 / 9.0
+	asp.set_anchors_preset(Control.PRESET_FULL_RECT)
+	asp.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
+	asp.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
+	asp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	credit_modal.add_child(asp)
 
-	var info_lbl = Label.new()
-	info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_lbl.add_theme_font_size_override("font_size", 13)
-	info_lbl.text = "Game: After the End - Detective Benedict\nPengembang: Tim 4 ayam 1 immo\nEngine: Godot Engine 4.7.1\n\nGenre: Misteri, Kriminalitas, Narrative Adventure\nTema: 'After the End' — Di mana sang detektif tanpa sadar menyelidiki kematian dirinya sendiri yang telah tiada.\n\nKarakter:\n• Detektif Benedict (Tokoh Utama)\n• Inspektur Marcus (Rekan Kepolisian)\n• Ibu Medeline (Ibunda Tercinta & Pemilik Brankas)\n• Dewa Kematian / Grim (Pemandu Jiwa di Kuil Abadi)\n\nTerima kasih telah memainkan Game IPB!"
-	vb.add_child(info_lbl)
+	var credit_img = TextureRect.new()
+	if is_instance_valid(tex_credit):
+		credit_img.texture = tex_credit
+	credit_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	credit_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	credit_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	asp.add_child(credit_img)
 
+	# Tombol Tutup di Pojok Kanan Atas
 	var close_crd_btn = Button.new()
-	close_crd_btn.text = "Tutup Kredit"
-	close_crd_btn.custom_minimum_size = Vector2(160, 36)
-	close_crd_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_crd_btn.text = "✖ TUTUP KREDIT [ESC]"
+	close_crd_btn.custom_minimum_size = Vector2(190, 40)
+	close_crd_btn.anchor_left = 1.0
+	close_crd_btn.anchor_top = 0.0
+	close_crd_btn.anchor_right = 1.0
+	close_crd_btn.anchor_bottom = 0.0
+	close_crd_btn.offset_left = -215
+	close_crd_btn.offset_top = 25
+	close_crd_btn.offset_right = -25
+	close_crd_btn.offset_bottom = 65
 	close_crd_btn.focus_mode = Control.FOCUS_NONE
+	close_crd_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var c_sb = StyleBoxFlat.new()
+	c_sb.bg_color = Color(0.12, 0.14, 0.18, 0.95)
+	c_sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
+	c_sb.set_border_width_all(2)
+	c_sb.set_corner_radius_all(6)
+	close_crd_btn.add_theme_stylebox_override("normal", c_sb)
+	var c_hov = c_sb.duplicate()
+	c_hov.bg_color = Color(0.20, 0.24, 0.30, 1.0)
+	c_hov.border_color = Color(1.0, 0.85, 0.45, 1.0)
+	close_crd_btn.add_theme_stylebox_override("hover", c_hov)
+	close_crd_btn.add_theme_stylebox_override("pressed", c_hov)
+	close_crd_btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
+	close_crd_btn.add_theme_font_size_override("font_size", 13)
 	close_crd_btn.pressed.connect(func():
 		_play_click()
 		credit_modal.visible = false
 	)
-	vb.add_child(close_crd_btn)
+	credit_modal.add_child(close_crd_btn)
 
 func _on_play_pressed() -> void:
 	_play_click()
@@ -395,3 +426,17 @@ func _on_toggle_fullscreen() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_active or not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.is_echo() and event.keycode == KEY_ESCAPE:
+		if is_instance_valid(credit_modal) and credit_modal.visible:
+			_play_click()
+			credit_modal.visible = false
+			get_viewport().set_input_as_handled()
+		elif is_instance_valid(options_modal) and options_modal.visible:
+			_play_click()
+			options_modal.visible = false
+			options_closed.emit()
+			get_viewport().set_input_as_handled()

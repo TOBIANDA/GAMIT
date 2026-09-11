@@ -38,6 +38,15 @@ var monologue_lines: Array[String] = []
 var monologue_index: int = 0
 var auto_advance_timer: float = 0.0
 
+var tex_mc_textbox: Texture2D
+var tex_grim_textbox: Texture2D
+
+func _load_textbox_assets() -> void:
+	if not tex_mc_textbox:
+		tex_mc_textbox = load("res://textBox/MCtextBox.png")
+	if not tex_grim_textbox:
+		tex_grim_textbox = load("res://textBox/GrimReaperTextBox.png")
+
 func _ready() -> void:
 	_ensure_nodes()
 	visible = false
@@ -235,12 +244,30 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 	if is_instance_valid(root_control):
 		root_control.visible = true
 
+	_load_textbox_assets()
+	if is_instance_valid(bottom_panel) and tex_mc_textbox:
+		var sbt = StyleBoxTexture.new()
+		sbt.texture = tex_mc_textbox
+		sbt.texture_margin_left = 64.0
+		sbt.texture_margin_top = 48.0
+		sbt.texture_margin_right = 64.0
+		sbt.texture_margin_bottom = 36.0
+		bottom_panel.add_theme_stylebox_override("panel", sbt)
+
+	var tp = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel")
+	if is_instance_valid(tp):
+		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+
+	if is_instance_valid(text_label):
+		text_label.add_theme_color_override("font_color", Color(0.12, 0.09, 0.06))
 	if is_instance_valid(name_tag):
 		name_tag.text = speaker_name
-		name_tag.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+		name_tag.add_theme_color_override("font_color", Color(0.38, 0.20, 0.08))
 	if is_instance_valid(status_badge):
 		status_badge.text = badge_text
-		status_badge.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
+		status_badge.add_theme_color_override("font_color", Color(0.50, 0.32, 0.15))
+	if is_instance_valid(continue_prompt):
+		continue_prompt.add_theme_color_override("font_color", Color(0.40, 0.25, 0.10, 0.8))
 
 	if is_instance_valid(input_container):
 		input_container.visible = false
@@ -292,10 +319,30 @@ func open_dialog(initial_prompt: String = "") -> void:
 	if is_instance_valid(root_control):
 		root_control.visible = true
 
-	name_tag.text = "❖ DEWA KEMATIAN ❖"
-	name_tag.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))
-	status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
-	status_badge.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0))
+	_load_textbox_assets()
+	if is_instance_valid(bottom_panel) and tex_grim_textbox:
+		var sbt = StyleBoxTexture.new()
+		sbt.texture = tex_grim_textbox
+		sbt.texture_margin_left = 64.0
+		sbt.texture_margin_top = 48.0
+		sbt.texture_margin_right = 64.0
+		sbt.texture_margin_bottom = 36.0
+		bottom_panel.add_theme_stylebox_override("panel", sbt)
+
+	var tp = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel")
+	if is_instance_valid(tp):
+		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+
+	if is_instance_valid(text_label):
+		text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.98))
+	if is_instance_valid(name_tag):
+		name_tag.text = "❖ DEWA KEMATIAN ❖"
+		name_tag.add_theme_color_override("font_color", Color(0.95, 0.85, 1.0))
+	if is_instance_valid(status_badge):
+		status_badge.text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
+		status_badge.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+	if is_instance_valid(continue_prompt):
+		continue_prompt.add_theme_color_override("font_color", Color(0.8, 0.7, 0.95, 0.8))
 
 	# Sembunyikan frame kotak potret kecil dan figur dummy ColorRect
 	if is_instance_valid(portrait_box):
