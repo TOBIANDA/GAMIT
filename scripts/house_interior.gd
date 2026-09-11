@@ -10,11 +10,11 @@ const ROOM_SIZE := Vector2(460.0, 300.0)
 
 # Titik-titik penting di dalam rumah (Studio Detektif Kompak)
 const ENTRANCE_POS := Vector2(3600.0 + 85.0, 400.0 + 245.0)
-const EXIT_DOOR_POS := Vector2(3600.0 + 85.0, 400.0 + 280.0)
-const STAIRS_POS := Vector2(3600.0 + 415.0, 400.0 + 215.0)
+const EXIT_DOOR_POS := Vector2(3600.0 + 85.0, 400.0 + 265.0)
 
 const CONFIG_FILE_PATH := "res://data/house_furniture.json"
 const USER_CONFIG_FILE_PATH := "user://house_furniture.json"
+
 
 # ==============================================================================
 #  PENGATURAN DEFAULT POSISI & SKALA BARANG-BARANG (BISA DIEDIT DI SINI)
@@ -293,6 +293,9 @@ var slider_pos_y: HSlider
 var spin_pos_y: SpinBox
 var slider_scale: HSlider
 var spin_scale: SpinBox
+var is_dragging_panel: bool = false
+var panel_drag_offset: Vector2 = Vector2.ZERO
+var restore_dropdown: OptionButton
 var status_msg_label: Label
 var _is_updating_ui: bool = false
 
@@ -354,12 +357,11 @@ func _build_room_collisions() -> void:
 	static_body.collision_mask = 0
 	add_child(static_body)
 
-	# 1. DINDING KELILING LUAR (OUTER WALLS)
+	# 1. DINDING KELILING LUAR (OUTER WALLS) - Solid menyeluruh mencegah tembus ke area hitam
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, ROOM_SIZE.x, 32.0))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 60.0, 16.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x - 115.0, 16.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 24.0))
 
 	# 2. DINDING SEKAT RUANG KERJA & KAMAR
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 10.0, 85.0))
@@ -379,13 +381,19 @@ func _add_box_collider(body: StaticBody2D, rect: Rect2) -> CollisionShape2D:
 
 func _setup_furniture_nodes() -> void:
 	for id in furniture_config.keys():
-		var data = furniture_config[id]
-		var item_type = data.get("type", "sprite")
+		_setup_single_furniture_node(id)
 
-		if item_type == "sprite":
-			var tex_name = data.get("tex", "")
-			var tex = _get_texture_by_name(tex_name)
-			if is_instance_valid(tex):
+func _setup_single_furniture_node(id: String) -> void:
+	if not furniture_config.has(id):
+		return
+	var data = furniture_config[id]
+	var item_type = data.get("type", "sprite")
+
+	if item_type == "sprite":
+		var tex_name = data.get("tex", "")
+		var tex = _get_texture_by_name(tex_name)
+		if is_instance_valid(tex):
+			if not furniture_sprites.has(id):
 				var sp = Sprite2D.new()
 				sp.name = "Furniture_" + id
 				sp.texture = tex
@@ -395,7 +403,8 @@ func _setup_furniture_nodes() -> void:
 				if id == "surat":
 					sprite_letter = sp
 
-		if data.get("has_col", false):
+	if data.get("has_col", false):
+		if not furniture_colliders.has(id):
 			var col = CollisionShape2D.new()
 			col.name = "Col_" + id
 			var shape = RectangleShape2D.new()
@@ -403,7 +412,8 @@ func _setup_furniture_nodes() -> void:
 			static_body.add_child(col)
 			furniture_colliders[id] = col
 
-		update_furniture_transform(id)
+	update_furniture_transform(id)
+
 
 func update_furniture_transform(id: String) -> void:
 	if not furniture_config.has(id):
@@ -475,12 +485,55 @@ func _apply_config_dict(parsed: Dictionary) -> void:
 			furniture_config["kulkas"]["y"] = ky
 			furniture_config["kulkas"]["scale"] = ks
 
+	# Hapus item yang tidak ada di save file
+	var to_remove = []
+	for id in furniture_config.keys():
+		if not parsed.has(id):
+			to_remove.append(id)
+	for id in to_remove:
+		furniture_config.erase(id)
+
 	for id in parsed.keys():
 		if furniture_config.has(id):
 			var item = parsed[id]
 			if item.has("x"): furniture_config[id]["x"] = float(item["x"])
 			if item.has("y"): furniture_config[id]["y"] = float(item["y"])
 			if item.has("scale"): furniture_config[id]["scale"] = float(item["scale"])
+
+func delete_furniture(id: String) -> void:
+	if not furniture_config.has(id):
+		return
+	if furniture_sprites.has(id):
+		if is_instance_valid(furniture_sprites[id]):
+			furniture_sprites[id].queue_free()
+		furniture_sprites.erase(id)
+	if furniture_colliders.has(id):
+		if is_instance_valid(furniture_colliders[id]):
+			furniture_colliders[id].queue_free()
+		furniture_colliders.erase(id)
+	furniture_config.erase(id)
+	_rebuild_dropdown()
+	_rebuild_restore_dropdown()
+	if not furniture_config.is_empty():
+		_select_furniture(furniture_config.keys()[0])
+	else:
+		selected_furniture_id = ""
+		_sync_ui_to_selected_item()
+	save_furniture_config()
+	queue_redraw()
+
+func restore_furniture(id: String) -> void:
+	if not default_furniture_config.has(id) or furniture_config.has(id):
+		return
+	furniture_config[id] = default_furniture_config[id].duplicate(true)
+	_setup_single_furniture_node(id)
+	_rebuild_dropdown()
+	_rebuild_restore_dropdown()
+	_select_furniture(id)
+	save_furniture_config()
+	if is_instance_valid(status_msg_label):
+		status_msg_label.text = "Item '%s' berhasil dipulihkan!" % furniture_config[id].get("name", id)
+	queue_redraw()
 
 func save_furniture_config() -> void:
 	var save_dict: Dictionary = {}
@@ -515,11 +568,27 @@ func save_furniture_config() -> void:
 	print("================================================\n")
 
 func reset_to_default_config() -> void:
+	for s in furniture_sprites.values():
+		if is_instance_valid(s):
+			s.queue_free()
+	furniture_sprites.clear()
+	for c in furniture_colliders.values():
+		if is_instance_valid(c):
+			c.queue_free()
+	furniture_colliders.clear()
+
 	furniture_config = default_furniture_config.duplicate(true)
-	for id in furniture_config.keys():
-		update_furniture_transform(id)
+	_setup_furniture_nodes()
+	_rebuild_dropdown()
+	_rebuild_restore_dropdown()
 	save_furniture_config()
+	if not furniture_config.is_empty():
+		_select_furniture(furniture_config.keys()[0])
 	_sync_ui_to_selected_item()
+	if is_instance_valid(status_msg_label):
+		status_msg_label.text = "Seluruh perabot direset ke posisi dan kondisi awal."
+	queue_redraw()
+
 
 # Getter posisi POI untuk interaksi gameplay
 func get_desk_letter_pos() -> Vector2:
@@ -538,7 +607,7 @@ func get_photo_basin_pos() -> Vector2:
 	return ROOM_ORIGIN + Vector2(255.0, 245.0)
 
 func get_stairs_pos() -> Vector2:
-	return STAIRS_POS
+	return Vector2(-9999.0, -9999.0)
 
 func get_exit_door_pos() -> Vector2:
 	return EXIT_DOOR_POS
@@ -581,25 +650,7 @@ func _draw() -> void:
 			ty += tile_size
 		tx += tile_size
 
-	# 3. KOTAK ANAK TANGGA (Menuju loteng/ruang arsip)
-	var st_rect = Rect2(ROOM_ORIGIN.x + 395.0, ROOM_ORIGIN.y + 185.0, 45.0, 75.0)
-	draw_rect(st_rect, Color(0.16, 0.12, 0.09), true)
-
-	var step_count = 6
-	var step_h = st_rect.size.y / step_count
-	for i in range(step_count):
-		var sy = st_rect.position.y + i * step_h
-		var step_col = Color(0.28 - i * 0.015, 0.20 - i * 0.01, 0.14 - i * 0.008)
-		draw_rect(Rect2(st_rect.position.x, sy, st_rect.size.x, step_h), step_col, true)
-		draw_line(Vector2(st_rect.position.x, sy), Vector2(st_rect.end.x, sy), Color(0.38, 0.28, 0.20), 1.5)
-		draw_line(Vector2(st_rect.position.x, sy + step_h - 1), Vector2(st_rect.end.x, sy + step_h - 1), Color(0.10, 0.07, 0.05), 1.0)
-
-	var x_center = Vector2(ROOM_ORIGIN.x + 417.0, ROOM_ORIGIN.y + 180.0)
-	draw_line(x_center + Vector2(-5, -5), x_center + Vector2(5, 5), Color(0.9, 0.2, 0.2), 2.0)
-	draw_line(x_center + Vector2(-5, 5), x_center + Vector2(5, -5), Color(0.9, 0.2, 0.2), 2.0)
-	draw_line(Vector2(st_rect.position.x + 2, st_rect.position.y), Vector2(st_rect.position.x + 2, st_rect.end.y), Color(0.48, 0.35, 0.24), 2.0)
-
-	# 4. DINDING LUAR BANGUNAN (WALLS)
+	# 3. DINDING LUAR BANGUNAN (WALLS) - Solid keliling tanpa celah tembus
 	var wall_col = Color(0.12, 0.10, 0.14)
 	var trim_col = Color(0.34, 0.26, 0.20)
 
@@ -611,10 +662,16 @@ func _draw() -> void:
 	draw_rect(Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y), wall_col, true)
 	draw_line(Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y + ROOM_SIZE.y), trim_col, 2.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 60.0, 16.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + 60.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x - 115.0, 16.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
+	# Dinding Bawah Solid Menyeluruh (Mencegah tembus ke area hitam)
+	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 16.0), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
+
+	# Pintu Kayu Masuk/Keluar di Dinding Bawah (Tepat di depan keset pintu)
+	var door_rect = Rect2(ROOM_ORIGIN.x + 65.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 40.0, 16.0)
+	draw_rect(door_rect, Color(0.26, 0.17, 0.12), true)
+	draw_rect(door_rect, Color(0.42, 0.28, 0.18), false, 1.5)
+	draw_circle(Vector2(ROOM_ORIGIN.x + 98.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 8.0), 2.5, Color(0.85, 0.75, 0.35))
+
 
 	# 5. DINDING SEKAT RUANGAN
 	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 85.0), wall_col, true)
@@ -730,14 +787,41 @@ func _setup_editor_ui() -> void:
 	vb.add_theme_constant_override("separation", 10)
 	editor_panel.add_child(vb)
 
+	# 1. Header Drag Handle untuk menggeser persegi panel pengatur
+	var header_bar = PanelContainer.new()
+	var h_style = StyleBoxFlat.new()
+	h_style.bg_color = Color(0.14, 0.24, 0.34, 0.95)
+	h_style.border_color = Color(0.35, 0.85, 1.0, 0.8)
+	h_style.set_border_width_all(1)
+	h_style.set_corner_radius_all(6)
+	h_style.content_margin_left = 12
+	h_style.content_margin_right = 8
+	h_style.content_margin_top = 8
+	h_style.content_margin_bottom = 8
+	header_bar.add_theme_stylebox_override("panel", h_style)
+	header_bar.mouse_default_cursor_shape = Control.CURSOR_MOVE
+	header_bar.gui_input.connect(_on_panel_header_gui_input)
+	vb.add_child(header_bar)
+
+	var h_box = HBoxContainer.new()
+	header_bar.add_child(h_box)
+
 	var title_lbl = Label.new()
-	title_lbl.text = "PENGATUR PERABOT RUMAH"
-	title_lbl.add_theme_font_size_override("font_size", 16)
+	title_lbl.text = "⠿ ATUR PERABOT (DRAG UNTUK GESER)"
+	title_lbl.add_theme_font_size_override("font_size", 13)
 	title_lbl.add_theme_color_override("font_color", Color(0.3, 0.95, 1.0))
-	vb.add_child(title_lbl)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+	h_box.add_child(title_lbl)
+
+	var close_x_btn = Button.new()
+	close_x_btn.text = " ✕ "
+	close_x_btn.focus_mode = Control.FOCUS_NONE
+	close_x_btn.pressed.connect(toggle_editor)
+	h_box.add_child(close_x_btn)
 
 	var subtitle = Label.new()
-	subtitle.text = "Klik perabot di layar untuk drag, atau pilih dari daftar:"
+	subtitle.text = "Drag jendela ini atau drag perabot di ruangan:"
 	subtitle.add_theme_font_size_override("font_size", 11)
 	subtitle.add_theme_color_override("font_color", Color(0.75, 0.80, 0.85))
 	vb.add_child(subtitle)
@@ -745,17 +829,43 @@ func _setup_editor_ui() -> void:
 	# Dropdown Pilihan Barang
 	item_dropdown = OptionButton.new()
 	item_dropdown.focus_mode = Control.FOCUS_NONE
-	var idx = 0
-	for id in furniture_config.keys():
-		var it = furniture_config[id]
-		item_dropdown.add_item("%s" % it.get("name", id), idx)
-		item_dropdown.set_item_metadata(idx, id)
-		idx += 1
 	item_dropdown.item_selected.connect(_on_dropdown_item_selected)
 	vb.add_child(item_dropdown)
+	_rebuild_dropdown()
+
+	# Tombol Hapus Item Terpilih
+	var item_act_hb = HBoxContainer.new()
+	item_act_hb.add_theme_constant_override("separation", 8)
+
+	var del_btn = Button.new()
+	del_btn.text = "🗑 Hapus Item Terpilih"
+	del_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	del_btn.custom_minimum_size = Vector2(0, 32)
+	var del_style = StyleBoxFlat.new()
+	del_style.bg_color = Color(0.55, 0.15, 0.15, 0.95)
+	del_style.border_color = Color(0.95, 0.35, 0.35, 1.0)
+	del_style.set_border_width_all(1)
+	del_style.set_corner_radius_all(6)
+	del_btn.add_theme_stylebox_override("normal", del_style)
+	del_btn.pressed.connect(func():
+		if not selected_furniture_id.is_empty():
+			var it_name = furniture_config.get(selected_furniture_id, {}).get("name", selected_furniture_id)
+			delete_furniture(selected_furniture_id)
+			status_msg_label.text = "Item '%s' berhasil dihapus dari rumah." % it_name
+	)
+	item_act_hb.add_child(del_btn)
+	vb.add_child(item_act_hb)
+
+	# Dropdown Pulihkan Item yang Telah Dihapus
+	restore_dropdown = OptionButton.new()
+	restore_dropdown.focus_mode = Control.FOCUS_NONE
+	restore_dropdown.item_selected.connect(_on_restore_dropdown_selected)
+	vb.add_child(restore_dropdown)
+	_rebuild_restore_dropdown()
 
 	# Separator
 	vb.add_child(HSeparator.new())
+
 
 	# Kontrol Posisi X
 	var hbox_x = HBoxContainer.new()
@@ -934,9 +1044,73 @@ func _select_furniture(id: String) -> void:
 	_sync_ui_to_selected_item()
 	queue_redraw()
 
+func _on_panel_header_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			is_dragging_panel = true
+			panel_drag_offset = editor_panel.global_position - editor_panel.get_viewport().get_mouse_position()
+		else:
+			is_dragging_panel = false
+	elif event is InputEventMouseMotion and is_dragging_panel:
+		var mouse_pos = editor_panel.get_viewport().get_mouse_position()
+		var new_pos = mouse_pos + panel_drag_offset
+		var vp_size = editor_panel.get_viewport().get_visible_rect().size
+		new_pos.x = clampf(new_pos.x, 0.0, vp_size.x - editor_panel.size.x)
+		new_pos.y = clampf(new_pos.y, 0.0, vp_size.y - editor_panel.size.y)
+		editor_panel.global_position = new_pos
+
+func _rebuild_dropdown() -> void:
+	if not is_instance_valid(item_dropdown):
+		return
+	item_dropdown.clear()
+	var idx = 0
+	for id in furniture_config.keys():
+		var it = furniture_config[id]
+		item_dropdown.add_item("%s" % it.get("name", id), idx)
+		item_dropdown.set_item_metadata(idx, id)
+		idx += 1
+
+func _rebuild_restore_dropdown() -> void:
+	if not is_instance_valid(restore_dropdown):
+		return
+	restore_dropdown.clear()
+	restore_dropdown.add_item("➕ Pulihkan Item Terhapus...", 0)
+	restore_dropdown.set_item_metadata(0, "")
+
+	var idx = 1
+	for id in default_furniture_config.keys():
+		if not furniture_config.has(id):
+			var def_item = default_furniture_config[id]
+			restore_dropdown.add_item("Pulihkan: %s" % def_item.get("name", id), idx)
+			restore_dropdown.set_item_metadata(idx, id)
+			idx += 1
+
+	restore_dropdown.visible = (idx > 1)
+
+func _on_restore_dropdown_selected(index: int) -> void:
+	if index == 0:
+		return
+	var id = str(restore_dropdown.get_item_metadata(index))
+	if not id.is_empty():
+		restore_furniture(id)
+
 func _sync_ui_to_selected_item() -> void:
 	if selected_furniture_id.is_empty() or not furniture_config.has(selected_furniture_id):
+		if is_instance_valid(slider_pos_x): slider_pos_x.editable = false
+		if is_instance_valid(spin_pos_x): spin_pos_x.editable = false
+		if is_instance_valid(slider_pos_y): slider_pos_y.editable = false
+		if is_instance_valid(spin_pos_y): spin_pos_y.editable = false
+		if is_instance_valid(slider_scale): slider_scale.editable = false
+		if is_instance_valid(spin_scale): spin_scale.editable = false
 		return
+
+	if is_instance_valid(slider_pos_x): slider_pos_x.editable = true
+	if is_instance_valid(spin_pos_x): spin_pos_x.editable = true
+	if is_instance_valid(slider_pos_y): slider_pos_y.editable = true
+	if is_instance_valid(spin_pos_y): spin_pos_y.editable = true
+	if is_instance_valid(slider_scale): slider_scale.editable = true
+	if is_instance_valid(spin_scale): spin_scale.editable = true
+
 	var item = furniture_config[selected_furniture_id]
 	_is_updating_ui = true
 	slider_pos_x.value = float(item.x)
@@ -950,6 +1124,7 @@ func _sync_ui_to_selected_item() -> void:
 func _on_dropdown_item_selected(index: int) -> void:
 	var id = str(item_dropdown.get_item_metadata(index))
 	_select_furniture(id)
+
 
 func _on_ui_transform_changed(_val: float) -> void:
 	if _is_updating_ui or selected_furniture_id.is_empty() or not furniture_config.has(selected_furniture_id):
@@ -1029,6 +1204,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					drag_offset = cur_pos - world_mpos
 					get_viewport().set_input_as_handled()
 			else:
+				is_dragging_panel = false
 				if is_dragging:
 					is_dragging = false
 					get_viewport().set_input_as_handled()

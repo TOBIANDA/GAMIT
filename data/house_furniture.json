@@ -1,4 +1,4 @@
-﻿{
+{
 	"baskom_foto": {
 		"name": "Baskom Cuci Foto",
 		"scale": 1.0,
@@ -38,8 +38,8 @@
 	"kulkas": {
 		"name": "Kulkas Dapur",
 		"scale": 1.0,
-		"x": 368.0,
-		"y": 245.0
+		"x": 380.0,
+		"y": 219.0
 	},
 	"kursi_detektif": {
 		"name": "Kursi Kerja Detektif",
@@ -85,15 +85,15 @@
 	},
 	"partisi_tamu": {
 		"name": "Partisi Garis Tiang",
-		"scale": 1.0,
-		"x": 125.0,
-		"y": 110.0
+		"scale": 2.4,
+		"x": 127.0,
+		"y": 23.0
 	},
 	"set_masak": {
 		"name": "Set Masak / Meja Dapur",
 		"scale": 1.0,
-		"x": 325.0,
-		"y": 245.0
+		"x": 328.0,
+		"y": 221.0
 	},
 	"sofa_kecil": {
 		"name": "Armchair Tamu",

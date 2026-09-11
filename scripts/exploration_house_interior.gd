@@ -1,4 +1,4 @@
-﻿extends Node2D
+extends Node2D
 class_name ExplorationHouseInterior
 
 # ==============================================================================
@@ -384,8 +384,7 @@ func _build_room_collisions() -> void:
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, ROOM_SIZE.x, 32.0))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 60.0, 16.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x - 115.0, 16.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 24.0))
 
 	# 2. DINDING SEKAT RUANG KELUARGA & KAMAR
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 10.0, 85.0))
@@ -501,10 +500,16 @@ func _draw() -> void:
 	draw_rect(Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y), wall_col, true)
 	draw_line(Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y + ROOM_SIZE.y), trim_col, 2.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 60.0, 16.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + 60.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x - 115.0, 16.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
+	# Dinding Bawah Solid Menyeluruh (Mencegah tembus ke area hitam)
+	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 16.0), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
+
+	# Pintu Kayu Masuk/Keluar di Dinding Bawah (Tepat di depan keset pintu)
+	var door_rect = Rect2(ROOM_ORIGIN.x + 65.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 40.0, 16.0)
+	draw_rect(door_rect, Color(0.26, 0.17, 0.12), true)
+	draw_rect(door_rect, Color(0.42, 0.28, 0.18), false, 1.5)
+	draw_circle(Vector2(ROOM_ORIGIN.x + 98.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 8.0), 2.5, Color(0.85, 0.75, 0.35))
+
 
 	# 4. DINDING SEKAT RUANGAN
 	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 85.0), wall_col, true)
