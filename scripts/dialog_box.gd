@@ -3,6 +3,7 @@ extends CanvasLayer
 signal dialog_opened
 signal dialog_closed
 signal monologue_finished
+signal dialogue_line_started(entry)
 
 const SERVER_URL = "http://127.0.0.1:8000"
 const TYPING_SPEED = 0.028
@@ -37,6 +38,8 @@ var is_monologue_mode: bool = false
 var monologue_lines: Array[String] = []
 var monologue_index: int = 0
 var auto_advance_timer: float = 0.0
+var is_sequence_mode: bool = false
+var dialogue_sequence: Array = []
 
 var tex_mc_textbox: Texture2D
 var tex_grim_textbox: Texture2D
@@ -234,11 +237,135 @@ func advance_monologue() -> void:
 			typewriter_player.stop()
 		return
 
-	if monologue_index + 1 < monologue_lines.size():
-		monologue_index += 1
-		_start_typewriter(monologue_lines[monologue_index])
+	if is_sequence_mode:
+		if monologue_index + 1 < dialogue_sequence.size():
+			monologue_index += 1
+			_display_dialogue_sequence_entry(monologue_index)
+		else:
+			close_dialog()
+	else:
+		if monologue_index + 1 < monologue_lines.size():
+			monologue_index += 1
+			_start_typewriter(monologue_lines[monologue_index])
+		else:
+			close_dialog()
+
+
+func start_dialogue_sequence(sequence: Array, force_transparent_dim: bool = false) -> void:
+	_ensure_nodes()
+	visible = true
+	is_active = true
+	is_monologue_mode = true
+	is_sequence_mode = true
+	dialogue_sequence = sequence
+	monologue_index = 0
+	if is_instance_valid(root_control):
+		root_control.visible = true
+
+	_load_textbox_assets()
+	if dialogue_sequence.size() > 0:
+		_display_dialogue_sequence_entry(0, force_transparent_dim)
 	else:
 		close_dialog()
+		monologue_finished.emit()
+
+func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = false) -> void:
+	if idx < 0 or idx >= dialogue_sequence.size():
+		return
+	var entry: Dictionary = dialogue_sequence[idx]
+	var speaker_name = entry.get("speaker", "Detektif Benedict")
+	var badge_text = entry.get("badge", "")
+	var portrait_path = entry.get("portrait", "res://karakter/MC_Biasa.png")
+	var text_to_say = entry.get("text", "")
+
+	var is_grim = speaker_name.contains("Dewa Kematian") or portrait_path.contains("grim")
+	var dim_ov = get_node_or_null("RootControl/DimOverlay")
+	if is_instance_valid(dim_ov):
+		if force_transparent_dim or is_grim:
+			dim_ov.color = Color(0, 0, 0, 0.0)
+		else:
+			dim_ov.color = Color(0, 0, 0, 0.35)
+
+	if is_instance_valid(bottom_panel):
+		var sbt = StyleBoxTexture.new()
+		sbt.texture = tex_grim_textbox if (is_grim and tex_grim_textbox) else tex_mc_textbox
+		sbt.texture_margin_left = 64.0
+		sbt.texture_margin_top = 48.0
+		sbt.texture_margin_right = 64.0
+		sbt.texture_margin_bottom = 36.0
+		bottom_panel.add_theme_stylebox_override("panel", sbt)
+
+	var tp = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TextPanel")
+	if is_instance_valid(tp):
+		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+
+	if is_instance_valid(text_label):
+		if is_grim:
+			text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 1.0))
+		else:
+			text_label.add_theme_color_override("font_color", Color(0.12, 0.09, 0.06))
+
+	if is_instance_valid(name_tag):
+		if is_grim:
+			name_tag.text = speaker_name
+			name_tag.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+		elif speaker_name == "Detektif Benedict":
+			name_tag.text = ""
+		else:
+			name_tag.text = speaker_name
+			name_tag.add_theme_color_override("font_color", Color(0.38, 0.20, 0.08))
+
+	var v_sep = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/VSeparator")
+	if is_instance_valid(status_badge):
+		if badge_text.is_empty():
+			status_badge.visible = false
+			if is_instance_valid(v_sep):
+				v_sep.visible = false
+			if is_instance_valid(name_tag):
+				name_tag.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		else:
+			status_badge.visible = true
+			status_badge.text = badge_text
+			if is_grim:
+				status_badge.add_theme_color_override("font_color", Color(0.75, 0.60, 0.95))
+			else:
+				status_badge.add_theme_color_override("font_color", Color(0.50, 0.32, 0.15))
+			status_badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if is_instance_valid(v_sep):
+				v_sep.visible = true
+			if is_instance_valid(name_tag):
+				name_tag.size_flags_horizontal = 0
+
+	if is_instance_valid(large_portrait):
+		var resolved_path = portrait_path
+		if not resolved_path.begins_with("res://"):
+			if not resolved_path.ends_with(".png"):
+				resolved_path += ".png"
+			resolved_path = "res://karakter/" + resolved_path
+		
+		var tex = load(resolved_path)
+		if not tex and resolved_path.contains("karakter/"):
+			tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
+		if not tex:
+			tex = load("res://UI/mc_portrait.png")
+		if tex:
+			large_portrait.texture = tex
+		large_portrait.visible = true
+
+	if is_instance_valid(portrait_box):
+		portrait_box.visible = false
+	if is_instance_valid(portrait_glow):
+		portrait_glow.visible = false
+	if is_instance_valid(avatar_visual_container):
+		avatar_visual_container.visible = false
+	if is_instance_valid(portrait_texture):
+		portrait_texture.visible = false
+
+	if is_instance_valid(margin_container):
+		margin_container.add_theme_constant_override("margin_left", 32)
+
+	dialogue_line_started.emit(entry)
+	_start_typewriter(text_to_say)
 
 func start_monologue(lines: Array[String], speaker_name: String = "Detektif Benedict", badge_text: String = "[ Monolog Batin ]", portrait_path: String = "res://karakter/MC_Biasa.png") -> void:
 	_ensure_nodes()
@@ -366,6 +493,8 @@ func open_dialog(initial_prompt: String = "") -> void:
 	visible = true
 	is_active = true
 	is_monologue_mode = false
+	is_sequence_mode = false
+	dialogue_sequence.clear()
 	if is_instance_valid(root_control):
 		root_control.visible = true
 
@@ -454,6 +583,8 @@ func close_dialog() -> void:
 	is_typing = false
 	var was_monologue = is_monologue_mode
 	is_monologue_mode = false
+	is_sequence_mode = false
+	dialogue_sequence.clear()
 	if is_instance_valid(typewriter_player) and typewriter_player.playing:
 		typewriter_player.stop()
 	if is_instance_valid(large_portrait):
