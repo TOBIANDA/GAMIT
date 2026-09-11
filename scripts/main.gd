@@ -1672,7 +1672,7 @@ func _check_poi_proximity() -> void:
 					return
 
 				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME and not inv_mgr.is_clue_unlocked("victim_letter"):
-					custom_text = "[ F / E / Spasi ] KANTOR POLISI (PERIKSA RUMAH DULU)"
+					custom_text = "[ F / E / Spasi ] AMATI KANTOR POLISI (PERIKSA RUMAH DULU)"
 				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
 					custom_text = "[ F / E / Spasi ] TEMUI & KUNTIT INSPEKTUR MARCUS"
 				elif inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
@@ -1951,10 +1951,15 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 
 		"police":
 			if not bypass_story and (inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME or not inv_mgr.is_clue_unlocked("victim_letter")):
-				_show_toast("Alur Cerita Terkunci: Selidiki rumah korban di timur terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
-				var police_npc = find_child("NPC1_Police", true, false)
-				if is_instance_valid(police_npc) and police_npc.has_method("show_chat_bubble"):
-					police_npc.show_chat_bubble("Polisi: Selamat bertugas, Detektif. Periksa TKP rumah korban di ujung timur terlebih dahulu!", 3.5)
+				_show_toast("Alur Cerita Terkunci: Selidiki rumah korban di ujung timur terlebih dahulu! (Tekan [Y] untuk bypass)")
+				if is_instance_valid(dialog_box):
+					var p_lines: Array[String] = [
+						"Kantor Polisi dijaga ketat oleh para petugas yang tampak sibuk berlalu-lalang...",
+						"Aneh... tak ada seorang pun dari mereka yang menoleh atau menyadari kehadiranku di sini.",
+						"Tak ada gunanya mencoba berinteraksi dengan mereka. Tanpa bukti awal, kedatanganku ke sini sia-sia.",
+						"Sesuai surat tugas di mejaku, aku harus menyelidiki TKP rumah korban di ujung timur terlebih dahulu untuk mencari berkas petunjuk!"
+					]
+					dialog_box.start_monologue(p_lines, "Detektif Benedict", "[ Monolog Batin ]", "res://karakter/MC_Bingung.png")
 				return
 
 			if (bypass_story or inv_mgr.is_clue_unlocked("photo_envelope")) and not inv_mgr.has_developed_photos:
