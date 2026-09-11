@@ -1989,14 +1989,14 @@ func _check_poi_proximity() -> void:
 				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME and not inv_mgr.is_clue_unlocked("victim_letter"):
 					custom_text = "[ F / E / Spasi ] AMATI KANTOR POLISI (PERIKSA RUMAH DULU)"
 				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
-					custom_text = "[ F / E / Spasi ] TEMUI & KUNTIT INSPEKTUR MARCUS"
+					custom_text = "[ F / E / Spasi ] TEMUI & IKUTI INSPEKTUR MARCUS"
 				elif inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] LAB POLISI: CUCI ROL FOTO STASIUN"
 				elif inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] BICARA DENGAN PETUGAS POLISI"
 			elif active_poi_id == "station":
 				if not inv_mgr.has_tailgated_marcus:
-					custom_text = "[ F / E / Spasi ] STASIUN KERETA (KUNTIT MARCUS DULU)"
+					custom_text = "[ F / E / Spasi ] STASIUN KERETA (IKUTI MARCUS DULU)"
 				else:
 					custom_text = "[ F / E / Spasi ] STASIUN KERETA: CARI BUKTI"
 			elif active_poi_id == "hospital":

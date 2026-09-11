@@ -588,16 +588,6 @@ func _draw() -> void:
 		draw_rect(m_rect, Color(0.40, 0.15, 0.15), true)
 		draw_rect(m_rect, Color(0.65, 0.25, 0.22), false, 1.5)
 
-	# 6. GLOWING HIGHLIGHT INTERAKTIF PADA BUKTI & CLUE
-	var pulse = 0.22 + 0.09 * sin(glow_timer)
-	# Safe
-	draw_circle(get_safe_pos(), 16.0, Color(0.35, 0.95, 0.65, pulse))
-	# Clock (Hint 3)
-	draw_circle(get_clock_pos(), 14.0, Color(1.0, 0.85, 0.40, pulse))
-	# Calendar (Hint 1)
-	draw_circle(get_calendar_pos(), 15.0, Color(0.45, 0.82, 1.0, pulse))
-	# Recipe Book (Hint 4)
-	draw_circle(get_recipe_pos(), 15.0, Color(1.0, 0.90, 0.50, pulse))
 
 	# Selection Highlight Saat Mode Edit Aktif
 	if is_edit_mode and not selected_furniture_id.is_empty() and furniture_config.has(selected_furniture_id):

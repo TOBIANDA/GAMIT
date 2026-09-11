@@ -844,9 +844,6 @@ func _draw() -> void:
 	var glow_alpha = 0.22 + 0.08 * sin(letter_glow_time)
 	draw_circle(desk_pos, 18.0 * desk_scale, Color(1.0, 0.90, 0.45, glow_alpha))
 
-	# e. Efek Sorot Cahaya Foto Polaroid Kenangan Ibu
-	var photo_p = get_photo_pos()
-	draw_circle(photo_p, 14.0, Color(0.45, 0.82, 1.0, glow_alpha))
 
 	# 7. SELECTION HIGHLIGHT SAAT MODE EDIT AKTIF
 	if is_edit_mode and not selected_furniture_id.is_empty() and furniture_config.has(selected_furniture_id):

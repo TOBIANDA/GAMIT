@@ -83,6 +83,7 @@ func start_minigame() -> void:
 	is_active = true
 	visible = true
 	entered_digits.clear()
+	_last_input_time_msec = 0
 
 	if is_instance_valid(safe_image_rect) and is_instance_valid(tex_safe_closed):
 		safe_image_rect.texture = tex_safe_closed
@@ -114,9 +115,17 @@ func _update_lcd_display(custom_status: String = "", status_col: Color = Color(0
 				d_texts.append("_")
 		lcd_digits_lbl.text = "[ %s ]  [ %s ]  [ %s ]" % [d_texts[0], d_texts[1], d_texts[2]]
 
+var _last_input_time_msec: int = 0
+const INPUT_DEBOUNCE_MS: int = 180
+
 func _on_key_pressed(digit: int) -> void:
 	if not is_active:
 		return
+	var now = Time.get_ticks_msec()
+	if now - _last_input_time_msec < INPUT_DEBOUNCE_MS:
+		return
+	_last_input_time_msec = now
+
 	if entered_digits.size() >= 3:
 		return
 	_play_click(1.0 + float(digit) * 0.04)
@@ -129,6 +138,11 @@ func _on_key_pressed(digit: int) -> void:
 func _on_backspace_pressed() -> void:
 	if not is_active:
 		return
+	var now = Time.get_ticks_msec()
+	if now - _last_input_time_msec < INPUT_DEBOUNCE_MS:
+		return
+	_last_input_time_msec = now
+
 	_play_click(0.85)
 	if entered_digits.size() > 0:
 		entered_digits.pop_back()
@@ -137,6 +151,11 @@ func _on_backspace_pressed() -> void:
 func _on_enter_pressed() -> void:
 	if not is_active:
 		return
+	var now = Time.get_ticks_msec()
+	if now - _last_input_time_msec < INPUT_DEBOUNCE_MS:
+		return
+	_last_input_time_msec = now
+
 	if entered_digits.size() == 3:
 		_try_unlock()
 	else:
