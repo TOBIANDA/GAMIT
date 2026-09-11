@@ -232,7 +232,6 @@ func advance_monologue() -> void:
 		_start_typewriter(monologue_lines[monologue_index])
 	else:
 		close_dialog()
-		monologue_finished.emit()
 
 func start_monologue(lines: Array[String], speaker_name: String = "Detektif Benedict", badge_text: String = "[ Monolog Batin ]", portrait_path: String = "res://karakter/MC_Biasa.png") -> void:
 	_ensure_nodes()
@@ -420,11 +419,15 @@ func open_dialog(initial_prompt: String = "") -> void:
 	_start_typewriter(intro)
 	dialog_opened.emit()
 
+func finish_immediately() -> void:
+	close_dialog()
+
 func close_dialog() -> void:
 	_ensure_nodes()
 	visible = false
 	is_active = false
 	is_typing = false
+	var was_monologue = is_monologue_mode
 	is_monologue_mode = false
 	if is_instance_valid(typewriter_player) and typewriter_player.playing:
 		typewriter_player.stop()
@@ -435,6 +438,9 @@ func close_dialog() -> void:
 	if is_instance_valid(root_control):
 		root_control.visible = false
 	dialog_closed.emit()
+	if was_monologue and not is_queued_for_deletion():
+		monologue_finished.emit()
+
 
 func _start_typewriter(text: String) -> void:
 	_ensure_nodes()

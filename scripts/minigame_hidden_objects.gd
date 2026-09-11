@@ -232,16 +232,6 @@ func _finish_and_close(success: bool = true) -> void:
 		if is_instance_valid(pm) and pm.has_method("set_hud_button_visible"):
 			pm.set_hud_button_visible(true)
 
-	if success and is_inside_tree() and get_tree() and get_tree().root:
-		var dlg = get_tree().root.find_child("DialogBox", true, false)
-		if is_instance_valid(dlg) and dlg.has_method("start_monologue"):
-			var lines: Array[String] = [
-				"Di peron stasiun ini... aku menemukan tiket kereta dan amplop berisi rol film foto milik korban.",
-				"Aku harus segera kembali ke Kantor Polisi (atau Kamar Gelap) untuk mencuci rol foto ini!",
-				"Firasatku mengatakan... foto-foto ini akan mengungkap identitas korban yang sebenarnya."
-			]
-			dlg.start_monologue(lines, "Detektif Benedict", "[ Bukti Foto Didapatkan ]", "res://karakter/MC_Bingung.png")
-
 func _build_scene_ui() -> void:
 	if is_instance_valid(root_control):
 		return
