@@ -1107,12 +1107,12 @@ func _finish_station_investigation() -> void:
 		inv_mgr.unlock_clue("street_clock_freeze")
 	if is_instance_valid(dialog_box):
 		var lines: Array[String] = [
-			"Di peron stasiun ini... aku menemukan tiket kereta dan amplop berisi rol film foto milik korban.",
+			"Di peron stasiun ini... aku menemukan tiket kereta dan amplop berisi foto milik korban.",
 			"Firasatku mengatakan... foto-foto ini akan menyingkap identitas korban yang sebenarnya.",
 			"Hmm aneh... jam dinding peron stasiun ini... jarumnya berhenti membeku tepat di pukul 16:04.",
 			"Dari semua jam yang kulihat, semuanya menunjuk pukul 16:04!",
 			"Ada firasat aneh dan dingin yang menusuk tengkukku...",
-			"Aku harus segera kembali ke Kantor Polisi untuk mencuci rol foto ini di kamar gelap lab forensik!"
+			"Aku harus segera kembali ke Kantor Polisi untuk mencuci foto ini di kamar gelap lab forensik!"
 		]
 		dialog_box.start_monologue(lines, "Detektif Benedict", "[ Bukti & Jam Membeku ]", "res://karakter/MC_Bingung.png")
 		dialog_box.monologue_finished.connect(func():
@@ -1863,9 +1863,9 @@ func _check_poi_proximity() -> void:
 						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
 					"indoor_photo_basin":
 						if inv_mgr.is_clue_unlocked("photo_envelope"):
-							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN\n[Y] BYPASS CERITA (FITUR BETA)"
+							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI FOTO YANG DITEMUKAN DI STASIUN\n[Y] BYPASS CERITA (FITUR BETA)"
 						else:
-							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)\n[Y] BYPASS CERITA (FITUR BETA)"
+							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA FOTO)\n[Y] BYPASS CERITA (FITUR BETA)"
 					"indoor_clock":
 						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER DI NAKAS"
 					"indoor_exit":
@@ -1971,7 +1971,7 @@ func _check_poi_proximity() -> void:
 				custom_text = "[ F / E / Spasi ] MASUK KE RUMAH IBU KORBAN"
 			elif active_poi_id == "police_darkroom":
 				if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
-					custom_text = "[ F / E / Spasi ] LAB FORENSIK POLISI: CUCI ROL FOTO"
+					custom_text = "[ F / E / Spasi ] LAB FORENSIK POLISI: CUCI FOTO"
 				elif inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] LAB FORENSIK: FOTO SELESAI DICUCI"
 				else:
@@ -1991,7 +1991,7 @@ func _check_poi_proximity() -> void:
 				elif inv_mgr.current_phase == inv_mgr.Phase.INVESTIGATION_1_POLICE:
 					custom_text = "[ F / E / Spasi ] TEMUI & IKUTI INSPEKTUR MARCUS"
 				elif inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
-					custom_text = "[ F / E / Spasi ] LAB POLISI: CUCI ROL FOTO STASIUN"
+					custom_text = "[ F / E / Spasi ] LAB POLISI: CUCI FOTO YANG DITEMUKAN DI STASIUN"
 				elif inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] BICARA DENGAN PETUGAS POLISI"
 			elif active_poi_id == "station":
@@ -2246,7 +2246,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
 				inv_mgr.unlock_clue("photo_envelope")
 			if not inv_mgr.is_clue_unlocked("photo_envelope"):
-				_show_toast("Alur Cerita Terkunci: Butuh rol foto dari stasiun! (Tekan [Y] untuk bypass)")
+				_show_toast("Alur Cerita Terkunci: Butuh barang bukti foto dari stasiun! (Tekan [Y] untuk bypass)")
 				if is_instance_valid(dialog_box):
 					var d_lines: Array[String] = [
 						"Meja bak kimia kamar gelap lab forensik kepolisian...",
