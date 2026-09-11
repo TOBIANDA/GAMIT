@@ -311,3 +311,15 @@ func _draw_tooltip_badge(pos: Vector2, text: String) -> void:
 	draw_rect(bg_rect, Color(0.06, 0.08, 0.12, 0.88), true)
 	draw_rect(bg_rect, Color(0.35, 0.65, 0.95, 0.80), false, 1.5)
 	draw_string(font, Vector2(pos.x - str_size.x * 0.5, pos.y + font_size * 0.35), text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.95, 0.95, 0.95))
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED:
+		if is_instance_valid(audio_player_engine) and audio_player_engine.playing:
+			audio_player_engine.stream_paused = true
+		if is_instance_valid(audio_player_horn) and audio_player_horn.playing:
+			audio_player_horn.stream_paused = true
+	elif what == NOTIFICATION_UNPAUSED:
+		if is_instance_valid(audio_player_engine) and audio_player_engine.stream_paused:
+			audio_player_engine.stream_paused = false
+		if is_instance_valid(audio_player_horn) and audio_player_horn.stream_paused:
+			audio_player_horn.stream_paused = false

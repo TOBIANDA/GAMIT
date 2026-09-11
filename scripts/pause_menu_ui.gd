@@ -142,6 +142,8 @@ func set_hud_pause_size(new_width: float, new_height: float, new_margin_right: f
 	update_hud_pause_button_transform()
 
 func open_pause() -> void:
+	if is_paused:
+		return
 	is_paused = true
 	visible = true
 	if is_instance_valid(root_control):
@@ -153,8 +155,13 @@ func open_pause() -> void:
 		options_modal.visible = false
 	if is_instance_valid(credit_modal):
 		credit_modal.visible = false
+	var tree = get_tree()
+	if is_instance_valid(tree):
+		tree.paused = true
 
 func close_pause() -> void:
+	if not is_paused:
+		return
 	is_paused = false
 	if is_instance_valid(root_control):
 		root_control.visible = false
@@ -164,11 +171,20 @@ func close_pause() -> void:
 		options_modal.visible = false
 	if is_instance_valid(credit_modal):
 		credit_modal.visible = false
+	var tree = get_tree()
+	if is_instance_valid(tree):
+		tree.paused = false
 
 func toggle_pause() -> void:
 	if is_paused:
 		resume_game()
 	else:
+		var main_menu = get_parent().find_child("MainMenuLayer", true, false) if get_parent() else null
+		if is_instance_valid(main_menu) and main_menu.get("is_active"):
+			return
+		var dlg = get_parent().find_child("DialogBox", true, false) if get_parent() else null
+		if is_instance_valid(dlg) and dlg.get("is_active"):
+			return
 		open_pause()
 
 func resume_game() -> void:

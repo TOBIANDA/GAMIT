@@ -311,3 +311,12 @@ func _draw() -> void:
 		var bar_col := Color(0.2, 0.9, 0.4) if not is_exhausted else Color(0.9, 0.3, 0.2)
 		draw_rect(Rect2(bar_x - 1, bar_y - 1, bar_w + 2, bar_h + 2), Color(0.05, 0.05, 0.08, 0.75), true)
 		draw_rect(Rect2(bar_x, bar_y, bar_w * pct, bar_h), bar_col, true)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED:
+		velocity = Vector2.ZERO
+		is_moving = false
+		is_sprinting = false
+		if is_instance_valid(footsteps_player) and footsteps_player.playing:
+			footsteps_player.stop()
+		queue_redraw()

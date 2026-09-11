@@ -331,3 +331,15 @@ func _draw_caboose(pos: Vector2, size: Vector2) -> void:
 	var blink = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.008)
 	draw_circle(Vector2(pos.x + size.x / 2.0, pos.y + 10), 9.0, Color(1.0, 0.2, 0.2, blink))
 	draw_circle(Vector2(pos.x + size.x / 2.0, pos.y + 10), 4.0, Color(1.0, 0.9, 0.9, 1.0))
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED:
+		if is_instance_valid(audio_player_train) and audio_player_train.playing:
+			audio_player_train.stream_paused = true
+		if is_instance_valid(audio_player_horn) and audio_player_horn.playing:
+			audio_player_horn.stream_paused = true
+	elif what == NOTIFICATION_UNPAUSED:
+		if is_instance_valid(audio_player_train) and audio_player_train.stream_paused:
+			audio_player_train.stream_paused = false
+		if is_instance_valid(audio_player_horn) and audio_player_horn.stream_paused:
+			audio_player_horn.stream_paused = false

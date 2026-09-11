@@ -18,6 +18,7 @@ var click_player: AudioStreamPlayer
 
 func _ready() -> void:
 	layer = 15
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_click_audio()
 	_build_journal_ui()
 	visible = false

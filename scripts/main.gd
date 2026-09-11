@@ -164,6 +164,7 @@ func _setup_audio_system() -> void:
 	bgm_player = AudioStreamPlayer.new()
 	bgm_player.name = "BGMPlayer"
 	bgm_player.bus = "BGM"
+	bgm_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	var bgm_stream = load("res://sound/BGM.mp3")
 	if bgm_stream:
 		bgm_player.stream = bgm_stream
@@ -640,6 +641,7 @@ func _setup_clue_journal() -> void:
 		clue_journal = CanvasLayer.new()
 		clue_journal.name = "ClueJournal"
 		clue_journal.set_script(cj_script)
+		clue_journal.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(clue_journal)
 		clue_journal.journal_opened.connect(func(): if is_instance_valid(player): player.can_move = false)
 		clue_journal.journal_closed.connect(func(): if is_instance_valid(player): player.can_move = true)
@@ -788,6 +790,7 @@ func _setup_main_menu() -> void:
 		main_menu_layer = CanvasLayer.new()
 		main_menu_layer.name = "MainMenuLayer"
 		main_menu_layer.set_script(mm_script)
+		main_menu_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 		add_child(main_menu_layer)
 		main_menu_layer.play_requested.connect(_on_main_menu_play_requested)
 
@@ -797,6 +800,7 @@ func _setup_pause_menu() -> void:
 		pause_menu_layer = CanvasLayer.new()
 		pause_menu_layer.name = "PauseMenuLayer"
 		pause_menu_layer.set_script(pm_script)
+		pause_menu_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 		pause_menu_layer.hud_pause_button_width = hud_pause_button_size.x
 		pause_menu_layer.hud_pause_button_height = hud_pause_button_size.y
 		pause_menu_layer.hud_pause_margin_right = hud_pause_button_margin.x
@@ -816,6 +820,7 @@ func _setup_pause_menu() -> void:
 func _on_restart_game_requested() -> void:
 	play_click_sfx()
 	cutscene_played = true # Hindari memutar intro berulang saat restart in-game
+	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 func _on_main_menu_play_requested() -> void:
@@ -838,6 +843,7 @@ func _on_main_menu_play_requested() -> void:
 		pause_menu_layer.set_hud_button_visible(true)
 
 func _on_return_to_main_menu() -> void:
+	get_tree().paused = false
 	if is_instance_valid(player):
 		player.can_move = false
 		player.set_physics_process(false)
@@ -855,11 +861,7 @@ func toggle_pause_menu() -> void:
 		return
 	if pause_menu_layer.is_paused:
 		pause_menu_layer.resume_game()
-		if is_instance_valid(player):
-			player.can_move = true
 	else:
-		if is_instance_valid(player):
-			player.can_move = false
 		pause_menu_layer.open_pause()
 
 var letter_layer: CanvasLayer
