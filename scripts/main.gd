@@ -45,6 +45,7 @@ var exploration_house_interior: Node2D
 var is_inside_exploration_house: bool = false
 var hospital_interior: Node2D
 var is_inside_hospital: bool = false
+var route_and_zone_editor: Node2D = null
 var transition_overlay: ColorRect
 var transition_layer: CanvasLayer
 
@@ -128,6 +129,7 @@ func _ready() -> void:
 	_setup_main_menu()
 	_setup_pause_menu()
 	_setup_hud_prompts()
+	_setup_route_and_zone_editor()
 	_start_ai_server()
 
 	if not cutscene_played and is_instance_valid(inv_mgr):
@@ -139,6 +141,31 @@ func _ready() -> void:
 		if is_instance_valid(player):
 			player.can_move = false
 			player.set_physics_process(false)
+
+func _setup_route_and_zone_editor() -> void:
+	var ed_script = load("res://scripts/route_and_zone_editor.gd")
+	if not ed_script:
+		return
+	route_and_zone_editor = ed_script.new()
+	route_and_zone_editor.name = "RouteAndZoneEditor"
+	add_child(route_and_zone_editor)
+	route_and_zone_editor.config_saved.connect(_on_route_editor_config_saved)
+	route_and_zone_editor.editor_toggled.connect(_on_route_editor_toggled)
+
+func _on_route_editor_toggled(is_open: bool) -> void:
+	if is_instance_valid(player):
+		player.can_move = not is_open
+		if is_open:
+			player.velocity = Vector2.ZERO
+
+func _on_route_editor_config_saved() -> void:
+	_load_station_trigger_config()
+	var npcs = get_tree().get_nodes_in_group("npcs")
+	for n in npcs:
+		if is_instance_valid(n) and n.has_method("_load_police_route_config"):
+			n.set("_cached_route_config_loaded", false)
+			n._load_police_route_config()
+	_show_toast("Konfigurasi Rute & Zona Stasiun berhasil disimpan & diterapkan!")
 
 func _setup_dialog_box() -> void:
 	if not is_instance_valid(dialog_box):

@@ -1,227 +1,227 @@
 {
-    "_panduan": "Konfigurasi Alur Jalan Polisi (Grid), Arah Lari Merinding, dan Area Forced Scene Stasiun. Anda bebas mengubah nilai di bawah ini.",
+    "_panduan": "Konfigurasi Alur Jalan Polisi (Grid), Arah Lari Merinding, dan Area Forced Scene Stasiun. Diedit otomatis lewat In-Game Editor [F3].",
     "grid_system": {
-        "cell_size": 32,
-        "_keterangan": "Ukuran tiap petak grid kecil dalam pixel (misal 32 px). Koordinat [grid_x, grid_y] dikali 32 untuk mendapatkan posisi dunia."
+        "_keterangan": "Ukuran tiap petak grid kecil dalam pixel.",
+        "cell_size": 32.0
     },
-    "use_grid_coordinates": true,
     "police_patrol_route_grid": [
         [
-            11,
-            27
+            11.0,
+            27.0
         ],
         [
-            13,
-            27
+            13.0,
+            27.0
         ],
         [
-            13,
-            40
+            13.0,
+            40.0
         ],
         [
-            30,
-            40
+            30.0,
+            40.0
         ],
         [
-            59,
-            40
+            59.0,
+            40.0
         ],
         [
-            59,
-            26
+            59.0,
+            26.0
         ],
         [
-            63,
-            26
+            63.0,
+            26.0
         ]
     ],
     "police_patrol_route_pixels": [
         [
-            350,
-            865
+            368.0,
+            880.0
         ],
         [
-            411,
-            880
+            432.0,
+            880.0
         ],
         [
-            411,
-            1278
+            432.0,
+            1296.0
         ],
         [
-            950,
-            1278
+            976.0,
+            1296.0
         ],
         [
-            1880,
-            1278
+            1904.0,
+            1296.0
         ],
         [
-            1880,
-            820
+            1904.0,
+            848.0
         ],
         [
-            2020,
-            820
+            2032.0,
+            848.0
         ]
     ],
     "police_return_route_grid": [
         [
-            63,
-            26
+            63.0,
+            26.0
         ],
         [
-            59,
-            26
+            59.0,
+            26.0
         ],
         [
-            59,
-            40
+            59.0,
+            40.0
         ],
         [
-            30,
-            40
+            30.0,
+            40.0
         ],
         [
-            13,
-            40
+            13.0,
+            40.0
         ],
         [
-            13,
-            27
+            13.0,
+            27.0
         ],
         [
-            9,
-            29
+            9.0,
+            29.0
         ]
     ],
     "police_return_route_pixels": [
         [
-            2020,
-            820
+            2032.0,
+            848.0
         ],
         [
-            1880,
-            820
+            1904.0,
+            848.0
         ],
         [
-            1880,
-            1278
+            1904.0,
+            1296.0
         ],
         [
-            950,
-            1278
+            976.0,
+            1296.0
         ],
         [
-            411,
-            1278
+            432.0,
+            1296.0
         ],
         [
-            411,
-            880
+            432.0,
+            880.0
         ],
         [
-            280,
-            915
+            304.0,
+            944.0
         ]
     ],
+    "spook_run_settings": {
+        "_keterangan": "Titik grid yang dilewati saat lari ketakutan.",
+        "fast_run_speed": 180.0,
+        "follow_grid": true,
+        "grid_waypoints": [
+            [
+                9.0,
+                29.0
+            ],
+            [
+                11.0,
+                27.0
+            ],
+            [
+                13.0,
+                27.0
+            ],
+            [
+                13.0,
+                34.0
+            ],
+            [
+                13.0,
+                40.0
+            ],
+            [
+                22.0,
+                40.0
+            ],
+            [
+                30.0,
+                40.0
+            ],
+            [
+                42.0,
+                40.0
+            ],
+            [
+                50.0,
+                40.0
+            ],
+            [
+                59.0,
+                40.0
+            ],
+            [
+                59.0,
+                33.0
+            ],
+            [
+                59.0,
+                26.0
+            ],
+            [
+                63.0,
+                26.0
+            ],
+            [
+                54.0,
+                37.0
+            ],
+            [
+                54.0,
+                25.0
+            ],
+            [
+                30.0,
+                27.0
+            ],
+            [
+                30.0,
+                18.0
+            ],
+            [
+                36.0,
+                15.0
+            ],
+            [
+                36.0,
+                8.0
+            ]
+        ],
+        "run_duration": 3.5
+    },
     "station_forced_scene_trigger": {
-        "shape": "rect",
-        "_keterangan_shape": "Pilih 'rect' (persegi panjang) atau 'circle' (lingkaran) untuk bentuk area pemicu forced scene stasiun.",
-        "rect": {
-            "x": 1820.0,
-            "y": 680.0,
-            "width": 380.0,
-            "height": 280.0
-        },
+        "_keterangan_shape": "Pilih 'rect' atau 'circle'.",
         "circle": {
             "center_x": 1950.0,
             "center_y": 780.0,
             "radius": 180.0
-        }
+        },
+        "rect": {
+            "height": 300.0,
+            "width": 400.0,
+            "x": 1850.0,
+            "y": 700.0
+        },
+        "shape": "rect"
     },
-    "spook_run_settings": {
-        "follow_grid": true,
-        "fast_run_speed": 180.0,
-        "run_duration": 3.5,
-        "_keterangan": "NPC/Polisi setelah merinding akan lari cepat menyusuri grid jalan kota menjauhi posisi Benedict.",
-        "grid_waypoints": [
-            [
-                9,
-                29
-            ],
-            [
-                11,
-                27
-            ],
-            [
-                13,
-                27
-            ],
-            [
-                13,
-                34
-            ],
-            [
-                13,
-                40
-            ],
-            [
-                22,
-                40
-            ],
-            [
-                30,
-                40
-            ],
-            [
-                42,
-                40
-            ],
-            [
-                50,
-                40
-            ],
-            [
-                59,
-                40
-            ],
-            [
-                59,
-                33
-            ],
-            [
-                59,
-                26
-            ],
-            [
-                63,
-                26
-            ],
-            [
-                54,
-                37
-            ],
-            [
-                54,
-                25
-            ],
-            [
-                30,
-                27
-            ],
-            [
-                30,
-                18
-            ],
-            [
-                36,
-                15
-            ],
-            [
-                36,
-                8
-            ]
-        ]
-    }
+    "use_grid_coordinates": true
 }
