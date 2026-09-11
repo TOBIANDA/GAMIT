@@ -4,6 +4,30 @@ signal resumed
 signal journal_requested
 signal main_menu_requested
 
+# ==============================================================================
+# ⚙️ PENGATURAN MANUAL UKURAN & POSISI TOMBOL PAUSE (BISA DIEDIT BEBAS DI SINI)
+# ==============================================================================
+@export_group("Tombol Pause di Layar (HUD)")
+## Lebar tombol pause HUD di pojok kanan atas (dalam piksel, default: 68.0)
+@export var hud_pause_button_width: float = 68.0
+
+## Tinggi tombol pause HUD di pojok kanan atas (dalam piksel, default: 68.0)
+@export var hud_pause_button_height: float = 68.0
+
+## Jarak tombol pause dari tepi kanan layar (margin kanan, default: 18.0)
+@export var hud_pause_margin_right: float = 18.0
+
+## Jarak tombol pause dari tepi atas layar (margin atas, default: 18.0)
+@export var hud_pause_margin_top: float = 18.0
+
+@export_group("Tombol Resume di Menu Pause")
+## Tinggi tombol 'Lanjutkan Permainan' di dalam menu pause (default: 58.0)
+@export var menu_resume_button_height: float = 58.0
+
+## Ukuran font tombol resume (default: 16)
+@export var menu_resume_font_size: int = 16
+# ==============================================================================
+
 var is_paused: bool = false
 
 var root_control: Control
@@ -57,6 +81,23 @@ func _play_click() -> void:
 func set_hud_button_visible(v: bool) -> void:
 	if is_instance_valid(hud_pause_button):
 		hud_pause_button.visible = v and not is_paused
+
+func update_hud_pause_button_transform() -> void:
+	if not is_instance_valid(hud_pause_button):
+		return
+	hud_pause_button.offset_left = -(hud_pause_margin_right + hud_pause_button_width)
+	hud_pause_button.offset_top = hud_pause_margin_top
+	hud_pause_button.offset_right = -hud_pause_margin_right
+	hud_pause_button.offset_bottom = hud_pause_margin_top + hud_pause_button_height
+
+func set_hud_pause_size(new_width: float, new_height: float, new_margin_right: float = -1.0, new_margin_top: float = -1.0) -> void:
+	hud_pause_button_width = new_width
+	hud_pause_button_height = new_height
+	if new_margin_right >= 0.0:
+		hud_pause_margin_right = new_margin_right
+	if new_margin_top >= 0.0:
+		hud_pause_margin_top = new_margin_top
+	update_hud_pause_button_transform()
 
 func open_pause() -> void:
 	is_paused = true
@@ -191,10 +232,7 @@ func _build_pause_ui() -> void:
 	hud_pause_button.anchor_top = 0.0
 	hud_pause_button.anchor_right = 1.0
 	hud_pause_button.anchor_bottom = 0.0
-	hud_pause_button.offset_left = -86
-	hud_pause_button.offset_top = 18
-	hud_pause_button.offset_right = -18
-	hud_pause_button.offset_bottom = 86
+	update_hud_pause_button_transform()
 	hud_pause_button.focus_mode = Control.FOCUS_NONE
 	hud_pause_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	hud_pause_button.tooltip_text = "Jeda Permainan [ESC / P]"
@@ -223,8 +261,8 @@ func _build_pause_ui() -> void:
 
 	# Buttons
 	btn_resume = _create_menu_button("▶  Lanjutkan Permainan [ESC]", Color(0.18, 0.65, 0.38))
-	btn_resume.custom_minimum_size = Vector2(0, 58)
-	btn_resume.add_theme_font_size_override("font_size", 16)
+	btn_resume.custom_minimum_size = Vector2(0, menu_resume_button_height)
+	btn_resume.add_theme_font_size_override("font_size", menu_resume_font_size)
 	btn_resume.pressed.connect(resume_game)
 	vb.add_child(btn_resume)
 

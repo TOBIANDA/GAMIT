@@ -66,6 +66,17 @@ static var cutscene_played: bool = false
 @export var show_intro_cutscene: bool = true
 var auto_police_escort_triggered: bool = false
 
+# ==============================================================================
+# ⚙️ PENGATURAN UKURAN TOMBOL PAUSE (BISA DIEDIT DARI INSPECTOR / KODE)
+# ==============================================================================
+@export_group("Pause Button Settings")
+## Ukuran tombol pause HUD di pojok kanan atas (Vector2: lebar, tinggi)
+@export var hud_pause_button_size: Vector2 = Vector2(68.0, 68.0)
+
+## Posisi jarak tombol pause dari tepi layar (Vector2: margin kanan, margin atas)
+@export var hud_pause_button_margin: Vector2 = Vector2(18.0, 18.0)
+# ==============================================================================
+
 func _ready() -> void:
 	print("[Main] Menginisialisasi Sistem Lengkap Sesuai GDD...")
 
@@ -647,6 +658,10 @@ func _setup_pause_menu() -> void:
 		pause_menu_layer = CanvasLayer.new()
 		pause_menu_layer.name = "PauseMenuLayer"
 		pause_menu_layer.set_script(pm_script)
+		pause_menu_layer.hud_pause_button_width = hud_pause_button_size.x
+		pause_menu_layer.hud_pause_button_height = hud_pause_button_size.y
+		pause_menu_layer.hud_pause_margin_right = hud_pause_button_margin.x
+		pause_menu_layer.hud_pause_margin_top = hud_pause_button_margin.y
 		add_child(pause_menu_layer)
 		pause_menu_layer.resumed.connect(func():
 			if is_instance_valid(player):
