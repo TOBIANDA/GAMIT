@@ -31,7 +31,7 @@ signal main_menu_requested
 var is_paused: bool = false
 
 var root_control: Control
-var menu_box: PanelContainer
+var menu_box: Control
 var objective_hint_label: Label
 
 var btn_resume: Button
@@ -215,46 +215,15 @@ func _build_pause_ui() -> void:
 	dim_bg.color = Color(0.02, 0.03, 0.06, 0.85)
 	root_control.add_child(dim_bg)
 
-	# 2. Center Panel (Case File Folder Theme)
+	# 2. Center Panel: Hanya 3 Tombol Kertas (RESUME, OPTIONS, MAIN MENU)
 	var center = CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root_control.add_child(center)
 
-	menu_box = PanelContainer.new()
-	menu_box.custom_minimum_size = Vector2(460, 510)
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.09, 0.13, 0.98)
-	sb.border_color = Color(0.85, 0.70, 0.35, 0.95)
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
-	sb.content_margin_left = 28
-	sb.content_margin_right = 28
-	sb.content_margin_top = 22
-	sb.content_margin_bottom = 22
-	menu_box.add_theme_stylebox_override("panel", sb)
-	center.add_child(menu_box)
-
 	var vb = VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 14)
-	menu_box.add_child(vb)
-
-	var title = Label.new()
-	title.text = "PERMAINAN DIJEDA"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
-	title.add_theme_font_size_override("font_size", 17)
-	vb.add_child(title)
-
-	objective_hint_label = Label.new()
-	objective_hint_label.text = "Target: Menyelidiki Kasus..."
-	objective_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	objective_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	objective_hint_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
-	objective_hint_label.add_theme_font_size_override("font_size", 13)
-	vb.add_child(objective_hint_label)
-
-	var sep = HSeparator.new()
-	vb.add_child(sep)
+	vb.add_theme_constant_override("separation", 20)
+	center.add_child(vb)
+	menu_box = vb
 
 	# Tombol Jeda di Layar (HUD Pause Button)
 	var tb = TextureButton.new()
@@ -301,14 +270,14 @@ func _build_pause_ui() -> void:
 	update_hud_pause_button_transform()
 	add_child(hud_pause_button)
 
-	# Tombol Aset Kertas (RESUME, OPTIONS, MAIN MENU)
+	# 3 Tombol Aset Kertas (RESUME, OPTIONS, MAIN MENU)
 	btn_resume = _create_paper_tag_button(tex_btn_resume)
 	btn_resume.tooltip_text = "Lanjutkan Permainan [ESC]"
 	btn_resume.pressed.connect(resume_game)
 	vb.add_child(btn_resume)
 
 	btn_options = _create_paper_tag_button(tex_btn_options)
-	btn_options.tooltip_text = "Buka Pengaturan Audio & Layar"
+	btn_options.tooltip_text = "Buka Pengaturan Suara & Layar"
 	btn_options.pressed.connect(func():
 		_play_click()
 		if is_instance_valid(options_modal):
@@ -324,35 +293,6 @@ func _build_pause_ui() -> void:
 		main_menu_requested.emit()
 	)
 	vb.add_child(btn_main_menu)
-
-	# Footer Links (Journal, Credit, Quit)
-	var footer_hb = HBoxContainer.new()
-	footer_hb.alignment = BoxContainer.ALIGNMENT_CENTER
-	footer_hb.add_theme_constant_override("separation", 24)
-	vb.add_child(footer_hb)
-
-	btn_journal = _create_text_link_button("[J] Jurnal Kasus & Bukti", Color(0.45, 0.75, 1.0))
-	btn_journal.pressed.connect(func():
-		_play_click()
-		close_pause()
-		journal_requested.emit()
-	)
-	footer_hb.add_child(btn_journal)
-
-	btn_credit = _create_text_link_button("[C] Kredit Game", Color(0.95, 0.85, 0.45))
-	btn_credit.pressed.connect(func():
-		_play_click()
-		if is_instance_valid(credit_modal):
-			credit_modal.visible = true
-	)
-	footer_hb.add_child(btn_credit)
-
-	btn_quit = _create_text_link_button("[Q] Keluar ke Desktop", Color(0.85, 0.45, 0.45))
-	btn_quit.pressed.connect(func():
-		_play_click()
-		get_tree().quit()
-	)
-	footer_hb.add_child(btn_quit)
 
 	# 3. Settings Modal
 	_build_settings_modal(center)
