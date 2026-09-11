@@ -961,7 +961,18 @@ func _play_gate_open_sound(pos: Vector2) -> void:
 		if not gate_audio_player.playing:
 			gate_audio_player.play()
 
+func _is_gate_openable(key: String) -> bool:
+	# Hanya pintu pagar rumah MC (top_6) dan rumah Ibu (se_2) yang bisa dibuka sama sekali!
+	return key == "top_6" or key == "se_2"
+
 func _update_gate_interaction(gate_center: Vector2, key: String, p_pos: Vector2, delta: float) -> bool:
+	if not _is_gate_openable(key):
+		gate_open_ratios[key] = 0.0
+		gate_slide_offsets[key] = 0.0
+		if gate_colliders.has(key) and is_instance_valid(gate_colliders[key]):
+			gate_colliders[key].set_deferred("disabled", false)
+		return false
+
 	var dist := p_pos.distance_to(gate_center)
 	# Membuka terdorong berayun saat pemain mendekati / menabrak pagar (jarak < 52px)
 	var target_open: float = 1.0 if dist < 52.0 else 0.0

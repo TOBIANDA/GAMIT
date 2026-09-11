@@ -1361,76 +1361,59 @@ func _setup_hud_prompts() -> void:
 	toast_banner.add_child(toast_label)
 
 
-	# Detective Case Status HUD Card (Pojok Kiri Atas)
+	# Detective Case Objective HUD (Pojok Kiri Atas — Gaya Among Us: Teks Putih Bersih Tanpa Background)
 	detective_hud_panel = PanelContainer.new()
 	detective_hud_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	detective_hud_panel.position = Vector2(20, 20)
-	detective_hud_panel.custom_minimum_size = Vector2(430, 80)
+	detective_hud_panel.position = Vector2(24, 20)
+	detective_hud_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	var dh_style = StyleBoxFlat.new()
-	dh_style.bg_color = Color(0.06, 0.08, 0.12, 0.94)
-	dh_style.border_color = Color(0.85, 0.70, 0.35, 0.9)
-	dh_style.set_border_width_all(2)
-	dh_style.set_corner_radius_all(10)
-	dh_style.content_margin_left = 12
-	dh_style.content_margin_right = 14
-	dh_style.content_margin_top = 8
-	dh_style.content_margin_bottom = 8
-	dh_style.shadow_color = Color(0, 0, 0, 0.45)
-	dh_style.shadow_size = 6
+	var dh_style = StyleBoxEmpty.new()
 	detective_hud_panel.add_theme_stylebox_override("panel", dh_style)
 	hud_layer.add_child(detective_hud_panel)
 
-	var hud_hb = HBoxContainer.new()
-	hud_hb.add_theme_constant_override("separation", 12)
-	detective_hud_panel.add_child(hud_hb)
-
-	hud_avatar_rect = TextureRect.new()
-	var mc_tex = load("res://UI/mc_portrait.png")
-	if mc_tex:
-		hud_avatar_rect.texture = mc_tex
-	hud_avatar_rect.custom_minimum_size = Vector2(56, 56)
-	hud_avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hud_avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hud_hb.add_child(hud_avatar_rect)
-
 	var info_vb = VBoxContainer.new()
-	info_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info_vb.add_theme_constant_override("separation", 3)
-	hud_hb.add_child(info_vb)
+	info_vb.add_theme_constant_override("separation", 4)
+	info_vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detective_hud_panel.add_child(info_vb)
 
-	var name_hb = HBoxContainer.new()
-	info_vb.add_child(name_hb)
-
-	var name_lbl = Label.new()
-	name_lbl.text = "Detektif Benedict"
-	name_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	name_lbl.add_theme_font_size_override("font_size", 13)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_hb.add_child(name_lbl)
-
-	hud_phase_badge = Label.new()
-	hud_phase_badge.text = "[ Prolog ]"
-	hud_phase_badge.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
-	hud_phase_badge.add_theme_font_size_override("font_size", 11)
-	name_hb.add_child(hud_phase_badge)
+	# Judul Petunjuk / Target (Teks Putih Bersih dengan Outline Hitam Tajam seperti Among Us)
+	var obj_title_lbl = Label.new()
+	obj_title_lbl.text = "TUJUAN PENYELIDIKAN:"
+	obj_title_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.95))
+	obj_title_lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	obj_title_lbl.add_theme_constant_override("outline_size", 4)
+	obj_title_lbl.add_theme_font_size_override("font_size", 14)
+	info_vb.add_child(obj_title_lbl)
 
 	hud_objective_text = Label.new()
-	hud_objective_text.text = "Target: Periksa Meja Kerja"
-	hud_objective_text.add_theme_color_override("font_color", Color(0.92, 0.94, 0.98))
-	hud_objective_text.add_theme_font_size_override("font_size", 12)
+	hud_objective_text.text = "• Telusuri Jalan & Selidiki Rumah Korban"
+	hud_objective_text.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+	hud_objective_text.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	hud_objective_text.add_theme_constant_override("outline_size", 4)
+	hud_objective_text.add_theme_font_size_override("font_size", 15)
 	hud_objective_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hud_objective_text.custom_minimum_size = Vector2(460, 0)
 	info_vb.add_child(hud_objective_text)
 
 	var btns_hb = HBoxContainer.new()
-	btns_hb.add_theme_constant_override("separation", 6)
+	btns_hb.add_theme_constant_override("separation", 14)
 	info_vb.add_child(btns_hb)
 
+	var empty_btn_style = StyleBoxEmpty.new()
+
 	var j_btn = Button.new()
-	j_btn.text = "Jurnal [J]"
+	j_btn.text = "[J] Jurnal Kasus"
+	j_btn.flat = true
 	j_btn.focus_mode = Control.FOCUS_NONE
 	j_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	j_btn.add_theme_font_size_override("font_size", 11)
+	j_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	j_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	j_btn.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	j_btn.add_theme_constant_override("outline_size", 3)
+	j_btn.add_theme_font_size_override("font_size", 12)
+	j_btn.add_theme_stylebox_override("normal", empty_btn_style)
+	j_btn.add_theme_stylebox_override("hover", empty_btn_style)
+	j_btn.add_theme_stylebox_override("pressed", empty_btn_style)
 	j_btn.pressed.connect(func():
 		play_click_sfx()
 		if is_instance_valid(clue_journal):
@@ -1439,10 +1422,18 @@ func _setup_hud_prompts() -> void:
 	btns_hb.add_child(j_btn)
 
 	var p_btn = Button.new()
-	p_btn.text = "Menu [ESC]"
+	p_btn.text = "[ESC] Menu Pause"
+	p_btn.flat = true
 	p_btn.focus_mode = Control.FOCUS_NONE
 	p_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	p_btn.add_theme_font_size_override("font_size", 11)
+	p_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	p_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	p_btn.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	p_btn.add_theme_constant_override("outline_size", 3)
+	p_btn.add_theme_font_size_override("font_size", 12)
+	p_btn.add_theme_stylebox_override("normal", empty_btn_style)
+	p_btn.add_theme_stylebox_override("hover", empty_btn_style)
+	p_btn.add_theme_stylebox_override("pressed", empty_btn_style)
 	p_btn.pressed.connect(func():
 		play_click_sfx()
 		toggle_pause_menu()
@@ -1685,7 +1676,7 @@ func _check_poi_proximity() -> void:
 			if active_poi_id == "mother_house":
 				custom_text = "[ F / E / Spasi ] MASUK KE RUMAH IBU KORBAN"
 			elif active_poi_id == "locked_civilian_house":
-				custom_text = "[ F / E / Spasi ] PINTU RUMAH WARGA (TERKUNCI RAPAT)"
+				custom_text = "[ F / E / Spasi ] PINTU PAGAR / RUMAH WARGA (TERKUNCI RAPAT)"
 			elif active_poi_id == "police_darkroom":
 				if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
 					custom_text = "[ F / E / Spasi ] LAB FORENSIK POLISI: CUCI ROL FOTO"
@@ -1882,7 +1873,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				door_sfx_player.play()
 			if is_instance_valid(dialog_box):
 				var locked_lines: Array[String] = [
-					"Pintu rumah warga ini terkunci rapat dengan grendel dari dalam.",
+					"Pintu pagar dan rumah warga ini terkunci rapat dari dalam.",
 					"Hanya rumah Benedict dan rumah Ibu yang bisa dimasuki."
 				]
 				dialog_box.start_monologue(locked_lines, "Detektif Benedict", "[ Pintu Terkunci ]", "res://karakter/MC_Normal.png")
@@ -2262,7 +2253,7 @@ func _update_hud_objective() -> void:
 	if is_instance_valid(hud_objective_label):
 		hud_objective_label.text = "Target: " + title_str
 	if is_instance_valid(hud_objective_text):
-		hud_objective_text.text = "Target: " + title_str
+		hud_objective_text.text = "• " + title_str
 	if is_instance_valid(hud_phase_badge) and is_instance_valid(inv_mgr):
 		match inv_mgr.current_phase:
 			inv_mgr.Phase.PROLOGUE_HOME:
