@@ -144,7 +144,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Foto Polaroid Kenangan Ibu",
 		"type": "sprite",
 		"tex": "tex_polaroid_ibu",
-		"x": 222.0, "y": 70.0,
+		"x": 385.0, "y": 218.0,
 		"scale": 1.0,
 		"base_w": 18.0,
 		"has_col": false,
@@ -676,7 +676,7 @@ func get_desk_letter_pos() -> Vector2:
 func get_photo_pos() -> Vector2:
 	if furniture_config.has("polaroid_ibu"):
 		return ROOM_ORIGIN + Vector2(furniture_config["polaroid_ibu"].x, furniture_config["polaroid_ibu"].y)
-	return ROOM_ORIGIN + Vector2(222.0, 70.0)
+	return ROOM_ORIGIN + Vector2(385.0, 218.0)
 
 func get_safe_pos() -> Vector2:
 	if furniture_config.has("brankas"):

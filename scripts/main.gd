@@ -1564,13 +1564,12 @@ func _close_letter_viewer() -> void:
 		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("police_letter")
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("police_letter")
-		_show_toast("Tugas Diterima! [SHIFT] Tahan Shift untuk Berlari")
+		_show_toast("Tugas Diterima: Mulai Penyelidikan Kasus #404")
 		if not already_unlocked and is_instance_valid(dialog_box):
 			var p_lines: Array[String] = [
 				"Surat penugasan kasus jenazah tanpa identitas...",
 				"Pengirim memintaku mencari bantuan pada orang di gedung penegakan hukum (Kantor Polisi).",
-				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!",
-				"[PETUNJUK KONTROL]: Gunakan tombol [W, A, S, D] untuk bergerak, dan tahan tombol [SHIFT] untuk berlari lebih cepat!"
+				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!"
 			]
 			dialog_box.start_monologue(p_lines, "Detektif Benedict", "", "res://karakter/MC_Bingung.png")
 
@@ -1819,7 +1818,7 @@ func _check_poi_proximity() -> void:
 
 	if is_inside_house:
 		var desk_letter_pos = house_interior.get_desk_letter_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_desk_letter_pos") else Vector2(3600.0 + 195.0, 400.0 + 72.0)
-		var photo_pos = house_interior.get_photo_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_pos") else Vector2(3600.0 + 222.0, 400.0 + 70.0)
+		var photo_pos = house_interior.get_photo_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_pos") else Vector2(3600.0 + 385.0, 400.0 + 218.0)
 		var safe_pos = house_interior.get_safe_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_safe_pos") else Vector2(3600.0 + 150.0, 400.0 + 52.0)
 		var photo_basin_pos = house_interior.get_photo_basin_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_photo_basin_pos") else Vector2(3600.0 + 293.0, 400.0 + 267.0)
 		var clock_pos = house_interior.get_alarm_clock_pos() if is_instance_valid(house_interior) and house_interior.has_method("get_alarm_clock_pos") else Vector2(3600.0 + 355.0, 400.0 + 50.0)
@@ -1847,7 +1846,7 @@ func _check_poi_proximity() -> void:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
 					"indoor_photo":
-						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO KENANGAN IBU"
+						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO IBU DI DAPUR"
 					"indoor_letter":
 						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
@@ -2206,7 +2205,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				inv_mgr.unlock_clue("mother_photo_riddle")
 			if is_instance_valid(dialog_box):
 				var photo_lines: Array[String] = [
-					"Sebuah foto berbingkai perak di atas meja kerja... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
+					"Sebuah foto berbingkai perak di atas meja dapur... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
 					"Di balik bingkai foto ada selembar catatan tulisan tangan ibu yang lembut:",
 					"'Untuk anakku tersayang Benedict... Ibu menyiapkan sesuatu yang sangat berharga untukmu.'",
 					"'Ibu sekarang sudah pindah rumah ke seberang stasiun kereta api. Carilah rumah yang menyambutmu dan terbuka hangat untukmu...'",
