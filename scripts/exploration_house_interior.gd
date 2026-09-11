@@ -391,6 +391,8 @@ func _build_room_collisions() -> void:
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 24.0))
+	# Penghalang celah atas belakang ranjang & nakas jam weker (X=330..385, Y=32..46)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 330.0, ROOM_ORIGIN.y + 32.0, 55.0, 14.0))
 
 	# 2. DINDING SEKAT RUANG KELUARGA & KAMAR
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 10.0, 85.0))
