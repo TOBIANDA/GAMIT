@@ -50,7 +50,7 @@ var transition_layer: CanvasLayer
 
 const POI_LOCATIONS = {
 	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1248, 145), "radius": 36.0},
-	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1150), "radius": 36.0},
+	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1175), "radius": 48.0},
 	"street_clock": {"name": "Jam Jalan (Berhenti di 16:04)", "pos": Vector2(480, 220), "radius": 120.0},
 	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(280, 915), "radius": 220.0},
 	"police_darkroom": {"name": "Lab Forensik Polisi (Kamar Gelap Cuci Foto)", "pos": Vector2(170, 1050), "radius": 110.0},
@@ -578,7 +578,7 @@ func _exit_exploration_house() -> void:
 			exploration_house_interior.visible = false
 		if is_instance_valid(house_interior):
 			house_interior.visible = false
-		player.global_position = Vector2(1714.0, 1200.0)
+		player.global_position = Vector2(1714.0, 1180.0)
 		player.target_zoom_val = 2.0
 
 		if player.has_method("setup_camera_limits"):
@@ -1629,9 +1629,9 @@ func _check_poi_proximity() -> void:
 		best_poi = "desk"
 		closest_dist = p_pos.distance_to(Vector2(1248.0, 145.0))
 	# 3. Pintu Masuk Rumah Ibu Korban (Pintu Depan di Dalam Halaman Pagar)
-	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1150.0)) <= 36.0:
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1175.0)) <= 48.0:
 		best_poi = "mother_house"
-		closest_dist = p_pos.distance_to(Vector2(1714.0, 1150.0))
+		closest_dist = p_pos.distance_to(Vector2(1714.0, 1175.0))
 	# 4. Pintu Rumah Warga Lain (Terkunci Rapat dari Dalam)
 	elif not is_inside_house and not is_inside_exploration_house and _is_near_locked_civilian_house(p_pos):
 		best_poi = "locked_civilian_house"
