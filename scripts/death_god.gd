@@ -153,84 +153,55 @@ func _build_ui() -> void:
 	sep.add_theme_color_override("color", Color(0.45, 0.3, 0.65, 0.8))
 	vb.add_child(sep)
 
-	# --- B. STANDOFF PANEL (CHIBI MC & CHIBI DEWA KEMATIAN SALING BERHADAPAN DI DEPAN ALTAR) ---
+	# --- B. STANDOFF PANEL (KOMPOSISI FRAME 2: ALTAR DI TENGAH, GRIM CHIBI DI ATAS ALTAR, MC CHIBI DI BAWAH MENGHADAP KE ATAS) ---
 	standoff_panel = Control.new()
-	standoff_panel.custom_minimum_size = Vector2(0, 195)
+	standoff_panel.custom_minimum_size = Vector2(0, 480)
 	standoff_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	standoff_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(standoff_panel)
 
-	# 1. Chibi MC (Benedict) di sebelah kiri, menghadap ke kanan
-	mc_aura_glow = ColorRect.new()
-	mc_aura_glow.color = Color(0.2, 0.5, 0.9, 0.35)
-	mc_aura_glow.size = Vector2(100, 16)
-	standoff_panel.add_child(mc_aura_glow)
-
-	mc_chibi_rect = TextureRect.new()
-	var tex_mc = load("res://posisi mc/right.png")
-	if not tex_mc:
-		tex_mc = load("res://posisi mc/front.png")
-	mc_chibi_rect.texture = tex_mc
-	mc_chibi_rect.custom_minimum_size = Vector2(90, 115)
-	mc_chibi_rect.size = Vector2(90, 115)
-	mc_chibi_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	mc_chibi_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	standoff_panel.add_child(mc_chibi_rect)
-
-	mc_label = Label.new()
-	mc_label.text = "Detektif Benedict (Arwah)"
-	mc_label.size = Vector2(180, 24)
-	mc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mc_label.add_theme_font_size_override("font_size", 13)
-	mc_label.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
-	standoff_panel.add_child(mc_label)
-
-	# 2. Altar Kematian di Tengah (Antara Chibi Benedict & Dewa Kematian)
-	altar_aura_glow = ColorRect.new()
-	altar_aura_glow.color = Color(0.25, 0.65, 0.95, 0.35)
-	altar_aura_glow.size = Vector2(150, 16)
-	standoff_panel.add_child(altar_aura_glow)
-
+	# 1. Altar Kematian Gothic di Tengah Layar
 	altar_rect = TextureRect.new()
 	altar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	altar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	altar_rect.custom_minimum_size = Vector2(145, 175)
-	altar_rect.size = Vector2(145, 175)
+	altar_rect.custom_minimum_size = Vector2(330, 400)
+	altar_rect.size = Vector2(330, 400)
 	var tex_altar = load("res://Environment/altar_kematian.png")
 	altar_rect.texture = tex_altar
 	standoff_panel.add_child(altar_rect)
 
-	altar_label = Label.new()
-	altar_label.text = "✦ Altar Kematian — Batas Takdir ✦"
-	altar_label.size = Vector2(260, 24)
-	altar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	altar_label.add_theme_font_size_override("font_size", 12)
-	altar_label.add_theme_color_override("font_color", Color(0.65, 0.85, 0.95))
-	standoff_panel.add_child(altar_label)
-
-	# 3. Chibi Dewa Kematian (Grim Reaper) di sebelah kanan, menghadap ke kiri
-	grim_aura_glow = ColorRect.new()
-	grim_aura_glow.color = Color(0.60, 0.20, 0.90, 0.40)
-	grim_aura_glow.size = Vector2(100, 16)
-	standoff_panel.add_child(grim_aura_glow)
-
+	# 2. Chibi Dewa Kematian (Grim Reaper) Berdiri di Atas Altar (Menghadap ke Bawah/Depan)
 	grim_chibi_rect = TextureRect.new()
-	var tex_grim = load("res://grimChibi/kiri.png")
-	if not tex_grim:
-		tex_grim = load("res://grimChibi/depan.png")
-	grim_chibi_rect.texture = tex_grim
-	grim_chibi_rect.custom_minimum_size = Vector2(90, 115)
-	grim_chibi_rect.size = Vector2(90, 115)
 	grim_chibi_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	grim_chibi_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	grim_chibi_rect.custom_minimum_size = Vector2(110, 140)
+	grim_chibi_rect.size = Vector2(110, 140)
+	var tex_grim = load("res://grimChibi/depan.png")
+	grim_chibi_rect.texture = tex_grim
 	standoff_panel.add_child(grim_chibi_rect)
 
-	grim_label = Label.new()
-	grim_label.text = "Sang Dewa Kematian"
-	grim_label.size = Vector2(180, 24)
-	grim_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	grim_label.add_theme_font_size_override("font_size", 13)
-	grim_label.add_theme_color_override("font_color", Color(0.95, 0.80, 1.0))
-	standoff_panel.add_child(grim_label)
+	# 3. Chibi MC (Benedict) Berdiri di Kaki Altar (Menghadap ke Atas/Belakang dengan Tali Suspender)
+	mc_chibi_rect = TextureRect.new()
+	mc_chibi_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mc_chibi_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	mc_chibi_rect.custom_minimum_size = Vector2(85, 115)
+	mc_chibi_rect.size = Vector2(85, 115)
+	var tex_mc = load("res://posisi mc/back.png")
+	if not tex_mc:
+		tex_mc = load("res://posisi mc/front.png")
+	mc_chibi_rect.texture = tex_mc
+	standoff_panel.add_child(mc_chibi_rect)
+
+	# Aura halus opsional
+	altar_aura_glow = ColorRect.new()
+	altar_aura_glow.color = Color(0.25, 0.65, 0.95, 0.0)
+	standoff_panel.add_child(altar_aura_glow)
+	mc_aura_glow = ColorRect.new()
+	mc_aura_glow.color = Color(0.2, 0.5, 0.9, 0.0)
+	standoff_panel.add_child(mc_aura_glow)
+	grim_aura_glow = ColorRect.new()
+	grim_aura_glow.color = Color(0.60, 0.20, 0.90, 0.0)
+	standoff_panel.add_child(grim_aura_glow)
 
 	# Layout positioning untuk standoff panel
 	standoff_panel.resized.connect(_update_standoff_positions)
@@ -371,37 +342,40 @@ func _update_standoff_positions() -> void:
 	var w = _get_standoff_width()
 	_last_standoff_w = w
 
-	var mc_x = w * 0.22 - 45.0
-	var altar_x = w * 0.50 - 72.5
-	var grim_x = w * 0.78 - 45.0
-	mc_base_y = 25.0
-	altar_base_y = 0.0
-	grim_base_y = 20.0
+	var altar_w: float = 330.0
+	var altar_h: float = 400.0
+	var altar_x: float = (w - altar_w) * 0.5
+	altar_base_y = 60.0
 
-	if is_instance_valid(mc_chibi_rect):
-		mc_chibi_rect.position = Vector2(mc_x, mc_base_y)
-	if is_instance_valid(grim_chibi_rect):
-		grim_chibi_rect.position = Vector2(grim_x, grim_base_y)
+	var grim_w: float = 110.0
+	var grim_h: float = 140.0
+	var grim_x: float = altar_x + (altar_w - grim_w) * 0.5
+	grim_base_y = altar_base_y + 82.0
+
+	var mc_w: float = 85.0
+	var mc_h: float = 115.0
+	var mc_x: float = altar_x + (altar_w - mc_w) * 0.5
+	mc_base_y = altar_base_y + 265.0
+
 	if is_instance_valid(altar_rect):
 		altar_rect.position = Vector2(altar_x, altar_base_y)
+		altar_rect.size = Vector2(altar_w, altar_h)
+	if is_instance_valid(grim_chibi_rect):
+		grim_chibi_rect.custom_minimum_size = Vector2(grim_w, grim_h)
+		grim_chibi_rect.size = Vector2(grim_w, grim_h)
+		grim_chibi_rect.position = Vector2(grim_x, grim_base_y)
+	if is_instance_valid(mc_chibi_rect):
+		mc_chibi_rect.custom_minimum_size = Vector2(mc_w, mc_h)
+		mc_chibi_rect.size = Vector2(mc_w, mc_h)
+		mc_chibi_rect.position = Vector2(mc_x, mc_base_y)
 
-	if is_instance_valid(mc_aura_glow):
-		mc_aura_glow.position = Vector2(mc_x - 5.0, mc_base_y + 112.0)
-	if is_instance_valid(grim_aura_glow):
-		grim_aura_glow.position = Vector2(grim_x - 5.0, grim_base_y + 112.0)
-	if is_instance_valid(altar_aura_glow):
-		altar_aura_glow.position = Vector2(altar_x - 2.5, altar_base_y + 168.0)
-
-	if is_instance_valid(mc_label):
-		mc_label.position = Vector2(mc_x - 45.0, mc_base_y + 132.0)
-	if is_instance_valid(grim_label):
-		grim_label.position = Vector2(grim_x - 45.0, grim_base_y + 132.0)
-	if is_instance_valid(altar_label):
-		altar_label.position = Vector2(w * 0.50 - 130.0, altar_base_y + 172.0)
-
-	if is_instance_valid(vs_symbol_label):
-		vs_symbol_label.position = Vector2(w * 0.5 - 170.0, 52.0)
-		vs_symbol_label.size = Vector2(340.0, 30.0)
+	if is_instance_valid(mc_label): mc_label.visible = false
+	if is_instance_valid(grim_label): grim_label.visible = false
+	if is_instance_valid(altar_label): altar_label.visible = false
+	if is_instance_valid(mc_aura_glow): mc_aura_glow.visible = false
+	if is_instance_valid(grim_aura_glow): grim_aura_glow.visible = false
+	if is_instance_valid(altar_aura_glow): altar_aura_glow.visible = false
+	if is_instance_valid(vs_symbol_label): vs_symbol_label.visible = false
 
 func _process(delta: float) -> void:
 	if not visible:
@@ -439,8 +413,18 @@ func open_interface() -> void:
 	_update_standoff_positions()
 	_play_afterlife_sound()
 
-	# Jalankan rangkaian dialog awal konfrontasi dengan potret Dewa Kematian non-chibi
-	_start_intro_confrontation_dialog()
+	# Sembunyikan question box dan header agar bersih menampilkan Frame 2 (Standoff)
+	if is_instance_valid(title_label) and is_instance_valid(title_label.get_parent()):
+		title_label.get_parent().visible = false
+	if is_instance_valid(content_hb):
+		content_hb.visible = false
+	if is_instance_valid(nlp_panel):
+		nlp_panel.visible = false
+
+	# Tampilkan Frame 2 sejenak (1.5 detik) agar pemain menikmati tatap-tatapan di depan altar, lalu mulai dialog Frame 1 & 3
+	var tw = create_tween()
+	tw.tween_interval(1.5)
+	tw.tween_callback(_start_intro_confrontation_dialog)
 
 func _start_intro_confrontation_dialog() -> void:
 	var dlg = null
@@ -449,11 +433,19 @@ func _start_intro_confrontation_dialog() -> void:
 		dlg = main_node.get_node_or_null("DialogBox")
 
 	if is_instance_valid(dlg) and dlg.has_method("start_dialogue_sequence"):
-		# Sembunyikan question box saat dialog tatap-tatapan berlangsung
-		content_hb.modulate.a = 0.0
-		nlp_panel.modulate.a = 0.0
+		# Sembunyikan question box dan header agar bersih sesuai Frame 1, 2, 3
+		if is_instance_valid(title_label) and is_instance_valid(title_label.get_parent()):
+			title_label.get_parent().visible = false
+		content_hb.visible = false
+		nlp_panel.visible = false
 
 		var confrontation_dialogue: Array = [
+			{
+				"speaker": "Detektif Benedict",
+				"badge": "[ BATAS TAKDIR ]",
+				"portrait": "res://karakter/MC_Biasa.png",
+				"text": "Tempat apa ini...? Dan sosok berjubah di atas altar itu..."
+			},
 			{
 				"speaker": "Sang Dewa Kematian",
 				"badge": "[ BATAS KEABADIAN ]",
@@ -529,10 +521,14 @@ func _start_intro_confrontation_dialog() -> void:
 				grim_aura_glow.color = Color(0.60, 0.20, 0.90, 0.40)
 			if is_instance_valid(mc_aura_glow):
 				mc_aura_glow.color = Color(0.2, 0.5, 0.9, 0.35)
-			if is_instance_valid(content_hb) and content_hb.modulate.a < 0.9:
-				var tw_show = create_tween()
-				tw_show.tween_property(content_hb, "modulate:a", 1.0, 0.45)
-				tw_show.parallel().tween_property(nlp_panel, "modulate:a", 1.0, 0.45)
+			if is_instance_valid(title_label) and is_instance_valid(title_label.get_parent()):
+				title_label.get_parent().visible = true
+			if is_instance_valid(content_hb):
+				content_hb.visible = true
+				content_hb.modulate.a = 1.0
+			if is_instance_valid(nlp_panel):
+				nlp_panel.visible = true
+				nlp_panel.modulate.a = 1.0
 			_display_current_question()
 
 		dlg.monologue_finished.connect(on_done, CONNECT_ONE_SHOT)

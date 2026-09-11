@@ -560,6 +560,7 @@ func _on_hospital_completed() -> void:
 		player.can_move = false
 	_show_toast("✦ Jiwamu Ditarik Menuju Pengadilan Dewa Kematian... ✦")
 	play_afterlife_music()
+	_hide_hud_for_death_god()
 	var tw = create_tween()
 	tw.tween_interval(0.5)
 	tw.tween_callback(func():
@@ -746,12 +747,29 @@ func _on_morgue_completed() -> void:
 		player.can_move = false
 	_show_toast("✦ Jiwamu Ditarik Menuju Pengadilan Dewa Kematian... ✦")
 	play_afterlife_music()
+	_hide_hud_for_death_god()
 	var tw = create_tween()
 	tw.tween_interval(1.0)
 	tw.tween_callback(func():
 		if is_instance_valid(death_god_layer) and death_god_layer.has_method("open_interface"):
 			death_god_layer.open_interface()
 	)
+
+func _hide_hud_for_death_god() -> void:
+	if is_instance_valid(route_and_zone_editor):
+		route_and_zone_editor.visible = false
+		if "toggle_btn" in route_and_zone_editor and is_instance_valid(route_and_zone_editor.toggle_btn):
+			route_and_zone_editor.toggle_btn.visible = false
+	if is_instance_valid(detective_hud_panel):
+		detective_hud_panel.visible = false
+	if is_instance_valid(pause_menu_layer):
+		pause_menu_layer.visible = false
+	if is_instance_valid(fullscreen_btn):
+		fullscreen_btn.visible = false
+	if is_instance_valid(interact_prompt):
+		interact_prompt.visible = false
+	if is_instance_valid(toast_banner):
+		toast_banner.visible = false
 
 func _on_minigame_ended() -> void:
 	if is_instance_valid(player):

@@ -41,6 +41,7 @@ var monologue_index: int = 0
 var auto_advance_timer: float = 0.0
 var is_sequence_mode: bool = false
 var dialogue_sequence: Array = []
+var _sequence_transparent_dim: bool = false
 
 var tex_mc_textbox: Texture2D
 var tex_grim_textbox: Texture2D
@@ -273,6 +274,7 @@ func start_dialogue_sequence(sequence: Array, force_transparent_dim: bool = fals
 	is_active = true
 	is_monologue_mode = true
 	is_sequence_mode = true
+	_sequence_transparent_dim = force_transparent_dim
 	dialogue_sequence = sequence
 	monologue_index = 0
 	if is_instance_valid(root_control):
@@ -297,7 +299,7 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 	var is_grim = speaker_name.contains("Dewa Kematian") or portrait_path.contains("grim")
 	var dim_ov = get_node_or_null("RootControl/DimOverlay")
 	if is_instance_valid(dim_ov):
-		if force_transparent_dim or is_grim:
+		if force_transparent_dim or _sequence_transparent_dim or is_grim:
 			dim_ov.color = Color(0, 0, 0, 0.0)
 		else:
 			dim_ov.color = Color(0, 0, 0, 0.35)
@@ -362,7 +364,12 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 	if is_instance_valid(portrait_texture):
 		portrait_texture.visible = false
 
-	# Layout switching: Grim Reaper on right vs Benedict on left
+	# Sembunyikan TopRow (badge status & tombol tutup) agar textbox bersih sesuai Frame 1 & Frame 3
+	var top_row = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow")
+	if is_instance_valid(top_row):
+		top_row.visible = false
+
+	# Layout switching: Frame 3 (Grim Reaper di Kanan) vs Frame 1 (Benedict di Kiri)
 	if is_grim:
 		if is_instance_valid(large_portrait):
 			large_portrait.visible = false
@@ -372,23 +379,36 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 				g_tex = load(portrait_path)
 			if g_tex:
 				right_portrait.texture = g_tex
+			right_portrait.anchor_left = 1.0
+			right_portrait.anchor_top = 1.0
+			right_portrait.anchor_right = 1.0
+			right_portrait.anchor_bottom = 1.0
+			right_portrait.offset_left = -460.0
+			right_portrait.offset_right = 10.0
+			right_portrait.offset_top = -540.0
+			right_portrait.offset_bottom = 0.0
+			right_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			right_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			right_portrait.z_index = 5
 			right_portrait.visible = true
-			right_portrait.z_index = 2
 			right_portrait.move_to_front()
 		if is_instance_valid(bottom_panel):
-			bottom_panel.anchor_left = 0.03
-			bottom_panel.anchor_right = 0.82
-			bottom_panel.anchor_top = 0.68
-			bottom_panel.anchor_bottom = 0.98
+			# Frame 3: Kotak ungu jagged dari tepi kiri sampai sebelum jubah Grim Reaper
+			bottom_panel.anchor_left = 0.04
+			bottom_panel.anchor_right = 0.71
+			bottom_panel.anchor_top = 0.67
+			bottom_panel.anchor_bottom = 0.96
 			bottom_panel.offset_left = 0.0
 			bottom_panel.offset_right = 0.0
 			bottom_panel.offset_top = 0.0
 			bottom_panel.offset_bottom = 0.0
 		if is_instance_valid(margin_container):
-			margin_container.add_theme_constant_override("margin_left", 40)
-			margin_container.add_theme_constant_override("margin_right", 110)
-			margin_container.add_theme_constant_override("margin_top", 40)
-			margin_container.add_theme_constant_override("margin_bottom", 24)
+			margin_container.add_theme_constant_override("margin_left", 50)
+			margin_container.add_theme_constant_override("margin_right", 65)
+			margin_container.add_theme_constant_override("margin_top", 52)
+			margin_container.add_theme_constant_override("margin_bottom", 22)
+		if is_instance_valid(text_label):
+			text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.98))
 	else:
 		if is_instance_valid(right_portrait):
 			right_portrait.visible = false
@@ -400,29 +420,40 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 				resolved_path = "res://karakter/" + resolved_path
 			
 			var tex = load(resolved_path)
-			if not tex and resolved_path.contains("karakter/"):
-				tex = load(resolved_path.replace("res://karakter/", "res://UI/portraits/"))
 			if not tex:
-				tex = load("res://UI/mc_portrait.png")
+				tex = load("res://karakter/MC_Biasa.png")
 			if tex:
 				large_portrait.texture = tex
-			large_portrait.z_index = 2
+			large_portrait.anchor_left = 0.0
+			large_portrait.anchor_top = 1.0
+			large_portrait.anchor_right = 0.0
+			large_portrait.anchor_bottom = 1.0
+			large_portrait.offset_left = 20.0
+			large_portrait.offset_right = 360.0
+			large_portrait.offset_top = -540.0
+			large_portrait.offset_bottom = 0.0
+			large_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			large_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			large_portrait.z_index = 5
 			large_portrait.move_to_front()
 			large_portrait.visible = true
 		if is_instance_valid(bottom_panel):
-			bottom_panel.anchor_left = 0.20
-			bottom_panel.anchor_right = 0.98
-			bottom_panel.anchor_top = 0.68
-			bottom_panel.anchor_bottom = 0.98
+			# Frame 1: Kotak cokelat perkamen dari samping badan Benedict sampai tepi kanan
+			bottom_panel.anchor_left = 0.23
+			bottom_panel.anchor_right = 0.96
+			bottom_panel.anchor_top = 0.67
+			bottom_panel.anchor_bottom = 0.96
 			bottom_panel.offset_left = 0.0
 			bottom_panel.offset_right = 0.0
 			bottom_panel.offset_top = 0.0
 			bottom_panel.offset_bottom = 0.0
 		if is_instance_valid(margin_container):
-			margin_container.add_theme_constant_override("margin_left", 115)
-			margin_container.add_theme_constant_override("margin_right", 36)
-			margin_container.add_theme_constant_override("margin_top", 40)
-			margin_container.add_theme_constant_override("margin_bottom", 24)
+			margin_container.add_theme_constant_override("margin_left", 65)
+			margin_container.add_theme_constant_override("margin_right", 50)
+			margin_container.add_theme_constant_override("margin_top", 52)
+			margin_container.add_theme_constant_override("margin_bottom", 22)
+		if is_instance_valid(text_label):
+			text_label.add_theme_color_override("font_color", Color(0.18, 0.13, 0.08))
 
 	dialogue_line_started.emit(entry)
 	_start_typewriter(text_to_say)
