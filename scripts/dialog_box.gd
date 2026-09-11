@@ -120,6 +120,14 @@ func _ensure_nodes() -> void:
 	)
 
 	layer = 35
+	if is_instance_valid(large_portrait):
+		large_portrait.z_index = 2
+		large_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		large_portrait.move_to_front()
+	if is_instance_valid(text_label):
+		text_label.add_theme_font_size_override("font_size", 18)
+		text_label.add_theme_constant_override("line_spacing", 4)
+
 	# Pastikan klik pada area dialog memajukan monolog seketika
 	if is_instance_valid(root_control) and not root_control.gui_input.is_connected(_on_screen_gui_input):
 		root_control.gui_input.connect(_on_screen_gui_input)
@@ -301,6 +309,8 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 	if is_instance_valid(text_label):
+		text_label.add_theme_font_size_override("font_size", 18)
+		text_label.add_theme_constant_override("line_spacing", 4)
 		if is_grim:
 			text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 1.0))
 		else:
@@ -351,6 +361,8 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 			tex = load("res://UI/mc_portrait.png")
 		if tex:
 			large_portrait.texture = tex
+		large_portrait.z_index = 2
+		large_portrait.move_to_front()
 		large_portrait.visible = true
 
 	if is_instance_valid(portrait_box):
@@ -363,7 +375,7 @@ func _display_dialogue_sequence_entry(idx: int, force_transparent_dim: bool = fa
 		portrait_texture.visible = false
 
 	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 32)
+		margin_container.add_theme_constant_override("margin_left", 115)
 
 	dialogue_line_started.emit(entry)
 	_start_typewriter(text_to_say)
@@ -401,6 +413,8 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 	if is_instance_valid(text_label):
+		text_label.add_theme_font_size_override("font_size", 18)
+		text_label.add_theme_constant_override("line_spacing", 4)
 		if is_grim:
 			text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 1.0))
 		else:
@@ -462,7 +476,7 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 
 	# Beri ruang di sebelah kiri dialog box agar teks rapi di samping MC
 	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 32)
+		margin_container.add_theme_constant_override("margin_left", 115)
 
 	# Tampilkan gambar MC 5x lipat tanpa frame kotak (cutout transparan)
 	if is_instance_valid(large_portrait):
@@ -492,6 +506,8 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 			large_portrait.offset_top = -480.0
 			large_portrait.offset_bottom = 14.0
 
+		large_portrait.z_index = 2
+		large_portrait.move_to_front()
 		large_portrait.visible = true
 
 	dialog_opened.emit()

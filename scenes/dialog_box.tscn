@@ -99,22 +99,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.35)
-
-[node name="LargePortrait" type="TextureRect" parent="RootControl"]
-visible = false
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -480.0
-offset_right = 404.0
-offset_bottom = 14.0
-grow_vertical = 0
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="BottomPanel" type="PanelContainer" parent="RootControl"]
 layout_mode = 1
 anchors_preset = -1
@@ -199,7 +183,7 @@ layout_mode = 2
 [node name="NameTag" type="Label" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.75, 1, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 18
 text = "❖ DEWA KEMATIAN ❖"
 
 [node name="VSeparator" type="VSeparator" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
@@ -209,7 +193,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.55, 0.9, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "✦ HADIR DI HADAPAN SANG DEWA ✦"
 
 [node name="CloseBtn" type="Button" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow"]
@@ -217,7 +201,7 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.75, 0.9, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 text = "✕ Tutup [ESC]"
 
 [node name="TextPanel" type="PanelContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox"]
@@ -236,7 +220,8 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 size_flags_vertical = 1
 theme_override_colors/font_color = Color(0.9, 0.88, 0.98, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
+theme_override_constants/line_spacing = 4
 text = "..."
 autowrap_mode = 3
 
@@ -246,7 +231,7 @@ layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
 theme_override_colors/font_color = Color(1.0, 0.85, 0.35, 1.0)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "▶ Klik / Spasi / E untuk lanjut"
 
 [node name="InputContainer" type="HBoxContainer" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox"]
@@ -260,7 +245,7 @@ theme_override_colors/font_color = Color(0.95, 0.92, 1, 1)
 theme_override_colors/font_placeholder_color = Color(0.5, 0.45, 0.65, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 15
 placeholder_text = "Sampaikan apa yang kau pahami tentang kematian..."
 
 [node name="SubmitBtn" type="Button" parent="RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/InputContainer"]
@@ -268,7 +253,23 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_submit_btn")
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 14
 text = "✦ Sampaikan"
+
+[node name="LargePortrait" type="TextureRect" parent="RootControl"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -480.0
+offset_right = 404.0
+offset_bottom = 14.0
+grow_vertical = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 
