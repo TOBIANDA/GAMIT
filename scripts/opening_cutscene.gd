@@ -95,29 +95,25 @@ func _init_stars() -> void:
 		})
 
 func _build_scene() -> void:
-	# 1. Background Void Gelap Pekat Indah
+	# 1. Background Void Gelap Pekat Indah (Nuansa Gelap Berselimut Kabut)
 	bg_rect = ColorRect.new()
 	bg_rect.name = "BackgroundVoid"
 	bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg_rect.color = Color(0.05, 0.03, 0.09, 1.0)
+	bg_rect.color = Color(0.03, 0.03, 0.05, 1.0)
 	bg_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg_rect)
 
-	# 2. Glowing Nebula Center Aura
+	# 2. Ambient Fog Backdrop (Bukan Awan Bulat Ungu)
 	nebula_center = Panel.new()
 	nebula_center.name = "NebulaCenter"
-	nebula_center.set_anchors_preset(Control.PRESET_CENTER)
-	nebula_center.custom_minimum_size = Vector2(960, 580)
-	var glow_style = StyleBoxFlat.new()
-	glow_style.bg_color = Color(0.34, 0.13, 0.60, 0.28)
-	glow_style.set_corner_radius_all(290)
-	glow_style.shadow_color = Color(0.46, 0.19, 0.78, 0.40)
-	glow_style.shadow_size = 130
-	nebula_center.add_theme_stylebox_override("panel", glow_style)
+	nebula_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var fog_back_style = StyleBoxFlat.new()
+	fog_back_style.bg_color = Color(0.06, 0.08, 0.11, 0.20)
+	nebula_center.add_theme_stylebox_override("panel", fog_back_style)
 	nebula_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(nebula_center)
 
-	# 3. Layer Awan-Awan Kabut Melayang (Drifting Clouds)
+	# 3. Layer Kabut Asap Melayang (Drifting Smoky Mist - Bukan Bulat & Tanpa Aset AI)
 	fog_container = Control.new()
 	fog_container.name = "FogContainer"
 	fog_container.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -125,34 +121,62 @@ func _build_scene() -> void:
 	add_child(fog_container)
 
 	fog_items.clear()
-	for i in range(20):
-		var pnl = Panel.new()
-		var p_style = StyleBoxFlat.new()
-		var r = randf_range(120.0, 240.0)
-		var hue_pick = randf()
-		var cloud_color: Color
-		if hue_pick < 0.45:
-			cloud_color = Color(randf_range(0.38, 0.58), randf_range(0.18, 0.38), randf_range(0.68, 0.92), randf_range(0.12, 0.22))
-		elif hue_pick < 0.8:
-			cloud_color = Color(randf_range(0.20, 0.35), randf_range(0.25, 0.48), randf_range(0.68, 0.88), randf_range(0.11, 0.19))
-		else:
-			cloud_color = Color(randf_range(0.48, 0.68), randf_range(0.38, 0.58), randf_range(0.78, 0.98), randf_range(0.14, 0.25))
+	# Buat 26 pita kabut asap mendatar menggunakan bentuk dasar Polygon2D bawaan Godot
+	for i in range(26):
+		var wisp = Polygon2D.new()
+		wisp.antialiased = true
 
-		p_style.bg_color = cloud_color
-		p_style.set_corner_radius_all(int(r))
-		p_style.shadow_color = cloud_color
-		p_style.shadow_size = int(r * 0.35)
-		pnl.add_theme_stylebox_override("panel", p_style)
-		pnl.custom_minimum_size = Vector2(r * 2.4, r * 1.5)
-		pnl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		fog_container.add_child(pnl)
+		var l = randf_range(520.0, 1450.0) # Sangat memanjang mendatar
+		var h = randf_range(16.0, 50.0)    # Pipih & ramping mendatar, BUKAN bulat/lingkaran
+		var segments = 22
+		var phase = randf() * TAU
+		var wave_amp = randf_range(4.0, 14.0)
+
+		var top_pts: PackedVector2Array = []
+		var bot_pts: PackedVector2Array = []
+		for s in range(segments + 1):
+			var u = float(s) / float(segments)
+			var x = -l * 0.5 + u * l
+			var taper = pow(sin(u * PI), 0.75) # Meruncing halus di ujung kiri & kanan
+			var thickness = h * 0.5 * taper
+			var wave = sin(u * 2.6 * PI + phase) * wave_amp
+			top_pts.append(Vector2(x, -thickness + wave))
+			bot_pts.append(Vector2(x, thickness + wave))
+
+		var pts: PackedVector2Array = []
+		for p in top_pts:
+			pts.append(p)
+		for idx in range(bot_pts.size() - 1, -1, -1):
+			pts.append(bot_pts[idx])
+		wisp.polygon = pts
+
+		# Palet warna kabut asap murni: jelaga, abu-abu kelabu, dan kabut dingin tanpa warna ungu
+		var smoke_tint = randf()
+		var smoke_color: Color
+		if smoke_tint < 0.45:
+			smoke_color = Color(randf_range(0.17, 0.23), randf_range(0.19, 0.25), randf_range(0.22, 0.28), randf_range(0.06, 0.14))
+		elif smoke_tint < 0.80:
+			smoke_color = Color(randf_range(0.13, 0.18), randf_range(0.16, 0.21), randf_range(0.20, 0.25), randf_range(0.05, 0.12))
+		else:
+			smoke_color = Color(randf_range(0.22, 0.28), randf_range(0.25, 0.30), randf_range(0.27, 0.33), randf_range(0.04, 0.10))
+
+		wisp.color = smoke_color
+		fog_container.add_child(wisp)
+
+		var init_y = randf_range(40.0, 860.0)
+		var init_x = randf_range(-400.0, 2000.0)
+		var speed_val = randf_range(22.0, 58.0)
+		var dir = 1.0 if randf() < 0.75 else -0.5
 
 		fog_items.append({
-			"node": pnl,
-			"pos": Vector2(randf_range(-250.0, 1850.0), randf_range(20.0, 880.0)),
-			"speed": randf_range(26.0, 62.0),
-			"radius": r,
-			"phase": randf() * TAU
+			"node": wisp,
+			"pos": Vector2(init_x, init_y),
+			"speed": speed_val * dir,
+			"length": l,
+			"height": h,
+			"phase": phase,
+			"wave_freq": randf_range(0.8, 1.8),
+			"dir": dir
 		})
 
 	# 4. Container Teks Monolog Tengah
@@ -172,7 +196,7 @@ func _build_scene() -> void:
 	quote_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quote_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	quote_label.add_theme_color_override("font_color", Color(0.99, 0.99, 1.0, 1.0))
-	quote_label.add_theme_color_override("font_shadow_color", Color(0.42, 0.16, 0.75, 0.9))
+	quote_label.add_theme_color_override("font_shadow_color", Color(0.10, 0.12, 0.16, 0.9))
 	quote_label.add_theme_constant_override("shadow_offset_x", 3)
 	quote_label.add_theme_constant_override("shadow_offset_y", 3)
 	quote_label.add_theme_color_override("font_outline_color", Color(0.01, 0.01, 0.03, 1.0))
@@ -183,8 +207,8 @@ func _build_scene() -> void:
 	author_label = Label.new()
 	author_label.text = ""
 	author_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	author_label.add_theme_color_override("font_color", Color(0.92, 0.86, 0.98, 0.95))
-	author_label.add_theme_color_override("font_shadow_color", Color(0.35, 0.12, 0.58, 0.8))
+	author_label.add_theme_color_override("font_color", Color(0.88, 0.90, 0.94, 0.95))
+	author_label.add_theme_color_override("font_shadow_color", Color(0.08, 0.10, 0.14, 0.8))
 	author_label.add_theme_constant_override("shadow_offset_x", 2)
 	author_label.add_theme_constant_override("shadow_offset_y", 2)
 	author_label.add_theme_color_override("font_outline_color", Color(0.01, 0.01, 0.03, 0.9))
@@ -238,7 +262,7 @@ func _build_scene() -> void:
 	skip_hint_label.offset_top = -65.0
 	skip_hint_label.offset_bottom = -20.0
 	skip_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	skip_hint_label.add_theme_color_override("font_color", Color(0.88, 0.85, 0.98, 0.90))
+	skip_hint_label.add_theme_color_override("font_color", Color(0.85, 0.88, 0.92, 0.90))
 	skip_hint_label.add_theme_color_override("font_outline_color", Color(0.02, 0.01, 0.04, 1.0))
 	skip_hint_label.add_theme_constant_override("outline_size", 3)
 	skip_hint_label.add_theme_font_size_override("font_size", 14)
@@ -295,22 +319,30 @@ func _process(delta: float) -> void:
 	anim_time += delta
 	var vp_size = get_viewport().get_visible_rect().size
 
-	# Animasi Awan-Awan Kabut & Nebula (Hanya saat Intro aktif)
+	# Animasi Kabut Asap (Hanya saat Intro aktif)
 	if current_state in [State.TYPING_QUOTE, State.WAIT_AUTHOR, State.TYPING_AUTHOR, State.HOLD_QUOTE, State.HOLD]:
 		for item in fog_items:
-			var n: Panel = item["node"]
+			var n: Node2D = item["node"]
+			var dir: float = item.get("dir", 1.0)
+			var l: float = item.get("length", 800.0)
 			item["pos"].x += item["speed"] * delta
-			item["pos"].y += sin(anim_time * 0.75 + item["phase"]) * 14.0 * delta
-			if item["pos"].x > vp_size.x + item["radius"] * 2.5:
-				item["pos"].x = -item["radius"] * 2.5
-				item["pos"].y = randf_range(20.0, vp_size.y - 80.0)
+			item["pos"].y += sin(anim_time * item.get("wave_freq", 1.0) + item["phase"]) * 10.0 * delta
+
+			if dir > 0.0 and item["pos"].x > vp_size.x + l * 0.6:
+				item["pos"].x = -l * 0.6
+				item["pos"].y = randf_range(40.0, vp_size.y - 40.0)
+			elif dir < 0.0 and item["pos"].x < -l * 0.6:
+				item["pos"].x = vp_size.x + l * 0.6
+				item["pos"].y = randf_range(40.0, vp_size.y - 40.0)
+
 			if is_instance_valid(n):
 				n.position = item["pos"]
+				# Gelombang bernafas alami pada kabut asap
+				var s_y = 1.0 + 0.12 * sin(anim_time * 1.4 + item["phase"])
+				n.scale = Vector2(1.0, s_y)
 
 		if is_instance_valid(nebula_center):
-			nebula_center.position = Vector2(vp_size.x * 0.5 - 480.0, vp_size.y * 0.5 - 290.0)
-			var s = 1.0 + 0.06 * sin(anim_time * 1.8)
-			nebula_center.scale = Vector2(s, s)
+			nebula_center.modulate.a = 0.85 + 0.15 * sin(anim_time * 0.9)
 
 	# Denyut Kedip Label Skip Hint
 	if is_instance_valid(skip_hint_label):
