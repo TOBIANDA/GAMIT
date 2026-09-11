@@ -116,6 +116,15 @@
 		"x": 355.0,
 		"y": 56.0
 	},
+	"jam_weker": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Jam Weker di Nakas",
+		"rot": 0.0,
+		"scale": 0.55,
+		"x": 355.0,
+		"y": 50.0
+	},
 	"set_masak": {
 		"flip_x": false,
 		"flip_y": false,

@@ -1528,7 +1528,7 @@ func _check_poi_proximity() -> void:
 			active_poi_id = "indoor_safe"
 		elif p_pos.distance_to(photo_basin_pos) <= 42.0:
 			active_poi_id = "indoor_photo_basin"
-		elif p_pos.distance_to(clock_pos) <= 45.0:
+		elif p_pos.distance_to(clock_pos) <= 52.0:
 			active_poi_id = "indoor_clock"
 		elif p_pos.distance_to(exit_door_pos) <= 38.0 or (p_pos.y >= (400.0 + 245.0) and abs(p_pos.x - (3600.0 + 85.0)) <= 35.0):
 			active_poi_id = "indoor_exit"
@@ -1653,8 +1653,9 @@ func _check_poi_proximity() -> void:
 			interact_prompt.visible = false
 	else:
 		if is_instance_valid(interact_prompt):
-			var poi_info = POI_LOCATIONS[active_poi_id]
-			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_info["name"]
+			var poi_info = POI_LOCATIONS.get(active_poi_id, {})
+			var poi_name = poi_info.get("name", active_poi_id)
+			var custom_text = "[ F / E / Spasi ] KLIK / TEKAN: " + poi_name
 			if active_poi_id == "mother_house":
 				custom_text = "[ F / E / Spasi ] MASUK KE RUMAH IBU KORBAN"
 			elif active_poi_id == "locked_civilian_house":

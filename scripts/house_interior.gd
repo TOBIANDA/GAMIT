@@ -171,9 +171,9 @@ var default_furniture_config: Dictionary = {
 		"type": "sprite",
 		"tex": "tex_jam_weker",
 		"x": 355.0, "y": 50.0,
-		"scale": 0.45,
+		"scale": 0.55,
 		"base_w": 28.0,
-		"has_col": true,
+		"has_col": false,
 		"col_w": 14.0, "col_h": 14.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 2,
@@ -350,6 +350,8 @@ func _load_textures() -> void:
 	tex_berangkas = load("res://Environment/interactable assets/berangkas.png")
 	tex_baskom = load("res://Environment/interactable assets/baskom cetak photo.png")
 	tex_jam_weker = load("res://Environment/RUMAH IBU/jam weker.png")
+	if not tex_jam_weker:
+		tex_jam_weker = load("res://RUMAH IBU/jam weker.png")
 
 func _get_texture_by_name(tex_name: String) -> Texture2D:
 	match tex_name:
@@ -528,15 +530,24 @@ func _apply_config_dict(parsed: Dictionary) -> void:
 			furniture_config["kulkas"]["y"] = ky
 			furniture_config["kulkas"]["scale"] = ks
 
-	# Hapus item yang tidak ada di save file
-	var to_remove = []
-	for id in furniture_config.keys():
-		if not parsed.has(id):
-			to_remove.append(id)
-	for id in to_remove:
-		furniture_config.erase(id)
+	# Hapus item yang secara eksplisit dihapus oleh pemain jika tercatat di _deleted_items
+	if parsed.has("_deleted_items") and parsed["_deleted_items"] is Array:
+		for del_id in parsed["_deleted_items"]:
+			if furniture_config.has(del_id):
+				furniture_config.erase(del_id)
+	else:
+		# Jika file config lama (belum ada _deleted_items), pertahankan item default (seperti jam_weker)
+		# dan hanya hapus custom item yang tidak dikenal
+		var to_remove = []
+		for id in furniture_config.keys():
+			if not parsed.has(id) and not default_furniture_config.has(id):
+				to_remove.append(id)
+		for id in to_remove:
+			furniture_config.erase(id)
 
 	for id in parsed.keys():
+		if id == "_deleted_items":
+			continue
 		if furniture_config.has(id):
 			var item = parsed[id]
 			if item.has("x"): furniture_config[id]["x"] = float(item["x"])
@@ -594,6 +605,12 @@ func save_furniture_config() -> void:
 			"flip_x": bool(item.get("flip_x", false)),
 			"flip_y": bool(item.get("flip_y", false))
 		}
+	var deleted_list: Array = []
+	for def_id in default_furniture_config.keys():
+		if not furniture_config.has(def_id):
+			deleted_list.append(def_id)
+	if not deleted_list.is_empty():
+		save_dict["_deleted_items"] = deleted_list
 	var json_str = JSON.stringify(save_dict, "\t")
 
 	var dir = DirAccess.open("res://")
