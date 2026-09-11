@@ -1876,8 +1876,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				var photo_lines: Array[String] = [
 					"Sebuah kalender tua dan foto berbingkai perak... Ini foto Ibu Medeline menggendongku sewaktu masih kecil.",
 					"Di balik bingkai foto ada tulisan tangan ibu yang lembut:",
-					"'Untuk anakku tersayang Benedict, jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.'",
-					"'Kombinasi brankas keluarga tersimpan pada detik saat waktu kita membeku (1-6-4).'"
+					"'Untuk anakku tersayang, jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.'"
 				]
 				dialog_box.start_monologue(photo_lines, "Detektif Benedict", "[ Kenangan Ibu Medeline ]", "res://karakter/MC_Kaget.png")
 
@@ -1885,9 +1884,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			if is_instance_valid(dialog_box):
 				var recipe_lines: Array[String] = [
 					"Buku resep masakan tua bersampul kain dan selembar catatan tulisan tangan...",
-					"Halaman buku ini terbuka di menu sup hangat kesukaanku.",
-					"Catatan di sampingnya berbunyi: 'Ibu selalu menyisihkan sepiring hangat untuk Benedict sepulang bertugas.'",
-					"Dadaku terasa sesak... Kenangan hangat ini begitu nyata, meski ragaku terasa begitu dingin."
+					"Halaman buku ini terbuka di menu sup hangat kesukaan anaknya.",
+					"Catatan di sampingnya berbunyi: 'Ibu selalu menyisihkan sepiring hangat untuk anaknya sepulang bertugas.'"
 				]
 				dialog_box.start_monologue(recipe_lines, "Detektif Benedict", "[ Buku Resep Ibu ]", "res://karakter/MC_Bingung.png")
 
@@ -1907,27 +1905,6 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				player.can_move = false
 				minigame_safe.start_minigame()
 				_show_toast("Membuka Brankas Baja Keluarga!" if not bypass_story else "[Fitur Beta] Bypass: Membuka Brankas Baja Keluarga!")
-
-		"indoor_photo_basin":
-			if not bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
-				_show_toast("Alur Cerita Terkunci: Belum ada rol foto dari stasiun! (Tekan [Y] untuk bypass fitur beta)")
-				if is_instance_valid(dialog_box):
-					var lines: Array[String] = [
-						"Baskom larutan kimia kamar gelap ini masih kosong.",
-						"Aku belum menemukan rol film foto ataupun bukti kasus di stasiun.",
-						"Aku harus menyelidiki kasus dan mencari bukti di stasiun terlebih dahulu."
-					]
-					dialog_box.start_monologue(lines, "Detektif Benedict", "[ Kamar Gelap ]", "res://karakter/MC_Bingung.png")
-				return
-			if is_instance_valid(minigame_photo_wash):
-				if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
-					inv_mgr.unlock_clue("photo_envelope")
-				player.can_move = false
-				minigame_photo_wash.start_minigame()
-				_show_toast("Masuk ke Kamar Gelap: Cuci Foto Polaroid!" if not bypass_story else "[Fitur Beta] Bypass: Masuk ke Kamar Gelap Cuci Foto!")
-
-		"indoor_stairs":
-			_show_toast("Tangga: Menuju ruang arsip & loteng lantai atas (terkunci).")
 
 		"indoor_exit":
 			_exit_house()
