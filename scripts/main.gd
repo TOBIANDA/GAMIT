@@ -43,6 +43,8 @@ var house_interior: Node2D
 var is_inside_house: bool = false
 var exploration_house_interior: Node2D
 var is_inside_exploration_house: bool = false
+var hospital_interior: Node2D
+var is_inside_hospital: bool = false
 var transition_overlay: ColorRect
 var transition_layer: CanvasLayer
 
@@ -96,6 +98,7 @@ func _ready() -> void:
 	_setup_transition_overlay()
 	_setup_house_interior()
 	_setup_exploration_house_interior()
+	_setup_hospital_interior()
 	_setup_investigation_manager()
 	_setup_world_shader()
 	_setup_clue_journal()
@@ -402,6 +405,92 @@ func _exit_house() -> void:
 	tw.tween_callback(func():
 		player.can_move = true
 		input_grace_timer = 0.35
+	)
+
+
+func _setup_hospital_interior() -> void:
+	var hi_script = load("res://scripts/hospital_interior.gd")
+	if hi_script:
+		hospital_interior = Node2D.new()
+		hospital_interior.name = "HospitalInterior"
+		hospital_interior.set_script(hi_script)
+		hospital_interior.visible = is_inside_hospital
+		add_child(hospital_interior)
+		hospital_interior.exit_requested.connect(_exit_hospital)
+		hospital_interior.hospital_completed.connect(_on_hospital_completed)
+
+func _enter_hospital() -> void:
+	if not is_instance_valid(player):
+		return
+	player.can_move = false
+	input_grace_timer = 0.35
+	play_door_sfx()
+
+	var tw = create_tween()
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
+	tw.tween_callback(func():
+		is_inside_hospital = true
+		is_inside_house = false
+		is_inside_exploration_house = false
+		if is_instance_valid(hospital_interior):
+			hospital_interior.visible = true
+			if hospital_interior.has_method("start_hospital"):
+				hospital_interior.start_hospital()
+		if is_instance_valid(house_interior):
+			house_interior.visible = false
+		if is_instance_valid(exploration_house_interior):
+			exploration_house_interior.visible = false
+		player.global_position = Vector2(7000.0 + 100.0, 400.0 + 520.0)
+		if player.has_method("setup_camera_limits"):
+			player.setup_camera_limits(6980, 380, 7000 + 2030, 400 + 1150)
+		if player.has_method("reset_camera_smoothing"):
+			player.reset_camera_smoothing()
+		_show_toast("Masuk ke Lorong Rumah Sakit & Ruang Jenazah.")
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		player.can_move = true
+		input_grace_timer = 0.35
+	)
+
+func _exit_hospital() -> void:
+	if not is_instance_valid(player):
+		return
+	player.can_move = false
+	input_grace_timer = 0.35
+	play_door_sfx()
+
+	var tw = create_tween()
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.20)
+	tw.tween_callback(func():
+		is_inside_hospital = false
+		if is_instance_valid(hospital_interior):
+			hospital_interior.visible = false
+			if hospital_interior.has_method("stop_hospital"):
+				hospital_interior.stop_hospital()
+		player.global_position = Vector2(750.0, 1150.0)
+		if player.has_method("setup_camera_limits"):
+			player.setup_camera_limits(0, 0, 2400, 1450)
+		if player.has_method("reset_camera_smoothing"):
+			player.reset_camera_smoothing()
+		_show_toast("Keluar ke Halaman Rumah Sakit.")
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.25)
+	tw.tween_callback(func():
+		player.can_move = true
+		input_grace_timer = 0.35
+	)
+
+func _on_hospital_completed() -> void:
+	if is_instance_valid(player):
+		player.can_move = false
+	_show_toast("✦ Jiwamu Ditarik Menuju Pengadilan Dewa Kematian... ✦")
+	play_afterlife_music()
+	var tw = create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_callback(func():
+		if is_instance_valid(death_god_layer) and death_god_layer.has_method("open_interface"):
+			death_god_layer.open_interface()
 	)
 
 func _setup_exploration_house_interior() -> void:
@@ -1323,6 +1412,12 @@ func _check_poi_proximity() -> void:
 				interact_prompt.visible = true
 		return
 
+	elif is_inside_hospital:
+		active_poi_id = ""
+		if is_instance_valid(interact_prompt):
+			interact_prompt.visible = false
+		return
+
 	elif is_inside_exploration_house:
 		var expl_exit_pos = exploration_house_interior.get_exit_door_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_exit_door_pos") else Vector2(4600.0 + 110.0, 400.0 + 400.0)
 		var expl_safe_pos = exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 280.0, 400.0 + 75.0)
@@ -1543,6 +1638,12 @@ func _trigger_beta_bypass_interaction() -> void:
 				if d < closest_dist:
 					closest_dist = d
 					target_poi = k
+		elif is_inside_hospital:
+			active_poi_id = ""
+			if is_instance_valid(interact_prompt):
+				interact_prompt.visible = false
+			return
+
 		elif is_inside_exploration_house:
 			var expl_pois = {
 				"indoor_expl_safe": Vector2(4600.0 + 280.0, 400.0 + 75.0),
@@ -1755,7 +1856,10 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 					dialog_box.start_monologue(recep_lines, "Penyelidikan RS", "[ Akses Ditolak ]", "res://karakter/MC_Bingung.png")
 					_show_toast("Akses Resmi Ditolak: Menyelinap ke Kamar Jenazah!")
 			else:
-				if is_instance_valid(morgue_inspection):
+				if is_instance_valid(hospital_interior):
+					_enter_hospital()
+					_show_toast("Menyelinap ke Lorong Kamar Jenazah..." if not bypass_story else "[Fitur Beta] Bypass: Masuk ke Lorong RS!")
+				elif is_instance_valid(morgue_inspection):
 					if is_inside_house:
 						_exit_house()
 					if is_inside_exploration_house:
