@@ -61,7 +61,8 @@ Jam berapa jarum waktu kota membeku saat detik terakhir hidupmu?",
 			{"text": "B. Pukul 16:04 Sore", "correct": true},
 			{"text": "C. Pukul 19:30 Malam", "correct": false}
 		],
-		"correct_feedback": "✦ Tepat. Pukul 16:04... saat itulah denyut jantungmu di dunia berhenti berdetak."
+		"correct_feedback": "✦ Tepat (+25 Poin). Pukul 16:04... saat itulah denyut jantungmu di dunia fana berhenti berdetak.",
+		"wrong_feedback": "✦ Keliru (+0 Poin). Jarum jam yang membeku di kota sesungguhnya menunjukkan pukul 16:04 sore..."
 	},
 	{
 		"q": "Pertanyaan Kedua:
@@ -71,7 +72,8 @@ Mengapa orang-orang yang kau sapa di jalanan bergidik dingin dan tak menyahut?",
 			{"text": "B. Karena ragamu sudah tiada — mereka hanya merasakan hawa dingin arwahmu", "correct": true},
 			{"text": "C. Karena angin musim gugur bertiup kencang", "correct": false}
 		],
-		"correct_feedback": "✦ Benar. Manusia fana hanya merasakan hawa dingin menusuk saat arwahmu melintas."
+		"correct_feedback": "✦ Benar (+25 Poin). Manusia fana hanya merasakan hawa dingin menusuk saat arwahmu melintas.",
+		"wrong_feedback": "✦ Keliru (+0 Poin). Mereka menggigil bukan karena cuaca, melainkan hawa dingin arwahmu yang telah tiada..."
 	},
 	{
 		"q": "Pertanyaan Ketiga:
@@ -81,7 +83,8 @@ Siapakah sosok korban sebenarnya yang tercetak di foto peron dan terbaring di pe
 			{"text": "B. Inspektur Marcus dari kepolisian", "correct": false},
 			{"text": "C. Diriku sendiri... Detektif Benedict", "correct": true}
 		],
-		"correct_feedback": "✦ Kau akhirnya berani mengakui kenyataan ini. Seluruh penyelidikanmu adalah pencarian jiwa atas jasadmu sendiri."
+		"correct_feedback": "✦ Tepat (+25 Poin). Kau berani mengakui kenyataan bahwa seluruh penyelidikanmu adalah pencarian atas jasadmu sendiri.",
+		"wrong_feedback": "✦ Keliru (+0 Poin). Jasad bernomor 040 yang terbaring kaku di ruang jenazah itu sesungguhnya adalah dirimu sendiri, Benedict..."
 	},
 	{
 		"q": "Pertanyaan Terakhir (Penerimaan Jiwa):
@@ -90,7 +93,8 @@ Bagaimana sikapmu sekarang terhadap takdir kematianmu?",
 			{"text": "A. Aku ikhlas menerima kematianku. Tugas dan penyelidikanku telah tuntas, aku siap beristirahat dalam damai.", "correct": true},
 			{"text": "B. Aku masih menolak dan ingin kembali ke dunia orang hidup.", "correct": false}
 		],
-		"correct_feedback": "✦ Jiwamu telah ikhlas dan damai. Ikatan penyesalan di dunia fana kini terlepas selamanya..."
+		"correct_feedback": "✦ Ikhlas dan Damai (+25 Poin). Ikatan penyesalan di dunia fana kini terlepas selamanya...",
+		"wrong_feedback": "✦ Masih Terikat (+0 Poin). Jiwamu masih menyimpan sisa penolakan... Namun benang takdir dunia fana telah terputus."
 	}
 ]
 
@@ -582,7 +586,7 @@ func _display_current_question() -> void:
 
 	var q_data = QUESTIONS[current_question_idx]
 	prompt_label.text = q_data["q"]
-	progress_label.text = "Pertanyaan %d dari %d" % [current_question_idx + 1, QUESTIONS.size()]
+	progress_label.text = "✦ Pertanyaan %d dari %d • Poin Jiwa: %d / 100 ✦" % [current_question_idx + 1, QUESTIONS.size(), correct_answers_count * 25]
 	feedback_label.text = ""
 
 	for child in options_container.get_children():
@@ -593,6 +597,7 @@ func _display_current_question() -> void:
 		btn.text = opt["text"]
 		btn.custom_minimum_size = Vector2(0, 42)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var b_style = StyleBoxFlat.new()
 		b_style.bg_color = Color(0.10, 0.07, 0.18, 0.95)
 		b_style.border_color = Color(0.45, 0.35, 0.65, 0.8)
@@ -607,45 +612,81 @@ func _display_current_question() -> void:
 		h_style.border_color = Color(0.75, 0.55, 1.0, 1.0)
 		btn.add_theme_stylebox_override("hover", h_style)
 
-		btn.pressed.connect(func(): _on_option_selected(opt["correct"], q_data["correct_feedback"]))
+		var is_corr: bool = opt.get("correct", false)
+		var c_fb: String = q_data.get("correct_feedback", "")
+		var w_fb: String = q_data.get("wrong_feedback", "")
+		btn.pressed.connect(func(): _on_option_selected(is_corr, c_fb, w_fb))
 		options_container.add_child(btn)
 
-func _on_option_selected(is_correct: bool, feedback: String) -> void:
+func _on_option_selected(is_correct: bool, feedback: String, wrong_feedback: String = "") -> void:
+	# Kunci semua tombol opsi agar pemain tidak bisa spam klik
+	for btn in options_container.get_children():
+		if btn is Button:
+			btn.disabled = true
+
 	if is_correct:
+		correct_answers_count += 1
 		feedback_label.text = feedback
 		feedback_label.add_theme_color_override("font_color", Color(0.4, 0.95, 0.6))
-		correct_answers_count += 1
-		for btn in options_container.get_children():
-			if btn is Button:
-				btn.disabled = true
-
-		var tw = create_tween()
-		tw.tween_interval(1.8)
-		tw.tween_callback(func():
-			current_question_idx += 1
-			_display_current_question()
-		)
 	else:
-		feedback_label.text = "Dewa Kematian menggeleng perlahan: 'Bukan itu yang sesungguhnya terjadi... renungkanlah bukti yang telah kau temui.'"
-		feedback_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		feedback_label.text = wrong_feedback if not wrong_feedback.is_empty() else "✦ Keliru (+0 Poin). Dewa Kematian mencatat keraguan jiwamu..."
+		feedback_label.add_theme_color_override("font_color", Color(1.0, 0.50, 0.50))
+
+	progress_label.text = "✦ Pertanyaan %d dari %d • Poin Jiwa: %d / 100 ✦" % [current_question_idx + 1, QUESTIONS.size(), correct_answers_count * 25]
+
+	# Tetap maju ke pertanyaan berikutnya baik jawaban benar maupun salah!
+	var tw = create_tween()
+	tw.tween_interval(1.5)
+	tw.tween_callback(func():
+		current_question_idx += 1
+		_display_current_question()
+	)
 
 func _show_peaceful_ascension() -> void:
 	is_ending_screen = true
 	for child in options_container.get_children():
 		child.queue_free()
 
-	progress_label.text = "✦ Ujian Jiwa Selesai ✦"
-	prompt_label.text = "✦ KEPUTUSAN SANG DEWA KEMATIAN ✦\n\n'Seluruh misteri telah terurai, Benedict. Kau telah memecahkan teka-teki terakhirmu: kematian dirimu sendiri.\n\nTidak ada lagi penyesalan, tidak ada lagi rasa dingin yang membelenggu. Jiwamu kini ikhlas dan damai. Melangkahlah menuju cahaya peristirahatan abadi.'"
+	var total_q: int = QUESTIONS.size()
+	var total_points: int = correct_answers_count * 25
+	var score_pct: int = int((float(correct_answers_count) / float(total_q)) * 100.0)
 
-	feedback_label.text = "ARWAH BENEDICT IKHLAS DAN DAMAI MENUJU AFTERLIFE "
-	feedback_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.4))
+	var eval_title: String = ""
+	var eval_desc: String = ""
+	var badge_color: Color = Color(1.0, 0.85, 0.4)
+
+	if correct_answers_count == total_q:
+		eval_title = "PENERIMAAN SEMPURNA"
+		eval_desc = "'Seluruh misteri telah kau urai dengan sempurna, Benedict. Kau telah memecahkan teka-teki terakhirmu: kematian dirimu sendiri tanpa ada keraguan sedikit pun.\n\nTidak ada lagi penyesalan, tidak ada lagi belenggu fana. Jiwamu murni, ikhlas, dan damai seutuhnya. Melangkahlah menuju cahaya peristirahatan abadi.'"
+		badge_color = Color(0.4, 0.95, 0.6)
+	elif correct_answers_count >= 2:
+		eval_title = "PENERIMAAN BAIK"
+		eval_desc = "'Sebagian besar bukti telah kau pahami dengan baik, Benedict. Walau ada keraguan yang sempat melintas, jiwamu pada akhirnya mampu menerima kebenaran ini.\n\nTugas penyelidikanmu di dunia orang hidup telah purna. Damailah jiwamu di alam keabadian.'"
+		badge_color = Color(0.95, 0.85, 0.4)
+	else:
+		eval_title = "PENERIMAAN DENGAN KERAGUAN"
+		eval_desc = "'Jiwamu masih diliputi rasa bingung dan penolakan atas apa yang menimpa dirimu. Namun waktu fana tak lagi dapat diputar kembali.\n\nDewa Kematian membimbingmu melangkah melewati pintu keabadian untuk melepaskan sisa beban duniawi.'"
+		badge_color = Color(1.0, 0.60, 0.60)
+
+	progress_label.text = "✦ Penghakiman Jiwa Selesai ✦"
+	prompt_label.text = "✦ KEPUTUSAN SANG DEWA KEMATIAN ✦\n\n• Skor Investigasi Jiwa: %d / 100 Poin (%d dari %d Soal Benar — %d%%)\n• Status Penerimaan: %s\n\n%s" % [
+		total_points,
+		correct_answers_count,
+		total_q,
+		score_pct,
+		eval_title,
+		eval_desc
+	]
+
+	feedback_label.text = "TOTAL POIN INVESTIGASI: %d / 100 POIN (%s)" % [total_points, eval_title]
+	feedback_label.add_theme_color_override("font_color", badge_color)
 
 	var victory_btn = Button.new()
-	victory_btn.text = "MELANGKAH MENUJU AFTERLIFE DENGAN DAMAI "
+	victory_btn.text = "MELANGKAH MENUJU AFTERLIFE DENGAN DAMAI ✦"
 	victory_btn.custom_minimum_size = Vector2(0, 50)
 	var vb_style = StyleBoxFlat.new()
 	vb_style.bg_color = Color(0.25, 0.18, 0.42, 0.98)
-	vb_style.border_color = Color(1.0, 0.85, 0.4, 1.0)
+	vb_style.border_color = badge_color
 	vb_style.set_border_width_all(2)
 	vb_style.set_corner_radius_all(10)
 	victory_btn.add_theme_stylebox_override("normal", vb_style)
@@ -698,6 +739,14 @@ func _display_final_credits() -> void:
 	t2.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
 	t2.add_theme_font_size_override("font_size", 15)
 	vb.add_child(t2)
+
+	var t_score = Label.new()
+	var total_points: int = correct_answers_count * 25
+	t_score.text = "Skor Akhir Investigasi Jiwa: %d / 100 Poin (%d/%d Benar)" % [total_points, correct_answers_count, QUESTIONS.size()]
+	t_score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t_score.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
+	t_score.add_theme_font_size_override("font_size", 17)
+	vb.add_child(t_score)
 
 	var sep = HSeparator.new()
 	sep.custom_minimum_size = Vector2(380, 20)
