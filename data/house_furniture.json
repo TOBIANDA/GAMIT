@@ -1,182 +1,155 @@
 {
-    "baskom_foto": {
-        "name": "Baskom Cuci Foto",
-        "scale": 1.0,
-        "x": 255.0,
-        "y": 243.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "bed": {
-        "name": "Ranjang Tidur (Bed)",
-        "scale": 1.1,
-        "x": 310.0,
-        "y": 72.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "brankas": {
-        "name": "Brankas Baja Keluarga",
-        "scale": 1.0,
-        "x": 150.0,
-        "y": 52.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "jam_weker": {
-        "name": "Jam Weker di Nakas",
-        "scale": 0.45,
-        "x": 355.0,
-        "y": 50.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "karpet_kamar": {
-        "name": "Karpet Kamar Tidur",
-        "scale": 1.0,
-        "x": 310.0,
-        "y": 110.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "karpet_tamu": {
-        "name": "Karpet Ruang Tamu",
-        "scale": 1.0,
-        "x": 65.0,
-        "y": 110.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "keset_pintu": {
-        "name": "Keset Pintu Keluar",
-        "scale": 1.0,
-        "x": 85.0,
-        "y": 280.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "kulkas": {
-        "name": "Kulkas Dapur",
-        "scale": 1.0,
-        "x": 380.0,
-        "y": 219.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "kursi_detektif": {
-        "name": "Kursi Kerja Detektif",
-        "scale": 1.0,
-        "x": 195.0,
-        "y": 48.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "lemari": {
-        "name": "Lemari Pakaian Kayu",
-        "scale": 1.2,
-        "x": 405.0,
-        "y": 68.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "meja_detektif": {
-        "name": "Meja Kerja Detektif",
-        "scale": 1.0,
-        "x": 195.0,
-        "y": 72.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "meja_lab_foto": {
-        "name": "Meja Lab Cuci Foto",
-        "scale": 1.0,
-        "x": 255.0,
-        "y": 245.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "meja_panjang": {
-        "name": "Meja Kopi Ruang Tamu",
-        "scale": 1.0,
-        "x": 65.0,
-        "y": 110.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "meja_sudut_tamu": {
-        "name": "Meja Hias / Vas Bunga",
-        "scale": 1.0,
-        "x": 32.0,
-        "y": 48.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "nakas_kamar": {
-        "name": "Nakas Samping Kasur",
-        "scale": 1.0,
-        "x": 355.0,
-        "y": 56.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "partisi_tamu": {
-        "name": "Partisi Garis Tiang",
-        "scale": 2.4,
-        "x": 127.0,
-        "y": 23.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "set_masak": {
-        "name": "Set Masak / Meja Dapur",
-        "scale": 1.0,
-        "x": 328.0,
-        "y": 221.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "sofa_kecil": {
-        "name": "Armchair Tamu",
-        "scale": 1.0,
-        "x": 42.0,
-        "y": 145.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "sofa_panjang": {
-        "name": "Sofa Tamu Hijau",
-        "scale": 1.0,
-        "x": 65.0,
-        "y": 75.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    },
-    "surat": {
-        "name": "Surat Penugasan di Meja",
-        "scale": 1.0,
-        "x": 195.0,
-        "y": 72.0,
-        "rot": 0.0,
-        "flip_x": false,
-        "flip_y": false
-    }
+	"baskom_foto": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Baskom Cuci Foto",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 255.0,
+		"y": 243.0
+	},
+	"bed": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Ranjang Tidur (Bed)",
+		"rot": 0.0,
+		"scale": 1.1,
+		"x": 310.0,
+		"y": 72.0
+	},
+	"karpet_kamar": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Karpet Kamar Tidur",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 310.0,
+		"y": 110.0
+	},
+	"karpet_tamu": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Karpet Ruang Tamu",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 147.0,
+		"y": 193.0
+	},
+	"keset_pintu": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Keset Pintu Keluar",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 85.0,
+		"y": 280.0
+	},
+	"kulkas": {
+		"flip_x": true,
+		"flip_y": false,
+		"name": "Kulkas Dapur",
+		"rot": 0.0,
+		"scale": 0.8,
+		"x": 362.0,
+		"y": 224.0
+	},
+	"kursi_detektif": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Kursi Kerja Detektif",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 195.0,
+		"y": 48.0
+	},
+	"lemari": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Lemari Pakaian Kayu",
+		"rot": 0.0,
+		"scale": 1.2,
+		"x": 405.0,
+		"y": 68.0
+	},
+	"meja_detektif": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Meja Kerja Detektif",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 195.0,
+		"y": 72.0
+	},
+	"meja_lab_foto": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Meja Lab Cuci Foto",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 255.0,
+		"y": 245.0
+	},
+	"meja_panjang": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Meja Kopi Ruang Tamu",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 54.0,
+		"y": 98.0
+	},
+	"meja_sudut_tamu": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Meja Hias / Vas Bunga",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 104.0,
+		"y": 61.0
+	},
+	"nakas_kamar": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Nakas Samping Kasur",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 355.0,
+		"y": 56.0
+	},
+	"set_masak": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Set Masak / Meja Dapur",
+		"rot": 0.0,
+		"scale": 0.9,
+		"x": 414.0,
+		"y": 231.0
+	},
+	"sofa_kecil": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Armchair Tamu",
+		"rot": 0.0,
+		"scale": 1.35,
+		"x": 101.0,
+		"y": 92.0
+	},
+	"sofa_panjang": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Sofa Tamu Hijau",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 56.0,
+		"y": 55.0
+	},
+	"surat": {
+		"flip_x": false,
+		"flip_y": false,
+		"name": "Surat Penugasan di Meja",
+		"rot": 0.0,
+		"scale": 1.0,
+		"x": 195.0,
+		"y": 72.0
+	}
 }
