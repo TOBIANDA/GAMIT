@@ -73,6 +73,12 @@ func _ready() -> void:
 	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN and DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
+	var root_win = get_tree().root
+	if is_instance_valid(root_win):
+		root_win.content_scale_size = Vector2i(1600, 900)
+		root_win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root_win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+
 	_setup_audio_system()
 	_setup_dialog_box()
 	_setup_death_god_shrine()
@@ -1077,48 +1083,6 @@ func _setup_hud_prompts() -> void:
 	toast_label.add_theme_font_size_override("font_size", 14)
 	toast_banner.add_child(toast_label)
 
-	# Tombol Fullscreen di pojok kanan atas HUD
-	fullscreen_btn = Button.new()
-	fullscreen_btn.text = "Fullscreen [F11]"
-	fullscreen_btn.custom_minimum_size = Vector2(165, 40)
-	fullscreen_btn.focus_mode = Control.FOCUS_NONE
-	fullscreen_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	fullscreen_btn.add_theme_font_size_override("font_size", 13)
-
-	var fb_normal = StyleBoxFlat.new()
-	fb_normal.bg_color = Color(0.06, 0.08, 0.16, 0.88)
-	fb_normal.border_color = Color(0.3, 0.6, 0.9, 0.75)
-	fb_normal.set_border_width_all(1)
-	fb_normal.set_corner_radius_all(8)
-	fb_normal.content_margin_left = 12
-	fb_normal.content_margin_right = 12
-	fb_normal.content_margin_top = 6
-	fb_normal.content_margin_bottom = 6
-	fullscreen_btn.add_theme_stylebox_override("normal", fb_normal)
-
-	var fb_hover = fb_normal.duplicate()
-	fb_hover.bg_color = Color(0.14, 0.24, 0.42, 0.96)
-	fb_hover.border_color = Color(0.6, 0.85, 1.0, 1.0)
-	fullscreen_btn.add_theme_stylebox_override("hover", fb_hover)
-	fullscreen_btn.add_theme_stylebox_override("pressed", fb_hover)
-
-	fullscreen_btn.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
-	fullscreen_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
-
-	fullscreen_btn.anchor_left = 1.0
-	fullscreen_btn.anchor_right = 1.0
-	fullscreen_btn.anchor_top = 0.0
-	fullscreen_btn.anchor_bottom = 0.0
-	fullscreen_btn.offset_left = -240
-	fullscreen_btn.offset_top = 16
-	fullscreen_btn.offset_right = -72
-	fullscreen_btn.offset_bottom = 56
-
-	fullscreen_btn.pressed.connect(func():
-		toggle_fullscreen()
-	)
-	hud_layer.add_child(fullscreen_btn)
-	_update_fullscreen_button_text(_is_fullscreen_now())
 
 	# Detective Case Status HUD Card (Pojok Kiri Atas)
 	detective_hud_panel = PanelContainer.new()

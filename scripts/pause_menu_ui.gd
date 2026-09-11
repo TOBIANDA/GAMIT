@@ -140,7 +140,7 @@ func _build_pause_ui() -> void:
 	root_control.add_child(center)
 
 	menu_box = PanelContainer.new()
-	menu_box.custom_minimum_size = Vector2(440, 480)
+	menu_box.custom_minimum_size = Vector2(460, 510)
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color(0.07, 0.09, 0.13, 0.98)
 	sb.border_color = Color(0.85, 0.70, 0.35, 0.95)
@@ -191,10 +191,10 @@ func _build_pause_ui() -> void:
 	hud_pause_button.anchor_top = 0.0
 	hud_pause_button.anchor_right = 1.0
 	hud_pause_button.anchor_bottom = 0.0
-	hud_pause_button.offset_left = -62
-	hud_pause_button.offset_top = 16
+	hud_pause_button.offset_left = -86
+	hud_pause_button.offset_top = 18
 	hud_pause_button.offset_right = -18
-	hud_pause_button.offset_bottom = 60
+	hud_pause_button.offset_bottom = 86
 	hud_pause_button.focus_mode = Control.FOCUS_NONE
 	hud_pause_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	hud_pause_button.tooltip_text = "Jeda Permainan [ESC / P]"
@@ -204,8 +204,8 @@ func _build_pause_ui() -> void:
 	hud_pause_button.add_theme_stylebox_override("focus", p_empty)
 	
 	var p_hov = StyleBoxFlat.new()
-	p_hov.bg_color = Color(1.0, 1.0, 1.0, 0.15)
-	p_hov.set_corner_radius_all(8)
+	p_hov.bg_color = Color(1.0, 1.0, 1.0, 0.18)
+	p_hov.set_corner_radius_all(14)
 	hud_pause_button.add_theme_stylebox_override("hover", p_hov)
 	hud_pause_button.add_theme_stylebox_override("pressed", p_hov)
 
@@ -222,7 +222,9 @@ func _build_pause_ui() -> void:
 	add_child(hud_pause_button)
 
 	# Buttons
-	btn_resume = _create_menu_button("Lanjutkan Permainan [ESC]", Color(0.2, 0.6, 0.4))
+	btn_resume = _create_menu_button("▶  Lanjutkan Permainan [ESC]", Color(0.18, 0.65, 0.38))
+	btn_resume.custom_minimum_size = Vector2(0, 58)
+	btn_resume.add_theme_font_size_override("font_size", 16)
 	btn_resume.pressed.connect(resume_game)
 	vb.add_child(btn_resume)
 
