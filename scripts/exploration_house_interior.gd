@@ -336,7 +336,6 @@ func _ready() -> void:
 	default_furniture_config = furniture_config.duplicate(true)
 	_load_furniture_config()
 	_setup_furniture_nodes()
-	_setup_editor_ui()
 
 func _load_textures() -> void:
 	# 1. Perabotan Dasar
@@ -1265,54 +1264,5 @@ func _load_furniture_config() -> void:
 					furniture_config[id][k] = saved_data[k]
 		print("[ExplorationHouseInterior] Config perabot berhasil dimuat dari: ", CONFIG_FILE_PATH)
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not is_edit_mode:
-		if event is InputEventKey and event.pressed and not event.is_echo() and event.keycode == KEY_F2:
-			toggle_editor()
-			get_viewport().set_input_as_handled()
-		return
-
-	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.keycode in [KEY_F2, KEY_ESCAPE]:
-			toggle_editor()
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_BRACKETLEFT:
-			_adjust_selected_scale(-0.05)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_BRACKETRIGHT:
-			_adjust_selected_scale(0.05)
-			get_viewport().set_input_as_handled()
-			return
-
-	if event is InputEventMouseButton:
-		var world_mpos = get_global_mouse_position()
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				var hit_id = _find_furniture_at_world_pos(world_mpos)
-				if not hit_id.is_empty():
-					_select_furniture(hit_id)
-					is_dragging_furniture = true
-					var it = furniture_config[hit_id]
-					drag_offset = (ROOM_ORIGIN + Vector2(float(it.x), float(it.y))) - world_mpos
-					get_viewport().set_input_as_handled()
-			else:
-				if is_dragging_furniture:
-					is_dragging_furniture = false
-					save_furniture_config()
-					get_viewport().set_input_as_handled()
-
-	elif event is InputEventMouseMotion and is_dragging_furniture:
-		var world_mpos = get_global_mouse_position()
-		if not selected_furniture_id.is_empty() and furniture_config.has(selected_furniture_id):
-			var new_world_pos = world_mpos + drag_offset
-			var local_pos = new_world_pos - ROOM_ORIGIN
-			local_pos.x = clampf(local_pos.x, 10.0, ROOM_SIZE.x - 10.0)
-			local_pos.y = clampf(local_pos.y, 10.0, ROOM_SIZE.y - 10.0)
-			furniture_config[selected_furniture_id].x = local_pos.x
-			furniture_config[selected_furniture_id].y = local_pos.y
-			_update_furniture_transform(selected_furniture_id)
-			_sync_ui_to_selected_item()
-			queue_redraw()
-			get_viewport().set_input_as_handled()
+func _unhandled_input(_event: InputEvent) -> void:
+	pass

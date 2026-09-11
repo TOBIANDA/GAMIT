@@ -129,7 +129,6 @@ func _ready() -> void:
 	_setup_main_menu()
 	_setup_pause_menu()
 	_setup_hud_prompts()
-	_setup_route_and_zone_editor()
 	_start_ai_server()
 
 	if not cutscene_played and is_instance_valid(inv_mgr):
@@ -143,28 +142,13 @@ func _ready() -> void:
 			player.set_physics_process(false)
 
 func _setup_route_and_zone_editor() -> void:
-	var ed_script = load("res://scripts/route_and_zone_editor.gd")
-	if not ed_script:
-		return
-	route_and_zone_editor = ed_script.new()
-	route_and_zone_editor.name = "RouteAndZoneEditor"
-	add_child(route_and_zone_editor)
-	route_and_zone_editor.config_saved.connect(_on_route_editor_config_saved)
-	route_and_zone_editor.editor_toggled.connect(_on_route_editor_toggled)
+	pass
 
-func _on_route_editor_toggled(is_open: bool) -> void:
-	if is_instance_valid(player):
-		player.can_move = not is_open
-		if is_open:
-			player.velocity = Vector2.ZERO
+func _on_route_editor_toggled(_is_open: bool) -> void:
+	pass
 
 func _on_route_editor_config_saved() -> void:
-	_load_station_trigger_config()
-	var npcs = get_tree().get_nodes_in_group("npcs")
-	for n in npcs:
-		if is_instance_valid(n) and n.has_method("_load_police_route_config"):
-			n.set("_cached_route_config_loaded", false)
-			n._load_police_route_config()
+	pass
 	_show_toast("Konfigurasi Rute & Zona Stasiun berhasil disimpan & diterapkan!")
 
 func _setup_dialog_box() -> void:
@@ -1022,7 +1006,7 @@ func _force_walk_into_station(marcus_npc = null, police_npc = null) -> void:
 	player.can_move = false
 	_show_toast("Menyelinap masuk ke peron stasiun...")
 
-	# Gunakan rute multi-waypoint yang dapat diatur lewat In-Game Editor [F3]
+	# Gunakan rute multi-waypoint yang dapat diatur lewat Konfigurasi Rute Patroli
 	if player.has_method("walk_waypoints") and not mc_station_walk_waypoints.is_empty():
 		player.walk_waypoints(mc_station_walk_waypoints, 75.0)
 		player.cutscene_walk_finished.connect(func():
@@ -1860,12 +1844,12 @@ func _check_poi_proximity() -> void:
 					"indoor_letter":
 						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
-						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
 					"indoor_photo_basin":
 						if inv_mgr.is_clue_unlocked("photo_envelope"):
-							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI FOTO YANG DITEMUKAN DI STASIUN\n[Y] BYPASS CERITA (FITUR BETA)"
+							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI FOTO YANG DITEMUKAN DI STASIUN"
 						else:
-							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA FOTO)\n[Y] BYPASS CERITA (FITUR BETA)"
+							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA FOTO)"
 					"indoor_clock":
 						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER DI NAKAS"
 					"indoor_exit":
@@ -1910,7 +1894,7 @@ func _check_poi_proximity() -> void:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
 					"indoor_expl_safe":
-						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA"
 					"indoor_expl_calendar":
 						interact_prompt.text = "[ F / E / Spasi ] PERIKSA KALENDER IBU KORBAN"
 					"indoor_expl_recipe":
@@ -1983,7 +1967,7 @@ func _check_poi_proximity() -> void:
 					auto_police_escort_triggered = true
 					if is_instance_valid(interact_prompt):
 						interact_prompt.visible = false
-					_trigger_poi_interaction("police", false)
+					_trigger_poi_interaction("police")
 					return
 
 				if inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME and not inv_mgr.is_clue_unlocked("victim_letter"):
@@ -2005,10 +1989,7 @@ func _check_poi_proximity() -> void:
 				else:
 					custom_text = "[ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
 			
-			if active_poi_id in ["police", "police_darkroom", "station", "hospital", "safe"]:
-				interact_prompt.text = custom_text + "\n[Y] BYPASS CERITA (FITUR BETA)"
-			else:
-				interact_prompt.text = custom_text
+			interact_prompt.text = custom_text
 
 			var vp = get_viewport().get_visible_rect().size
 			interact_prompt.custom_minimum_size = Vector2(520, 56)
@@ -2017,34 +1998,8 @@ func _check_poi_proximity() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.keycode == KEY_F2:
-			if is_inside_exploration_house and is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("toggle_editor"):
-				exploration_house_interior.toggle_editor()
-				get_viewport().set_input_as_handled()
-				return
-			elif is_inside_house and is_instance_valid(house_interior) and house_interior.has_method("toggle_editor"):
-				house_interior.toggle_editor()
-				get_viewport().set_input_as_handled()
-				return
-
 		if event.keycode == KEY_F11 or (event.alt_pressed and event.keycode == KEY_ENTER):
 			toggle_fullscreen()
-			get_viewport().set_input_as_handled()
-			return
-
-		# Shortcut Fitur Versi Beta: Panggil Dewa Kematian
-		if event.keycode == KEY_X:
-			if is_instance_valid(dialog_box) and dialog_box.is_active:
-				dialog_box.close_dialog()
-			_trigger_death_god()
-			get_viewport().set_input_as_handled()
-			return
-
-		# Shortcut Fitur Versi Beta: Bypass Pembatas Cerita & Paksa Main Minigame
-		if event.keycode == KEY_Y:
-			if is_instance_valid(dialog_box) and dialog_box.is_active:
-				dialog_box.close_dialog()
-			_trigger_beta_bypass_interaction()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -2079,7 +2034,7 @@ func _input(event: InputEvent) -> void:
 
 		if event.keycode in [KEY_F, KEY_E, KEY_SPACE, KEY_ENTER]:
 			if not active_poi_id.is_empty():
-				_trigger_poi_interaction(active_poi_id, false)
+				_trigger_poi_interaction(active_poi_id)
 				get_viewport().set_input_as_handled()
 				return
 		elif event.keycode == KEY_J:
@@ -2097,56 +2052,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 
-func _trigger_beta_bypass_interaction() -> void:
-	# Fitur Versi Beta: Membuka paksa minigame/interaksi pada lokasi saat ini mengabaikan batasan cerita
-	var target_poi = active_poi_id
-	if target_poi.is_empty():
-		var p_pos = player.global_position if is_instance_valid(player) else Vector2.ZERO
-		var closest_dist = 320.0
-		if is_inside_house:
-			var house_pois = {
-				"indoor_letter": Vector2(3600.0 + 110.0, 400.0 - 20.0),
-				"indoor_safe": Vector2(3600.0 + 350.0, 400.0 - 80.0),
-				"indoor_photo_basin": Vector2(3600.0 + 260.0, 400.0 + 250.0)
-			}
-			for k in house_pois.keys():
-				var d = p_pos.distance_to(house_pois[k])
-				if d < closest_dist:
-					closest_dist = d
-					target_poi = k
-		elif is_inside_hospital:
-			active_poi_id = ""
-			if is_instance_valid(interact_prompt):
-				interact_prompt.visible = false
-			return
-
-		elif is_inside_exploration_house:
-			var expl_pois = {
-				"indoor_expl_safe": exploration_house_interior.get_safe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_safe_pos") else Vector2(4600.0 + 150.0, 400.0 + 52.0),
-				"indoor_expl_photo": exploration_house_interior.get_calendar_photo_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_calendar_photo_pos") else Vector2(4600.0 + 195.0, 400.0 + 72.0),
-				"indoor_expl_recipe": exploration_house_interior.get_recipe_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_recipe_pos") else Vector2(4600.0 + 260.0, 400.0 + 245.0),
-				"indoor_expl_clock": exploration_house_interior.get_clock_pos() if is_instance_valid(exploration_house_interior) and exploration_house_interior.has_method("get_clock_pos") else Vector2(4600.0 + 355.0, 400.0 + 56.0)
-			}
-			for k in expl_pois.keys():
-				var d = p_pos.distance_to(expl_pois[k])
-				if d < closest_dist:
-					closest_dist = d
-					target_poi = k
-		else:
-			for k in POI_LOCATIONS.keys():
-				var d = p_pos.distance_to(POI_LOCATIONS[k]["pos"])
-				if d < closest_dist:
-					closest_dist = d
-					target_poi = k
-
-	if target_poi.is_empty():
-		_show_toast("[Fitur Versi Beta] Berdirilah di dekat lokasi minigame (Polisi, Stasiun, Kamar Mayat, Baskom Foto, atau Brankas) lalu tekan [Y]!")
-		return
-
-	_show_toast("[Fitur Versi Beta] Bypass Cerita [Y] Aktif: " + target_poi.to_upper())
-	_trigger_poi_interaction(target_poi, true)
-
-func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> void:
+func _trigger_poi_interaction(poi_id: String) -> void:
 	if not is_instance_valid(inv_mgr):
 		return
 
@@ -2168,7 +2074,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
-				_show_toast("Membuka Brankas Baja Keluarga!" if not bypass_story else "[Fitur Beta] Bypass: Membuka Brankas Baja Keluarga!")
+				_show_toast("Membuka Brankas Baja Keluarga!")
 
 		"indoor_expl_clock":
 			if is_instance_valid(dialog_box):
@@ -2231,7 +2137,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			if is_instance_valid(minigame_safe):
 				player.can_move = false
 				minigame_safe.start_minigame()
-				_show_toast("Membuka Brankas Baja Keluarga!" if not bypass_story else "[Fitur Beta] Bypass: Membuka Brankas Baja Keluarga!")
+				_show_toast("Membuka Brankas Baja Keluarga!")
 
 		"indoor_exit":
 			_exit_house()
@@ -2243,10 +2149,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				_show_toast("Sebuah jam tiang jalanan kota tua. Suasana terasa sunyi.")
 
 		"police_darkroom":
-			if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
-				inv_mgr.unlock_clue("photo_envelope")
 			if not inv_mgr.is_clue_unlocked("photo_envelope"):
-				_show_toast("Alur Cerita Terkunci: Butuh barang bukti foto dari stasiun! (Tekan [Y] untuk bypass)")
+				_show_toast("Meja Lab Forensik: Butuh barang bukti foto dari stasiun!")
 				if is_instance_valid(dialog_box):
 					var d_lines: Array[String] = [
 						"Meja bak kimia kamar gelap lab forensik kepolisian...",
@@ -2263,8 +2167,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				_show_toast("Masuk ke Kamar Gelap Lab Forensik Kepolisian!")
 
 		"police":
-			if not bypass_story and (inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME or not inv_mgr.is_clue_unlocked("victim_letter")):
-				_show_toast("Alur Cerita Terkunci: Selidiki rumah korban di ujung timur terlebih dahulu! (Tekan [Y] untuk bypass)")
+			if (inv_mgr.current_phase == inv_mgr.Phase.PROLOGUE_HOME or not inv_mgr.is_clue_unlocked("victim_letter")):
+				_show_toast("Alur Cerita: Selidiki TKP rumah korban di ujung timur terlebih dahulu!")
 				if is_instance_valid(dialog_box):
 					var p_lines: Array[String] = [
 						"Kantor Polisi dijaga ketat oleh para petugas yang tampak sibuk berlalu-lalang...",
@@ -2275,10 +2179,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 					dialog_box.start_monologue(p_lines, "Detektif Benedict", "[ Monolog Batin ]", "res://karakter/MC_Bingung.png")
 				return
 
-			if (bypass_story or inv_mgr.is_clue_unlocked("photo_envelope")) and not inv_mgr.has_developed_photos:
+			if inv_mgr.is_clue_unlocked("photo_envelope") and not inv_mgr.has_developed_photos:
 				# Cuci foto di lab forensik kantor polisi
-				if bypass_story and not inv_mgr.is_clue_unlocked("photo_envelope"):
-					inv_mgr.unlock_clue("photo_envelope")
 				if is_instance_valid(minigame_photo_wash):
 					player.can_move = false
 					if is_instance_valid(pause_menu_layer):
@@ -2296,11 +2198,6 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 						marcus_npc = n
 						break
 
-			if bypass_story:
-				_show_toast("[Fitur Beta] Bypass: Memulai Minigame Menguntit Marcus!")
-				_start_marcus_tailgate(marcus_npc)
-				return
-
 			if not inv_mgr.has_tailgated_marcus:
 				if is_instance_valid(marcus_npc) and marcus_npc.has_method("show_chat_bubble"):
 					marcus_npc.show_chat_bubble("Marcus: Benedict! Maaf, aku terburu-buru ada urusan darurat di stasiun!", 3.0)
@@ -2314,8 +2211,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				_show_toast("Petugas Polisi: 'Inspektur Marcus sedang berpatroli ke arah stasiun.'")
 
 		"station":
-			if not bypass_story and not inv_mgr.has_tailgated_marcus:
-				_show_toast("Alur Cerita Terkunci: Ikuti Marcus di Kantor Polisi terlebih dahulu! (Tekan [Y] untuk bypass fitur beta)")
+			if not inv_mgr.has_tailgated_marcus:
+				_show_toast("Alur Cerita: Ikuti penyelidikan Inspektur Marcus terlebih dahulu!")
 				if is_instance_valid(dialog_box):
 					var st_lines: Array[String] = [
 						"Peron stasiun kereta api tampak sepi dan hening...",
@@ -2333,8 +2230,8 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
 
 		"hospital":
-			if not bypass_story and not inv_mgr.is_clue_unlocked("developed_photos"):
-				_show_toast("Alur Cerita Terkunci: Butuh identifikasi foto forensik korban! (Tekan [Y] untuk bypass fitur beta)")
+			if not inv_mgr.is_clue_unlocked("developed_photos"):
+				_show_toast("Alur Cerita: Butuh hasil foto forensik korban!")
 				if is_instance_valid(dialog_box):
 					var rej_lines: Array[String] = [
 						"Resepsionis RS: 'Mohon maaf, Detektif. Kamar mayat steril ditutup rapat.'",
@@ -2343,7 +2240,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 					dialog_box.start_monologue(rej_lines, "Rumah Sakit", "[ Akses Ditolak ]", "res://karakter/MC_Bingung.png")
 				return
 
-			if not bypass_story and not hospital_status_reception_rejected and not inv_mgr.has_inspected_morgue:
+			if not hospital_status_reception_rejected and not inv_mgr.has_inspected_morgue:
 				hospital_status_reception_rejected = true
 				if is_instance_valid(dialog_box):
 					var recep_lines: Array[String] = [
@@ -2358,7 +2255,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			else:
 				if is_instance_valid(hospital_interior):
 					_enter_hospital()
-					_show_toast("Menyelinap ke Lorong Kamar Jenazah..." if not bypass_story else "[Fitur Beta] Bypass: Masuk ke Lorong RS!")
+					_show_toast("Menyelinap ke Lorong Kamar Jenazah...")
 				elif is_instance_valid(morgue_inspection):
 					if is_inside_house:
 						_exit_house()
@@ -2366,7 +2263,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 						_exit_exploration_house()
 					player.can_move = false
 					morgue_inspection.open_morgue()
-					_show_toast("Menyelinap ke Kamar Jenazah..." if not bypass_story else "[Fitur Beta] Bypass: Menyelinap ke Kamar Jenazah RS!")
+					_show_toast("Menyelinap ke Kamar Jenazah...")
 				else:
 					_show_toast("Kamar jenazah rumah sakit terkunci rapat.")
 

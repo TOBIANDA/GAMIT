@@ -339,7 +339,6 @@ func _ready() -> void:
 	_init_furniture_data()
 	_build_room_collisions()
 	_setup_furniture_nodes()
-	_setup_editor_ui()
 
 func _init_furniture_data() -> void:
 	furniture_config = default_furniture_config.duplicate(true)
@@ -1394,61 +1393,5 @@ func _find_furniture_at_world_pos(world_pos: Vector2) -> String:
 			return id
 	return ""
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not is_edit_mode:
-		if event is InputEventKey and event.pressed and not event.is_echo() and event.keycode == KEY_F2:
-			toggle_editor()
-			get_viewport().set_input_as_handled()
-		return
-
-	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.keycode in [KEY_F2, KEY_ESCAPE]:
-			toggle_editor()
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_BRACKETLEFT:
-			_adjust_selected_scale(-0.05)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_BRACKETRIGHT:
-			_adjust_selected_scale(0.05)
-			get_viewport().set_input_as_handled()
-			return
-
-	if event is InputEventMouseButton:
-		var world_mpos = get_global_mouse_position()
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				var hit_id = _find_furniture_at_world_pos(world_mpos)
-				if not hit_id.is_empty():
-					_select_furniture(hit_id)
-					is_dragging = true
-					var it = furniture_config[hit_id]
-					var cur_pos = ROOM_ORIGIN + Vector2(float(it.x), float(it.y))
-					drag_offset = cur_pos - world_mpos
-					get_viewport().set_input_as_handled()
-			else:
-				is_dragging_panel = false
-				if is_dragging:
-					is_dragging = false
-					get_viewport().set_input_as_handled()
-
-		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			_adjust_selected_scale(0.05)
-			get_viewport().set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			_adjust_selected_scale(-0.05)
-			get_viewport().set_input_as_handled()
-
-	elif event is InputEventMouseMotion and is_dragging and not selected_furniture_id.is_empty():
-		var world_mpos = get_global_mouse_position()
-		var target_world = world_mpos + drag_offset
-		var rel_pos = target_world - ROOM_ORIGIN
-		var new_x = clampf(rel_pos.x, 10.0, ROOM_SIZE.x - 10.0)
-		var new_y = clampf(rel_pos.y, 10.0, ROOM_SIZE.y - 10.0)
-
-		furniture_config[selected_furniture_id]["x"] = round(new_x)
-		furniture_config[selected_furniture_id]["y"] = round(new_y)
-		update_furniture_transform(selected_furniture_id)
-		_sync_ui_to_selected_item()
-		get_viewport().set_input_as_handled()
+func _unhandled_input(_event: InputEvent) -> void:
+	pass
