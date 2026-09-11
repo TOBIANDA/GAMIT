@@ -167,8 +167,10 @@ var furniture_config: Dictionary = {
 		"scale": 1.0,
 		"base_w": 22.0,
 		"has_col": true,
-		"col_w": 22.0, "col_h": 22.0,
-		"col_off_x": 0.0, "col_y_off": 0.0,
+		"col_w": 28.0,
+		"col_h": 26.0,
+		"col_off_x": 0.0,
+		"col_y_off": 6.0,
 		"z_idx": 0
 	},
 	"jam_weker": {
@@ -179,10 +181,10 @@ var furniture_config: Dictionary = {
 		"scale": 1.0,
 		"base_w": 16.0,
 		"has_col": true,
-		"col_w": 18.0,
-		"col_h": 18.0,
+		"col_w": 26.0,
+		"col_h": 24.0,
 		"col_off_x": 0.0,
-		"col_y_off": 0.0,
+		"col_y_off": 4.0,
 		"z_idx": 1
 	},
 	"lemari": {
