@@ -1004,9 +1004,10 @@ func toggle_editor() -> void:
 	if is_instance_valid(edit_toggle_btn):
 		edit_toggle_btn.text = "Tutup Editor [F2]" if is_edit_mode else "Atur Perabot [F2]"
 
-	var player = get_tree().root.find_child("Player", true, false)
-	if is_instance_valid(player):
-		player.can_move = !is_edit_mode
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var player = get_tree().root.find_child("Player", true, false)
+		if is_instance_valid(player):
+			player.can_move = !is_edit_mode
 
 	if is_edit_mode:
 		if is_instance_valid(status_msg_label):
