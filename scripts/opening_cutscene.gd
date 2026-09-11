@@ -290,7 +290,7 @@ func _setup_audio() -> void:
 		breathing_player.stream = breath_stream
 		breathing_player.volume_db = -12.0
 		breathing_player.finished.connect(func():
-			if is_instance_valid(breathing_player) and not is_transitioning:
+			if is_instance_valid(breathing_player) and current_state == State.CS_IMAGE_1 and not is_dimming and not is_transitioning:
 				breathing_player.play()
 		)
 	add_child(breathing_player)
@@ -469,7 +469,7 @@ func _transition_intro_to_black() -> void:
 
 func _start_cutscene_slide_1() -> void:
 	current_state = State.CS_IMAGE_1
-	state_timer = 4.5
+	state_timer = 7.0 # CS 1 diperpanjang (agak lamain dengan suasana berat)
 	is_dimming = false
 
 	# Tampilkan container cutscene & gambar 1
@@ -478,51 +478,54 @@ func _start_cutscene_slide_1() -> void:
 	cs_image_1.modulate.a = 1.0
 	cs_image_2.visible = false
 
-	# Putar suara napas heavy breathing (agak kecil, -12 dB)
+	# Putar suara berat (heavy breathing) eksklusif hanya di CS 1
 	if is_instance_valid(breathing_player) and breathing_player.stream:
-		breathing_player.volume_db = -12.0
-		breathing_player.play()
+		breathing_player.volume_db = -8.0
+		if not breathing_player.playing:
+			breathing_player.play()
 
 	# Buka layar dari hitam ke Gambar 1
 	var tw = _get_fresh_tween()
 	tw.tween_property(black_overlay, "color:a", 0.0, 0.60)
-	print("[OpeningCutscene] Masuk ke Gambar 1 (Heavy breathing lembut -12 dB)")
+	print("[OpeningCutscene] Masuk ke Gambar 1 (Durasi 7.0s, Suara berat aktif)")
 
 func _start_fade_dim() -> void:
 	if is_dimming or is_transitioning:
 		return
 	is_dimming = true
 	current_state = State.CS_FADE_DIM
-	state_timer = 1.0
+	state_timer = 0.9
 
-	# Meredupkan layar perlahan ("terus meredup")
+	# Meredupkan layar perlahan dan fade out suara berat sampai hening sebelum CS 2
 	var tw = _get_fresh_tween()
 	tw.set_parallel(true)
-	tw.tween_property(black_overlay, "color:a", 1.0, 0.90)
-	if is_instance_valid(breathing_player):
-		tw.tween_property(breathing_player, "volume_db", -3.0, 0.90)
-	print("[OpeningCutscene] Layar meredup...")
+	tw.tween_property(black_overlay, "color:a", 1.0, 0.85)
+	if is_instance_valid(breathing_player) and breathing_player.playing:
+		tw.tween_property(breathing_player, "volume_db", -40.0, 0.85)
+	tw.chain().tween_callback(func():
+		if is_instance_valid(breathing_player) and breathing_player.playing:
+			breathing_player.stop()
+	)
+	print("[OpeningCutscene] Layar meredup & suara berat berhenti...")
 
 func _start_cutscene_slide_2() -> void:
 	is_dimming = false
 	current_state = State.CS_IMAGE_2
-	state_timer = 4.5
+	state_timer = 2.8 # CS 2 agak bentar (tapi tidak terlalu bentar)
+
+	# Pastikan suara berat dihentikan total di CS 2 (suara berat hanya ada di CS 1)
+	if is_instance_valid(breathing_player) and breathing_player.playing:
+		breathing_player.stop()
 
 	# Tampilkan gambar 2
 	cs_image_1.visible = false
 	cs_image_2.visible = true
 	cs_image_2.modulate.a = 1.0
 
-	# Suara napas makin kencang (+2 dB)
-	if is_instance_valid(breathing_player):
-		breathing_player.volume_db = 2.0
-		if not breathing_player.playing:
-			breathing_player.play()
-
 	# Buka layar dari kegelapan ke Gambar 2
 	var tw = _get_fresh_tween()
-	tw.tween_property(black_overlay, "color:a", 0.0, 0.65)
-	print("[OpeningCutscene] Masuk ke Gambar 2 (Heavy breathing makin kencang +2 dB)")
+	tw.tween_property(black_overlay, "color:a", 0.0, 0.55)
+	print("[OpeningCutscene] Masuk ke Gambar 2 (Durasi 2.8s, Hening tanpa suara berat)")
 
 func _unhandled_input(event: InputEvent) -> void:
 	_input(event)
