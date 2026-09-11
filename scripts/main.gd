@@ -2118,7 +2118,10 @@ func _on_police_reached_station() -> void:
 func _trigger_death_god() -> void:
 	if is_instance_valid(player):
 		player.can_move = false
-	_summon_death_god()
+	if is_instance_valid(death_god_layer) and death_god_layer.has_method("open_interface"):
+		death_god_layer.open_interface()
+	else:
+		_summon_death_god()
 
 func _summon_death_god() -> void:
 	if not is_instance_valid(dialog_box):

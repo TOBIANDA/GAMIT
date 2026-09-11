@@ -34,6 +34,7 @@ var grim_label: Label
 var vs_symbol_label: Label
 var mc_base_y: float = 0.0
 var grim_base_y: float = 0.0
+var _last_standoff_w: float = -1.0
 
 # Middle content container
 var content_hb: HBoxContainer
@@ -90,10 +91,15 @@ Bagaimana sikapmu sekarang terhadap takdir kematianmu?",
 ]
 
 func _ready() -> void:
+	_ensure_ui()
+	visible = false
+
+func _ensure_ui() -> void:
 	layer = 20
+	if bg != null:
+		return
 	_setup_audio()
 	_build_ui()
-	visible = false
 
 func _setup_audio() -> void:
 	afterlife_audio = AudioStreamPlayer.new()
@@ -145,14 +151,14 @@ func _build_ui() -> void:
 
 	# --- B. STANDOFF PANEL (CHIBI MC & CHIBI DEWA KEMATIAN SALING BERHADAPAN) ---
 	standoff_panel = Control.new()
-	standoff_panel.custom_minimum_size = Vector2(0, 150)
+	standoff_panel.custom_minimum_size = Vector2(0, 165)
 	standoff_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vb.add_child(standoff_panel)
 
 	# 1. Chibi MC (Benedict) di sebelah kiri, menghadap ke kanan
 	mc_aura_glow = ColorRect.new()
-	mc_aura_glow.color = Color(0.2, 0.45, 0.8, 0.25)
-	mc_aura_glow.size = Vector2(90, 14)
+	mc_aura_glow.color = Color(0.2, 0.5, 0.9, 0.35)
+	mc_aura_glow.size = Vector2(100, 16)
 	standoff_panel.add_child(mc_aura_glow)
 
 	mc_chibi_rect = TextureRect.new()
@@ -160,29 +166,32 @@ func _build_ui() -> void:
 	if not tex_mc:
 		tex_mc = load("res://posisi mc/front.png")
 	mc_chibi_rect.texture = tex_mc
-	mc_chibi_rect.custom_minimum_size = Vector2(80, 105)
+	mc_chibi_rect.custom_minimum_size = Vector2(90, 115)
+	mc_chibi_rect.size = Vector2(90, 115)
 	mc_chibi_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	mc_chibi_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	standoff_panel.add_child(mc_chibi_rect)
 
 	mc_label = Label.new()
 	mc_label.text = "Detektif Benedict (Arwah)"
-	mc_label.add_theme_font_size_override("font_size", 12)
-	mc_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	mc_label.size = Vector2(180, 24)
+	mc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mc_label.add_theme_font_size_override("font_size", 13)
+	mc_label.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
 	standoff_panel.add_child(mc_label)
 
 	# 2. Simbol Misterius di Tengah
 	vs_symbol_label = Label.new()
-	vs_symbol_label.text = "✦  KEBENARAN & PENGHAKIMAN  ✦"
+	vs_symbol_label.text = "✦  KEBENARAN & PENGHAKIMAN AKHIR  ✦"
 	vs_symbol_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vs_symbol_label.add_theme_font_size_override("font_size", 14)
-	vs_symbol_label.add_theme_color_override("font_color", Color(0.65, 0.5, 0.85))
+	vs_symbol_label.add_theme_color_override("font_color", Color(0.75, 0.60, 0.95))
 	standoff_panel.add_child(vs_symbol_label)
 
 	# 3. Chibi Dewa Kematian (Grim Reaper) di sebelah kanan, menghadap ke kiri
 	grim_aura_glow = ColorRect.new()
-	grim_aura_glow.color = Color(0.55, 0.2, 0.85, 0.35)
-	grim_aura_glow.size = Vector2(90, 14)
+	grim_aura_glow.color = Color(0.60, 0.20, 0.90, 0.40)
+	grim_aura_glow.size = Vector2(100, 16)
 	standoff_panel.add_child(grim_aura_glow)
 
 	grim_chibi_rect = TextureRect.new()
@@ -190,15 +199,18 @@ func _build_ui() -> void:
 	if not tex_grim:
 		tex_grim = load("res://grimChibi/depan.png")
 	grim_chibi_rect.texture = tex_grim
-	grim_chibi_rect.custom_minimum_size = Vector2(80, 105)
+	grim_chibi_rect.custom_minimum_size = Vector2(90, 115)
+	grim_chibi_rect.size = Vector2(90, 115)
 	grim_chibi_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	grim_chibi_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	standoff_panel.add_child(grim_chibi_rect)
 
 	grim_label = Label.new()
 	grim_label.text = "Sang Dewa Kematian"
-	grim_label.add_theme_font_size_override("font_size", 12)
-	grim_label.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))
+	grim_label.size = Vector2(180, 24)
+	grim_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	grim_label.add_theme_font_size_override("font_size", 13)
+	grim_label.add_theme_color_override("font_color", Color(0.95, 0.80, 1.0))
 	standoff_panel.add_child(grim_label)
 
 	# Layout positioning untuk standoff panel
@@ -324,32 +336,53 @@ func _build_ui() -> void:
 	loading_label.add_theme_font_size_override("font_size", 12)
 	nlp_panel.add_child(loading_label)
 
+func _get_standoff_width() -> float:
+	if is_instance_valid(standoff_panel) and standoff_panel.size.x >= 300.0:
+		return standoff_panel.size.x
+	var vp = get_viewport()
+	if is_instance_valid(vp):
+		var vpw = vp.get_visible_rect().size.x
+		if vpw > 300.0:
+			return vpw - 96.0
+	return 1184.0
+
 func _update_standoff_positions() -> void:
 	if not is_instance_valid(standoff_panel):
 		return
-	var w = standoff_panel.size.x
-	var h = standoff_panel.size.y
+	var w = _get_standoff_width()
+	_last_standoff_w = w
 
-	var mc_x = w * 0.35 - 40.0
-	var grim_x = w * 0.65 - 40.0
+	var mc_x = w * 0.30 - 45.0
+	var grim_x = w * 0.70 - 45.0
 	mc_base_y = 12.0
 	grim_base_y = 10.0
 
-	mc_chibi_rect.position = Vector2(mc_x, mc_base_y)
-	grim_chibi_rect.position = Vector2(grim_x, grim_base_y)
+	if is_instance_valid(mc_chibi_rect):
+		mc_chibi_rect.position = Vector2(mc_x, mc_base_y)
+	if is_instance_valid(grim_chibi_rect):
+		grim_chibi_rect.position = Vector2(grim_x, grim_base_y)
 
-	mc_aura_glow.position = Vector2(mc_x - 5.0, mc_base_y + 100.0)
-	grim_aura_glow.position = Vector2(grim_x - 5.0, grim_base_y + 100.0)
+	if is_instance_valid(mc_aura_glow):
+		mc_aura_glow.position = Vector2(mc_x - 5.0, mc_base_y + 110.0)
+	if is_instance_valid(grim_aura_glow):
+		grim_aura_glow.position = Vector2(grim_x - 5.0, grim_base_y + 110.0)
 
-	mc_label.position = Vector2(mc_x - 30.0, mc_base_y + 120.0)
-	grim_label.position = Vector2(grim_x - 15.0, grim_base_y + 120.0)
+	if is_instance_valid(mc_label):
+		mc_label.position = Vector2(mc_x - 45.0, mc_base_y + 130.0)
+	if is_instance_valid(grim_label):
+		grim_label.position = Vector2(grim_x - 45.0, grim_base_y + 130.0)
 
-	vs_symbol_label.position = Vector2(w * 0.5 - 130.0, 50.0)
-	vs_symbol_label.size = Vector2(260.0, 30.0)
+	if is_instance_valid(vs_symbol_label):
+		vs_symbol_label.position = Vector2(w * 0.5 - 170.0, 52.0)
+		vs_symbol_label.size = Vector2(340.0, 30.0)
 
 func _process(delta: float) -> void:
 	if not visible:
 		return
+
+	var current_w = standoff_panel.size.x if is_instance_valid(standoff_panel) else 0.0
+	if abs(current_w - _last_standoff_w) > 4.0 and current_w >= 300.0:
+		_update_standoff_positions()
 
 	anim_time += delta
 	# Animasi melayang Chibi Dewa Kematian
@@ -357,16 +390,17 @@ func _process(delta: float) -> void:
 		var grim_bob = sin(anim_time * 2.5) * 6.0
 		grim_chibi_rect.position.y = grim_base_y + grim_bob
 	if is_instance_valid(grim_aura_glow):
-		grim_aura_glow.color.a = 0.25 + 0.15 * sin(anim_time * 3.0)
+		grim_aura_glow.color.a = 0.30 + 0.15 * sin(anim_time * 3.0)
 
 	# Animasi nafas halus Chibi Benedict
 	if is_instance_valid(mc_chibi_rect):
 		var mc_bob = sin(anim_time * 2.0) * 2.5
 		mc_chibi_rect.position.y = mc_base_y + mc_bob
 	if is_instance_valid(mc_aura_glow):
-		mc_aura_glow.color.a = 0.20 + 0.10 * sin(anim_time * 2.0)
+		mc_aura_glow.color.a = 0.25 + 0.10 * sin(anim_time * 2.0)
 
 func open_interface() -> void:
+	_ensure_ui()
 	is_active = true
 	is_ending_screen = false
 	current_question_idx = 0
@@ -399,13 +433,20 @@ func _start_intro_confrontation_dialog() -> void:
 
 		# Dialog pembuka Dewa Kematian dengan potret Non-Chibi grim.png
 		dlg.start_monologue(intro_lines, "✦ Dewa Kematian ✦", "[ PENGHAKIMAN AKHIR ]", "res://karakter/grim.png")
-		dlg.monologue_finished.connect(func():
-			# Tampilkan antarmuka pertanyaan
-			var tw_show = create_tween()
-			tw_show.tween_property(content_hb, "modulate:a", 1.0, 0.6)
-			tw_show.parallel().tween_property(nlp_panel, "modulate:a", 1.0, 0.6)
+		var on_done_called = false
+		var on_done = func():
+			if on_done_called:
+				return
+			on_done_called = true
+			if is_instance_valid(content_hb) and content_hb.modulate.a < 0.9:
+				var tw_show = create_tween()
+				tw_show.tween_property(content_hb, "modulate:a", 1.0, 0.45)
+				tw_show.parallel().tween_property(nlp_panel, "modulate:a", 1.0, 0.45)
 			_display_current_question()
-		, CONNECT_ONE_SHOT)
+
+		dlg.monologue_finished.connect(on_done, CONNECT_ONE_SHOT)
+		if not dlg.dialog_closed.is_connected(on_done):
+			dlg.dialog_closed.connect(on_done, CONNECT_ONE_SHOT)
 	else:
 		content_hb.modulate.a = 1.0
 		nlp_panel.modulate.a = 1.0

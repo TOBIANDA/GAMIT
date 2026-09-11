@@ -48,6 +48,7 @@ func _load_textbox_assets() -> void:
 		tex_grim_textbox = load("res://textBox/GrimReaperTextBox.png")
 
 func _ready() -> void:
+	layer = 35
 	_ensure_nodes()
 	visible = false
 	if is_instance_valid(root_control):
@@ -115,11 +116,15 @@ func _ensure_nodes() -> void:
 		_on_submit_pressed()
 	)
 
+	layer = 35
 	# Pastikan klik pada area dialog memajukan monolog seketika
 	if is_instance_valid(root_control) and not root_control.gui_input.is_connected(_on_screen_gui_input):
 		root_control.gui_input.connect(_on_screen_gui_input)
 	if is_instance_valid(bottom_panel) and not bottom_panel.gui_input.is_connected(_on_screen_gui_input):
 		bottom_panel.gui_input.connect(_on_screen_gui_input)
+	var dim_ov = get_node_or_null("RootControl/DimOverlay")
+	if is_instance_valid(dim_ov) and not dim_ov.gui_input.is_connected(_on_screen_gui_input):
+		dim_ov.gui_input.connect(_on_screen_gui_input)
 
 func _on_screen_gui_input(event: InputEvent) -> void:
 	if not is_active:
@@ -244,9 +249,17 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 		root_control.visible = true
 
 	_load_textbox_assets()
-	if is_instance_valid(bottom_panel) and tex_mc_textbox:
+	var is_grim = speaker_name.contains("Dewa Kematian") or portrait_path.contains("grim")
+	var dim_ov = get_node_or_null("RootControl/DimOverlay")
+	if is_instance_valid(dim_ov):
+		if is_grim:
+			dim_ov.color = Color(0, 0, 0, 0.0) # Jangan tutupi/gelapkan showdown chibi dewa kematian
+		else:
+			dim_ov.color = Color(0, 0, 0, 0.35)
+
+	if is_instance_valid(bottom_panel):
 		var sbt = StyleBoxTexture.new()
-		sbt.texture = tex_mc_textbox
+		sbt.texture = tex_grim_textbox if (is_grim and tex_grim_textbox) else tex_mc_textbox
 		sbt.texture_margin_left = 64.0
 		sbt.texture_margin_top = 48.0
 		sbt.texture_margin_right = 64.0
@@ -258,10 +271,16 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 		tp.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 	if is_instance_valid(text_label):
-		text_label.add_theme_color_override("font_color", Color(0.12, 0.09, 0.06))
+		if is_grim:
+			text_label.add_theme_color_override("font_color", Color(0.92, 0.88, 1.0))
+		else:
+			text_label.add_theme_color_override("font_color", Color(0.12, 0.09, 0.06))
 	if is_instance_valid(name_tag):
 		name_tag.text = speaker_name
-		name_tag.add_theme_color_override("font_color", Color(0.38, 0.20, 0.08))
+		if is_grim:
+			name_tag.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+		else:
+			name_tag.add_theme_color_override("font_color", Color(0.38, 0.20, 0.08))
 
 	var v_sep = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/VSeparator")
 	if is_instance_valid(status_badge):
@@ -435,6 +454,9 @@ func close_dialog() -> void:
 		large_portrait.visible = false
 	if is_instance_valid(margin_container):
 		margin_container.add_theme_constant_override("margin_left", 16)
+	var dim_ov = get_node_or_null("RootControl/DimOverlay")
+	if is_instance_valid(dim_ov):
+		dim_ov.color = Color(0, 0, 0, 0.35)
 	if is_instance_valid(root_control):
 		root_control.visible = false
 	dialog_closed.emit()
