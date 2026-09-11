@@ -12,8 +12,8 @@ var is_mouse_holding: bool = false
 const QTE_TARGET_GOAL = 4   # 4 Foto total yang dicuci
 # Area makin mengecil pada klik 1 (36%), klik 2 (26%), klik 3 (18%), klik 4 (11%)
 const ZONE_SIZES: Array[float] = [0.36, 0.26, 0.18, 0.11]
-# Kecepatan jarum dipercepat dan semakin dinamis pada setiap klik
-const SLIDER_SPEEDS: Array[float] = [2.2, 2.45, 2.7, 3.0]
+# Kecepatan jarum timing bar pada setiap klik
+const SLIDER_SPEEDS: Array[float] = [2.1, 2.2, 2.3, 2.4]
 const SOAK_DURATION: float = 1.3
 
 var current_photo_idx: int = 0 # 0..3 (Foto 1, 2, 3, 4)
