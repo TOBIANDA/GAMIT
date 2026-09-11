@@ -10,8 +10,10 @@ var is_mouse_holding: bool = false
 
 # --- QTE SISTEM MANCING (MLBB FISHING TIMING BAR) ---
 const QTE_TARGET_GOAL = 4   # 4 Foto total yang dicuci
-const ZONE_SIZES: Array[float] = [0.42, 0.30, 0.20, 0.12] # Area makin kecil: klik 1 (42%), 2 (30%), 3 (20%), 4 (12%)
-const SLIDER_SPEED: float = 1.25 # Kecepatan jarum bolak-balik
+# Area makin mengecil pada klik 1 (36%), klik 2 (26%), klik 3 (18%), klik 4 (11%)
+const ZONE_SIZES: Array[float] = [0.36, 0.26, 0.18, 0.11]
+# Kecepatan jarum dipercepat dan semakin dinamis pada setiap klik
+const SLIDER_SPEEDS: Array[float] = [2.2, 2.45, 2.7, 3.0]
 const SOAK_DURATION: float = 1.3
 
 var current_photo_idx: int = 0 # 0..3 (Foto 1, 2, 3, 4)
@@ -21,6 +23,9 @@ var slider_val: float = 0.0    # 0.0 .. 1.0 posisi jarum bergerak
 var slider_dir: float = 1.0    # 1.0 (ke kanan) atau -1.0 (ke kiri)
 var hit_flash_timer: float = 0.0
 var miss_flash_timer: float = 0.0
+
+# Posisi sweet spot / target zone yang bergeser-geser (diacak)
+var target_zone_center: float = 0.5
 
 var workbench_box: VBoxContainer
 var status_label: Label
@@ -50,17 +55,25 @@ var tex_pose2: Texture2D         # Pose 2
 var tex_pose3: Texture2D         # Pose 3
 var tex_pose4: Texture2D         # Pose 4 (Wajah Benedict!)
 
+# Rak jemuran / tempat foto selesai di kanan bak
+var drying_rack_panel: PanelContainer
+var rack_card_panels: Array[PanelContainer] = []
+var rack_card_rects: Array[TextureRect] = []
+var rack_card_labels: Array[Label] = []
+var rack_count_label: Label
+var rack_finding_desc: Label
+
 var gallery_card_rects: Array[TextureRect] = []
 var gallery_card_labels: Array[Label] = []
 var selected_photo_idx: int = 3 # Default highlight foto 4 yang paling mengejutkan
 
 # Ukuran Bak dan Foto yang Disesuaikan Sempurna (Foto 100% di dalam bak & cairan kimia)
-const BASKOM_W := 580.0
-const BASKOM_H := 430.0
-const PHOTO_W := 156.0
-const PHOTO_H := 176.0
+const BASKOM_W := 540.0
+const BASKOM_H := 400.0
+const PHOTO_W := 154.0
+const PHOTO_H := 174.0
 const PHOTO_IDLE_Y := 10.0
-const PHOTO_SOAK_Y := 114.0
+const PHOTO_SOAK_Y := 105.0
 
 func _ready() -> void:
 	layer = 14
@@ -122,8 +135,67 @@ func start_minigame() -> void:
 	slider_dir = 1.0
 	hit_flash_timer = 0.0
 	miss_flash_timer = 0.0
+	target_zone_center = 0.5
 	selected_photo_idx = 3
+	_reset_drying_rack()
 	_setup_soak_step()
+
+func _reset_drying_rack() -> void:
+	for i in range(rack_card_rects.size()):
+		var t_rect = rack_card_rects[i]
+		if is_instance_valid(t_rect):
+			t_rect.texture = tex_polaroid_dark
+			t_rect.modulate = Color(0.25, 0.25, 0.3, 0.45)
+		if i < rack_card_labels.size() and is_instance_valid(rack_card_labels[i]):
+			rack_card_labels[i].text = "[ Menunggu ]"
+			rack_card_labels[i].add_theme_color_override("font_color", Color(0.6, 0.65, 0.75, 0.6))
+		if i < rack_card_panels.size() and is_instance_valid(rack_card_panels[i]):
+			var sb = rack_card_panels[i].get_theme_stylebox("panel")
+			if sb is StyleBoxFlat:
+				sb.border_color = Color(0.35, 0.20, 0.25, 0.6)
+				sb.set_border_width_all(1)
+
+	if is_instance_valid(rack_count_label):
+		rack_count_label.text = "Foto Selesai: 0 / 4"
+	if is_instance_valid(rack_finding_desc):
+		rack_finding_desc.text = "Rendam klise foto terlebih dahulu di bak air, lalu bilas tepat pada indikator timing bar..."
+		rack_finding_desc.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8))
+
+func _reveal_drying_rack_photo(idx: int) -> void:
+	if idx < 0 or idx >= 4:
+		return
+
+	var textures = [tex_pose1, tex_pose2, tex_pose3, tex_pose4]
+	var titles = ["Pose 1: Stasiun", "Pose 2: Diintai", "Pose 3: Lemas", "Pose 4: KORBAN!"]
+	var findings = [
+		"FOTO 1: Korban terlihat berjalan tergesa-gesa menyusuri peron stasiun kereta api.",
+		"FOTO 2: Seseorang berdiri mengintai di balik pilar stasiun, mengawasi korban secara intens.",
+		"FOTO 3: Korban terduduk lemas di bangku peron sambil mendekap amplop dan tasnya.",
+		"FOTO 4 (FAKTA MENGERIKAN): Korban terkapar kaku... dan wajahnya adalah DETEKTIF BENEDICT SENDIRI?!"
+	]
+
+	if idx < rack_card_rects.size() and is_instance_valid(rack_card_rects[idx]):
+		rack_card_rects[idx].texture = textures[idx]
+		rack_card_rects[idx].modulate = Color.WHITE
+
+	if idx < rack_card_labels.size() and is_instance_valid(rack_card_labels[idx]):
+		rack_card_labels[idx].text = titles[idx]
+		var col = Color(1.0, 0.35, 0.35) if idx == 3 else Color(0.4, 0.95, 0.7)
+		rack_card_labels[idx].add_theme_color_override("font_color", col)
+
+	if idx < rack_card_panels.size() and is_instance_valid(rack_card_panels[idx]):
+		var sb = rack_card_panels[idx].get_theme_stylebox("panel")
+		if sb is StyleBoxFlat:
+			sb.border_color = Color(1.0, 0.3, 0.3, 1.0) if idx == 3 else Color(0.3, 0.9, 0.6, 1.0)
+			sb.set_border_width_all(2)
+
+	if is_instance_valid(rack_count_label):
+		rack_count_label.text = "Foto Selesai: %d / 4 (Dijejerkan di Rak Kanan)" % (idx + 1)
+
+	if is_instance_valid(rack_finding_desc):
+		rack_finding_desc.text = findings[idx]
+		var f_col = Color(1.0, 0.45, 0.45) if idx == 3 else Color(0.9, 0.95, 1.0)
+		rack_finding_desc.add_theme_color_override("font_color", f_col)
 
 func _setup_soak_step() -> void:
 	current_step = 0
@@ -161,7 +233,7 @@ func _setup_qte_step() -> void:
 	hit_flash_timer = 0.0
 	miss_flash_timer = 0.0
 
-	status_label.text = "LANGKAH 2: MEMBILAS & MENGEMBANGKAN 4 FOTO POSE (TIMING BAR)"
+	status_label.text = "LANGKAH 2: MEMBILAS & MENGEMBANGKAN 4 FOTO POSE (TIMING BAR CEPAT)"
 	action_hint.text = "TEKAN [ SPASI ] / [ A ] / KLIK TEPAT SAAT JARUM BERADA DI ZONA HIJAU!"
 	action_hint.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
 
@@ -178,8 +250,30 @@ func _setup_qte_step() -> void:
 	if is_instance_valid(result_panel):
 		result_panel.visible = false
 
+	_randomize_qte_zone()
 	_update_step_ui()
 	_update_photo_visual()
+
+func _randomize_qte_zone() -> void:
+	var ratio = ZONE_SIZES[clamp(photo_sub_click, 0, 3)]
+	var half = ratio * 0.5
+	var min_c = half + 0.06
+	var max_c = 1.0 - half - 0.06
+	if max_c <= min_c:
+		target_zone_center = 0.5
+	else:
+		var new_c = randf_range(min_c, max_c)
+		for _attempt in range(5):
+			if absf(new_c - target_zone_center) >= 0.18:
+				break
+			new_c = randf_range(min_c, max_c)
+		target_zone_center = new_c
+
+	if is_instance_valid(qte_meter_control):
+		qte_meter_control.queue_redraw()
+
+func _get_current_speed() -> float:
+	return SLIDER_SPEEDS[clamp(photo_sub_click, 0, 3)]
 
 func _update_step_ui() -> void:
 	var titles = [
@@ -188,7 +282,12 @@ func _update_step_ui() -> void:
 		"FOTO 3/4: KORBAN LEMAH DI BANGKU TUNGGU",
 		"FOTO 4/4: WAJAH KORBAN PEMBUNUHAN?!"
 	]
-	var pct_names = ["Zona 42% (Paling Lebar)", "Zona 30%", "Zona 20%", "Zona 12% (Paling Sempit!)"]
+	var pct_names = [
+		"Zona 36% (Awal)",
+		"Zona 26% (Mengecil & Geser)",
+		"Zona 18% (Cepat & Sempit)",
+		"Zona 11% (Krusial Tercepat!)"
+	]
 
 	var pips = ""
 	for i in range(4):
@@ -200,10 +299,12 @@ func _update_step_ui() -> void:
 		photo_step_badge.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
 
 	if is_instance_valid(qte_pips_label):
-		qte_pips_label.text = "BILASAN FOTO: [%s ] — Klik ke-%d/4 (%s)" % [
+		var spd = _get_current_speed()
+		qte_pips_label.text = "BILASAN FOTO: [%s ] — Klik %d/4 | %s | Kecepatan: %.1fx" % [
 			pips,
 			photo_sub_click + 1,
-			pct_names[clamp(photo_sub_click, 0, 3)]
+			pct_names[clamp(photo_sub_click, 0, 3)],
+			spd
 		]
 
 func _update_photo_visual() -> void:
@@ -211,22 +312,17 @@ func _update_photo_visual() -> void:
 	if current_photo_idx >= 0 and current_photo_idx < photo_textures.size() and is_instance_valid(photo_textures[current_photo_idx]):
 		photo_preview_rect.texture = photo_textures[current_photo_idx]
 
-	# Tingkat kecerahan bertahap (setiap klik makin terang)
+	# Tingkat kecerahan bertahap di dalam bak air (setiap klik makin terang)
 	match photo_sub_click:
 		0:
-			# Belum ada klik: siluet gelap/samar
 			photo_preview_rect.modulate = Color(0.18, 0.18, 0.22, 0.65)
 		1:
-			# Klik 1: mulai muncul bayangan gambar
 			photo_preview_rect.modulate = Color(0.42, 0.42, 0.48, 0.80)
 		2:
-			# Klik 2: detail dan warna mulai tampak
 			photo_preview_rect.modulate = Color(0.68, 0.68, 0.74, 0.90)
 		3:
-			# Klik 3: hampir jelas sempurna
 			photo_preview_rect.modulate = Color(0.88, 0.88, 0.92, 0.96)
 		4:
-			# Klik 4: terang sempurna 100%
 			photo_preview_rect.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _process(delta: float) -> void:
@@ -280,8 +376,9 @@ func _process(delta: float) -> void:
 				action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 
 	elif current_step == 1:
-		# Gerakan jarum bolak-balik (slider ping-pong)
-		slider_val += slider_dir * delta * SLIDER_SPEED
+		# Gerakan jarum bolak-balik berkecepatan tinggi & dinamis
+		var cur_speed = _get_current_speed()
+		slider_val += slider_dir * delta * cur_speed
 		if slider_val >= 1.0:
 			slider_val = 1.0
 			slider_dir = -1.0
@@ -294,7 +391,6 @@ func _process(delta: float) -> void:
 		if miss_flash_timer > 0.0:
 			miss_flash_timer -= delta
 
-		# Kembalikan posisi X foto ke tengah secara mulus jika sebelumnya bergetar saat gagal
 		if is_instance_valid(photo_preview_rect):
 			var target_x = (BASKOM_W - PHOTO_W) * 0.5
 			photo_preview_rect.position.x = move_toward(photo_preview_rect.position.x, target_x, delta * 90.0)
@@ -354,11 +450,11 @@ func _try_qte_hit() -> void:
 		return
 
 	var zone_ratio = ZONE_SIZES[clamp(photo_sub_click, 0, 3)]
-	var zone_start = (1.0 - zone_ratio) * 0.5
-	var zone_end = (1.0 + zone_ratio) * 0.5
+	var zone_start = target_zone_center - (zone_ratio * 0.5)
+	var zone_end = target_zone_center + (zone_ratio * 0.5)
 
-	# Toleransi margin 0.015 agar respon terasa adil dan presisi
-	if slider_val >= (zone_start - 0.015) and slider_val <= (zone_end + 0.015):
+	# Toleransi margin 0.020 agar tetap adil pada kecepatan tinggi
+	if slider_val >= (zone_start - 0.020) and slider_val <= (zone_end + 0.020):
 		_on_qte_sub_hit()
 	else:
 		_on_qte_sub_miss()
@@ -373,6 +469,9 @@ func _on_qte_sub_hit() -> void:
 
 	if photo_sub_click >= 4:
 		# Foto ini selesai dibilas sempurna (4/4 klik berhasil)!
+		# Jejerkan foto ini ke rak jemuran di kanan bak air
+		_reveal_drying_rack_photo(current_photo_idx)
+
 		current_photo_idx += 1
 		photo_sub_click = 0 # Balik ke default klik pertama untuk foto berikutnya!
 
@@ -381,17 +480,19 @@ func _on_qte_sub_hit() -> void:
 			_show_photo_revelation()
 			return
 		else:
-			action_hint.text = "FOTO %d/4 TERCUCI SEMPURNA! Lanjut membilas foto berikutnya (Zona kembali lebar)..." % current_photo_idx
+			action_hint.text = "FOTO %d/4 SELESAI & DITARUH DI RAK KANAN! Membilas foto berikutnya..." % current_photo_idx
 			action_hint.add_theme_color_override("font_color", Color(0.3, 1.0, 0.6))
+			_randomize_qte_zone()
 			_update_step_ui()
 			_update_photo_visual()
 	else:
-		var pct_list = ["42%", "30%", "20%", "12%"]
-		action_hint.text = "KLIK %d/4 BERHASIL! Foto makin terang, area mengecil (%s) — Tekan lagi di zona hijau!" % [
+		var pct_list = ["36%", "26%", "18%", "11%"]
+		action_hint.text = "KLIK %d/4 TEPAT! Kotak bergeser (%s) & jarum makin cepat — Tekan tepat di zona hijau!" % [
 			photo_sub_click,
 			pct_list[clamp(photo_sub_click, 0, 3)]
 		]
 		action_hint.add_theme_color_override("font_color", Color(0.4, 0.95, 0.5))
+		_randomize_qte_zone()
 		_update_step_ui()
 
 func _on_qte_sub_miss() -> void:
@@ -400,15 +501,15 @@ func _on_qte_sub_miss() -> void:
 
 	# Getaran visual foto saat gagal bilas
 	if is_instance_valid(photo_preview_rect):
-		photo_preview_rect.position.x = (BASKOM_W - PHOTO_W) * 0.5 + randf_range(-10.0, 10.0)
+		photo_preview_rect.position.x = (BASKOM_W - PHOTO_W) * 0.5 + randf_range(-12.0, 12.0)
 
-	# Sesuai aturan: jika miss, mengulang ke saat klik pertama foto ini (sub_click = 0)
-	# Foto kembali redup dan area klik kembali default paling lebar
+	# Jika miss, mengulang ke saat klik pertama foto ini (sub_click = 0)
 	photo_sub_click = 0
+	_randomize_qte_zone()
 	_update_photo_visual()
 	_update_step_ui()
 
-	action_hint.text = "MELESET! Bilasan gagal dan mengulang dari klik pertama foto ini (Zona kembali lebar)!"
+	action_hint.text = "MELESET! Bilasan gagal dan mengulang dari klik pertama foto ini (Zona kembali lebar & bergeser)!"
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
 
 func _show_photo_revelation() -> void:
@@ -493,8 +594,8 @@ func _build_scene_ui() -> void:
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 32)
 	margin.add_theme_constant_override("margin_right", 32)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
 	add_child(margin)
 
 	var main_vbox = VBoxContainer.new()
@@ -532,7 +633,7 @@ func _build_scene_ui() -> void:
 
 	# --- WORKBENCH STEP 1 & 2 ---
 	workbench_box = VBoxContainer.new()
-	workbench_box.add_theme_constant_override("separation", 8)
+	workbench_box.add_theme_constant_override("separation", 6)
 	workbench_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	center_wrapper.add_child(workbench_box)
 
@@ -553,17 +654,21 @@ func _build_scene_ui() -> void:
 	action_hint = Label.new()
 	action_hint.text = "TAHAN KLIK KIRI MOUSE atau [SPASI] untuk mencelupkan klise foto ke cairan kimia..."
 	action_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	action_hint.add_theme_font_size_override("font_size", 14)
+	action_hint.add_theme_font_size_override("font_size", 13)
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	workbench_box.add_child(action_hint)
 
-	var tray_center = CenterContainer.new()
-	workbench_box.add_child(tray_center)
+	# TRAY & DRYING RACK SIDE-BY-SIDE (Bak di Kiri, Rak Jemuran Foto di Kanan)
+	var work_row = HBoxContainer.new()
+	work_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	work_row.add_theme_constant_override("separation", 18)
+	workbench_box.add_child(work_row)
 
+	# KIRI: BAK AIR CUCI FOTO
 	baskom_box = Control.new()
 	baskom_box.custom_minimum_size = Vector2(BASKOM_W, BASKOM_H)
 	baskom_box.size = Vector2(BASKOM_W, BASKOM_H)
-	tray_center.add_child(baskom_box)
+	work_row.add_child(baskom_box)
 
 	baskom_texture_rect = TextureRect.new()
 	if is_instance_valid(tex_baskom):
@@ -585,13 +690,141 @@ func _build_scene_ui() -> void:
 	photo_preview_rect.rotation_degrees = -2.0
 	baskom_box.add_child(photo_preview_rect)
 
+	# KANAN: RAK PENGERINGAN / FOTO SELESAI DIJEJERKAN
+	drying_rack_panel = PanelContainer.new()
+	var rack_style = StyleBoxFlat.new()
+	rack_style.bg_color = Color(0.09, 0.03, 0.05, 0.95)
+	rack_style.border_color = Color(0.7, 0.28, 0.32, 1.0)
+	rack_style.set_border_width_all(2)
+	rack_style.set_corner_radius_all(10)
+	rack_style.content_margin_left = 14
+	rack_style.content_margin_right = 14
+	rack_style.content_margin_top = 10
+	rack_style.content_margin_bottom = 10
+	drying_rack_panel.add_theme_stylebox_override("panel", rack_style)
+	drying_rack_panel.custom_minimum_size = Vector2(490, BASKOM_H)
+	work_row.add_child(drying_rack_panel)
+
+	var rack_vb = VBoxContainer.new()
+	rack_vb.add_theme_constant_override("separation", 8)
+	drying_rack_panel.add_child(rack_vb)
+
+	# Judul Rak
+	var rack_header_hb = HBoxContainer.new()
+	rack_vb.add_child(rack_header_hb)
+
+	var rack_title = Label.new()
+	rack_title.text = "FOTO SELESAI DICUCI (JEMURAN)"
+	rack_title.add_theme_font_size_override("font_size", 14)
+	rack_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	rack_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rack_header_hb.add_child(rack_title)
+
+	rack_count_label = Label.new()
+	rack_count_label.text = "Foto Selesai: 0 / 4"
+	rack_count_label.add_theme_font_size_override("font_size", 13)
+	rack_count_label.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	rack_header_hb.add_child(rack_count_label)
+
+	# Garis Jemuran Visual
+	var rack_line = ColorRect.new()
+	rack_line.custom_minimum_size = Vector2(0, 3)
+	rack_line.color = Color(0.6, 0.45, 0.35, 0.9)
+	rack_vb.add_child(rack_line)
+
+	# Baris 4 Foto Dijejerkan
+	var rack_cards_hb = HBoxContainer.new()
+	rack_cards_hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	rack_cards_hb.add_theme_constant_override("separation", 8)
+	rack_vb.add_child(rack_cards_hb)
+
+	rack_card_panels.clear()
+	rack_card_rects.clear()
+	rack_card_labels.clear()
+
+	for i in range(4):
+		var slot_card = PanelContainer.new()
+		var s_style = StyleBoxFlat.new()
+		s_style.bg_color = Color(0.06, 0.02, 0.03, 0.9)
+		s_style.border_color = Color(0.35, 0.20, 0.25, 0.6)
+		s_style.set_border_width_all(1)
+		s_style.set_corner_radius_all(6)
+		s_style.content_margin_left = 4
+		s_style.content_margin_right = 4
+		s_style.content_margin_top = 4
+		s_style.content_margin_bottom = 4
+		slot_card.add_theme_stylebox_override("panel", s_style)
+		slot_card.custom_minimum_size = Vector2(104, 155)
+		rack_cards_hb.add_child(slot_card)
+		rack_card_panels.append(slot_card)
+
+		var slot_vb = VBoxContainer.new()
+		slot_vb.add_theme_constant_override("separation", 4)
+		slot_card.add_child(slot_vb)
+
+		# Jepitan jemuran kecil
+		var clip_rect = ColorRect.new()
+		clip_rect.custom_minimum_size = Vector2(16, 5)
+		clip_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		clip_rect.color = Color(0.9, 0.75, 0.3, 0.95)
+		slot_vb.add_child(clip_rect)
+
+		var slot_tex = TextureRect.new()
+		slot_tex.texture = tex_polaroid_dark
+		slot_tex.modulate = Color(0.25, 0.25, 0.3, 0.45)
+		slot_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		slot_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		slot_tex.custom_minimum_size = Vector2(96, 108)
+		slot_vb.add_child(slot_tex)
+		rack_card_rects.append(slot_tex)
+
+		var slot_lbl = Label.new()
+		slot_lbl.text = "[ Menunggu ]"
+		slot_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		slot_lbl.add_theme_font_size_override("font_size", 11)
+		slot_lbl.add_theme_color_override("font_color", Color(0.6, 0.65, 0.75, 0.6))
+		slot_vb.add_child(slot_lbl)
+		rack_card_labels.append(slot_lbl)
+
+	# Box Temuan Bukti dari Foto
+	var finding_panel = PanelContainer.new()
+	var fp_style = StyleBoxFlat.new()
+	fp_style.bg_color = Color(0.05, 0.02, 0.03, 0.85)
+	fp_style.border_color = Color(0.4, 0.2, 0.25, 0.8)
+	fp_style.set_border_width_all(1)
+	fp_style.set_corner_radius_all(6)
+	fp_style.content_margin_left = 10
+	fp_style.content_margin_right = 10
+	fp_style.content_margin_top = 8
+	fp_style.content_margin_bottom = 8
+	finding_panel.add_theme_stylebox_override("panel", fp_style)
+	finding_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rack_vb.add_child(finding_panel)
+
+	var fp_vb = VBoxContainer.new()
+	fp_vb.add_theme_constant_override("separation", 3)
+	finding_panel.add_child(fp_vb)
+
+	var fp_head = Label.new()
+	fp_head.text = "BUKTI DARI HASIL CUCI FOTO:"
+	fp_head.add_theme_font_size_override("font_size", 11)
+	fp_head.add_theme_color_override("font_color", Color(1.0, 0.75, 0.3))
+	fp_vb.add_child(fp_head)
+
+	rack_finding_desc = Label.new()
+	rack_finding_desc.text = "Rendam klise foto terlebih dahulu di bak air, lalu bilas tepat pada indikator timing bar..."
+	rack_finding_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rack_finding_desc.add_theme_font_size_override("font_size", 12)
+	rack_finding_desc.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+	fp_vb.add_child(rack_finding_desc)
+
 	# Progress Bar Langkah 1 (Merendam)
 	soak_container = VBoxContainer.new()
 	soak_container.add_theme_constant_override("separation", 6)
 	workbench_box.add_child(soak_container)
 
 	soak_progress_bar = ProgressBar.new()
-	soak_progress_bar.custom_minimum_size = Vector2(480, 24)
+	soak_progress_bar.custom_minimum_size = Vector2(520, 24)
 	soak_progress_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	soak_progress_bar.max_value = 100
 	var bar_bg = StyleBoxFlat.new()
@@ -606,7 +839,7 @@ func _build_scene_ui() -> void:
 	soak_progress_bar.add_theme_stylebox_override("fill", bar_fill)
 	soak_container.add_child(soak_progress_bar)
 
-	# --- QTE BOX: TIMING METER DENGAN ZONA KLIK & JARUM BERGERAK (SEPERTI MANCING MLBB) ---
+	# --- QTE BOX: TIMING METER DENGAN ZONA KLIK BERGESER & JARUM CEPAT ---
 	qte_box = PanelContainer.new()
 	var qte_style = StyleBoxFlat.new()
 	qte_style.bg_color = Color(0.14, 0.04, 0.06, 0.95)
@@ -618,7 +851,7 @@ func _build_scene_ui() -> void:
 	qte_style.content_margin_top = 8
 	qte_style.content_margin_bottom = 10
 	qte_box.add_theme_stylebox_override("panel", qte_style)
-	qte_box.custom_minimum_size = Vector2(520, 95)
+	qte_box.custom_minimum_size = Vector2(560, 95)
 	qte_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	workbench_box.add_child(qte_box)
 
@@ -639,7 +872,7 @@ func _build_scene_ui() -> void:
 	qte_header_hb.add_child(qte_label)
 
 	qte_pips_label = Label.new()
-	qte_pips_label.text = "BILASAN FOTO: [ ○ ○ ○ ○ ] — Klik ke-1/4 (Zona 42% Default)"
+	qte_pips_label.text = "BILASAN FOTO: [ ○ ○ ○ ○ ] — Klik ke-1/4 | Zona 36% (Awal) | Kecepatan: 2.2x"
 	qte_pips_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qte_pips_label.add_theme_color_override("font_color", Color(0.6, 0.95, 0.8))
 	qte_pips_label.add_theme_font_size_override("font_size", 13)
@@ -647,7 +880,7 @@ func _build_scene_ui() -> void:
 
 	# Timing Meter Bar
 	qte_meter_control = Control.new()
-	qte_meter_control.custom_minimum_size = Vector2(480, 32)
+	qte_meter_control.custom_minimum_size = Vector2(520, 32)
 	qte_meter_control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	qte_meter_control.draw.connect(_draw_qte_meter)
 	qte_vb.add_child(qte_meter_control)
@@ -683,11 +916,9 @@ func _build_scene_ui() -> void:
 	gallery_hb.add_theme_constant_override("separation", 14)
 	res_main_vb.add_child(gallery_hb)
 
-	# 1 Klise Sebelum Dicuci
 	var unwashed_box = _create_photo_card_box("Sebelum Dicuci", tex_polaroid_dark, -1, false)
 	gallery_hb.add_child(unwashed_box)
 
-	# 4 Foto Pose Hasil Cuci
 	var poses_tex = [tex_pose1, tex_pose2, tex_pose3, tex_pose4]
 	var poses_title = ["Pose 1: Stasiun", "Pose 2: Diintai", "Pose 3: Lemas", "Pose 4: KORBAN!"]
 	gallery_card_rects.clear()
@@ -697,7 +928,6 @@ func _build_scene_ui() -> void:
 		var p_box = _create_photo_card_box(poses_title[i], poses_tex[i], i, is_twist)
 		gallery_hb.add_child(p_box)
 
-	# Label Keterangan Dinamis
 	result_label = Label.new()
 	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -726,7 +956,7 @@ func _draw_qte_meter() -> void:
 	var w = qte_meter_control.size.x
 	var h = qte_meter_control.size.y
 	if w <= 0 or h <= 0:
-		w = 480.0
+		w = 520.0
 		h = 32.0
 
 	# 1. Background Track (Rel Meteran Gelap)
@@ -734,10 +964,11 @@ func _draw_qte_meter() -> void:
 	qte_meter_control.draw_rect(track_rect, Color(0.08, 0.03, 0.05, 0.95), true)
 	qte_meter_control.draw_rect(track_rect, Color(0.40, 0.16, 0.22, 1.0), false, 1.5)
 
-	# 2. Target Zone (Zona Klik Hijau / Luminous Green)
+	# 2. Target Zone (Zona Klik Hijau / Luminous Green Yang Bergeser & Mengecil)
 	var zone_ratio = ZONE_SIZES[clamp(photo_sub_click, 0, 3)]
 	var zone_w = w * zone_ratio
-	var zone_x = (w - zone_w) * 0.5 # Posisi Simetris di Tengah
+	var zone_x = (target_zone_center - (zone_ratio * 0.5)) * w
+	zone_x = clampf(zone_x, 2.0, w - zone_w - 2.0)
 
 	var zone_rect = Rect2(zone_x, 2, zone_w, h - 4)
 	var z_col = Color(0.15, 0.85, 0.45, 0.65)
@@ -751,7 +982,7 @@ func _draw_qte_meter() -> void:
 	qte_meter_control.draw_rect(zone_rect, z_col, true)
 	qte_meter_control.draw_rect(zone_rect, z_border, false, 2.0)
 
-	# 3. Moving Needle / Slider (Jarum Meluncur Bolak-Balik)
+	# 3. Moving Needle / Slider (Jarum Cepat Meluncur Bolak-Balik)
 	var needle_x = clampf(slider_val * (w - 6) + 3, 3, w - 3)
 	var needle_col = Color(1.0, 0.95, 0.2, 1.0)
 	if miss_flash_timer > 0.0:
