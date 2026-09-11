@@ -49,8 +49,8 @@ var transition_overlay: ColorRect
 var transition_layer: CanvasLayer
 
 const POI_LOCATIONS = {
-	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1170, 230), "radius": 48.0},
-	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1170), "radius": 48.0},
+	"desk": {"name": "Masuk ke Rumah Korban", "pos": Vector2(1248, 145), "radius": 36.0},
+	"mother_house": {"name": "Masuk ke Rumah Ibu Korban", "pos": Vector2(1714, 1150), "radius": 36.0},
 	"street_clock": {"name": "Jam Jalan (Berhenti di 16:04)", "pos": Vector2(480, 220), "radius": 120.0},
 	"police": {"name": "Kantor Polisi & Marcus (Minigame Menguntit)", "pos": Vector2(280, 915), "radius": 220.0},
 	"police_darkroom": {"name": "Lab Forensik Polisi (Kamar Gelap Cuci Foto)", "pos": Vector2(170, 1050), "radius": 110.0},
@@ -68,6 +68,9 @@ var cutscene_layer: CanvasLayer
 static var cutscene_played: bool = false
 @export var show_intro_cutscene: bool = true
 var auto_police_escort_triggered: bool = false
+var auto_station_scene_triggered: bool = false
+var is_respawning_to_checkpoint: bool = false
+var last_completed_checkpoint: Dictionary = {}
 
 # ==============================================================================
 # ⚙️ PENGATURAN UKURAN TOMBOL PAUSE (BISA DIEDIT DARI INSPECTOR / KODE)
@@ -415,7 +418,7 @@ func _exit_house() -> void:
 			house_interior.visible = false
 		if is_instance_valid(exploration_house_interior):
 			exploration_house_interior.visible = false
-		player.global_position = Vector2(1170.0, 260.0)
+		player.global_position = Vector2(1248.0, 155.0)
 		player.target_zoom_val = 2.0
 		if player.has_method("setup_camera_limits"):
 			player.setup_camera_limits(0, 0, 2400, 1450)
@@ -716,6 +719,8 @@ func _on_tailgate_completed(success: bool) -> void:
 		_update_hud_objective()
 		return
 
+	last_completed_checkpoint = {"pos": Vector2(1850.0, 850.0), "name": "Stasiun Kereta Api"}
+	auto_station_scene_triggered = true
 	# Force cutscene setibanya di stasiun
 	_start_station_arrival_cutscene()
 
@@ -845,10 +850,13 @@ func _start_station_search_minigame() -> void:
 
 func _on_station_minigame_ended(success: bool) -> void:
 	if not success:
+		auto_station_scene_triggered = false
 		if is_instance_valid(player):
 			player.can_move = true
 		_update_hud_objective()
 		return
+
+	last_completed_checkpoint = {"pos": Vector2(1850.0, 850.0), "name": "Stasiun Kereta Api"}
 
 	# Force Scene Keluar dari Stasiun
 	_force_walk_out_of_station()
@@ -1612,27 +1620,42 @@ func _check_poi_proximity() -> void:
 	var closest_dist: float = 999999.0
 	var best_poi: String = ""
 
+	# 1. Stasiun Kereta Api - Auto Forced Scene Pas Depan Parkiran Yang Ada Mobil (x: 1820..1960, y: 680..1260)
+	if not is_inside_house and not is_inside_exploration_house and not is_inside_hospital:
+		if p_pos.x >= 1820.0 and p_pos.x <= 1960.0 and p_pos.y >= 680.0 and p_pos.y <= 1260.0:
+			if not auto_station_scene_triggered and not inv_mgr.has_cleared_station:
+				auto_station_scene_triggered = true
+				if is_instance_valid(interact_prompt):
+					interact_prompt.visible = false
+				if inv_mgr.is_clue_unlocked("victim_letter"):
+					_start_station_arrival_cutscene()
+					return
+				else:
+					_show_toast("Selidiki rumah korban terlebih dahulu sebelum ke stasiun!")
+					return
+
 	# Check dedicated POIs with priority (e.g. Bilik Telepon di Peron Stasiun)
 	var phone_dist = p_pos.distance_to(POI_LOCATIONS["phone"]["pos"])
 	if phone_dist <= POI_LOCATIONS["phone"]["radius"]:
 		best_poi = "phone"
 		closest_dist = phone_dist
-	# 1. Stasiun Kereta Api (seluruh gedung, parkiran, peron, dan rel: x 1850..2350, y 670..1310)
-	elif p_pos.x >= 1850.0 and p_pos.x <= 2350.0 and p_pos.y >= 670.0 and p_pos.y <= 1310.0:
-		best_poi = "station"
-		closest_dist = 0.0
-	# 2. Pintu Masuk Rumah Benedict (pintu beranda depan)
-	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1170.0, 230.0)) <= 48.0:
+	# 1b. Peron Stasiun Kereta Api (Manual Interaction if already entered)
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.x >= 1980.0 and p_pos.x <= 2350.0 and p_pos.y >= 670.0 and p_pos.y <= 1310.0:
+		if not inv_mgr.has_cleared_station:
+			best_poi = "station"
+			closest_dist = 0.0
+	# 2. Pintu Masuk Rumah Benedict (Pintu Depan di Dalam Halaman Pagar)
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1248.0, 145.0)) <= 36.0:
 		best_poi = "desk"
-		closest_dist = p_pos.distance_to(Vector2(1170.0, 230.0))
-	# 3. Pintu Masuk Rumah Ibu Korban (Hanya Rumah Paling Bawah di 3 Rumah Dekat Stasiun)
-	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1170.0)) <= 48.0:
+		closest_dist = p_pos.distance_to(Vector2(1248.0, 145.0))
+	# 3. Pintu Masuk Rumah Ibu Korban (Pintu Depan di Dalam Halaman Pagar)
+	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(1714.0, 1150.0)) <= 36.0:
 		best_poi = "mother_house"
-		closest_dist = p_pos.distance_to(Vector2(1714.0, 1170.0))
+		closest_dist = p_pos.distance_to(Vector2(1714.0, 1150.0))
 	# 4. Pintu Rumah Warga Lain (Terkunci Rapat dari Dalam)
 	elif not is_inside_house and not is_inside_exploration_house and _is_near_locked_civilian_house(p_pos):
 		best_poi = "locked_civilian_house"
-		closest_dist = 40.0
+		closest_dist = 30.0
 
 	# 5. Meja Lab Forensik / Kamar Gelap Cuci Foto Kantor Polisi
 	elif not is_inside_house and not is_inside_exploration_house and p_pos.distance_to(Vector2(170.0, 1050.0)) <= 90.0:
@@ -2309,15 +2332,93 @@ func _is_near_locked_civilian_house(p_pos: Vector2) -> bool:
 		if i == 6:
 			continue
 		var hx = 210.0 + float(i) * 160.0
-		if p_pos.distance_to(Vector2(hx + 78.0, 175.0)) <= 48.0 or p_pos.distance_to(Vector2(hx, 230.0)) <= 48.0:
+		if p_pos.distance_to(Vector2(hx + 78.0, 145.0)) <= 36.0:
 			return true
 
 	# 2. Dua rumah lain di tenggara (se_0 dan se_1, bukan se_2 yang merupakan rumah Ibu)
-	if p_pos.distance_to(Vector2(1714.0, 840.0)) <= 48.0 or p_pos.distance_to(Vector2(1714.0, 1015.0)) <= 48.0:
+	if p_pos.distance_to(Vector2(1714.0, 795.0)) <= 36.0 or p_pos.distance_to(Vector2(1714.0, 970.0)) <= 36.0:
 		return true
 
 	# 3. Dua rumah di timur laut (ne_0 dan ne_1)
-	if p_pos.distance_to(Vector2(1730.0, 496.0)) <= 48.0 or p_pos.distance_to(Vector2(1912.0, 496.0)) <= 48.0:
+	if p_pos.distance_to(Vector2(1730.0, 448.0)) <= 36.0 or p_pos.distance_to(Vector2(1912.0, 448.0)) <= 36.0:
 		return true
 
 	return false
+
+func _connect_npc_spook_signals() -> void:
+	for n in get_tree().get_nodes_in_group("npcs"):
+		if is_instance_valid(n) and n.has_signal("npc_spook_fled"):
+			if not n.npc_spook_fled.is_connected(_on_npc_fled):
+				n.npc_spook_fled.connect(_on_npc_fled)
+
+func _get_last_checkpoint_pos() -> Vector2:
+	if last_completed_checkpoint.has("pos"):
+		return last_completed_checkpoint["pos"]
+
+	if is_instance_valid(inv_mgr):
+		if inv_mgr.has_developed_photos:
+			return Vector2(280.0, 930.0) # Kantor Polisi (Lab Forensik)
+		elif inv_mgr.has_cleared_station:
+			return Vector2(1850.0, 850.0) # Stasiun Kereta Api
+		elif inv_mgr.has_tailgated_marcus:
+			return Vector2(1850.0, 850.0) # Kedatangan Stasiun
+		elif inv_mgr.is_clue_unlocked("victim_letter"):
+			return Vector2(1248.0, 190.0) # Depan Rumah Benedict
+
+	return Vector2(1248.0, 190.0)
+
+func _get_last_checkpoint_name() -> String:
+	if last_completed_checkpoint.has("name"):
+		return last_completed_checkpoint["name"]
+
+	if is_instance_valid(inv_mgr):
+		if inv_mgr.has_developed_photos:
+			return "Kantor Polisi (Lab Forensik)"
+		elif inv_mgr.has_cleared_station:
+			return "Stasiun Kereta Api"
+		elif inv_mgr.has_tailgated_marcus:
+			return "Area Depan Stasiun"
+		elif inv_mgr.is_clue_unlocked("victim_letter"):
+			return "Depan Rumah Benedict"
+
+	return "Jalan Kota Utara"
+
+func _on_npc_fled(_fled_npc: CharacterBody2D) -> void:
+	if is_respawning_to_checkpoint:
+		return
+	if is_inside_house or is_inside_exploration_house or is_inside_hospital:
+		return
+
+	is_respawning_to_checkpoint = true
+	if is_instance_valid(player):
+		player.can_move = false
+
+	var cp_pos = _get_last_checkpoint_pos()
+	var cp_name = _get_last_checkpoint_name()
+
+	_show_toast("Warga/Polisi kabur ketakutan! Kembali ke checkpoint terakhir...")
+
+	var tw = create_tween()
+	tw.tween_interval(0.4) # Jeda visual saat NPC mulai lari menjauh
+	tw.tween_property(transition_overlay, "color:a", 1.0, 0.35)
+	tw.tween_callback(func():
+		if is_instance_valid(player):
+			player.global_position = cp_pos
+			if player.has_method("reset_camera_smoothing"):
+				player.reset_camera_smoothing()
+
+		# Tenangkan seluruh NPC agar tidak langsung panik berulang saat respawn
+		for n in get_tree().get_nodes_in_group("npcs"):
+			if is_instance_valid(n):
+				n.set("social_cooldown", 10.0)
+				n.set("player_in_spook_radius_timer", 0.0)
+				if n.get("current_state") == 3: # State.AFRAID
+					n.set("current_state", 1)   # State.GO_TO_DESTINATION
+	)
+	tw.tween_property(transition_overlay, "color:a", 0.0, 0.40)
+	tw.tween_callback(func():
+		if is_instance_valid(player):
+			player.can_move = true
+		is_respawning_to_checkpoint = false
+		_show_toast("Checkpoint Aktif: " + cp_name)
+	)

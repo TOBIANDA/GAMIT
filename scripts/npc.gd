@@ -33,6 +33,7 @@ const SHARED_DESTINATIONS = [
 ]
 
 signal reached_station
+signal npc_spook_fled(npc_node: CharacterBody2D)
 
 const POLICE_PATROL_WAYPOINTS = [
 	Vector2(350, 865),
@@ -686,6 +687,8 @@ func _handle_afraid_state(delta: float, _dist_to_player: float) -> void:
 				run_direction = Vector2.RIGHT
 		else:
 			run_direction = Vector2.RIGHT
+
+		npc_spook_fled.emit(self)
 
 func _handle_panic_run(delta: float) -> void:
 	run_timer -= delta
