@@ -133,6 +133,7 @@ var sprite_sets: Dictionary = {}
 var textbox_panel: PanelContainer
 var textbox_label: Label
 var textbox_pointer: Polygon2D
+var textbox_pointer_outline: Line2D
 var textbox_scale: float = 0.0
 var is_textbox_visible: bool = false
 var current_text_msg: String = ""
@@ -225,21 +226,21 @@ func _build_growtopia_textbox() -> void:
 	var root_box = Node2D.new()
 	root_box.name = "TextboxRoot"
 	root_box.position = Vector2(0, -42)
+	root_box.z_index = 20
 	add_child(root_box)
 
 	textbox_panel = PanelContainer.new()
-	textbox_panel.position = Vector2(-90, -40)
-	textbox_panel.size = Vector2(180, 36)
+	textbox_panel.custom_minimum_size = Vector2(140, 28)
 
 	var style_box = StyleBoxFlat.new()
 	style_box.bg_color = Color(0.98, 0.98, 0.98, 0.96)
 	style_box.border_color = Color(0.08, 0.08, 0.12, 1.0)
 	style_box.set_border_width_all(2)
 	style_box.set_corner_radius_all(7)
-	style_box.content_margin_left = 8.0
-	style_box.content_margin_right = 8.0
-	style_box.content_margin_top = 4.0
-	style_box.content_margin_bottom = 4.0
+	style_box.content_margin_left = 10.0
+	style_box.content_margin_right = 10.0
+	style_box.content_margin_top = 6.0
+	style_box.content_margin_bottom = 6.0
 	style_box.shadow_color = Color(0, 0, 0, 0.25)
 	style_box.shadow_size = 3
 	style_box.shadow_offset = Vector2(0, 2)
@@ -252,31 +253,53 @@ func _build_growtopia_textbox() -> void:
 	textbox_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	textbox_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	textbox_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	textbox_label.custom_minimum_size = Vector2(130, 0)
 	textbox_label.add_theme_color_override("font_color", Color(0.08, 0.08, 0.12))
 	textbox_label.add_theme_font_size_override("font_size", 11)
 	textbox_panel.add_child(textbox_label)
 
+	# Ekor segitiga penunjuk bubble mengarah ke NPC di bawah bubble (100% di luar bubble)
 	textbox_pointer = Polygon2D.new()
 	textbox_pointer.polygon = PackedVector2Array([
-		Vector2(-6, -2), Vector2(6, -2), Vector2(0, 6)
+		Vector2(-7, -8.5), Vector2(7, -8.5), Vector2(0, 0)
 	])
 	textbox_pointer.color = Color(0.98, 0.98, 0.98, 0.96)
+	textbox_pointer.z_index = 1
 	root_box.add_child(textbox_pointer)
 
-	var pointer_outline = Line2D.new()
-	pointer_outline.points = PackedVector2Array([
-		Vector2(-6, -2), Vector2(0, 6), Vector2(6, -2)
+	textbox_pointer_outline = Line2D.new()
+	# Garis miring kiri dan kanan mengarah ke ujung bawah, tanpa garis horizontal atas (agar menyatu dengan bubble)
+	textbox_pointer_outline.points = PackedVector2Array([
+		Vector2(-7, -7.5), Vector2(0, 0), Vector2(7, -7.5)
 	])
-	pointer_outline.width = 2.0
-	pointer_outline.default_color = Color(0.08, 0.08, 0.12, 1.0)
-	root_box.add_child(pointer_outline)
+	textbox_pointer_outline.width = 2.0
+	textbox_pointer_outline.default_color = Color(0.08, 0.08, 0.12, 1.0)
+	textbox_pointer_outline.z_index = 2
+	root_box.add_child(textbox_pointer_outline)
+
+	textbox_panel.resized.connect(_on_textbox_panel_resized)
+	_update_textbox_layout()
 
 	root_box.scale = Vector2.ZERO
+
+func _on_textbox_panel_resized() -> void:
+	_update_textbox_layout()
+
+func _update_textbox_layout() -> void:
+	if not is_instance_valid(textbox_panel):
+		return
+	var min_sz = textbox_panel.get_combined_minimum_size()
+	var w = maxf(min_sz.x, 140.0)
+	var h = maxf(min_sz.y, 28.0)
+	textbox_panel.size = Vector2(w, h)
+	# Dasar panel selalu tepat berada di atas pangkal segitiga penunjuk (Y = -7.0)
+	textbox_panel.position = Vector2(-w * 0.5, -7.0 - h)
 
 func show_chat_bubble(msg: String, duration: float = 2.5) -> void:
 	current_text_msg = msg
 	if is_instance_valid(textbox_label):
 		textbox_label.text = current_text_msg
+	_update_textbox_layout()
 	msg_display_timer = duration
 	is_textbox_visible = true
 
