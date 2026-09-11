@@ -711,6 +711,13 @@ func _display_final_credits() -> void:
 	restart_btn.text = "Mulai Ulang Investigasi"
 	restart_btn.custom_minimum_size = Vector2(260, 46)
 	restart_btn.pressed.connect(func():
+		var main_node = get_parent()
+		if is_instance_valid(main_node) and main_node.has_method("reset_game_to_start"):
+			main_node.reset_game_to_start()
+		var main_script = load("res://scripts/main.gd")
+		if main_script:
+			main_script.cutscene_played = false
+		get_tree().paused = false
 		get_tree().reload_current_scene()
 	)
 	vb.add_child(restart_btn)

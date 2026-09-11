@@ -110,6 +110,8 @@ func _ready() -> void:
 	_setup_hud_prompts()
 	_start_ai_server()
 
+	if not cutscene_played and is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
 	_update_hud_objective()
 
 	if is_instance_valid(main_menu_layer):
@@ -706,6 +708,8 @@ func _on_morgue_completed() -> void:
 func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
+	if not cutscene_played and is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
 	_update_hud_objective()
 
 func _on_tailgate_completed(success: bool) -> void:
@@ -927,9 +931,17 @@ func _setup_pause_menu() -> void:
 		pause_menu_layer.main_menu_requested.connect(_on_return_to_main_menu)
 		pause_menu_layer.restart_requested.connect(_on_restart_game_requested)
 
+
+func reset_game_to_start() -> void:
+	cutscene_played = false
+	police_letter_shown = false
+	active_poi_id = ""
+	if is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
+
 func _on_restart_game_requested() -> void:
 	play_click_sfx()
-	cutscene_played = true # Hindari memutar intro berulang saat restart in-game
+	reset_game_to_start()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -948,6 +960,8 @@ func _on_main_menu_play_requested() -> void:
 			tw.tween_callback(func():
 				_open_police_letter()
 			)
+	if not cutscene_played and is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
 	_update_hud_objective()
 	if is_instance_valid(pause_menu_layer) and pause_menu_layer.has_method("set_hud_button_visible"):
 		pause_menu_layer.set_hud_button_visible(true)
@@ -1266,12 +1280,13 @@ func _close_letter_viewer() -> void:
 		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("police_letter")
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("police_letter")
-		_show_toast("Tugas Diterima: Periksa rumah korban di ujung timur!")
+		_show_toast("Tugas Diterima! [SHIFT] Tahan Shift untuk Berlari")
 		if not already_unlocked and is_instance_valid(dialog_box):
 			var p_lines: Array[String] = [
 				"Surat penugasan kasus jenazah tanpa identitas...",
 				"Pengirim memintaku mencari bantuan pada orang di gedung penegakan hukum (Kantor Polisi).",
-				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!"
+				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!",
+				"[PETUNJUK KONTROL]: Gunakan tombol [W, A, S, D] untuk bergerak, dan tahan tombol [SHIFT] untuk berlari lebih cepat!"
 			]
 			dialog_box.start_monologue(p_lines, "Detektif Benedict", "", "res://karakter/MC_Bingung.png")
 
@@ -1443,6 +1458,14 @@ func _setup_hud_prompts() -> void:
 		toggle_pause_menu()
 	)
 	btns_hb.add_child(p_btn)
+
+	var sprint_hint = Label.new()
+	sprint_hint.text = "[SHIFT] Tahan untuk Berlari"
+	sprint_hint.add_theme_color_override("font_color", Color(0.92, 0.96, 1.0, 0.85))
+	sprint_hint.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	sprint_hint.add_theme_constant_override("outline_size", 3)
+	sprint_hint.add_theme_font_size_override("font_size", 13)
+	btns_hb.add_child(sprint_hint)
 
 	var beta_lbl = Label.new()
 	beta_lbl.text = "Beta: [X] Dewa Maut  [Y] Bypass"
