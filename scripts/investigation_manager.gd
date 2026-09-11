@@ -167,3 +167,15 @@ func get_investigation_progress_percent() -> int:
 		if clues[k]["unlocked"]:
 			count += 1
 	return int((float(count) / float(clues.size())) * 100.0)
+
+func reset_investigation_state() -> void:
+	current_phase = Phase.PROLOGUE_HOME
+	desaturation_level = 0.0
+	safe_unlocked = false
+	has_tailgated_marcus = false
+	has_cleared_station = false
+	has_developed_photos = false
+	has_inspected_morgue = false
+	for k in clues.keys():
+		clues[k]["unlocked"] = false
+	_update_desaturation()

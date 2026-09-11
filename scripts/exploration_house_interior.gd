@@ -96,9 +96,9 @@ var furniture_config: Dictionary = {
 		"tex": "tex_berangkas",
 		"x": 150.0, "y": 52.0,
 		"scale": 1.0,
-		"base_w": 28.0,
+		"base_w": 46.0,
 		"has_col": true,
-		"col_w": 28.0, "col_h": 28.0,
+		"col_w": 44.0, "col_h": 38.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 0
 	},

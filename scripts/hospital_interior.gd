@@ -33,9 +33,12 @@ const LABYRINTH_WALLS: Array[Rect2] = [
 	Rect2(252.0, 332.0, 220.0, 68.0),        # Pulau 3 (Sekat Lorong Tengah & Selatan-Barat)
 	Rect2(472.0, 332.0, 80.0, 68.0),         # Pulau 4 (Sekat Tengah-Selatan)
 	
-	# 3. Sekat Ruang Kamar Jenazah (Morgue Vaults & Isolasi)
+	# 3. Sekat Ruang Kamar Jenazah (Morgue Vaults & Isolasi dengan Pintu Masuk)
 	Rect2(648.0, 36.0, 176.0, 144.0),        # Dinding Kamar Jenazah Sisi Utara (Ruang Freezer Jenazah)
 	Rect2(648.0, 420.0, 176.0, 124.0),       # Dinding Kamar Jenazah Sisi Selatan (Ruang Autopsi Tertutup)
+	Rect2(648.0, 180.0, 24.0, 80.0),         # Tembok Pembatas Kamar Jenazah Atas (Y=180..260)
+	Rect2(648.0, 340.0, 24.0, 80.0),         # Tembok Pembatas Kamar Jenazah Bawah (Y=340..420)
+	# Celah Pintu Masuk Kamar Jenazah di X=648..672, Y=260..340 (lebar 80 px)
 	
 	# 4. Meja Resepsionis / Rintangan Lorong Depan
 	Rect2(110.0, 275.0, 36.0, 50.0)          # Meja Perawat / Resepsionis Masuk
@@ -139,26 +142,30 @@ func _generate_lamp_texture() -> Texture2D:
 	return g_tex
 
 func _setup_coffin() -> void:
-	# Ranjang / Peti Kematian di Ujung Lorong Kamar Jenazah
+	# Ranjang / Kasur Mayat di Ujung Lorong Kamar Jenazah
 	coffin_sprite = Sprite2D.new()
 	coffin_sprite.name = "MorgueCoffin"
-	var svg_tex = load("res://Environment/RS/hostpital.svg")
-	if not svg_tex:
-		svg_tex = load("res://hostpital.svg")
-	coffin_sprite.texture = svg_tex
+	var bed_tex = load("res://Environment/Ruang Mayat/kasurmayat.png")
+	if not bed_tex:
+		bed_tex = load("res://Environment/kasur mayat.png")
+	if not bed_tex:
+		bed_tex = load("res://Environment/Ruang Mayat/kasur mayat.png")
+	if not bed_tex:
+		bed_tex = load("res://Environment/kasurmayat.png")
+	coffin_sprite.texture = bed_tex
 	coffin_sprite.position = COFFIN_POS
-	coffin_sprite.rotation_degrees = -90.0
-	coffin_sprite.scale = Vector2(0.075, 0.075)
+	coffin_sprite.rotation_degrees = 0.0
+	coffin_sprite.scale = Vector2(0.06, 0.06)
 	coffin_sprite.z_index = 0
 	add_child(coffin_sprite)
 
-	# Collision box peti agar tidak ditembus pemain
+	# Collision box kasur mayat agar tidak ditembus pemain
 	coffin_collision = StaticBody2D.new()
 	coffin_collision.name = "CoffinCollision"
 	coffin_collision.position = COFFIN_POS
 	var col = CollisionShape2D.new()
 	var box = RectangleShape2D.new()
-	box.size = Vector2(76.0, 42.0)
+	box.size = Vector2(90.0, 55.0)
 	col.shape = box
 	coffin_collision.add_child(col)
 	add_child(coffin_collision)
@@ -567,10 +574,7 @@ func _draw() -> void:
 			var badge_col = Color(0.9, 0.2, 0.2) if is_target_vault else Color(0.2, 0.8, 0.4)
 			draw_circle(Vector2(vx + 36.0, vy + 12.0), 3.0, badge_col)
 
-	# Papan Peringatan "KAMAR JENAZAH / MORGUE" di atas pintu masuk kamar jenazah
-	var sign_rect = Rect2(ox + 638.0, oy + 242.0, 78.0, 14.0)
-	draw_rect(sign_rect, Color(0.65, 0.12, 0.12), true)
-	draw_rect(sign_rect, Color(0.95, 0.90, 0.90), false, 1.0)
+	# Papan peringatan merah telah dihapus sesuai permintaan
 
 	# Meja Resepsionis / Kursi Perawat di Lorong Barat
 	var desk_rect = Rect2(ox + 110.0, oy + 275.0, 36.0, 50.0)

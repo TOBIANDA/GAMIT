@@ -153,17 +153,18 @@ func _process(delta: float) -> void:
 		else:
 			portrait_glow.color = Color(0.6, 0.2, 0.9, alpha)
 
-	# Efek melayang halus untuk potret Dewa Kematian saat berbicara
+	# Efek melayang halus HANYA untuk potret Dewa Kematian saat berbicara
 	if is_instance_valid(large_portrait) and large_portrait.visible:
-		var base_top = -620.0
-		var base_bottom = -30.0
 		if not is_monologue_mode:
+			var base_top = -620.0
+			var base_bottom = -20.0
 			var bob = sin(glow_timer * 0.8) * 4.0
 			large_portrait.offset_top = base_top + bob
 			large_portrait.offset_bottom = base_bottom + bob
 		else:
-			large_portrait.offset_top = base_top
-			large_portrait.offset_bottom = base_bottom
+			# MC Benedict menapak kokoh pada batas bawah layar (tidak mengambang)
+			large_portrait.offset_top = -480.0
+			large_portrait.offset_bottom = 14.0
 
 	if is_typing:
 		if is_instance_valid(continue_prompt):
@@ -478,6 +479,19 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 			tex = load("res://UI/mc_portrait.png")
 		if tex:
 			large_portrait.texture = tex
+
+		if is_grim:
+			large_portrait.offset_left = 20.0
+			large_portrait.offset_right = 380.0
+			large_portrait.offset_top = -620.0
+			large_portrait.offset_bottom = -20.0
+		else:
+			# Benedict menapak pada batas bawah layar (tidak mengambang)
+			large_portrait.offset_left = 24.0
+			large_portrait.offset_right = 404.0
+			large_portrait.offset_top = -480.0
+			large_portrait.offset_bottom = 14.0
+
 		large_portrait.visible = true
 
 	dialog_opened.emit()

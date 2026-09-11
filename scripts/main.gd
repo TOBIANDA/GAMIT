@@ -68,6 +68,14 @@ var cutscene_layer: CanvasLayer
 static var cutscene_played: bool = false
 @export var show_intro_cutscene: bool = true
 var auto_police_escort_triggered: bool = false
+<<<<<<< HEAD
+=======
+var auto_station_scene_triggered: bool = false
+var station_arrival_cutscene_running: bool = false
+var station_arrival_cutscene_done: bool = false
+var is_respawning_to_checkpoint: bool = false
+var last_completed_checkpoint: Dictionary = {}
+>>>>>>> 51efc9a (feat: sync latest hospital bed, morgue wall, replay reset, and sprint hint)
 
 # ==============================================================================
 # ⚙️ PENGATURAN UKURAN TOMBOL PAUSE (BISA DIEDIT DARI INSPECTOR / KODE)
@@ -110,6 +118,8 @@ func _ready() -> void:
 	_setup_hud_prompts()
 	_start_ai_server()
 
+	if not cutscene_played and is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
 	_update_hud_objective()
 
 	if is_instance_valid(main_menu_layer):
@@ -706,6 +716,8 @@ func _on_morgue_completed() -> void:
 func _on_minigame_ended() -> void:
 	if is_instance_valid(player):
 		player.can_move = true
+	if not cutscene_played and is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
 	_update_hud_objective()
 
 func _on_tailgate_completed(success: bool) -> void:
@@ -720,6 +732,11 @@ func _on_tailgate_completed(success: bool) -> void:
 	_start_station_arrival_cutscene()
 
 func _start_station_arrival_cutscene() -> void:
+	if station_arrival_cutscene_running or station_arrival_cutscene_done:
+		return
+	station_arrival_cutscene_running = true
+	auto_station_scene_triggered = true
+
 	var marcus_npc = find_child("NPC_Police_Marcus", true, false)
 	var police_npc = find_child("NPC1_Police", true, false)
 	if not is_instance_valid(marcus_npc):
@@ -733,7 +750,16 @@ func _start_station_arrival_cutscene() -> void:
 				police_npc = n
 				break
 
+<<<<<<< HEAD
 	# 1. Posisikan Detektif Benedict bersembunyi dari jarak aman di dekat peron
+=======
+	# Matikan minigame tailgate dan batalkan patroli jalan polisi agar tidak jalan sendiri
+	if is_instance_valid(minigame_tailgate) and minigame_tailgate.is_active:
+		minigame_tailgate.is_active = false
+		minigame_tailgate.visible = false
+
+	# 1. Kunci pergerakan pemain di posisi parkiran mobil tempat dia melangkah (Gambar 2)
+>>>>>>> 51efc9a (feat: sync latest hospital bed, morgue wall, replay reset, and sprint hint)
 	if is_instance_valid(player):
 		player.can_move = false
 		player.global_position = Vector2(1920.0, 730.0)
@@ -743,13 +769,17 @@ func _start_station_arrival_cutscene() -> void:
 			if player.has_method("reset_camera_smoothing"):
 				player.reset_camera_smoothing()
 
-	# 2. Posisikan kedua polisi di peron stasiun berhadapan
+	# 2. Posisikan kedua polisi di peron stasiun berhadapan dan matikan pergerakan patroli
 	if is_instance_valid(marcus_npc):
+		marcus_npc.is_patrolling_to_station = false
+		marcus_npc.is_departing = false
 		marcus_npc.global_position = Vector2(2088.0, 690.0)
 		marcus_npc.move_dir_facing = Vector2.LEFT
 		marcus_npc.velocity = Vector2.ZERO
 		marcus_npc.is_moving = false
 	if is_instance_valid(police_npc):
+		police_npc.is_patrolling_to_station = false
+		police_npc.is_departing = false
 		police_npc.global_position = Vector2(2048.0, 705.0)
 		police_npc.move_dir_facing = Vector2.RIGHT
 		police_npc.velocity = Vector2.ZERO
@@ -818,7 +848,9 @@ func _start_station_arrival_cutscene() -> void:
 			_force_walk_into_station()
 	)
 
-func _force_walk_into_station() -> void:
+func _force_walk_into_station(marcus_npc = null, police_npc = null) -> void:
+	station_arrival_cutscene_running = false
+	station_arrival_cutscene_done = true
 	if not is_instance_valid(player):
 		_start_station_search_minigame()
 		return
@@ -927,9 +959,17 @@ func _setup_pause_menu() -> void:
 		pause_menu_layer.main_menu_requested.connect(_on_return_to_main_menu)
 		pause_menu_layer.restart_requested.connect(_on_restart_game_requested)
 
+
+func reset_game_to_start() -> void:
+	cutscene_played = false
+	police_letter_shown = false
+	active_poi_id = ""
+	if is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
+
 func _on_restart_game_requested() -> void:
 	play_click_sfx()
-	cutscene_played = true # Hindari memutar intro berulang saat restart in-game
+	reset_game_to_start()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -948,6 +988,8 @@ func _on_main_menu_play_requested() -> void:
 			tw.tween_callback(func():
 				_open_police_letter()
 			)
+	if not cutscene_played and is_instance_valid(inv_mgr):
+		inv_mgr.reset_investigation_state()
 	_update_hud_objective()
 	if is_instance_valid(pause_menu_layer) and pause_menu_layer.has_method("set_hud_button_visible"):
 		pause_menu_layer.set_hud_button_visible(true)
@@ -1266,12 +1308,13 @@ func _close_letter_viewer() -> void:
 		var already_unlocked = is_instance_valid(inv_mgr) and inv_mgr.is_clue_unlocked("police_letter")
 		if is_instance_valid(inv_mgr):
 			inv_mgr.unlock_clue("police_letter")
-		_show_toast("Tugas Diterima: Periksa rumah korban di ujung timur!")
+		_show_toast("Tugas Diterima! [SHIFT] Tahan Shift untuk Berlari")
 		if not already_unlocked and is_instance_valid(dialog_box):
 			var p_lines: Array[String] = [
 				"Surat penugasan kasus jenazah tanpa identitas...",
 				"Pengirim memintaku mencari bantuan pada orang di gedung penegakan hukum (Kantor Polisi).",
-				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!"
+				"Namun sebelum ke kantor polisi, aku harus memeriksa rumah korban di ujung timur terlebih dahulu untuk mencari petunjuk awal!",
+				"[PETUNJUK KONTROL]: Gunakan tombol [W, A, S, D] untuk bergerak, dan tahan tombol [SHIFT] untuk berlari lebih cepat!"
 			]
 			dialog_box.start_monologue(p_lines, "Detektif Benedict", "", "res://karakter/MC_Bingung.png")
 
@@ -1443,6 +1486,14 @@ func _setup_hud_prompts() -> void:
 		toggle_pause_menu()
 	)
 	btns_hb.add_child(p_btn)
+
+	var sprint_hint = Label.new()
+	sprint_hint.text = "[SHIFT] Tahan untuk Berlari"
+	sprint_hint.add_theme_color_override("font_color", Color(0.92, 0.96, 1.0, 0.85))
+	sprint_hint.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	sprint_hint.add_theme_constant_override("outline_size", 3)
+	sprint_hint.add_theme_font_size_override("font_size", 13)
+	btns_hb.add_child(sprint_hint)
 
 	var beta_lbl = Label.new()
 	beta_lbl.text = "Beta: [X] Dewa Maut  [Y] Bypass"
@@ -1998,7 +2049,9 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 					dialog_box.start_monologue(st_lines, "Detektif Benedict", "[ Stasiun Kereta ]", "res://karakter/MC_Bingung.png")
 				return
 
-			if is_instance_valid(minigame_hidden_objects):
+			if not station_arrival_cutscene_done:
+				_start_station_arrival_cutscene()
+			elif is_instance_valid(minigame_hidden_objects):
 				_force_walk_into_station()
 			else:
 				_show_toast("Peron Stasiun Kereta Api Timur. Angin dingin berhembus sunyi.")
@@ -2072,7 +2125,8 @@ func _on_police_reached_station() -> void:
 	if is_instance_valid(minigame_tailgate) and minigame_tailgate.is_active:
 		minigame_tailgate.is_active = false
 		minigame_tailgate.visible = false
-	_on_tailgate_completed(true)
+	if not station_arrival_cutscene_running and not station_arrival_cutscene_done:
+		_on_tailgate_completed(true)
 
 func _trigger_death_god() -> void:
 	if is_instance_valid(player):

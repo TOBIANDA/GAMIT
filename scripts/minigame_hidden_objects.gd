@@ -3,6 +3,8 @@ extends CanvasLayer
 signal minigame_completed(success: bool)
 
 var is_active: bool = false
+var is_gameplay_running: bool = false
+var is_briefing_active: bool = false
 var time_left: float = 60.0
 
 var items_to_find: Dictionary = {
@@ -34,6 +36,7 @@ var timer_label: Label
 var status_banner: Label
 var close_btn: Button
 var click_player: AudioStreamPlayer
+var briefing_overlay: Control
 
 # Aset Gambar Stasiun & Clue
 var tex_station_bg: Texture2D
@@ -121,12 +124,18 @@ func _load_assets() -> void:
 		tex_clues["tiket"] = load("res://tiketkereta.png")
 
 func start_minigame() -> void:
+	# Jika minigame sudah aktif berjalan, jangan pernah reset waktu atau state!
+	if is_active:
+		return
+
 	if not is_instance_valid(root_control):
 		_load_assets()
 		_setup_audio()
 		_build_scene_ui()
+
 	is_active = true
 	visible = true
+	is_gameplay_running = false
 	time_left = 60.0
 
 	# Sembunyikan tombol HUD pause agar tidak tumpang tindih
@@ -154,9 +163,39 @@ func start_minigame() -> void:
 		# Reset siluet di sebelah kiri ke opacity rendah
 		_reset_silhouette_card(k)
 
+	if is_instance_valid(timer_label):
+		timer_label.text = "Jadwal Kereta: 60.0s"
+		timer_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+
 	if is_instance_valid(status_banner):
 		status_banner.text = "Perhatikan 3 bentuk siluet di sebelah kiri, lalu temukan barangnya di peron stasiun!"
 		status_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.45))
+
+	# Tampilkan dialog box briefing terlebih dahulu sebelum timer dimulai!
+	_show_opening_briefing()
+
+func _show_opening_briefing() -> void:
+	if not is_instance_valid(briefing_overlay):
+		return
+	briefing_overlay.visible = true
+	briefing_overlay.modulate = Color(1, 1, 1, 0)
+	is_briefing_active = true
+	var tw = create_tween()
+	tw.tween_property(briefing_overlay, "modulate:a", 1.0, 0.25)
+
+func _dismiss_briefing() -> void:
+	if not is_briefing_active:
+		return
+	_play_click()
+	is_briefing_active = false
+	if is_instance_valid(briefing_overlay):
+		var tw = create_tween()
+		tw.tween_property(briefing_overlay, "modulate:a", 0.0, 0.2)
+		tw.tween_callback(func():
+			briefing_overlay.visible = false
+		)
+	# DIALOG SELESAI: SEKARANG TIMER RESMI DIMULAI!
+	is_gameplay_running = true
 
 func _reset_silhouette_card(item_key: String) -> void:
 	if not silhouette_cards.has(item_key):
@@ -181,7 +220,7 @@ func _reset_silhouette_card(item_key: String) -> void:
 			style.bg_color = Color(0.08, 0.11, 0.16, 0.88)
 
 func _process(delta: float) -> void:
-	if not is_active:
+	if not is_active or not is_gameplay_running:
 		return
 
 	time_left -= delta
@@ -198,12 +237,24 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_active:
 		return
-	if event is InputEventKey and event.pressed and not event.is_echo() and event.keycode == KEY_ESCAPE:
-		_finish_and_close(false)
+
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_ESCAPE:
+			_finish_and_close(false)
+			get_viewport().set_input_as_handled()
+			return
+		if is_briefing_active and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_E, KEY_F]:
+			_dismiss_briefing()
+			get_viewport().set_input_as_handled()
+			return
+
+	if is_briefing_active and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_dismiss_briefing()
 		get_viewport().set_input_as_handled()
+		return
 
 func _on_item_clicked(item_key: String) -> void:
-	if not is_active or not items_to_find.has(item_key):
+	if not is_active or not is_gameplay_running or not items_to_find.has(item_key):
 		return
 	if items_to_find[item_key]["found"]:
 		return
@@ -275,6 +326,7 @@ func _activate_silhouette_card(item_key: String) -> void:
 
 func _complete_victory() -> void:
 	is_active = false
+	is_gameplay_running = false
 	status_banner.text = "SEMUA BARANG BUKTI DITEMUKAN! Surat, jam saku, dan tiket berhasil diamankan!"
 	status_banner.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 
@@ -295,28 +347,20 @@ func _complete_victory() -> void:
 	_finish_and_close(true)
 
 func _fail_timeout() -> void:
+	# Timer tidak boleh kereset; ketika waktu habis pemain dinyatakan KALAH
 	is_active = false
-	status_banner.text = "WAKTU HABIS! Kereta melintas membuyarkan pencarian. Mengulang investigasi..."
+	is_gameplay_running = false
+	status_banner.text = "WAKTU HABIS! Kereta melintas membuyarkan pencarian. Kamu gagal mengamankan barang bukti tepat waktu!"
 	status_banner.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 	if is_inside_tree() and get_tree():
-		await get_tree().create_timer(2.0).timeout
-	time_left = 60.0
-	for k in items_to_find.keys():
-		items_to_find[k]["found"] = false
-		if item_buttons.has(k) and is_instance_valid(item_buttons[k]):
-			item_buttons[k].visible = true
-			item_buttons[k].disabled = false
-		if item_found_badges.has(k) and is_instance_valid(item_found_badges[k]):
-			item_found_badges[k].visible = false
-		if item_scene_sprites.has(k) and is_instance_valid(item_scene_sprites[k]):
-			item_scene_sprites[k].visible = true
-			item_scene_sprites[k].modulate = Color.WHITE
-		_reset_silhouette_card(k)
-	is_active = true
+		await get_tree().create_timer(2.2).timeout
+	_finish_and_close(false)
 
 func _finish_and_close(success: bool = true) -> void:
 	is_active = false
+	is_gameplay_running = false
+	is_briefing_active = false
 	visible = false
 	minigame_completed.emit(success)
 
@@ -463,7 +507,6 @@ func _build_scene_ui() -> void:
 		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon_rect.pivot_offset = Vector2(32, 32)
-		# Awalnya ber-opacity rendah (siluet samar)
 		icon_rect.modulate = SILHOUETTE_LOW_OPACITY
 		icon_center.add_child(icon_rect)
 
@@ -620,3 +663,101 @@ func _build_scene_ui() -> void:
 	foot_lbl.add_theme_color_override("font_color", Color(0.75, 0.8, 0.9))
 	foot_lbl.add_theme_font_size_override("font_size", 12)
 	footer_panel.add_child(foot_lbl)
+
+	# --- 4. DIALOG BOX BRIEFING OVERLAY (DITAMPILKAN SEBELUM TIMER BERJALAN) ---
+	briefing_overlay = Control.new()
+	briefing_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	briefing_overlay.visible = false
+	root_control.add_child(briefing_overlay)
+
+	var b_dim = ColorRect.new()
+	b_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	b_dim.color = Color(0.02, 0.03, 0.05, 0.75)
+	briefing_overlay.add_child(b_dim)
+
+	var b_center = CenterContainer.new()
+	b_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	briefing_overlay.add_child(b_center)
+
+	var b_panel = PanelContainer.new()
+	b_panel.custom_minimum_size = Vector2(740, 280)
+	var bp_style = StyleBoxFlat.new()
+	bp_style.bg_color = Color(0.06, 0.08, 0.13, 0.98)
+	bp_style.border_color = Color(1.0, 0.85, 0.35, 0.9)
+	bp_style.set_border_width_all(2)
+	bp_style.set_corner_radius_all(12)
+	bp_style.shadow_color = Color(0, 0, 0, 0.6)
+	bp_style.shadow_size = 20
+	bp_style.content_margin_left = 24
+	bp_style.content_margin_right = 24
+	bp_style.content_margin_top = 20
+	bp_style.content_margin_bottom = 20
+	b_panel.add_theme_stylebox_override("panel", bp_style)
+	b_center.add_child(b_panel)
+
+	var b_hbox = HBoxContainer.new()
+	b_hbox.add_theme_constant_override("separation", 20)
+	b_panel.add_child(b_hbox)
+
+	var b_portrait = TextureRect.new()
+	b_portrait.custom_minimum_size = Vector2(140, 200)
+	var p_tex = load("res://karakter/MC_Bingung.png")
+	if not p_tex:
+		p_tex = load("res://karakter/MC_Biasa.png")
+	if p_tex:
+		b_portrait.texture = p_tex
+	b_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	b_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	b_hbox.add_child(b_portrait)
+
+	var b_vbox = VBoxContainer.new()
+	b_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b_vbox.add_theme_constant_override("separation", 10)
+	b_hbox.add_child(b_vbox)
+
+	var b_header = Label.new()
+	b_header.text = "❖ INVESTIGASI PERON STASIUN TIMUR ❖"
+	b_header.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	b_header.add_theme_font_size_override("font_size", 16)
+	b_vbox.add_child(b_header)
+
+	var b_speaker = Label.new()
+	b_speaker.text = "Detektif Benedict — [ Menyelidiki Peron ]"
+	b_speaker.add_theme_color_override("font_color", Color(0.4, 0.88, 1.0))
+	b_speaker.add_theme_font_size_override("font_size", 13)
+	b_vbox.add_child(b_speaker)
+
+	var b_sep = HSeparator.new()
+	b_vbox.add_child(b_sep)
+
+	var b_desc = Label.new()
+	b_desc.text = "Kedua polisi itu sudah pergi meninggalkan stasiun... Ini kesempatan terbaikku!\n\nPerhatikan 3 siluet clue di sebelah kiri:\n• Surat Bukti Korban (di atas bangku tunggu)\n• Jam Saku Korban (di lantai dekat tangga)\n• Tiket Kereta Api (di lantai bawah papan tulis)\n\nAku harus menemukan semuanya sebelum jadwal kereta malam tiba!"
+	b_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b_desc.add_theme_color_override("font_color", Color(0.92, 0.94, 0.98))
+	b_desc.add_theme_font_size_override("font_size", 13)
+	b_vbox.add_child(b_desc)
+
+	var b_start_btn = Button.new()
+	b_start_btn.text = "MULAI PENCARIAN BUKTI [ Spasi / Enter / Klik ]"
+	b_start_btn.focus_mode = Control.FOCUS_NONE
+	b_start_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var btn_style = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0.15, 0.32, 0.22, 0.95)
+	btn_style.border_color = Color(0.3, 1.0, 0.5, 0.9)
+	btn_style.set_border_width_all(2)
+	btn_style.set_corner_radius_all(6)
+	btn_style.content_margin_top = 8
+	btn_style.content_margin_bottom = 8
+	b_start_btn.add_theme_stylebox_override("normal", btn_style)
+	var btn_hov = StyleBoxFlat.new()
+	btn_hov.bg_color = Color(0.22, 0.45, 0.30, 1.0)
+	btn_hov.border_color = Color(0.5, 1.0, 0.7, 1.0)
+	btn_hov.set_border_width_all(2)
+	btn_hov.set_corner_radius_all(6)
+	btn_hov.content_margin_top = 8
+	btn_hov.content_margin_bottom = 8
+	b_start_btn.add_theme_stylebox_override("hover", btn_hov)
+	b_start_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	b_start_btn.add_theme_font_size_override("font_size", 13)
+	b_start_btn.pressed.connect(_dismiss_briefing)
+	b_vbox.add_child(b_start_btn)

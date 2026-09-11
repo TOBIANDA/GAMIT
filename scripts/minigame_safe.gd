@@ -270,7 +270,7 @@ func _build_scene_ui() -> void:
 	safe_image_rect = TextureRect.new()
 	if is_instance_valid(tex_safe_closed):
 		safe_image_rect.texture = tex_safe_closed
-	safe_image_rect.custom_minimum_size = Vector2(320, 320)
+	safe_image_rect.custom_minimum_size = Vector2(380, 380)
 	safe_image_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	safe_image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	safe_center.add_child(safe_image_rect)
