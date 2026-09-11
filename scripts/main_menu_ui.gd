@@ -25,6 +25,8 @@ var menu_bgm_player: AudioStreamPlayer
 
 var tex_menu_bg: Texture2D
 var tex_credit: Texture2D
+var tex_title: Texture2D
+var title_texture_rect: TextureRect
 
 func _ready() -> void:
 	layer = 100
@@ -39,6 +41,9 @@ func _load_assets() -> void:
 	if not tex_menu_bg:
 		tex_menu_bg = load("res://UI/Main Menu/main-menu-meja.png")
 	tex_credit = load("res://Main Menu/credit.png")
+	tex_title = load("res://judul.png")
+	if not tex_title:
+		tex_title = load("res://Main Menu/judul.png")
 
 func _setup_audio() -> void:
 	click_player = AudioStreamPlayer.new()
@@ -72,6 +77,8 @@ func open_menu() -> void:
 	_load_assets()
 	if not is_instance_valid(root_control):
 		_build_menu_ui()
+	elif is_instance_valid(title_texture_rect) and not title_texture_rect.texture and is_instance_valid(tex_title):
+		title_texture_rect.texture = tex_title
 	if is_instance_valid(options_modal):
 		options_modal.visible = false
 	if is_instance_valid(credit_modal):
@@ -102,39 +109,15 @@ func _build_menu_ui() -> void:
 	bg_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	root_control.add_child(bg_texture_rect)
 
-	# 2. Header Judul Game di Pojok Atas Tengah
-	var title_panel = PanelContainer.new()
-	title_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	title_panel.position = Vector2(0, 16)
-	var tp_style = StyleBoxFlat.new()
-	tp_style.bg_color = Color(0.04, 0.05, 0.08, 0.75)
-	tp_style.border_color = Color(0.85, 0.7, 0.3, 0.8)
-	tp_style.set_border_width_all(1)
-	tp_style.set_corner_radius_all(8)
-	tp_style.content_margin_left = 24
-	tp_style.content_margin_right = 24
-	tp_style.content_margin_top = 8
-	tp_style.content_margin_bottom = 8
-	title_panel.add_theme_stylebox_override("panel", tp_style)
-	root_control.add_child(title_panel)
-
-	var title_vb = VBoxContainer.new()
-	title_vb.add_theme_constant_override("separation", 2)
-	title_panel.add_child(title_vb)
-
-	var main_title = Label.new()
-	main_title.text = "AFTER THE END: DETECTIVE BENEDICT"
-	main_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
-	main_title.add_theme_font_size_override("font_size", 18)
-	title_vb.add_child(main_title)
-
-	var sub_title = Label.new()
-	sub_title.text = "Penyelidikan Kematian Misterius di Dunia Setelah Kematian — Oleh 4 ayam 1 immo"
-	sub_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub_title.add_theme_color_override("font_color", Color(0.8, 0.85, 0.95))
-	sub_title.add_theme_font_size_override("font_size", 12)
-	title_vb.add_child(sub_title)
+	# 2. Header Judul Game (res://judul.png)
+	title_texture_rect = TextureRect.new()
+	title_texture_rect.name = "TitleTextureRect"
+	if is_instance_valid(tex_title):
+		title_texture_rect.texture = tex_title
+	title_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	title_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	title_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_control.add_child(title_texture_rect)
 
 	# 3. Hotspot Buttons Presisi Sesuai Kertas Papan Investigasi:
 	# Ukuran asli di latar 5760x3240 adalah 742x209 px (di 1600x900 adalah 206x58 px)
@@ -167,8 +150,9 @@ func _update_button_positions() -> void:
 	var vp_size = get_viewport().get_visible_rect().size if is_inside_tree() and get_viewport() else root_control.size
 	if vp_size.x <= 0 or vp_size.y <= 0:
 		vp_size = Vector2(1600, 900)
-	root_control.size = vp_size
-	root_control.position = Vector2.ZERO
+	if root_control.anchor_right != 1.0 or root_control.anchor_bottom != 1.0:
+		root_control.size = vp_size
+		root_control.position = Vector2.ZERO
 
 	var img_orig = Vector2(5760.0, 3240.0)
 	var scale_factor = min(vp_size.x / img_orig.x, vp_size.y / img_orig.y)
@@ -190,6 +174,12 @@ func _update_button_positions() -> void:
 			btn.position = offset + orig_pos * scale_factor
 			btn.size = orig_size * scale_factor
 			btn.custom_minimum_size = btn.size
+
+	if is_instance_valid(title_texture_rect):
+		var title_w: float = clamp(vp_size.x * 0.54, 420.0, 960.0)
+		var title_h: float = title_w * (200.0 / 1920.0)
+		title_texture_rect.size = Vector2(title_w, title_h)
+		title_texture_rect.position = Vector2((vp_size.x - title_w) * 0.5, 10.0 * (vp_size.y / 900.0))
 
 	if is_instance_valid(options_modal):
 		var opt_w = options_modal.size.x if options_modal.size.x > 100.0 else options_modal.custom_minimum_size.x

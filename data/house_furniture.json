@@ -1,5 +1,6 @@
 {
 	"_deleted_items": [
+		"partisi_tamu",
 		"brankas"
 	],
 	"baskom_foto": {
@@ -127,15 +128,6 @@
 		"scale": 1.0,
 		"x": 355.0,
 		"y": 56.0
-	},
-	"partisi_tamu": {
-		"flip_x": false,
-		"flip_y": false,
-		"name": "Partisi Garis Tiang",
-		"rot": 0.0,
-		"scale": 1.0,
-		"x": 125.0,
-		"y": 110.0
 	},
 	"set_masak": {
 		"flip_x": false,
