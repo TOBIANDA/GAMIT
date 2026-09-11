@@ -41,7 +41,7 @@ var btn_main_menu: Button
 var btn_quit: Button
 
 var options_modal: PanelContainer
-var credit_modal: PanelContainer
+var credit_modal: Control
 var bgm_slider: HSlider
 var sfx_slider: HSlider
 
@@ -422,24 +422,24 @@ func _create_text_link_button(label_text: String, col: Color = Color(0.8, 0.85, 
 	btn.add_theme_stylebox_override("pressed", empty_sb)
 	return btn
 
-func _create_step_button(txt: String) -> Button:
+func _create_step_button(symbol: String) -> Button:
 	var btn = Button.new()
-	btn.text = txt
-	btn.custom_minimum_size = Vector2(30, 26)
+	btn.text = symbol
+	btn.custom_minimum_size = Vector2(34, 28)
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.14, 0.17, 0.24, 0.95)
-	sb.border_color = Color(0.75, 0.65, 0.35, 0.8)
+	sb.bg_color = Color(0.20, 0.15, 0.11, 0.95)
+	sb.border_color = Color(0.85, 0.70, 0.35, 0.9)
 	sb.set_border_width_all(1)
 	sb.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("normal", sb)
-	var sb_h = sb.duplicate()
-	sb_h.bg_color = Color(0.24, 0.28, 0.38, 1.0)
-	sb_h.border_color = Color(1.0, 0.85, 0.45, 1.0)
-	btn.add_theme_stylebox_override("hover", sb_h)
-	btn.add_theme_stylebox_override("pressed", sb_h)
-	btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
+	var sb_hov = sb.duplicate()
+	sb_hov.bg_color = Color(0.32, 0.24, 0.16, 1.0)
+	sb_hov.border_color = Color(1.0, 0.88, 0.50, 1.0)
+	btn.add_theme_stylebox_override("hover", sb_hov)
+	btn.add_theme_stylebox_override("pressed", sb_hov)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.75))
 	btn.add_theme_font_size_override("font_size", 13)
 	return btn
 
@@ -452,7 +452,7 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 
 	var title_lbl = Label.new()
 	title_lbl.text = title_text
-	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	title_lbl.add_theme_color_override("font_color", Color(0.95, 0.90, 0.82))
 	title_lbl.add_theme_font_size_override("font_size", 13)
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_hb.add_child(title_lbl)
@@ -464,7 +464,7 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 	header_hb.add_child(val_lbl)
 
 	var control_hb = HBoxContainer.new()
-	control_hb.add_theme_constant_override("separation", 8)
+	control_hb.add_theme_constant_override("separation", 10)
 	container.add_child(control_hb)
 
 	var btn_minus = _create_step_button("—")
@@ -476,7 +476,7 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 	slider.max_value = 1.0
 	slider.step = 0.05
 	slider.value = initial_val
-	slider.custom_minimum_size = Vector2(230, 24)
+	slider.custom_minimum_size = Vector2(240, 26)
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	slider.focus_mode = Control.FOCUS_NONE
@@ -491,19 +491,19 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 		sb_back.texture = tex_back
 		sb_back.texture_margin_left = 6
 		sb_back.texture_margin_right = 6
-		sb_back.texture_margin_top = 4
-		sb_back.texture_margin_bottom = 4
-		sb_back.content_margin_top = 5
-		sb_back.content_margin_bottom = 5
+		sb_back.texture_margin_top = 2
+		sb_back.texture_margin_bottom = 2
+		sb_back.content_margin_top = 6
+		sb_back.content_margin_bottom = 6
 
 		var sb_front = StyleBoxTexture.new()
 		sb_front.texture = tex_front
 		sb_front.texture_margin_left = 6
 		sb_front.texture_margin_right = 6
-		sb_front.texture_margin_top = 4
-		sb_front.texture_margin_bottom = 4
-		sb_front.content_margin_top = 5
-		sb_front.content_margin_bottom = 5
+		sb_front.texture_margin_top = 2
+		sb_front.texture_margin_bottom = 2
+		sb_front.content_margin_top = 6
+		sb_front.content_margin_bottom = 6
 
 		slider.add_theme_stylebox_override("slider", sb_back)
 		slider.add_theme_stylebox_override("grabber_area", sb_front)
@@ -536,16 +536,19 @@ func _create_custom_sound_slider(title_text: String, initial_val: float, on_chan
 
 func _build_settings_modal(parent_center: CenterContainer) -> void:
 	options_modal = PanelContainer.new()
-	options_modal.custom_minimum_size = Vector2(470, 340)
+	options_modal.custom_minimum_size = Vector2(480, 350)
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.08, 0.10, 0.15, 0.98)
+	sb.bg_color = Color(0.13, 0.09, 0.07, 0.97)
 	sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
+	sb.set_corner_radius_all(8)
+	sb.shadow_color = Color(0, 0, 0, 0.65)
+	sb.shadow_size = 14
+	sb.shadow_offset = Vector2(0, 4)
 	sb.content_margin_left = 28
 	sb.content_margin_right = 28
-	sb.content_margin_top = 20
-	sb.content_margin_bottom = 20
+	sb.content_margin_top = 22
+	sb.content_margin_bottom = 22
 	options_modal.add_theme_stylebox_override("panel", sb)
 	options_modal.visible = false
 	parent_center.add_child(options_modal)
@@ -557,7 +560,7 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	var t = Label.new()
 	t.text = "PENGATURAN SUARA & TAMPILAN"
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	t.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
 	t.add_theme_font_size_override("font_size", 16)
 	vb.add_child(t)
 
@@ -578,10 +581,11 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 
 	# 3. Fullscreen Button
 	var fs_hb = HBoxContainer.new()
+	fs_hb.add_theme_constant_override("separation", 8)
 	vb.add_child(fs_hb)
 	var fs_lbl = Label.new()
 	fs_lbl.text = "Mode Layar (Fullscreen):"
-	fs_lbl.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	fs_lbl.add_theme_color_override("font_color", Color(0.95, 0.90, 0.82))
 	fs_lbl.add_theme_font_size_override("font_size", 13)
 	fs_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fs_hb.add_child(fs_lbl)
@@ -592,7 +596,21 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 		fs_btn.text = "Layar Jendela (F11)" if is_fs else "Layar Penuh (F11)"
 	update_fs_text.call()
 	fs_btn.focus_mode = Control.FOCUS_NONE
-	fs_btn.custom_minimum_size = Vector2(160, 32)
+	fs_btn.custom_minimum_size = Vector2(150, 32)
+	fs_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var fs_sb = StyleBoxFlat.new()
+	fs_sb.bg_color = Color(0.20, 0.15, 0.11, 0.95)
+	fs_sb.border_color = Color(0.85, 0.70, 0.35, 0.8)
+	fs_sb.set_border_width_all(1)
+	fs_sb.set_corner_radius_all(4)
+	fs_btn.add_theme_stylebox_override("normal", fs_sb)
+	var fs_hov = fs_sb.duplicate()
+	fs_hov.bg_color = Color(0.32, 0.24, 0.16, 1.0)
+	fs_hov.border_color = Color(1.0, 0.88, 0.50, 1.0)
+	fs_btn.add_theme_stylebox_override("hover", fs_hov)
+	fs_btn.add_theme_stylebox_override("pressed", fs_hov)
+	fs_btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.75))
+	fs_btn.add_theme_font_size_override("font_size", 12)
 	fs_btn.pressed.connect(func():
 		_play_click()
 		var mode = DisplayServer.window_get_mode()
@@ -607,9 +625,23 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	# 4. Close Button
 	var close_opt = Button.new()
 	close_opt.text = "Simpan & Kembali"
-	close_opt.custom_minimum_size = Vector2(160, 36)
+	close_opt.custom_minimum_size = Vector2(180, 38)
 	close_opt.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	close_opt.focus_mode = Control.FOCUS_NONE
+	close_opt.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var c_btn_sb = StyleBoxFlat.new()
+	c_btn_sb.bg_color = Color(0.22, 0.16, 0.12, 0.95)
+	c_btn_sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
+	c_btn_sb.set_border_width_all(2)
+	c_btn_sb.set_corner_radius_all(6)
+	close_opt.add_theme_stylebox_override("normal", c_btn_sb)
+	var c_btn_hov = c_btn_sb.duplicate()
+	c_btn_hov.bg_color = Color(0.35, 0.26, 0.18, 1.0)
+	c_btn_hov.border_color = Color(1.0, 0.88, 0.50, 1.0)
+	close_opt.add_theme_stylebox_override("hover", c_btn_hov)
+	close_opt.add_theme_stylebox_override("pressed", c_btn_hov)
+	close_opt.add_theme_color_override("font_color", Color(1.0, 0.92, 0.75))
+	close_opt.add_theme_font_size_override("font_size", 13)
 	close_opt.pressed.connect(func():
 		_play_click()
 		options_modal.visible = false
@@ -617,72 +649,62 @@ func _build_settings_modal(parent_center: CenterContainer) -> void:
 	vb.add_child(close_opt)
 
 func _build_credit_modal() -> void:
-	credit_modal = PanelContainer.new()
+	if is_instance_valid(credit_modal):
+		return
+	credit_modal = Control.new()
+	credit_modal.name = "CreditModal"
 	credit_modal.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var empty_sb = StyleBoxEmpty.new()
-	credit_modal.add_theme_stylebox_override("panel", empty_sb)
 	credit_modal.visible = false
 	root_control.add_child(credit_modal)
 
-	# 1. Dim Background
-	var dim = Button.new()
+	# 1. Dim background
+	var dim = ColorRect.new()
+	dim.name = "DimBackground"
+	dim.color = Color(0.02, 0.03, 0.05, 0.95)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.focus_mode = Control.FOCUS_NONE
-	var dim_sb = StyleBoxFlat.new()
-	dim_sb.bg_color = Color(0.02, 0.03, 0.05, 0.90)
-	dim.add_theme_stylebox_override("normal", dim_sb)
-	dim.add_theme_stylebox_override("hover", dim_sb)
-	dim.add_theme_stylebox_override("pressed", dim_sb)
-	dim.pressed.connect(func():
-		_play_click()
-		credit_modal.visible = false
-	)
 	credit_modal.add_child(dim)
 
-	# 2. 16:9 Aspect Ratio Container
-	var asp = AspectRatioContainer.new()
-	asp.ratio = 16.0 / 9.0
-	asp.set_anchors_preset(Control.PRESET_FULL_RECT)
-	asp.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
-	asp.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
-	asp.mouse_filter = Control.MOUSE_FILTER_STOP
-	credit_modal.add_child(asp)
-
+	# 2. Gambar Credit 1920x1080 buatan Artist (Tampil Penuh Presisi)
 	var credit_img = TextureRect.new()
+	credit_img.name = "CreditImage"
+	if not is_instance_valid(tex_credit):
+		tex_credit = load("res://Main Menu/credit.png")
 	if is_instance_valid(tex_credit):
 		credit_img.texture = tex_credit
+	credit_img.set_anchors_preset(Control.PRESET_FULL_RECT)
 	credit_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	credit_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	credit_img.mouse_filter = Control.MOUSE_FILTER_PASS
-	asp.add_child(credit_img)
+	credit_modal.add_child(credit_img)
 
-	# 3. Close Button
+	# 3. Tombol Tutup di Pojok Kanan Atas
 	var close_crd_btn = Button.new()
+	close_crd_btn.name = "BtnCloseCredit"
 	close_crd_btn.text = "✖ TUTUP KREDIT [ESC]"
-	close_crd_btn.custom_minimum_size = Vector2(190, 40)
+	close_crd_btn.custom_minimum_size = Vector2(200, 42)
 	close_crd_btn.anchor_left = 1.0
-	close_crd_btn.anchor_top = 0.0
 	close_crd_btn.anchor_right = 1.0
+	close_crd_btn.anchor_top = 0.0
 	close_crd_btn.anchor_bottom = 0.0
-	close_crd_btn.offset_left = -215
-	close_crd_btn.offset_top = 25
+	close_crd_btn.offset_left = -225
 	close_crd_btn.offset_right = -25
-	close_crd_btn.offset_bottom = 65
+	close_crd_btn.offset_top = 25
+	close_crd_btn.offset_bottom = 67
 	close_crd_btn.focus_mode = Control.FOCUS_NONE
 	close_crd_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var c_sb = StyleBoxFlat.new()
-	c_sb.bg_color = Color(0.12, 0.14, 0.18, 0.95)
-	c_sb.border_color = Color(0.85, 0.70, 0.35, 1.0)
+	c_sb.bg_color = Color(0.12, 0.10, 0.08, 0.95)
+	c_sb.border_color = Color(0.90, 0.75, 0.35, 1.0)
 	c_sb.set_border_width_all(2)
 	c_sb.set_corner_radius_all(6)
 	close_crd_btn.add_theme_stylebox_override("normal", c_sb)
 	var c_hov = c_sb.duplicate()
-	c_hov.bg_color = Color(0.20, 0.24, 0.30, 1.0)
-	c_hov.border_color = Color(1.0, 0.85, 0.45, 1.0)
+	c_hov.bg_color = Color(0.24, 0.18, 0.12, 1.0)
+	c_hov.border_color = Color(1.0, 0.90, 0.55, 1.0)
 	close_crd_btn.add_theme_stylebox_override("hover", c_hov)
 	close_crd_btn.add_theme_stylebox_override("pressed", c_hov)
-	close_crd_btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7))
-	close_crd_btn.add_theme_font_size_override("font_size", 13)
+	close_crd_btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.75))
+	close_crd_btn.add_theme_font_size_override("font_size", 14)
 	close_crd_btn.pressed.connect(func():
 		_play_click()
 		credit_modal.visible = false
