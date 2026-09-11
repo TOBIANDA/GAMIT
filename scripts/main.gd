@@ -1864,7 +1864,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			if is_instance_valid(dialog_box):
 				var clk_lines: Array[String] = [
 					"Sebuah jam weker kuno di atas nakas...",
-					"Anehnya, jarum jam ini juga terhenti kaku tepat di pukul 16:04, sama persis seperti jam jalanan kota.",
+					"Aneh, kenapa jam dimana mana menunjukkan waktu yang sama?",
 					"Di balik jam ini tergores angka samar: '1 - 6 - 4'. Jam yang berhenti saat petaka terjadi."
 				]
 				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kenangan ]", "res://karakter/MC_Bingung.png")
@@ -1898,8 +1898,7 @@ func _trigger_poi_interaction(poi_id: String, bypass_story: bool = false) -> voi
 			if is_instance_valid(dialog_box):
 				var clk_lines: Array[String] = [
 					"Sebuah jam weker analog tua di atas nakas samping tempat tidur...",
-					"Detik jarumnya berbunyi konstan: 'Tik... Tok... Tik... Tok...'",
-					"Waktu terus berjalan tanpa henti. Aku harus lekas menuntaskan penyelidikan kasus ini."
+					"Aneh, kenapa jam dimana mana menunjukkan waktu yang sama?"
 				]
 				dialog_box.start_monologue(clk_lines, "Detektif Benedict", "[ Jam Weker Kamar ]", "res://karakter/MC_Bingung.png")
 
