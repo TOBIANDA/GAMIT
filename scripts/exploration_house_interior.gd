@@ -154,16 +154,6 @@ var furniture_config: Dictionary = {
 		"has_col": false,
 		"z_idx": 0
 	},
-	"polaroid_ibu": {
-		"name": "Foto Polaroid Kenangan Ibu",
-		"type": "sprite",
-		"tex": "tex_polaroid_ibu",
-		"x": 188.0, "y": 70.0,
-		"scale": 1.0,
-		"base_w": 18.0,
-		"has_col": false,
-		"z_idx": 1
-	},
 	"kalender_ibu": {
 		"name": "Kalender Kenangan Tahun 1998",
 		"type": "sprite",
@@ -598,16 +588,6 @@ func _draw() -> void:
 		draw_rect(m_rect, Color(0.40, 0.15, 0.15), true)
 		draw_rect(m_rect, Color(0.65, 0.25, 0.22), false, 1.5)
 
-	# 6. GLOWING HIGHLIGHT INTERAKTIF PADA BUKTI & CLUE
-	var pulse = 0.22 + 0.09 * sin(glow_timer)
-	# Safe
-	draw_circle(get_safe_pos(), 16.0, Color(0.35, 0.95, 0.65, pulse))
-	# Clock
-	draw_circle(get_clock_pos(), 14.0, Color(1.0, 0.85, 0.40, pulse))
-	# Photo & Calendar
-	draw_circle(get_calendar_photo_pos(), 15.0, Color(0.45, 0.82, 1.0, pulse))
-	# Recipe Book
-	draw_circle(get_recipe_pos(), 15.0, Color(1.0, 0.90, 0.50, pulse))
 
 	# Selection Highlight Saat Mode Edit Aktif
 	if is_edit_mode and not selected_furniture_id.is_empty() and furniture_config.has(selected_furniture_id):
@@ -644,11 +624,17 @@ func get_clock_pos() -> Vector2:
 		return ROOM_ORIGIN + Vector2(float(j.x), float(j.y))
 	return ROOM_ORIGIN + Vector2(355.0, 56.0)
 
-func get_calendar_photo_pos() -> Vector2:
-	if furniture_config.has("meja_keluarga"):
+func get_calendar_pos() -> Vector2:
+	if furniture_config.has("kalender_ibu"):
+		var k = furniture_config["kalender_ibu"]
+		return ROOM_ORIGIN + Vector2(float(k.x), float(k.y))
+	elif furniture_config.has("meja_keluarga"):
 		var m = furniture_config["meja_keluarga"]
 		return ROOM_ORIGIN + Vector2(float(m.x), float(m.y))
-	return ROOM_ORIGIN + Vector2(195.0, 72.0)
+	return ROOM_ORIGIN + Vector2(210.0, 38.0)
+
+func get_calendar_photo_pos() -> Vector2:
+	return get_calendar_pos()
 
 func get_recipe_pos() -> Vector2:
 	if furniture_config.has("meja_resep"):

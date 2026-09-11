@@ -43,7 +43,7 @@ var footsteps_player: AudioStreamPlayer2D
 
 @export var target_zoom_val: float = 2.0
 @export var min_zoom_val: float = 1.40
-@export var max_zoom_val: float = 2.60
+@export var max_zoom_val: float = 3.50
 @export var zoom_step: float = 0.20
 
 var player_light: PointLight2D
@@ -151,6 +151,8 @@ func _load_sprites_from_folder(folder_path: String) -> Dictionary:
 	return set_dict
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not can_move:
+		return
 	if event is InputEventMouseButton and event.is_pressed():
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_in()

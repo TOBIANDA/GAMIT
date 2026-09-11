@@ -5,7 +5,7 @@ signal safe_opened(success: bool)
 var is_active: bool = false
 var entered_digits: Array[int] = []
 
-const CODE = [1, 6, 4]
+const CODE = [1, 4, 3]
 
 var lcd_status_lbl: Label
 var lcd_digits_lbl: Label
@@ -25,7 +25,7 @@ var tex_safe_opened: Texture2D
 var tex_numpad: Texture2D
 
 func _ready() -> void:
-	layer = 14
+	layer = 16
 	_load_assets()
 	_setup_audio()
 	_build_scene_ui()
@@ -83,6 +83,7 @@ func start_minigame() -> void:
 	is_active = true
 	visible = true
 	entered_digits.clear()
+	_last_input_time_msec = 0
 
 	if is_instance_valid(safe_image_rect) and is_instance_valid(tex_safe_closed):
 		safe_image_rect.texture = tex_safe_closed
@@ -114,9 +115,17 @@ func _update_lcd_display(custom_status: String = "", status_col: Color = Color(0
 				d_texts.append("_")
 		lcd_digits_lbl.text = "[ %s ]  [ %s ]  [ %s ]" % [d_texts[0], d_texts[1], d_texts[2]]
 
+var _last_input_time_msec: int = 0
+const INPUT_DEBOUNCE_MS: int = 180
+
 func _on_key_pressed(digit: int) -> void:
 	if not is_active:
 		return
+	var now = Time.get_ticks_msec()
+	if now - _last_input_time_msec < INPUT_DEBOUNCE_MS:
+		return
+	_last_input_time_msec = now
+
 	if entered_digits.size() >= 3:
 		return
 	_play_click(1.0 + float(digit) * 0.04)
@@ -129,6 +138,11 @@ func _on_key_pressed(digit: int) -> void:
 func _on_backspace_pressed() -> void:
 	if not is_active:
 		return
+	var now = Time.get_ticks_msec()
+	if now - _last_input_time_msec < INPUT_DEBOUNCE_MS:
+		return
+	_last_input_time_msec = now
+
 	_play_click(0.85)
 	if entered_digits.size() > 0:
 		entered_digits.pop_back()
@@ -137,6 +151,11 @@ func _on_backspace_pressed() -> void:
 func _on_enter_pressed() -> void:
 	if not is_active:
 		return
+	var now = Time.get_ticks_msec()
+	if now - _last_input_time_msec < INPUT_DEBOUNCE_MS:
+		return
+	_last_input_time_msec = now
+
 	if entered_digits.size() == 3:
 		_try_unlock()
 	else:
@@ -190,7 +209,7 @@ func _close_safe(success: bool = false) -> void:
 	visible = false
 	safe_opened.emit(success)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not is_active or not visible:
 		return
 	if event is InputEventKey and event.pressed and not event.is_echo():
@@ -307,6 +326,7 @@ func _build_scene_ui() -> void:
 		numpad_img.texture = tex_numpad
 	numpad_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	numpad_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	numpad_img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	numpad_container.add_child(numpad_img)
 
 	# 1. Overlay Display LCD Screen di area atas layar monitor hitam numpad
@@ -387,6 +407,9 @@ func _build_scene_ui() -> void:
 		b_press.set_corner_radius_all(6)
 		btn.add_theme_stylebox_override("pressed", b_press)
 
+		btn.text = ""
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		btn.z_index = 5
 		btn.pressed.connect(kd["action"])
 		numpad_container.add_child(btn)
 
@@ -406,7 +429,7 @@ func _build_scene_ui() -> void:
 	main_box.add_child(reward_panel)
 
 	reward_label = Label.new()
-	reward_label.text = "ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Kenangan keluarga yang sangat berharga."
+	reward_label.text = "ITEM DIDAPATKAN: Liontin Perak & Surat Kasih Sayang Ibu Korban!\n'Untuk anakku tersayang... Apapun yang terjadi di dunia ini, ibu akan selalu menemanimu dan mendukung setiap langkahmu.'"
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.9))
 	reward_label.add_theme_font_size_override("font_size", 13.5)

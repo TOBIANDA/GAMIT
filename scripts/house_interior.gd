@@ -140,6 +140,16 @@ var default_furniture_config: Dictionary = {
 		"has_col": false,
 		"z_idx": 0
 	},
+	"polaroid_ibu": {
+		"name": "Foto Polaroid Kenangan Ibu",
+		"type": "sprite",
+		"tex": "tex_polaroid_ibu",
+		"x": 385.0, "y": 218.0,
+		"scale": 1.0,
+		"base_w": 24.0,
+		"has_col": false,
+		"z_idx": 2
+	},
 
 	# --- 3. KAMAR TIDUR ---
 	"bed": {
@@ -290,6 +300,7 @@ var tex_surat: Texture2D
 var tex_berangkas: Texture2D
 var tex_baskom: Texture2D
 var tex_jam_weker: Texture2D
+var tex_polaroid_ibu: Texture2D
 
 var letter_glow_time: float = 0.0
 var sprite_letter: Sprite2D
@@ -354,6 +365,7 @@ func _load_textures() -> void:
 	tex_jam_weker = load("res://Environment/RUMAH IBU/jam weker.png")
 	if not tex_jam_weker:
 		tex_jam_weker = load("res://RUMAH IBU/jam weker.png")
+	tex_polaroid_ibu = load("res://UI/Polaroid/polaroidIbu.png")
 
 func _get_texture_by_name(tex_name: String) -> Texture2D:
 	match tex_name:
@@ -374,6 +386,7 @@ func _get_texture_by_name(tex_name: String) -> Texture2D:
 		"tex_berangkas": return tex_berangkas
 		"tex_baskom": return tex_baskom
 		"tex_jam_weker": return tex_jam_weker
+		"tex_polaroid_ibu": return tex_polaroid_ibu
 	return null
 
 func _build_room_collisions() -> void:
@@ -476,6 +489,7 @@ func update_furniture_transform(id: String) -> void:
 			var ratio = (base_w * s) / float(tex.get_width())
 			sp.scale = Vector2(ratio * fx, ratio * fy)
 		sp.rotation_degrees = rot_deg
+		sp.z_index = data.get("z_idx", 0)
 
 	if furniture_colliders.has(id):
 		var col = furniture_colliders[id]
@@ -494,21 +508,23 @@ func update_furniture_transform(id: String) -> void:
 	queue_redraw()
 
 func _load_furniture_config() -> void:
-	# Prioritaskan user:// sebagai save file pemain lokal yang paling update
-	var path_to_load = ""
-	if FileAccess.file_exists(USER_CONFIG_FILE_PATH):
-		path_to_load = USER_CONFIG_FILE_PATH
-	elif FileAccess.file_exists(CONFIG_FILE_PATH):
-		path_to_load = CONFIG_FILE_PATH
+	# 1. Muat konfigurasi dasar proyek dari CONFIG_FILE_PATH
+	if FileAccess.file_exists(CONFIG_FILE_PATH):
+		var file_base = FileAccess.open(CONFIG_FILE_PATH, FileAccess.READ)
+		if file_base:
+			var parsed_base = JSON.parse_string(file_base.get_as_text())
+			file_base.close()
+			if parsed_base is Dictionary:
+				_apply_config_dict(parsed_base)
 
-	if not path_to_load.is_empty():
-		var file = FileAccess.open(path_to_load, FileAccess.READ)
-		if file:
-			var json_str = file.get_as_text()
-			file.close()
-			var parsed = JSON.parse_string(json_str)
-			if parsed is Dictionary:
-				_apply_config_dict(parsed)
+	# 2. Muat save file lokal pemain jika ada perubahan di user://
+	if FileAccess.file_exists(USER_CONFIG_FILE_PATH):
+		var file_user = FileAccess.open(USER_CONFIG_FILE_PATH, FileAccess.READ)
+		if file_user:
+			var parsed_user = JSON.parse_string(file_user.get_as_text())
+			file_user.close()
+			if parsed_user is Dictionary:
+				_apply_config_dict(parsed_user)
 
 func _apply_config_dict(parsed: Dictionary) -> void:
 	# Migrasi kitchen_unit lama jika ada
@@ -526,23 +542,15 @@ func _apply_config_dict(parsed: Dictionary) -> void:
 			furniture_config["kulkas"]["y"] = ky
 			furniture_config["kulkas"]["scale"] = ks
 
-	# 1. Hapus SEMUA item yang tercatat dalam daftar _deleted_items
+	# 1. Hapus item yang tercatat dalam daftar _deleted_items (kecuali item cerita esensial)
 	if parsed.has("_deleted_items") and parsed["_deleted_items"] is Array:
 		for del_id in parsed["_deleted_items"]:
+			if del_id == "polaroid_ibu" or del_id == "surat":
+				continue
 			if furniture_config.has(del_id):
 				furniture_config.erase(del_id)
 
-	# 2. Hapus juga item default yang tidak ada di dalam parsed (jika file simpanan valid)
-	var active_keys = parsed.keys()
-	if active_keys.size() > 1: # Ada data perabot tersimpan selain/termasuk _deleted_items
-		var to_del = []
-		for id in furniture_config.keys():
-			if not parsed.has(id):
-				to_del.append(id)
-		for id in to_del:
-			furniture_config.erase(id)
-
-	# 3. Update data transformasi item yang aktif
+	# 2. Update data transformasi item yang aktif
 	for id in parsed.keys():
 		if id == "_deleted_items":
 			continue
@@ -659,6 +667,11 @@ func get_desk_letter_pos() -> Vector2:
 	if furniture_config.has("meja_detektif"):
 		return ROOM_ORIGIN + Vector2(furniture_config["meja_detektif"].x, furniture_config["meja_detektif"].y)
 	return Vector2(-9999.0, -9999.0)
+
+func get_photo_pos() -> Vector2:
+	if furniture_config.has("polaroid_ibu"):
+		return ROOM_ORIGIN + Vector2(furniture_config["polaroid_ibu"].x, furniture_config["polaroid_ibu"].y)
+	return ROOM_ORIGIN + Vector2(385.0, 218.0)
 
 func get_safe_pos() -> Vector2:
 	if furniture_config.has("brankas"):
@@ -830,6 +843,7 @@ func _draw() -> void:
 	var desk_scale = float(furniture_config.get("meja_detektif", {}).get("scale", 1.0))
 	var glow_alpha = 0.22 + 0.08 * sin(letter_glow_time)
 	draw_circle(desk_pos, 18.0 * desk_scale, Color(1.0, 0.90, 0.45, glow_alpha))
+
 
 	# 7. SELECTION HIGHLIGHT SAAT MODE EDIT AKTIF
 	if is_edit_mode and not selected_furniture_id.is_empty() and furniture_config.has(selected_furniture_id):
