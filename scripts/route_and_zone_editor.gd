@@ -8,7 +8,8 @@ enum EditMode {
 	PATROL_ROUTE,
 	RETURN_ROUTE,
 	SPOOK_GRID,
-	STATION_ZONE
+	STATION_ZONE,
+	MC_WALK_ROUTE
 }
 
 var current_mode: EditMode = EditMode.PATROL_ROUTE
@@ -21,6 +22,7 @@ var use_grid: bool = true
 var patrol_waypoints: Array[Vector2] = []
 var return_waypoints: Array[Vector2] = []
 var spook_waypoints: Array[Vector2] = []
+var mc_walk_waypoints: Array[Vector2] = []
 
 var station_shape: String = "rect" # "rect" atau "circle"
 var station_rect: Rect2 = Rect2(1820.0, 680.0, 380.0, 280.0)
@@ -128,6 +130,24 @@ func load_config_data() -> void:
 			station_circle_center = Vector2(float(c.get("center_x", 1950.0)), float(c.get("center_y", 780.0)))
 			station_circle_radius = float(c.get("radius", 180.0))
 
+	# 5. MC Walk Route (Rute jalan Benedict masuk ke stasiun)
+	mc_walk_waypoints.clear()
+	if use_grid and data.has("mc_station_walk_route_grid") and data["mc_station_walk_route_grid"] is Array and not data["mc_station_walk_route_grid"].is_empty():
+		for pt in data["mc_station_walk_route_grid"]:
+			if pt is Array and pt.size() >= 2:
+				mc_walk_waypoints.append(Vector2(float(pt[0]) * cell_size + cell_size * 0.5, float(pt[1]) * cell_size + cell_size * 0.5))
+	elif data.has("mc_station_walk_route_pixels") and data["mc_station_walk_route_pixels"] is Array and not data["mc_station_walk_route_pixels"].is_empty():
+		for pt in data["mc_station_walk_route_pixels"]:
+			if pt is Array and pt.size() >= 2:
+				mc_walk_waypoints.append(Vector2(float(pt[0]), float(pt[1])))
+	else:
+		mc_walk_waypoints = [
+			Vector2(1920.0, 730.0),
+			Vector2(1990.0, 730.0),
+			Vector2(2040.0, 700.0),
+			Vector2(2080.0, 685.0)
+		]
+
 func save_config_data() -> bool:
 	var patrol_grid: Array = []
 	var patrol_px: Array = []
@@ -145,6 +165,12 @@ func save_config_data() -> bool:
 	for p in spook_waypoints:
 		spook_grid.append([floor(p.x / cell_size), floor(p.y / cell_size)])
 
+	var mc_grid: Array = []
+	var mc_px: Array = []
+	for p in mc_walk_waypoints:
+		mc_px.append([round(p.x), round(p.y)])
+		mc_grid.append([floor(p.x / cell_size), floor(p.y / cell_size)])
+
 	var config_dict = {
 		"_panduan": "Konfigurasi Alur Jalan Polisi (Grid), Arah Lari Merinding, dan Area Forced Scene Stasiun. Diedit otomatis lewat In-Game Editor [F3].",
 		"grid_system": {
@@ -156,6 +182,8 @@ func save_config_data() -> bool:
 		"police_patrol_route_pixels": patrol_px,
 		"police_return_route_grid": return_grid,
 		"police_return_route_pixels": return_px,
+		"mc_station_walk_route_grid": mc_grid,
+		"mc_station_walk_route_pixels": mc_px,
 		"station_forced_scene_trigger": {
 			"shape": station_shape,
 			"_keterangan_shape": "Pilih 'rect' atau 'circle'.",
@@ -309,6 +337,8 @@ func _get_active_points_list() -> Array[Vector2]:
 			return return_waypoints
 		EditMode.SPOOK_GRID:
 			return spook_waypoints
+		EditMode.MC_WALK_ROUTE:
+			return mc_walk_waypoints
 	return patrol_waypoints
 
 func _set_active_point_pos(idx: int, pos: Vector2) -> void:
@@ -323,9 +353,14 @@ func _draw() -> void:
 
 	var font = ThemeDB.fallback_font
 
-	# 1. Gambar Grid Transparan di sekitar camera/viewport
-	var cam_pos = get_global_mouse_position()
-	var vp_size = get_viewport_rect().size * 1.5
+	# 1. Gambar Grid Halus
+	var vp = get_viewport()
+	var vp_size = vp.get_visible_rect().size if is_instance_valid(vp) else Vector2(1600, 900)
+	var cam_pos = Vector2(1950, 750)
+	var player = get_tree().get_first_node_in_group("player")
+	if is_instance_valid(player):
+		cam_pos = player.global_position
+
 	var start_x = floor((cam_pos.x - vp_size.x * 0.6) / cell_size) * cell_size
 	var end_x   = ceil((cam_pos.x + vp_size.x * 0.6) / cell_size) * cell_size
 	var start_y = floor((cam_pos.y - vp_size.y * 0.6) / cell_size) * cell_size
@@ -352,6 +387,7 @@ func _draw() -> void:
 	_draw_route_path(patrol_waypoints, Color(0.15, 0.65, 1.0), "Patroli", current_mode == EditMode.PATROL_ROUTE)
 	_draw_route_path(return_waypoints, Color(0.2, 0.9, 0.5), "Pulang", current_mode == EditMode.RETURN_ROUTE)
 	_draw_route_path(spook_waypoints, Color(1.0, 0.65, 0.15), "Merinding", current_mode == EditMode.SPOOK_GRID)
+	_draw_route_path(mc_walk_waypoints, Color(0.2, 0.9, 1.0), "Rute MC", current_mode == EditMode.MC_WALK_ROUTE)
 
 	# 4. Gambar Zona Forced Scene Stasiun
 	var is_zone_active = (current_mode == EditMode.STATION_ZONE)
@@ -483,6 +519,7 @@ func _setup_ui() -> void:
 	_add_mode_tab("🏠 Pulang", EditMode.RETURN_ROUTE)
 	_add_mode_tab("⚡ Merinding", EditMode.SPOOK_GRID)
 	_add_mode_tab("🚉 Zona Stasiun", EditMode.STATION_ZONE)
+	_add_mode_tab("🚶 Rute MC", EditMode.MC_WALK_ROUTE)
 
 	vb.add_child(HSeparator.new())
 
@@ -645,7 +682,7 @@ func _update_route_info() -> void:
 	if not is_instance_valid(route_info_label):
 		return
 	var pts = _get_active_points_list()
-	var mode_name = "Rute Patroli Polisi" if current_mode == EditMode.PATROL_ROUTE else ("Rute Pulang Polisi" if current_mode == EditMode.RETURN_ROUTE else "Jalur Lari Merinding")
+	var mode_name = "Rute Patroli Polisi" if current_mode == EditMode.PATROL_ROUTE else ("Rute Pulang Polisi" if current_mode == EditMode.RETURN_ROUTE else ("Jalur Lari Merinding" if current_mode == EditMode.SPOOK_GRID else "Rute Jalan Masuk MC"))
 	route_info_label.text = "[ %s ] Total: %d titik" % [mode_name, pts.size()]
 	if selected_point_idx >= 0 and selected_point_idx < pts.size():
 		var p = pts[selected_point_idx]

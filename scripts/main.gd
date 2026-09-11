@@ -72,6 +72,7 @@ var auto_police_escort_triggered: bool = false
 var auto_station_scene_triggered: bool = false
 var station_arrival_cutscene_running: bool = false
 var station_arrival_cutscene_done: bool = false
+var mc_station_walk_waypoints: Array[Vector2] = []
 var is_respawning_to_checkpoint: bool = false
 var last_completed_checkpoint: Dictionary = {}
 
@@ -802,6 +803,28 @@ func _load_station_trigger_config() -> void:
 				)
 				station_trigger_circle_radius = float(c.get("radius", 180.0))
 
+		var cell_sz = 32.0
+		if data.has("grid_system") and data["grid_system"] is Dictionary:
+			cell_sz = float(data["grid_system"].get("cell_size", 32.0))
+		var use_grid = bool(data.get("use_grid_coordinates", true))
+
+		mc_station_walk_waypoints.clear()
+		if use_grid and data.has("mc_station_walk_route_grid") and data["mc_station_walk_route_grid"] is Array and not data["mc_station_walk_route_grid"].is_empty():
+			for pt in data["mc_station_walk_route_grid"]:
+				if pt is Array and pt.size() >= 2:
+					mc_station_walk_waypoints.append(Vector2(float(pt[0]) * cell_sz + cell_sz * 0.5, float(pt[1]) * cell_sz + cell_sz * 0.5))
+		elif data.has("mc_station_walk_route_pixels") and data["mc_station_walk_route_pixels"] is Array and not data["mc_station_walk_route_pixels"].is_empty():
+			for pt in data["mc_station_walk_route_pixels"]:
+				if pt is Array and pt.size() >= 2:
+					mc_station_walk_waypoints.append(Vector2(float(pt[0]), float(pt[1])))
+		else:
+			mc_station_walk_waypoints = [
+				Vector2(1920.0, 730.0),
+				Vector2(1990.0, 730.0),
+				Vector2(2040.0, 700.0),
+				Vector2(2080.0, 685.0)
+			]
+
 func _check_station_trigger_zone() -> void:
 	if station_arrival_cutscene_running or station_arrival_cutscene_done:
 		return
@@ -844,33 +867,60 @@ func _start_station_arrival_cutscene() -> void:
 		minigame_tailgate.is_active = false
 		minigame_tailgate.visible = false
 
-	# 1. Kunci pergerakan pemain di posisi parkiran mobil tempat dia melangkah
+	# Langsung kunci pergerakan pemain agar tidak bergerak saat fade berlangsung
 	if is_instance_valid(player):
 		player.can_move = false
-		player.global_position = Vector2(1920.0, 730.0)
-		var cam = player.get_node_or_null("Camera2D")
-		if is_instance_valid(cam):
-			cam.global_position = Vector2(2010.0, 700.0)
-			if player.has_method("reset_camera_smoothing"):
-				player.reset_camera_smoothing()
+		player.velocity = Vector2.ZERO
+		player.is_moving = false
 
-	# 2. Posisikan kedua polisi di peron stasiun berhadapan dan matikan pergerakan patroli
-	if is_instance_valid(marcus_npc):
-		marcus_npc.is_patrolling_to_station = false
-		marcus_npc.is_departing = false
-		marcus_npc.global_position = Vector2(2088.0, 690.0)
-		marcus_npc.move_dir_facing = Vector2.LEFT
-		marcus_npc.velocity = Vector2.ZERO
-		marcus_npc.is_moving = false
-	if is_instance_valid(police_npc):
-		police_npc.is_patrolling_to_station = false
-		police_npc.is_departing = false
-		police_npc.global_position = Vector2(2048.0, 705.0)
-		police_npc.move_dir_facing = Vector2.RIGHT
-		police_npc.velocity = Vector2.ZERO
-		police_npc.is_moving = false
+	# Transisi Fade Layar Hitam Sinematik saat memicu Forced Scene Stasiun
+	var fade_tw = create_tween()
+	if is_instance_valid(transition_overlay):
+		fade_tw.tween_property(transition_overlay, "color:a", 1.0, 0.35)
+	
+	fade_tw.tween_callback(func():
+		# 1. Posisikan pemain di titik awal parkiran mobil
+		if is_instance_valid(player):
+			player.can_move = false
+			player.global_position = Vector2(1920.0, 730.0)
+			var cam = player.get_node_or_null("Camera2D")
+			if is_instance_valid(cam):
+				cam.global_position = Vector2(2010.0, 700.0)
+				if player.has_method("reset_camera_smoothing"):
+					player.reset_camera_smoothing()
 
-	# 3. Percakapan kedua polisi MURNI DENGAN CHATBOX (speech bubble di atas kepala, bukan dialog box)
+		# 2. Posisikan kedua polisi di peron stasiun berhadapan dan matikan total deteksi merinding
+		if is_instance_valid(marcus_npc):
+			marcus_npc.is_patrolling_to_station = false
+			marcus_npc.is_departing = false
+			marcus_npc.is_spook_disabled = true
+			marcus_npc.spook_merinding_timer = 0.0
+			marcus_npc.current_state = 0 # State.IDLE
+			marcus_npc.global_position = Vector2(2088.0, 690.0)
+			marcus_npc.move_dir_facing = Vector2.LEFT
+			marcus_npc.velocity = Vector2.ZERO
+			marcus_npc.is_moving = false
+		if is_instance_valid(police_npc):
+			police_npc.is_patrolling_to_station = false
+			police_npc.is_departing = false
+			police_npc.is_spook_disabled = true
+			police_npc.spook_merinding_timer = 0.0
+			police_npc.current_state = 0 # State.IDLE
+			police_npc.global_position = Vector2(2048.0, 705.0)
+			police_npc.move_dir_facing = Vector2.RIGHT
+			police_npc.velocity = Vector2.ZERO
+			police_npc.is_moving = false
+	)
+
+	if is_instance_valid(transition_overlay):
+		fade_tw.tween_property(transition_overlay, "color:a", 0.0, 0.45)
+
+	# 3. Percakapan kedua polisi MURNI DENGAN CHATBOX setelah fade selesai
+	fade_tw.tween_callback(func():
+		_run_station_police_conversation(marcus_npc, police_npc)
+	)
+
+func _run_station_police_conversation(marcus_npc, police_npc) -> void:
 	var conv_tween = create_tween()
 
 	# Baris 1: Marcus
@@ -908,11 +958,13 @@ func _start_station_arrival_cutscene() -> void:
 	)
 	conv_tween.tween_interval(3.2)
 
-	# 4. Kedua polisi berangkat pergi meninggalkan stasiun
+	# 4. Kedua polisi berangkat pergi meninggalkan stasiun (tanpa merinding)
 	conv_tween.tween_callback(func():
 		if is_instance_valid(marcus_npc) and marcus_npc.has_method("depart_from_station"):
+			marcus_npc.is_spook_disabled = true
 			marcus_npc.depart_from_station()
 		if is_instance_valid(police_npc) and police_npc.has_method("depart_from_station"):
+			police_npc.is_spook_disabled = true
 			police_npc.depart_from_station()
 		_show_toast("Gawat! Stasiun akan segera disterilkan. Saya harus segera mencari bukti sebelum area ini benar-benar disegel...")
 	)
@@ -942,7 +994,14 @@ func _force_walk_into_station(marcus_npc = null, police_npc = null) -> void:
 
 	player.can_move = false
 	_show_toast("Menyelinap masuk ke peron stasiun...")
-	if player.has_method("walk_to_point"):
+
+	# Gunakan rute multi-waypoint yang dapat diatur lewat In-Game Editor [F3]
+	if player.has_method("walk_waypoints") and not mc_station_walk_waypoints.is_empty():
+		player.walk_waypoints(mc_station_walk_waypoints, 75.0)
+		player.cutscene_walk_finished.connect(func():
+			_start_station_search_minigame()
+		, CONNECT_ONE_SHOT)
+	elif player.has_method("walk_to_point"):
 		player.walk_to_point(Vector2(2080.0, 685.0), 75.0)
 		player.cutscene_walk_finished.connect(func():
 			_start_station_search_minigame()

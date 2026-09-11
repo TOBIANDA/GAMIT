@@ -20,6 +20,7 @@ var tremble_offset: Vector2 = Vector2.ZERO
 
 var player_in_spook_radius_timer: float = 0.0
 var spook_merinding_timer: float = 0.0
+var is_spook_disabled: bool = false
 const SPOOK_RADIUS: float = 70.0
 
 const SHARED_DESTINATIONS = [
@@ -121,7 +122,19 @@ const SPOOK_CHATS_POLICE = [
 ]
 
 func _is_spook_active() -> bool:
-	if is_patrolling_to_station or is_departing:
+	if is_spook_disabled or is_departing:
+		return false
+
+	# Polisi tidak merinding saat cutscene kedatangan stasiun berlangsung
+	if npc_type == NPCType.POLICE or npc_type == NPCType.INSPECTOR_MARCUS:
+		var st_tree = get_tree()
+		if is_inside_tree() and is_instance_valid(st_tree) and is_instance_valid(st_tree.root):
+			var main_n = st_tree.root.find_child("Main", true, false)
+			if is_instance_valid(main_n):
+				if main_n.get("station_arrival_cutscene_running") or main_n.get("station_arrival_cutscene_done"):
+					return false
+
+	if is_patrolling_to_station:
 		return true
 
 	var inv_mgr = null
@@ -481,7 +494,7 @@ func _physics_process(delta: float) -> void:
 			player_stationary_timer = 0.0
 
 	# Deteksi Merinding Spook: Pemain harus berada 0.8 detik secara kontinu dalam radius 70px
-	if _is_spook_active() and current_state != State.AFRAID and current_state != State.PANIC_RUN and current_state != State.DESPAWNED:
+	if not is_spook_disabled and not is_departing and _is_spook_active() and current_state != State.AFRAID and current_state != State.PANIC_RUN and current_state != State.DESPAWNED:
 		if dist_to_player <= SPOOK_RADIUS and social_cooldown <= 0.0:
 			player_in_spook_radius_timer += delta
 			if player_in_spook_radius_timer >= 0.8:
@@ -728,6 +741,8 @@ func start_patrol(is_partner: bool = false) -> void:
 func depart_from_station() -> void:
 	is_patrolling_to_station = false
 	is_departing = true
+	is_spook_disabled = true
+	spook_merinding_timer = 0.0
 	current_state = State.GO_TO_DESTINATION
 	current_patrol_idx = 0
 	stuck_timer = 0.0

@@ -21,6 +21,10 @@ var is_sprinting: bool = false
 
 signal cutscene_walk_finished
 var cutscene_target_pos: Vector2 = Vector2.ZERO
+var cutscene_waypoints: Array[Vector2] = []
+var cutscene_waypoint_idx: int = 0
+var cutscene_stuck_timer: float = 0.0
+var cutscene_last_pos: Vector2 = Vector2.ZERO
 var is_in_cutscene_walk: bool = false
 var cutscene_speed: float = 75.0
 
@@ -176,15 +180,27 @@ func get_zoom_level() -> float:
 func get_mc_model_name() -> String:
 	return "Detektif Benedict (MC)"
 
-func walk_to_point(target_pos: Vector2, speed: float = 75.0) -> void:
+func walk_waypoints(points: Array[Vector2], speed: float = 75.0) -> void:
 	can_move = false
 	set_physics_process(true)
-	cutscene_target_pos = target_pos
+	cutscene_waypoints = points.duplicate()
+	cutscene_waypoint_idx = 0
 	cutscene_speed = speed
+	cutscene_stuck_timer = 0.0
+	cutscene_last_pos = global_position
+	if cutscene_waypoints.is_empty():
+		cutscene_walk_finished.emit()
+		return
+	cutscene_target_pos = cutscene_waypoints[0]
 	is_in_cutscene_walk = true
+
+func walk_to_point(target_pos: Vector2, speed: float = 75.0) -> void:
+	var pts: Array[Vector2] = [target_pos]
+	walk_waypoints(pts, speed)
 
 func cancel_cutscene_walk() -> void:
 	is_in_cutscene_walk = false
+	cutscene_waypoints.clear()
 	velocity = Vector2.ZERO
 	is_moving = false
 	if is_instance_valid(footsteps_player) and footsteps_player.playing:
@@ -193,16 +209,34 @@ func cancel_cutscene_walk() -> void:
 func _physics_process(delta: float) -> void:
 	if is_in_cutscene_walk:
 		var dist = global_position.distance_to(cutscene_target_pos)
-		if dist <= 5.0:
-			global_position = cutscene_target_pos
-			velocity = Vector2.ZERO
-			is_moving = false
-			is_in_cutscene_walk = false
-			if is_instance_valid(footsteps_player) and footsteps_player.playing:
-				footsteps_player.stop()
-			queue_redraw()
-			cutscene_walk_finished.emit()
-			return
+
+		# Deteksi apakah MC terhalang / nyangkut di collider dinding/objek
+		if global_position.distance_to(cutscene_last_pos) < 3.0:
+			cutscene_stuck_timer += delta
+		else:
+			cutscene_stuck_timer = 0.0
+			cutscene_last_pos = global_position
+
+		# Lanjut ke titik berikutnya jika sudah dekat (<= 10px) atau jika nyangkut lebih dari 1.0 detik
+		var advance_waypoint = (dist <= 10.0) or (cutscene_stuck_timer >= 1.0)
+		if advance_waypoint:
+			cutscene_stuck_timer = 0.0
+			cutscene_waypoint_idx += 1
+			if cutscene_waypoint_idx < cutscene_waypoints.size():
+				cutscene_target_pos = cutscene_waypoints[cutscene_waypoint_idx]
+				cutscene_last_pos = global_position
+			else:
+				# Seluruh rute selesai
+				global_position = cutscene_target_pos
+				velocity = Vector2.ZERO
+				is_moving = false
+				is_in_cutscene_walk = false
+				cutscene_waypoints.clear()
+				if is_instance_valid(footsteps_player) and footsteps_player.playing:
+					footsteps_player.stop()
+				queue_redraw()
+				cutscene_walk_finished.emit()
+				return
 
 		var dir = (cutscene_target_pos - global_position).normalized()
 		facing_direction = dir
