@@ -696,29 +696,32 @@ func _show_peaceful_ascension() -> void:
 	afterlife_ascended.emit()
 
 func _finish_game_afterlife() -> void:
-	var white_fade = ColorRect.new()
-	white_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	white_fade.color = Color(1, 1, 1, 0.0)
-	add_child(white_fade)
-
-	var tw = create_tween()
-	tw.tween_property(white_fade, "color:a", 1.0, 2.0)
-	tw.tween_callback(func():
-		_display_final_credits()
-	)
-
-func _display_final_credits() -> void:
 	for c in get_children():
 		if c != afterlife_audio:
 			c.queue_free()
 
+	# 1. Background Hitam Layar Penuh
 	var end_bg = ColorRect.new()
 	end_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	end_bg.color = Color(0.02, 0.02, 0.04, 1.0)
+	end_bg.color = Color(0.0, 0.0, 0.0, 1.0)
 	add_child(end_bg)
 
+	# 2. Gambar end.png (Layar Penuh, Proporsional di Tengah)
+	var end_rect = TextureRect.new()
+	end_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	end_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	end_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	end_rect.modulate.a = 0.0
+	var tex_end = load("res://end.png")
+	if tex_end:
+		end_rect.texture = tex_end
+	add_child(end_rect)
+
+	# 3. Container Tampilan Perolehan Poin (Muncul setelah tampilan end.png)
 	var center = CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.modulate.a = 0.0
+	center.visible = false
 	add_child(center)
 
 	var vb = VBoxContainer.new()
@@ -729,32 +732,55 @@ func _display_final_credits() -> void:
 	var t1 = Label.new()
 	t1.text = "✦ KASUS TERAKHIR SELESAI ✦"
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t1.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	t1.add_theme_font_size_override("font_size", 26)
+	t1.add_theme_color_override("font_color", Color(1.0, 0.85, 0.40))
+	t1.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.9))
+	t1.add_theme_constant_override("outline_size", 4)
+	t1.add_theme_font_size_override("font_size", 24)
 	vb.add_child(t1)
+
+	# Teks perolehan poin: "kamu memperoleh .... poin"
+	var total_points: int = correct_answers_count * 25
+	var t_score = Label.new()
+	t_score.text = "Kamu memperoleh %d poin" % total_points
+	t_score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t_score.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45))
+	t_score.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
+	t_score.add_theme_constant_override("outline_size", 6)
+	t_score.add_theme_font_size_override("font_size", 34)
+	vb.add_child(t_score)
+
+	var t_detail = Label.new()
+	t_detail.text = "Pertanyaan Jiwa Terjawab: %d dari %d Soal" % [correct_answers_count, QUESTIONS.size()]
+	t_detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t_detail.add_theme_color_override("font_color", Color(0.78, 0.85, 0.95))
+	t_detail.add_theme_font_size_override("font_size", 16)
+	vb.add_child(t_detail)
 
 	var t2 = Label.new()
 	t2.text = "Detektif Benedict telah menerima takdirnya dan melangkah ke alam berikutnya dalam damai."
 	t2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t2.add_theme_color_override("font_color", Color(0.8, 0.8, 0.9))
+	t2.add_theme_color_override("font_color", Color(0.75, 0.78, 0.88, 0.9))
 	t2.add_theme_font_size_override("font_size", 15)
 	vb.add_child(t2)
 
-	var t_score = Label.new()
-	var total_points: int = correct_answers_count * 25
-	t_score.text = "Skor Akhir Investigasi Jiwa: %d / 100 Poin (%d/%d Benar)" % [total_points, correct_answers_count, QUESTIONS.size()]
-	t_score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t_score.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
-	t_score.add_theme_font_size_override("font_size", 17)
-	vb.add_child(t_score)
-
 	var sep = HSeparator.new()
-	sep.custom_minimum_size = Vector2(380, 20)
+	sep.custom_minimum_size = Vector2(400, 20)
+	var s_line = StyleBoxLine.new()
+	s_line.color = Color(0.85, 0.75, 0.4, 0.5)
+	s_line.thickness = 1
+	sep.add_theme_stylebox_override("separator", s_line)
 	vb.add_child(sep)
+
+	var btns_hb = HBoxContainer.new()
+	btns_hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	btns_hb.add_theme_constant_override("separation", 16)
+	vb.add_child(btns_hb)
 
 	var restart_btn = Button.new()
 	restart_btn.text = "Mulai Ulang Investigasi"
-	restart_btn.custom_minimum_size = Vector2(260, 46)
+	restart_btn.custom_minimum_size = Vector2(230, 48)
+	restart_btn.focus_mode = Control.FOCUS_NONE
+	restart_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	restart_btn.pressed.connect(func():
 		var main_node = get_parent()
 		if is_instance_valid(main_node) and main_node.has_method("reset_game_to_start"):
@@ -765,7 +791,21 @@ func _display_final_credits() -> void:
 		get_tree().paused = false
 		get_tree().reload_current_scene()
 	)
-	vb.add_child(restart_btn)
+	btns_hb.add_child(restart_btn)
+
+	# 4. Sekuens Animasi:
+	# - Tampilkan end.png fade-in (1.4s)
+	# - Tahan end.png selama 3.0s
+	# - Fade-out end.png (0.9s)
+	# - Munculkan tampilan "Kamu memperoleh ... poin" secara halus (1.0s)
+	var end_tween = create_tween()
+	end_tween.tween_property(end_rect, "modulate:a", 1.0, 1.4)
+	end_tween.tween_interval(3.0)
+	end_tween.tween_property(end_rect, "modulate:a", 0.0, 0.9)
+	end_tween.tween_callback(func():
+		center.visible = true
+	)
+	end_tween.tween_property(center, "modulate:a", 1.0, 1.0)
 
 func _on_nlp_submit() -> void:
 	var teks = input_field.text.strip_edges()
