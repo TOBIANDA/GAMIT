@@ -152,8 +152,8 @@ func _process(delta: float) -> void:
 
 	# Efek melayang halus untuk potret Dewa Kematian saat berbicara
 	if is_instance_valid(large_portrait) and large_portrait.visible:
-		var base_top = -560.0
-		var base_bottom = -195.0
+		var base_top = -620.0
+		var base_bottom = -30.0
 		if not is_monologue_mode:
 			var bob = sin(glow_timer * 0.8) * 4.0
 			large_portrait.offset_top = base_top + bob
@@ -278,10 +278,14 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 		else:
 			text_label.add_theme_color_override("font_color", Color(0.12, 0.09, 0.06))
 	if is_instance_valid(name_tag):
-		name_tag.text = speaker_name
 		if is_grim:
+			name_tag.text = speaker_name
 			name_tag.add_theme_color_override("font_color", Color(0.85, 0.70, 1.0))
+		elif speaker_name == "Detektif Benedict":
+			# MCtextBox.png sudah memiliki banner tercetak "Benedict" di pojok kiri atas
+			name_tag.text = ""
 		else:
+			name_tag.text = speaker_name
 			name_tag.add_theme_color_override("font_color", Color(0.38, 0.20, 0.08))
 
 	var v_sep = get_node_or_null("RootControl/BottomPanel/MarginContainer/HBoxContainer/ContentVBox/TopRow/VSeparator")
