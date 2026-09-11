@@ -361,7 +361,7 @@ func _enter_house() -> void:
 			exploration_house_interior.visible = false
 		player.global_position = Vector2(3600.0 + 110.0, 400.0 + 310.0)
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(3600, 400, 4400, 1000)
+			player.setup_camera_limits(3460, 220, 4400, 980)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Dalam Rumah Benedict.")
@@ -431,7 +431,7 @@ func _enter_exploration_house() -> void:
 			house_interior.visible = false
 		player.global_position = Vector2(4600.0 + 110.0, 400.0 + 330.0)
 		if player.has_method("setup_camera_limits"):
-			player.setup_camera_limits(4580, 380, 5260, 840)
+			player.setup_camera_limits(4460, 220, 5360, 980)
 		if player.has_method("reset_camera_smoothing"):
 			player.reset_camera_smoothing()
 		_show_toast("Masuk ke Rumah Eksplorasi (Rumah Kenangan).")

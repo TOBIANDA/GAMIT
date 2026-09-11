@@ -190,15 +190,27 @@ var default_furniture_config: Dictionary = {
 	},
 
 	# --- 4. DAPUR & LAB CUCI FOTO ---
-	"kitchen_unit": {
-		"name": "Kitchen Unit & Kulkas",
+	"set_masak": {
+		"name": "Set Masak / Meja Dapur",
 		"type": "sprite",
-		"tex": "tex_kitchen_unit",
-		"x": 400.0, "y": 360.0,
+		"tex": "tex_set_masak",
+		"x": 412.0, "y": 323.0,
 		"scale": 1.0,
-		"base_w": 95.0,
+		"base_w": 65.0,
 		"has_col": true,
-		"col_w": 95.0, "col_h": 48.0,
+		"col_w": 65.0, "col_h": 48.0,
+		"col_off_x": 0.0, "col_y_off": 0.0,
+		"z_idx": 0
+	},
+	"kulkas": {
+		"name": "Kulkas Dapur",
+		"type": "sprite",
+		"tex": "tex_kulkas",
+		"x": 458.0, "y": 323.0,
+		"scale": 1.0,
+		"base_w": 30.0,
+		"has_col": true,
+		"col_w": 30.0, "col_h": 48.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 0
 	},
@@ -250,6 +262,8 @@ var tex_meja_panjang: Texture2D
 var tex_karpet: Texture2D
 var tex_meja_detektif: Texture2D
 var tex_kitchen_unit: Texture2D
+var tex_set_masak: Texture2D
+var tex_kulkas: Texture2D
 var tex_meja_lab_foto: Texture2D
 var tex_bed: Texture2D
 var tex_lemari: Texture2D
@@ -302,6 +316,8 @@ func _load_textures() -> void:
 	tex_karpet = load("res://Environment/ruang tamu/karpet.png")
 	tex_meja_detektif = load("res://Environment/ruang tamu/meja_detektif.png")
 	tex_kitchen_unit = load("res://Environment/dapur/kitchen_unit.png")
+	tex_set_masak = load("res://Environment/dapur/set_masak_unit.png")
+	tex_kulkas = load("res://Environment/dapur/kulkas_unit.png")
 	tex_meja_lab_foto = load("res://Environment/dapur/meja_lab_foto.png")
 	tex_bed = load("res://Environment/kamar/bed.png")
 	tex_lemari = load("res://Environment/kamar/lemari.png")
@@ -319,6 +335,8 @@ func _get_texture_by_name(tex_name: String) -> Texture2D:
 		"tex_karpet": return tex_karpet
 		"tex_meja_detektif": return tex_meja_detektif
 		"tex_kitchen_unit": return tex_kitchen_unit
+		"tex_set_masak": return tex_set_masak
+		"tex_kulkas": return tex_kulkas
 		"tex_meja_lab_foto": return tex_meja_lab_foto
 		"tex_bed": return tex_bed
 		"tex_lemari": return tex_lemari
@@ -444,12 +462,39 @@ func _load_furniture_config() -> void:
 			file.close()
 			var parsed = JSON.parse_string(json_str)
 			if parsed is Dictionary:
-				for id in parsed.keys():
-					if furniture_config.has(id):
-						var item = parsed[id]
-						if item.has("x"): furniture_config[id]["x"] = float(item["x"])
-						if item.has("y"): furniture_config[id]["y"] = float(item["y"])
-						if item.has("scale"): furniture_config[id]["scale"] = float(item["scale"])
+				_apply_config_dict(parsed)
+
+	if FileAccess.file_exists(USER_CONFIG_FILE_PATH) and path_to_load != USER_CONFIG_FILE_PATH:
+		var u_file = FileAccess.open(USER_CONFIG_FILE_PATH, FileAccess.READ)
+		if u_file:
+			var u_str = u_file.get_as_text()
+			u_file.close()
+			var u_parsed = JSON.parse_string(u_str)
+			if u_parsed is Dictionary:
+				_apply_config_dict(u_parsed)
+
+func _apply_config_dict(parsed: Dictionary) -> void:
+	# Migrasi kitchen_unit lama jika ada
+	if parsed.has("kitchen_unit") and not parsed.has("set_masak"):
+		var ku = parsed["kitchen_unit"]
+		var kx = float(ku.get("x", 433.0))
+		var ky = float(ku.get("y", 323.0))
+		var ks = float(ku.get("scale", 1.0))
+		if furniture_config.has("set_masak"):
+			furniture_config["set_masak"]["x"] = kx - 21.0 * ks
+			furniture_config["set_masak"]["y"] = ky
+			furniture_config["set_masak"]["scale"] = ks
+		if furniture_config.has("kulkas"):
+			furniture_config["kulkas"]["x"] = kx + 25.0 * ks
+			furniture_config["kulkas"]["y"] = ky
+			furniture_config["kulkas"]["scale"] = ks
+
+	for id in parsed.keys():
+		if furniture_config.has(id):
+			var item = parsed[id]
+			if item.has("x"): furniture_config[id]["x"] = float(item["x"])
+			if item.has("y"): furniture_config[id]["y"] = float(item["y"])
+			if item.has("scale"): furniture_config[id]["scale"] = float(item["scale"])
 
 func save_furniture_config() -> void:
 	var save_dict: Dictionary = {}

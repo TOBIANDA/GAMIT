@@ -69,6 +69,7 @@ func _play_click() -> void:
 func open_menu() -> void:
 	is_active = true
 	visible = true
+	_load_assets()
 	if not is_instance_valid(root_control):
 		_build_menu_ui()
 	if is_instance_valid(options_modal):
@@ -191,8 +192,7 @@ func _update_button_positions() -> void:
 	if is_instance_valid(options_modal):
 		options_modal.position = (vp_size - options_modal.size) * 0.5
 	if is_instance_valid(credit_modal):
-		credit_modal.size = vp_size
-		credit_modal.position = Vector2.ZERO
+		credit_modal.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 func _create_paper_hotspot(btn_text: String, pos: Vector2, btn_size: Vector2) -> Button:
 	var btn = Button.new()
@@ -436,6 +436,8 @@ func _build_credit_modal() -> void:
 	credit_modal.add_child(asp)
 
 	var credit_img = TextureRect.new()
+	if not is_instance_valid(tex_credit):
+		tex_credit = load("res://Main Menu/credit.png")
 	if is_instance_valid(tex_credit):
 		credit_img.texture = tex_credit
 	credit_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
