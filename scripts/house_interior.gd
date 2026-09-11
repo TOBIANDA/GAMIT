@@ -173,7 +173,7 @@ var default_furniture_config: Dictionary = {
 		"x": 355.0, "y": 50.0,
 		"scale": 0.55,
 		"base_w": 28.0,
-		"has_col": true,
+		"has_col": false,
 		"col_w": 18.0, "col_h": 18.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 2,
@@ -490,11 +490,12 @@ func update_furniture_transform(id: String) -> void:
 	queue_redraw()
 
 func _load_furniture_config() -> void:
+	# Prioritaskan user:// sebagai save file pemain lokal yang paling update
 	var path_to_load = ""
-	if FileAccess.file_exists(CONFIG_FILE_PATH):
-		path_to_load = CONFIG_FILE_PATH
-	elif FileAccess.file_exists(USER_CONFIG_FILE_PATH):
+	if FileAccess.file_exists(USER_CONFIG_FILE_PATH):
 		path_to_load = USER_CONFIG_FILE_PATH
+	elif FileAccess.file_exists(CONFIG_FILE_PATH):
+		path_to_load = CONFIG_FILE_PATH
 
 	if not path_to_load.is_empty():
 		var file = FileAccess.open(path_to_load, FileAccess.READ)
@@ -504,15 +505,6 @@ func _load_furniture_config() -> void:
 			var parsed = JSON.parse_string(json_str)
 			if parsed is Dictionary:
 				_apply_config_dict(parsed)
-
-	if FileAccess.file_exists(USER_CONFIG_FILE_PATH) and path_to_load != USER_CONFIG_FILE_PATH:
-		var u_file = FileAccess.open(USER_CONFIG_FILE_PATH, FileAccess.READ)
-		if u_file:
-			var u_str = u_file.get_as_text()
-			u_file.close()
-			var u_parsed = JSON.parse_string(u_str)
-			if u_parsed is Dictionary:
-				_apply_config_dict(u_parsed)
 
 func _apply_config_dict(parsed: Dictionary) -> void:
 	# Migrasi kitchen_unit lama jika ada
@@ -530,21 +522,23 @@ func _apply_config_dict(parsed: Dictionary) -> void:
 			furniture_config["kulkas"]["y"] = ky
 			furniture_config["kulkas"]["scale"] = ks
 
-	# Hapus item yang secara eksplisit dihapus oleh pemain jika tercatat di _deleted_items
+	# 1. Hapus SEMUA item yang tercatat dalam daftar _deleted_items
 	if parsed.has("_deleted_items") and parsed["_deleted_items"] is Array:
 		for del_id in parsed["_deleted_items"]:
 			if furniture_config.has(del_id):
 				furniture_config.erase(del_id)
-	else:
-		# Jika file config lama (belum ada _deleted_items), pertahankan item default (seperti jam_weker)
-		# dan hanya hapus custom item yang tidak dikenal
-		var to_remove = []
+
+	# 2. Hapus juga item default yang tidak ada di dalam parsed (jika file simpanan valid)
+	var active_keys = parsed.keys()
+	if active_keys.size() > 1: # Ada data perabot tersimpan selain/termasuk _deleted_items
+		var to_del = []
 		for id in furniture_config.keys():
-			if not parsed.has(id) and not default_furniture_config.has(id):
-				to_remove.append(id)
-		for id in to_remove:
+			if not parsed.has(id):
+				to_del.append(id)
+		for id in to_del:
 			furniture_config.erase(id)
 
+	# 3. Update data transformasi item yang aktif
 	for id in parsed.keys():
 		if id == "_deleted_items":
 			continue
@@ -660,17 +654,19 @@ func reset_to_default_config() -> void:
 func get_desk_letter_pos() -> Vector2:
 	if furniture_config.has("meja_detektif"):
 		return ROOM_ORIGIN + Vector2(furniture_config["meja_detektif"].x, furniture_config["meja_detektif"].y)
-	return ROOM_ORIGIN + Vector2(195.0, 72.0)
+	return Vector2(-9999.0, -9999.0)
 
 func get_safe_pos() -> Vector2:
 	if furniture_config.has("brankas"):
 		return ROOM_ORIGIN + Vector2(furniture_config["brankas"].x, furniture_config["brankas"].y)
-	return ROOM_ORIGIN + Vector2(150.0, 52.0)
+	return Vector2(-9999.0, -9999.0)
 
 func get_photo_basin_pos() -> Vector2:
 	if furniture_config.has("meja_lab_foto"):
 		return ROOM_ORIGIN + Vector2(furniture_config["meja_lab_foto"].x, furniture_config["meja_lab_foto"].y)
-	return ROOM_ORIGIN + Vector2(255.0, 245.0)
+	elif furniture_config.has("baskom_foto"):
+		return ROOM_ORIGIN + Vector2(furniture_config["baskom_foto"].x, furniture_config["baskom_foto"].y)
+	return Vector2(-9999.0, -9999.0)
 
 func get_stairs_pos() -> Vector2:
 	return Vector2(-9999.0, -9999.0)
@@ -678,7 +674,7 @@ func get_stairs_pos() -> Vector2:
 func get_alarm_clock_pos() -> Vector2:
 	if furniture_config.has("jam_weker"):
 		return ROOM_ORIGIN + Vector2(furniture_config["jam_weker"].x, furniture_config["jam_weker"].y)
-	return ROOM_ORIGIN + Vector2(355.0, 50.0)
+	return Vector2(-9999.0, -9999.0)
 
 func get_exit_door_pos() -> Vector2:
 	return EXIT_DOOR_POS
