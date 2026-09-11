@@ -166,6 +166,21 @@ var default_furniture_config: Dictionary = {
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 0
 	},
+	"jam_weker": {
+		"name": "Jam Weker di Nakas",
+		"type": "sprite",
+		"tex": "tex_jam_weker",
+		"x": 355.0, "y": 50.0,
+		"scale": 0.45,
+		"base_w": 28.0,
+		"has_col": true,
+		"col_w": 14.0, "col_h": 14.0,
+		"col_off_x": 0.0, "col_y_off": 0.0,
+		"z_idx": 2,
+		"rot": 0.0,
+		"flip_x": false,
+		"flip_y": false
+	},
 	"lemari": {
 		"name": "Lemari Pakaian Kayu",
 		"type": "sprite",
@@ -272,6 +287,7 @@ var tex_karpet_kamar: Texture2D
 var tex_surat: Texture2D
 var tex_berangkas: Texture2D
 var tex_baskom: Texture2D
+var tex_jam_weker: Texture2D
 
 var letter_glow_time: float = 0.0
 var sprite_letter: Sprite2D
@@ -293,6 +309,10 @@ var slider_pos_y: HSlider
 var spin_pos_y: SpinBox
 var slider_scale: HSlider
 var spin_scale: SpinBox
+var slider_rot: HSlider
+var spin_rot: SpinBox
+var btn_flip_x: Button
+var btn_flip_y: Button
 var is_dragging_panel: bool = false
 var panel_drag_offset: Vector2 = Vector2.ZERO
 var restore_dropdown: OptionButton
@@ -329,6 +349,7 @@ func _load_textures() -> void:
 	tex_surat = load("res://Environment/interactable assets/surat.png")
 	tex_berangkas = load("res://Environment/interactable assets/berangkas.png")
 	tex_baskom = load("res://Environment/interactable assets/baskom cetak photo.png")
+	tex_jam_weker = load("res://Environment/RUMAH IBU/jam weker.png")
 
 func _get_texture_by_name(tex_name: String) -> Texture2D:
 	match tex_name:
@@ -348,6 +369,7 @@ func _get_texture_by_name(tex_name: String) -> Texture2D:
 		"tex_surat": return tex_surat
 		"tex_berangkas": return tex_berangkas
 		"tex_baskom": return tex_baskom
+		"tex_jam_weker": return tex_jam_weker
 	return null
 
 func _build_room_collisions() -> void:
@@ -363,12 +385,26 @@ func _build_room_collisions() -> void:
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
 	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x, 24.0))
 
-	# 2. DINDING SEKAT RUANG KERJA & KAMAR
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 10.0, 85.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 10.0, 140.0))
+	# 2. DINDING SEKAT VERTIKAL
+	# Sekat Ruang Tamu - Ruang Kerja (X=125, dari Y=32 sampai Y=130)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 98.0))
+	# Sekat Ruang Kerja - Kamar Tidur (X=265, dari Y=32 sampai Y=165)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 133.0))
+	# Sekat Dapur Vertikal Kiri (X=220, dari Y=195 sampai Y=284)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 89.0))
 
-	# 3. DINDING SEKAT DAPUR
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 10.0, 85.0))
+	# 3. DINDING SEKAT HORIZONTAL (MEMBUAT RUANG KERJA, KAMAR, DAN DAPUR JADI RUANGAN UTUH)
+	# A. Dinding Horizontal Bawah Ruang Kerja (Y=130, X=125..265, Pintu Masuk di X=135..175)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 130.0, 10.0, 8.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 175.0, ROOM_ORIGIN.y + 130.0, 90.0, 8.0))
+
+	# B. Dinding Horizontal Bawah Kamar Tidur (Y=165, X=265..444, Pintu Masuk di X=335..375)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 165.0, 70.0, 8.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 375.0, ROOM_ORIGIN.y + 165.0, 69.0, 8.0))
+
+	# C. Dinding Horizontal Atas Dapur (Y=195, X=220..444, Pintu Masuk di X=230..275)
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 10.0, 8.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 275.0, ROOM_ORIGIN.y + 195.0, 169.0, 8.0))
 
 func _add_box_collider(body: StaticBody2D, rect: Rect2) -> CollisionShape2D:
 	var col = CollisionShape2D.new()
@@ -421,6 +457,9 @@ func update_furniture_transform(id: String) -> void:
 	var data = furniture_config[id]
 	var world_pos = ROOM_ORIGIN + Vector2(float(data.x), float(data.y))
 	var s = float(data.scale)
+	var rot_deg = float(data.get("rot", 0.0))
+	var fx = -1.0 if data.get("flip_x", false) else 1.0
+	var fy = -1.0 if data.get("flip_y", false) else 1.0
 
 	if furniture_sprites.has(id):
 		var sp = furniture_sprites[id]
@@ -429,7 +468,8 @@ func update_furniture_transform(id: String) -> void:
 		if tex:
 			var base_w = float(data.get("base_w", 40.0))
 			var ratio = (base_w * s) / float(tex.get_width())
-			sp.scale = Vector2(ratio, ratio)
+			sp.scale = Vector2(ratio * fx, ratio * fy)
+		sp.rotation_degrees = rot_deg
 
 	if furniture_colliders.has(id):
 		var col = furniture_colliders[id]
@@ -438,9 +478,12 @@ func update_furniture_transform(id: String) -> void:
 			var cw = float(data.get("col_w", 30.0)) * s
 			var ch = float(data.get("col_h", 30.0)) * s
 			shape.size = Vector2(cw, ch)
-			var off_x = float(data.get("col_off_x", 0.0)) * s
-			var off_y = float(data.get("col_y_off", 0.0)) * s
-			col.position = world_pos + Vector2(off_x, off_y)
+			var off_x = float(data.get("col_off_x", 0.0)) * s * fx
+			var off_y = float(data.get("col_y_off", 0.0)) * s * fy
+			var rot_rad = deg_to_rad(rot_deg)
+			var rot_off = Vector2(off_x, off_y).rotated(rot_rad)
+			col.position = world_pos + rot_off
+			col.rotation_degrees = rot_deg
 
 	queue_redraw()
 
@@ -499,6 +542,9 @@ func _apply_config_dict(parsed: Dictionary) -> void:
 			if item.has("x"): furniture_config[id]["x"] = float(item["x"])
 			if item.has("y"): furniture_config[id]["y"] = float(item["y"])
 			if item.has("scale"): furniture_config[id]["scale"] = float(item["scale"])
+			if item.has("rot"): furniture_config[id]["rot"] = float(item["rot"])
+			if item.has("flip_x"): furniture_config[id]["flip_x"] = bool(item["flip_x"])
+			if item.has("flip_y"): furniture_config[id]["flip_y"] = bool(item["flip_y"])
 
 func delete_furniture(id: String) -> void:
 	if not furniture_config.has(id):
@@ -543,7 +589,10 @@ func save_furniture_config() -> void:
 			"name": item.get("name", id),
 			"x": float(item["x"]),
 			"y": float(item["y"]),
-			"scale": float(item["scale"])
+			"scale": float(item["scale"]),
+			"rot": float(item.get("rot", 0.0)),
+			"flip_x": bool(item.get("flip_x", false)),
+			"flip_y": bool(item.get("flip_y", false))
 		}
 	var json_str = JSON.stringify(save_dict, "\t")
 
@@ -609,6 +658,11 @@ func get_photo_basin_pos() -> Vector2:
 func get_stairs_pos() -> Vector2:
 	return Vector2(-9999.0, -9999.0)
 
+func get_alarm_clock_pos() -> Vector2:
+	if furniture_config.has("jam_weker"):
+		return ROOM_ORIGIN + Vector2(furniture_config["jam_weker"].x, furniture_config["jam_weker"].y)
+	return ROOM_ORIGIN + Vector2(355.0, 50.0)
+
 func get_exit_door_pos() -> Vector2:
 	return EXIT_DOOR_POS
 
@@ -673,15 +727,55 @@ func _draw() -> void:
 	draw_circle(Vector2(ROOM_ORIGIN.x + 98.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 8.0), 2.5, Color(0.85, 0.75, 0.35))
 
 
-	# 5. DINDING SEKAT RUANGAN
-	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 85.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 85.0), trim_col, false, 1.0)
+	# 5. DINDING SEKAT RUANGAN & PINTU MASUK TIAP RUANGAN
+	var sill_col = Color(0.24, 0.18, 0.13)
+	var frame_col = Color(0.42, 0.32, 0.24)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 140.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 140.0), trim_col, false, 1.0)
+	# --- DINDING VERTIKAL ---
+	# Sekat Ruang Tamu & Ruang Kerja (Y=32..130)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 98.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 98.0), trim_col, false, 1.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 85.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 85.0), trim_col, false, 1.0)
+	# Sekat Ruang Kerja & Kamar Tidur (Y=32..165)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 133.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 133.0), trim_col, false, 1.0)
+
+	# Sekat Vertikal Dapur (Y=195..284)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 89.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 89.0), trim_col, false, 1.0)
+
+	# --- DINDING HORIZONTAL RUANG KERJA (Y=130) ---
+	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 130.0, 10.0, 8.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 130.0, 10.0, 8.0), trim_col, false, 1.0)
+	# Kusen / Ambang Pintu Masuk Ruang Kerja (X=135..175)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 135.0, ROOM_ORIGIN.y + 131.0, 40.0, 6.0), sill_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x + 135.0, ROOM_ORIGIN.y + 134.0), Vector2(ROOM_ORIGIN.x + 175.0, ROOM_ORIGIN.y + 134.0), frame_col, 1.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 135.0, ROOM_ORIGIN.y + 130.0, 3.0, 8.0), frame_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 172.0, ROOM_ORIGIN.y + 130.0, 3.0, 8.0), frame_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 175.0, ROOM_ORIGIN.y + 130.0, 90.0, 8.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 175.0, ROOM_ORIGIN.y + 130.0, 90.0, 8.0), trim_col, false, 1.0)
+
+	# --- DINDING HORIZONTAL KAMAR TIDUR (Y=165) ---
+	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 165.0, 70.0, 8.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 165.0, 70.0, 8.0), trim_col, false, 1.0)
+	# Kusen / Ambang Pintu Masuk Kamar (X=335..375)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 335.0, ROOM_ORIGIN.y + 166.0, 40.0, 6.0), sill_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x + 335.0, ROOM_ORIGIN.y + 169.0), Vector2(ROOM_ORIGIN.x + 375.0, ROOM_ORIGIN.y + 169.0), frame_col, 1.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 335.0, ROOM_ORIGIN.y + 165.0, 3.0, 8.0), frame_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 372.0, ROOM_ORIGIN.y + 165.0, 3.0, 8.0), frame_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 375.0, ROOM_ORIGIN.y + 165.0, 69.0, 8.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 375.0, ROOM_ORIGIN.y + 165.0, 69.0, 8.0), trim_col, false, 1.0)
+
+	# --- DINDING HORIZONTAL DAPUR (Y=195) ---
+	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 10.0, 8.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 10.0, 8.0), trim_col, false, 1.0)
+	# Kusen / Ambang Pintu Masuk Dapur (X=230..275)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 230.0, ROOM_ORIGIN.y + 196.0, 45.0, 6.0), sill_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x + 230.0, ROOM_ORIGIN.y + 199.0), Vector2(ROOM_ORIGIN.x + 275.0, ROOM_ORIGIN.y + 199.0), frame_col, 1.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 230.0, ROOM_ORIGIN.y + 195.0, 3.0, 8.0), frame_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 272.0, ROOM_ORIGIN.y + 195.0, 3.0, 8.0), frame_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 275.0, ROOM_ORIGIN.y + 195.0, 169.0, 8.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 275.0, ROOM_ORIGIN.y + 195.0, 169.0, 8.0), trim_col, false, 1.0)
 
 	# 6. ELEMEN INTERIOR YANG DIGAMBAR SESUAI POSISI & SKALA DARI CONFIG
 	# a. Partisi Garis Tiang Ruang Tamu
@@ -769,7 +863,7 @@ func _setup_editor_ui() -> void:
 	editor_panel = PanelContainer.new()
 	editor_panel.visible = false
 	editor_panel.position = Vector2(30, 70)
-	editor_panel.custom_minimum_size = Vector2(390, 460)
+	editor_panel.custom_minimum_size = Vector2(400, 520)
 
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.08, 0.10, 0.14, 0.96)
@@ -958,6 +1052,63 @@ func _setup_editor_ui() -> void:
 	quick_hb.add_child(btn_s_up)
 	vb.add_child(quick_hb)
 
+	# Kontrol Rotasi (Derajat 0 - 360)
+	var hbox_rot = HBoxContainer.new()
+	hbox_rot.add_theme_constant_override("separation", 8)
+
+	var lbl_rot = Label.new()
+	lbl_rot.text = "Rotasi:"
+	lbl_rot.custom_minimum_size = Vector2(70, 0)
+	hbox_rot.add_child(lbl_rot)
+
+	slider_rot = HSlider.new()
+	slider_rot.min_value = 0.0
+	slider_rot.max_value = 360.0
+	slider_rot.step = 1.0
+	slider_rot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider_rot.value_changed.connect(_on_ui_transform_changed)
+	hbox_rot.add_child(slider_rot)
+
+	spin_rot = SpinBox.new()
+	spin_rot.min_value = 0.0
+	spin_rot.max_value = 360.0
+	spin_rot.step = 1.0
+	spin_rot.value_changed.connect(_on_ui_transform_changed)
+	hbox_rot.add_child(spin_rot)
+	vb.add_child(hbox_rot)
+
+	# Tombol Putar Cepat & Balik Sumbu (Rotate & Flip X/Y)
+	var rot_act_hb = HBoxContainer.new()
+	rot_act_hb.add_theme_constant_override("separation", 6)
+
+	var btn_rot_cw = Button.new()
+	btn_rot_cw.text = "⟳ +90°"
+	btn_rot_cw.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn_rot_cw.pressed.connect(func(): _rotate_selected(90.0))
+	rot_act_hb.add_child(btn_rot_cw)
+
+	var btn_rot_reset = Button.new()
+	btn_rot_reset.text = "0° Reset"
+	btn_rot_reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn_rot_reset.pressed.connect(func(): _set_selected_rotation(0.0))
+	rot_act_hb.add_child(btn_rot_reset)
+
+	btn_flip_x = Button.new()
+	btn_flip_x.text = "⇄ Balik X"
+	btn_flip_x.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn_flip_x.toggle_mode = true
+	btn_flip_x.toggled.connect(_on_flip_x_toggled)
+	rot_act_hb.add_child(btn_flip_x)
+
+	btn_flip_y = Button.new()
+	btn_flip_y.text = "⇅ Balik Y"
+	btn_flip_y.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn_flip_y.toggle_mode = true
+	btn_flip_y.toggled.connect(_on_flip_y_toggled)
+	rot_act_hb.add_child(btn_flip_y)
+
+	vb.add_child(rot_act_hb)
+
 	# Status Label
 	status_msg_label = Label.new()
 	status_msg_label.text = "Perabot siap diatur."
@@ -1102,6 +1253,10 @@ func _sync_ui_to_selected_item() -> void:
 		if is_instance_valid(spin_pos_y): spin_pos_y.editable = false
 		if is_instance_valid(slider_scale): slider_scale.editable = false
 		if is_instance_valid(spin_scale): spin_scale.editable = false
+		if is_instance_valid(slider_rot): slider_rot.editable = false
+		if is_instance_valid(spin_rot): spin_rot.editable = false
+		if is_instance_valid(btn_flip_x): btn_flip_x.disabled = true
+		if is_instance_valid(btn_flip_y): btn_flip_y.disabled = true
 		return
 
 	if is_instance_valid(slider_pos_x): slider_pos_x.editable = true
@@ -1110,6 +1265,10 @@ func _sync_ui_to_selected_item() -> void:
 	if is_instance_valid(spin_pos_y): spin_pos_y.editable = true
 	if is_instance_valid(slider_scale): slider_scale.editable = true
 	if is_instance_valid(spin_scale): spin_scale.editable = true
+	if is_instance_valid(slider_rot): slider_rot.editable = true
+	if is_instance_valid(spin_rot): spin_rot.editable = true
+	if is_instance_valid(btn_flip_x): btn_flip_x.disabled = false
+	if is_instance_valid(btn_flip_y): btn_flip_y.disabled = false
 
 	var item = furniture_config[selected_furniture_id]
 	_is_updating_ui = true
@@ -1119,6 +1278,11 @@ func _sync_ui_to_selected_item() -> void:
 	spin_pos_y.value = float(item.y)
 	slider_scale.value = float(item.scale)
 	spin_scale.value = float(item.scale)
+	var rot_val = float(item.get("rot", 0.0))
+	if is_instance_valid(slider_rot): slider_rot.value = rot_val
+	if is_instance_valid(spin_rot): spin_rot.value = rot_val
+	if is_instance_valid(btn_flip_x): btn_flip_x.set_pressed_no_signal(bool(item.get("flip_x", false)))
+	if is_instance_valid(btn_flip_y): btn_flip_y.set_pressed_no_signal(bool(item.get("flip_y", false)))
 	_is_updating_ui = false
 
 func _on_dropdown_item_selected(index: int) -> void:
@@ -1133,14 +1297,43 @@ func _on_ui_transform_changed(_val: float) -> void:
 	var x = slider_pos_x.value
 	var y = slider_pos_y.value
 	var s = slider_scale.value
+	var r = slider_rot.value if is_instance_valid(slider_rot) else 0.0
 	spin_pos_x.value = x
 	spin_pos_y.value = y
 	spin_scale.value = s
+	if is_instance_valid(spin_rot): spin_rot.value = r
 	_is_updating_ui = false
 
 	furniture_config[selected_furniture_id]["x"] = x
 	furniture_config[selected_furniture_id]["y"] = y
 	furniture_config[selected_furniture_id]["scale"] = s
+	furniture_config[selected_furniture_id]["rot"] = r
+	update_furniture_transform(selected_furniture_id)
+
+func _rotate_selected(delta_deg: float) -> void:
+	if selected_furniture_id.is_empty() or not furniture_config.has(selected_furniture_id):
+		return
+	var cur_rot = float(furniture_config[selected_furniture_id].get("rot", 0.0))
+	var new_rot = fposmod(cur_rot + delta_deg, 360.0)
+	_set_selected_rotation(new_rot)
+
+func _set_selected_rotation(new_rot: float) -> void:
+	if selected_furniture_id.is_empty() or not furniture_config.has(selected_furniture_id):
+		return
+	furniture_config[selected_furniture_id]["rot"] = new_rot
+	_sync_ui_to_selected_item()
+	update_furniture_transform(selected_furniture_id)
+
+func _on_flip_x_toggled(pressed: bool) -> void:
+	if _is_updating_ui or selected_furniture_id.is_empty() or not furniture_config.has(selected_furniture_id):
+		return
+	furniture_config[selected_furniture_id]["flip_x"] = pressed
+	update_furniture_transform(selected_furniture_id)
+
+func _on_flip_y_toggled(pressed: bool) -> void:
+	if _is_updating_ui or selected_furniture_id.is_empty() or not furniture_config.has(selected_furniture_id):
+		return
+	furniture_config[selected_furniture_id]["flip_y"] = pressed
 	update_furniture_transform(selected_furniture_id)
 
 func _adjust_selected_scale(delta_s: float) -> void:
