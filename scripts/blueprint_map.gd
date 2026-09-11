@@ -2516,17 +2516,10 @@ func _draw_hospital_park_grounds() -> void:
 	# Jalur Selatan (dari jalan selatan y=1245 ke pintu utama RS)
 	draw_rect(Rect2(505.0, 1215.0, 32.0, 30.0), c_walkway, true)
 	draw_rect(Rect2(505.0, 1215.0, 32.0, 30.0), c_walkway_rim, false, 1.2)
-	# Jalur Promenade Timur ke Taman Selatan
-	draw_rect(Rect2(735.0, 1075.0, 170.0, 24.0), c_walkway, true)
-	draw_rect(Rect2(735.0, 1075.0, 170.0, 24.0), c_walkway_rim, false, 1.2)
 
 	# Jalur Akses Masuk Utara dari Boulevard Tengah (y=690)
 	draw_rect(Rect2(768.0, 690.0, 24.0, 95.0), c_walkway, true)
 	draw_rect(Rect2(768.0, 690.0, 24.0, 95.0), c_walkway_rim, false, 1.2)
-
-	# Jalur Penghubung Vertikal dari Bundaran Tengah Menuju Selatan / RS
-	draw_rect(Rect2(768.0, 876.0, 24.0, 100.0), c_walkway, true)
-	draw_rect(Rect2(768.0, 876.0, 24.0, 100.0), c_walkway_rim, false, 1.2)
 
 	# Bundaran Plaza Taman Tengah & Gazebo Bunga (Di Sekitar NPC4 Boy)
 	draw_circle(Vector2(780.0, 830.0), 48.0, c_walkway)
@@ -2548,8 +2541,6 @@ func _draw_hospital_park_grounds() -> void:
 	# Bangku di Teras Santai Timur (bekas gedung)
 	_draw_station_bench(Vector2(955.0, 792.0), 44.0, 14.0)
 	_draw_station_bench(Vector2(955.0, 856.0), 44.0, 14.0)
-	# Bangku di Dekat Bundaran Tengah
-	_draw_station_bench(Vector2(716.0, 822.0), 36.0, 16.0)
 	# Bangku di Bawah Rindang Pohon Utara
 	_draw_station_bench(Vector2(845.0, 755.0), 36.0, 16.0)
 	# Bangku di Promenade Selatan
