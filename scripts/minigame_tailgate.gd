@@ -225,7 +225,7 @@ func _build_ui() -> void:
 	vb.add_child(top_header)
 
 	var title = Label.new()
-	title.text = "MINI GAME: MENGUNTIT INSPEKTUR MARCUS"
+	title.text = "Mengikuti Inspektur Marcus"
 	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	title.add_theme_font_size_override("font_size", 14)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -8,7 +8,7 @@ var current_step: int = 0
 var soak_progress: float = 0.0
 var is_mouse_holding: bool = false
 
-# --- QTE SISTEM MANCING (MLBB FISHING TIMING BAR) ---
+# --- QTE SISTEM TIMING BILAS FOTO ---
 const QTE_TARGET_GOAL = 4   # 4 Foto total yang dicuci
 # Area makin mengecil pada klik 1 (36%), klik 2 (26%), klik 3 (18%), klik 4 (11%)
 const ZONE_SIZES: Array[float] = [0.36, 0.26, 0.18, 0.11]
@@ -233,8 +233,8 @@ func _setup_qte_step() -> void:
 	hit_flash_timer = 0.0
 	miss_flash_timer = 0.0
 
-	status_label.text = "LANGKAH 2: MEMBILAS & MENGEMBANGKAN 4 FOTO POSE (TIMING BAR CEPAT)"
-	action_hint.text = "TEKAN [ SPASI ] / [ A ] / KLIK TEPAT SAAT JARUM BERADA DI ZONA HIJAU!"
+	status_label.text = "LANGKAH 2: MEMBILAS FOTO POLAROID"
+	action_hint.text = "Tekan [ SPASI ] / [ A ] / Klik mouse saat jarum berada di zona hijau."
 	action_hint.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
 
 	if is_instance_valid(photo_preview_rect):
@@ -299,12 +299,9 @@ func _update_step_ui() -> void:
 		photo_step_badge.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
 
 	if is_instance_valid(qte_pips_label):
-		var spd = _get_current_speed()
-		qte_pips_label.text = "BILASAN FOTO: [%s ] — Klik %d/4 | %s | Kecepatan: %.1fx" % [
+		qte_pips_label.text = "Bilasan Foto: [%s ] — %d/4" % [
 			pips,
-			photo_sub_click + 1,
-			pct_names[clamp(photo_sub_click, 0, 3)],
-			spd
+			photo_sub_click + 1
 		]
 
 func _update_photo_visual() -> void:
@@ -486,11 +483,7 @@ func _on_qte_sub_hit() -> void:
 			_update_step_ui()
 			_update_photo_visual()
 	else:
-		var pct_list = ["36%", "26%", "18%", "11%"]
-		action_hint.text = "KLIK %d/4 TEPAT! Kotak bergeser (%s) & jarum makin cepat — Tekan tepat di zona hijau!" % [
-			photo_sub_click,
-			pct_list[clamp(photo_sub_click, 0, 3)]
-		]
+		action_hint.text = "Tepat! Lanjutkan membilas foto..."
 		action_hint.add_theme_color_override("font_color", Color(0.4, 0.95, 0.5))
 		_randomize_qte_zone()
 		_update_step_ui()
@@ -503,13 +496,12 @@ func _on_qte_sub_miss() -> void:
 	if is_instance_valid(photo_preview_rect):
 		photo_preview_rect.position.x = (BASKOM_W - PHOTO_W) * 0.5 + randf_range(-12.0, 12.0)
 
-	# Jika miss, mengulang ke saat klik pertama foto ini (sub_click = 0)
 	photo_sub_click = 0
 	_randomize_qte_zone()
 	_update_photo_visual()
 	_update_step_ui()
 
-	action_hint.text = "MELESET! Bilasan gagal dan mengulang dari klik pertama foto ini (Zona kembali lebar & bergeser)!"
+	action_hint.text = "Meleset! Ulangi bilasan foto ini."
 	action_hint.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
 
 func _show_photo_revelation() -> void:
@@ -872,7 +864,7 @@ func _build_scene_ui() -> void:
 	qte_header_hb.add_child(qte_label)
 
 	qte_pips_label = Label.new()
-	qte_pips_label.text = "BILASAN FOTO: [ ○ ○ ○ ○ ] — Klik ke-1/4 | Zona 36% (Awal) | Kecepatan: 2.2x"
+	qte_pips_label.text = "Bilasan Foto: [ ○ ○ ○ ○ ] — 1/4"
 	qte_pips_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qte_pips_label.add_theme_color_override("font_color", Color(0.6, 0.95, 0.8))
 	qte_pips_label.add_theme_font_size_override("font_size", 13)
