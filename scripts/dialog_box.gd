@@ -152,13 +152,15 @@ func _process(delta: float) -> void:
 
 	# Efek melayang halus untuk potret Dewa Kematian saat berbicara
 	if is_instance_valid(large_portrait) and large_portrait.visible:
+		var base_top = -560.0
+		var base_bottom = -195.0
 		if not is_monologue_mode:
-			var bob = sin(glow_timer * 0.8) * 5.0
-			large_portrait.offset_top = -520.0 + bob
-			large_portrait.offset_bottom = bob
+			var bob = sin(glow_timer * 0.8) * 4.0
+			large_portrait.offset_top = base_top + bob
+			large_portrait.offset_bottom = base_bottom + bob
 		else:
-			large_portrait.offset_top = -520.0
-			large_portrait.offset_bottom = 0.0
+			large_portrait.offset_top = base_top
+			large_portrait.offset_bottom = base_bottom
 
 	if is_typing:
 		if is_instance_valid(continue_prompt):
@@ -328,7 +330,7 @@ func start_monologue(lines: Array[String], speaker_name: String = "Detektif Bene
 
 	# Beri ruang di sebelah kiri dialog box agar teks rapi di samping MC
 	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 440)
+		margin_container.add_theme_constant_override("margin_left", 32)
 
 	# Tampilkan gambar MC 5x lipat tanpa frame kotak (cutout transparan)
 	if is_instance_valid(large_portrait):
@@ -413,7 +415,7 @@ func open_dialog(initial_prompt: String = "") -> void:
 
 	# Atur margin dialog agar teks dialog dan input LineEdit tertata rapi di samping potret Dewa Kematian
 	if is_instance_valid(margin_container):
-		margin_container.add_theme_constant_override("margin_left", 440)
+		margin_container.add_theme_constant_override("margin_left", 32)
 
 	# Tampilkan potret visual novel megah Dewa Kematian (grim.png non-chibi)
 	if is_instance_valid(large_portrait):
