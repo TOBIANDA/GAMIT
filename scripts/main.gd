@@ -1376,23 +1376,23 @@ func _setup_hud_prompts() -> void:
 	info_vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	detective_hud_panel.add_child(info_vb)
 
-	# Judul Petunjuk / Target (Teks Putih Bersih dengan Outline Hitam Tajam seperti Among Us)
+	# Judul Petunjuk / Target (Teks Putih Bersih dengan Outline Hitam Tajam seperti Among Us - Diperbesar)
 	var obj_title_lbl = Label.new()
 	obj_title_lbl.text = "TUJUAN PENYELIDIKAN:"
 	obj_title_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.95))
 	obj_title_lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
-	obj_title_lbl.add_theme_constant_override("outline_size", 4)
-	obj_title_lbl.add_theme_font_size_override("font_size", 14)
+	obj_title_lbl.add_theme_constant_override("outline_size", 5)
+	obj_title_lbl.add_theme_font_size_override("font_size", 18)
 	info_vb.add_child(obj_title_lbl)
 
 	hud_objective_text = Label.new()
 	hud_objective_text.text = "• Telusuri Jalan & Selidiki Rumah Korban"
 	hud_objective_text.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
 	hud_objective_text.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
-	hud_objective_text.add_theme_constant_override("outline_size", 4)
-	hud_objective_text.add_theme_font_size_override("font_size", 15)
+	hud_objective_text.add_theme_constant_override("outline_size", 6)
+	hud_objective_text.add_theme_font_size_override("font_size", 22)
 	hud_objective_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hud_objective_text.custom_minimum_size = Vector2(460, 0)
+	hud_objective_text.custom_minimum_size = Vector2(620, 0)
 	info_vb.add_child(hud_objective_text)
 
 	var btns_hb = HBoxContainer.new()
@@ -1401,36 +1401,16 @@ func _setup_hud_prompts() -> void:
 
 	var empty_btn_style = StyleBoxEmpty.new()
 
-	var j_btn = Button.new()
-	j_btn.text = "[J] Jurnal Kasus"
-	j_btn.flat = true
-	j_btn.focus_mode = Control.FOCUS_NONE
-	j_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	j_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
-	j_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
-	j_btn.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
-	j_btn.add_theme_constant_override("outline_size", 3)
-	j_btn.add_theme_font_size_override("font_size", 12)
-	j_btn.add_theme_stylebox_override("normal", empty_btn_style)
-	j_btn.add_theme_stylebox_override("hover", empty_btn_style)
-	j_btn.add_theme_stylebox_override("pressed", empty_btn_style)
-	j_btn.pressed.connect(func():
-		play_click_sfx()
-		if is_instance_valid(clue_journal):
-			clue_journal.toggle_journal()
-	)
-	btns_hb.add_child(j_btn)
-
 	var p_btn = Button.new()
 	p_btn.text = "[ESC] Menu Pause"
 	p_btn.flat = true
 	p_btn.focus_mode = Control.FOCUS_NONE
 	p_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	p_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	p_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 0.8))
 	p_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
 	p_btn.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
 	p_btn.add_theme_constant_override("outline_size", 3)
-	p_btn.add_theme_font_size_override("font_size", 12)
+	p_btn.add_theme_font_size_override("font_size", 13)
 	p_btn.add_theme_stylebox_override("normal", empty_btn_style)
 	p_btn.add_theme_stylebox_override("hover", empty_btn_style)
 	p_btn.add_theme_stylebox_override("pressed", empty_btn_style)
@@ -1439,12 +1419,6 @@ func _setup_hud_prompts() -> void:
 		toggle_pause_menu()
 	)
 	btns_hb.add_child(p_btn)
-
-	var beta_lbl = Label.new()
-	beta_lbl.text = "Beta: [X] Dewa Maut  [Y] Bypass"
-	beta_lbl.add_theme_color_override("font_color", Color(0.82, 0.74, 1.0))
-	beta_lbl.add_theme_font_size_override("font_size", 11)
-	btns_hb.add_child(beta_lbl)
 
 func _is_fullscreen_now() -> bool:
 	var mode = DisplayServer.window_get_mode()
@@ -1546,12 +1520,12 @@ func _check_poi_proximity() -> void:
 					"indoor_letter":
 						interact_prompt.text = "[ F / E / Spasi ] BACA SURAT DI ATAS MEJA"
 					"indoor_safe":
-						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA\n[Y] BYPASS CERITA (FITUR BETA)"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS BAJA KELUARGA"
 					"indoor_photo_basin":
 						if inv_mgr.is_clue_unlocked("photo_envelope"):
-							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN\n[Y] BYPASS CERITA (FITUR BETA)"
+							interact_prompt.text = "[ F / E / Spasi ] KAMAR GELAP: CUCI ROL FOTO STASIUN"
 						else:
-							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)\n[Y] BYPASS CERITA (FITUR BETA)"
+							interact_prompt.text = "[ F / E / Spasi ] BASKOM FOTO (BELUM ADA ROL FOTO)"
 					"indoor_clock":
 						interact_prompt.text = "[ F / E / Spasi ] PERIKSA JAM WEKER DI NAKAS"
 					"indoor_exit":
@@ -1596,7 +1570,7 @@ func _check_poi_proximity() -> void:
 			if is_instance_valid(interact_prompt):
 				match active_poi_id:
 					"indoor_expl_safe":
-						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA (LIONTIN IBU)\n[Y] BYPASS CERITA (FITUR BETA)"
+						interact_prompt.text = "[ F / E / Spasi ] BUKA BRANKAS KELUARGA (LIONTIN IBU)"
 					"indoor_expl_photo":
 						interact_prompt.text = "[ F / E / Spasi ] LIHAT FOTO & KALENDER KENANGAN IBU"
 					"indoor_expl_recipe":
@@ -1713,10 +1687,7 @@ func _check_poi_proximity() -> void:
 				else:
 					custom_text = "[ F / E / Spasi ] MENYELINAP KE KAMAR MAYAT RS"
 			
-			if active_poi_id in ["police", "police_darkroom", "station", "hospital", "safe"]:
-				interact_prompt.text = custom_text + "\n[Y] BYPASS CERITA (FITUR BETA)"
-			else:
-				interact_prompt.text = custom_text
+			interact_prompt.text = custom_text
 
 			var vp = get_viewport().get_visible_rect().size
 			interact_prompt.custom_minimum_size = Vector2(520, 56)
