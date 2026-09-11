@@ -6,12 +6,12 @@ extends Node2D
 
 # Koordinat penempatan interior rumah di world space
 const ROOM_ORIGIN := Vector2(3600.0, 400.0)
-const ROOM_SIZE := Vector2(660.0, 420.0)
+const ROOM_SIZE := Vector2(460.0, 300.0)
 
-# Titik-titik penting di dalam rumah (Sesuai Sketsa Denah USER)
-const ENTRANCE_POS := Vector2(3600.0 + 110.0, 400.0 + 365.0)
-const EXIT_DOOR_POS := Vector2(3600.0 + 110.0, 400.0 + 400.0)
-const STAIRS_POS := Vector2(3600.0 + 575.0, 400.0 + 345.0)
+# Titik-titik penting di dalam rumah (Studio Detektif Kompak)
+const ENTRANCE_POS := Vector2(3600.0 + 85.0, 400.0 + 245.0)
+const EXIT_DOOR_POS := Vector2(3600.0 + 85.0, 400.0 + 280.0)
+const STAIRS_POS := Vector2(3600.0 + 415.0, 400.0 + 215.0)
 
 const CONFIG_FILE_PATH := "res://data/house_furniture.json"
 const USER_CONFIG_FILE_PATH := "user://house_furniture.json"
@@ -26,7 +26,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Sofa Tamu Hijau",
 		"type": "sprite",
 		"tex": "tex_sofa_panjang",
-		"x": 65.0, "y": 160.0,
+		"x": 65.0, "y": 75.0,
 		"scale": 1.0,
 		"base_w": 65.0,
 		"has_col": true,
@@ -38,7 +38,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Armchair Tamu",
 		"type": "sprite",
 		"tex": "tex_sofa_kecil",
-		"x": 48.0, "y": 238.0,
+		"x": 42.0, "y": 145.0,
 		"scale": 1.0,
 		"base_w": 24.0,
 		"has_col": true,
@@ -50,7 +50,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Meja Kopi Ruang Tamu",
 		"type": "sprite",
 		"tex": "tex_meja_panjang",
-		"x": 65.0, "y": 200.0,
+		"x": 65.0, "y": 110.0,
 		"scale": 1.0,
 		"base_w": 40.0,
 		"has_col": true,
@@ -62,9 +62,9 @@ var default_furniture_config: Dictionary = {
 		"name": "Karpet Ruang Tamu",
 		"type": "sprite",
 		"tex": "tex_karpet",
-		"x": 65.0, "y": 200.0,
+		"x": 65.0, "y": 110.0,
 		"scale": 1.0,
-		"base_w": 80.0,
+		"base_w": 75.0,
 		"has_col": false,
 		"z_idx": -1
 	},
@@ -72,7 +72,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Meja Hias / Vas Bunga",
 		"type": "sprite",
 		"tex": "tex_laci",
-		"x": 35.0, "y": 62.0,
+		"x": 32.0, "y": 48.0,
 		"scale": 1.0,
 		"base_w": 22.0,
 		"has_col": true,
@@ -84,12 +84,12 @@ var default_furniture_config: Dictionary = {
 		"name": "Partisi Garis Tiang",
 		"type": "drawn",
 		"draw_type": "partisi",
-		"x": 110.0, "y": 175.0,
+		"x": 125.0, "y": 110.0,
 		"scale": 1.0,
-		"base_w": 14.0,
-		"base_h": 110.0,
+		"base_w": 10.0,
+		"base_h": 90.0,
 		"has_col": true,
-		"col_w": 14.0, "col_h": 110.0,
+		"col_w": 10.0, "col_h": 90.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 0
 	},
@@ -99,7 +99,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Meja Kerja Detektif",
 		"type": "sprite",
 		"tex": "tex_meja_detektif",
-		"x": 295.0, "y": 95.0,
+		"x": 195.0, "y": 72.0,
 		"scale": 1.0,
 		"base_w": 75.0,
 		"has_col": true,
@@ -111,7 +111,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Kursi Kerja Detektif",
 		"type": "drawn",
 		"draw_type": "kursi",
-		"x": 295.0, "y": 65.0,
+		"x": 195.0, "y": 48.0,
 		"scale": 1.0,
 		"base_w": 24.0,
 		"base_h": 8.0,
@@ -122,7 +122,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Brankas Baja Keluarga",
 		"type": "sprite",
 		"tex": "tex_berangkas",
-		"x": 235.0, "y": 65.0,
+		"x": 150.0, "y": 52.0,
 		"scale": 1.0,
 		"base_w": 28.0,
 		"has_col": true,
@@ -134,7 +134,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Surat Penugasan di Meja",
 		"type": "sprite",
 		"tex": "tex_surat",
-		"x": 295.0, "y": 95.0,
+		"x": 195.0, "y": 72.0,
 		"scale": 1.0,
 		"base_w": 18.0,
 		"has_col": false,
@@ -146,8 +146,8 @@ var default_furniture_config: Dictionary = {
 		"name": "Ranjang Tidur (Bed)",
 		"type": "sprite",
 		"tex": "tex_bed",
-		"x": 460.0, "y": 90.0,
-		"scale": 1.0,
+		"x": 310.0, "y": 72.0,
+		"scale": 1.1,
 		"base_w": 46.0,
 		"has_col": true,
 		"col_w": 46.0, "col_h": 52.0,
@@ -158,7 +158,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Nakas Samping Kasur",
 		"type": "sprite",
 		"tex": "tex_laci",
-		"x": 508.0, "y": 75.0,
+		"x": 355.0, "y": 56.0,
 		"scale": 1.0,
 		"base_w": 22.0,
 		"has_col": true,
@@ -170,19 +170,19 @@ var default_furniture_config: Dictionary = {
 		"name": "Lemari Pakaian Kayu",
 		"type": "sprite",
 		"tex": "tex_lemari",
-		"x": 582.0, "y": 68.0,
-		"scale": 1.0,
+		"x": 405.0, "y": 68.0,
+		"scale": 1.2,
 		"base_w": 44.0,
 		"has_col": true,
-		"col_w": 52.0, "col_h": 58.0,
-		"col_off_x": 0.0, "col_y_off": 10.0,
+		"col_w": 48.0, "col_h": 52.0,
+		"col_off_x": 0.0, "col_y_off": 8.0,
 		"z_idx": 0
 	},
 	"karpet_kamar": {
 		"name": "Karpet Kamar Tidur",
 		"type": "sprite",
 		"tex": "tex_karpet_kamar",
-		"x": 460.0, "y": 135.0,
+		"x": 310.0, "y": 110.0,
 		"scale": 1.0,
 		"base_w": 50.0,
 		"has_col": false,
@@ -194,11 +194,11 @@ var default_furniture_config: Dictionary = {
 		"name": "Set Masak / Meja Dapur",
 		"type": "sprite",
 		"tex": "tex_set_masak",
-		"x": 412.0, "y": 323.0,
+		"x": 325.0, "y": 245.0,
 		"scale": 1.0,
 		"base_w": 65.0,
 		"has_col": true,
-		"col_w": 65.0, "col_h": 48.0,
+		"col_w": 65.0, "col_h": 44.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 0
 	},
@@ -206,11 +206,11 @@ var default_furniture_config: Dictionary = {
 		"name": "Kulkas Dapur",
 		"type": "sprite",
 		"tex": "tex_kulkas",
-		"x": 458.0, "y": 323.0,
+		"x": 368.0, "y": 245.0,
 		"scale": 1.0,
 		"base_w": 30.0,
 		"has_col": true,
-		"col_w": 30.0, "col_h": 48.0,
+		"col_w": 30.0, "col_h": 44.0,
 		"col_off_x": 0.0, "col_y_off": 0.0,
 		"z_idx": 0
 	},
@@ -218,7 +218,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Meja Lab Cuci Foto",
 		"type": "sprite",
 		"tex": "tex_meja_lab_foto",
-		"x": 250.0, "y": 360.0,
+		"x": 255.0, "y": 245.0,
 		"scale": 1.0,
 		"base_w": 48.0,
 		"has_col": true,
@@ -230,7 +230,7 @@ var default_furniture_config: Dictionary = {
 		"name": "Baskom Cuci Foto",
 		"type": "sprite",
 		"tex": "tex_baskom",
-		"x": 254.0, "y": 358.0,
+		"x": 255.0, "y": 243.0,
 		"scale": 1.0,
 		"base_w": 26.0,
 		"has_col": false,
@@ -242,10 +242,10 @@ var default_furniture_config: Dictionary = {
 		"name": "Keset Pintu Keluar",
 		"type": "drawn",
 		"draw_type": "keset",
-		"x": 110.0, "y": 395.0,
+		"x": 85.0, "y": 280.0,
 		"scale": 1.0,
-		"base_w": 50.0,
-		"base_h": 16.0,
+		"base_w": 40.0,
+		"base_h": 14.0,
 		"has_col": false,
 		"z_idx": 0
 	}
@@ -355,32 +355,18 @@ func _build_room_collisions() -> void:
 	add_child(static_body)
 
 	# 1. DINDING KELILING LUAR (OUTER WALLS)
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, ROOM_SIZE.x, 36.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 20.0, ROOM_SIZE.y))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 20.0, ROOM_ORIGIN.y, 20.0, ROOM_SIZE.y))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0, 80.0, 20.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 140.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0, 56.0, 20.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0, ROOM_SIZE.x - 196.0, 20.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, ROOM_SIZE.x, 32.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 60.0, 16.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x - 115.0, 16.0))
 
-	# 2. DINDING SEKAT RUANG KERJA
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 192.0, ROOM_ORIGIN.y + 36.0, 18.0, 126.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 192.0, ROOM_ORIGIN.y + 148.0, 138.0, 18.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 392.0, ROOM_ORIGIN.y + 36.0, 18.0, 202.0))
+	# 2. DINDING SEKAT RUANG KERJA & KAMAR
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 10.0, 85.0))
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 10.0, 140.0))
 
-	# 3. DINDING SEKAT KAMAR
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 392.0, ROOM_ORIGIN.y + 222.0, 178.0, 18.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 618.0, ROOM_ORIGIN.y + 222.0, 24.0, 18.0))
-
-	# 4. DINDING SEKAT DAPUR
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 192.0, ROOM_ORIGIN.y + 286.0, 18.0, 116.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 192.0, ROOM_ORIGIN.y + 286.0, 49.0, 18.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 291.0, ROOM_ORIGIN.y + 286.0, 211.0, 18.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 486.0, ROOM_ORIGIN.y + 286.0, 18.0, 116.0))
-
-	# 5. DINDING SEKAT KOTAK TANGGA
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 510.0, ROOM_ORIGIN.y + 296.0, 18.0, 106.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 510.0, ROOM_ORIGIN.y + 296.0, 40.0, 18.0))
-	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 602.0, ROOM_ORIGIN.y + 296.0, 40.0, 18.0))
+	# 3. DINDING SEKAT DAPUR
+	_add_box_collider(static_body, Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 10.0, 85.0))
 
 func _add_box_collider(body: StaticBody2D, rect: Rect2) -> CollisionShape2D:
 	var col = CollisionShape2D.new()
@@ -539,17 +525,17 @@ func reset_to_default_config() -> void:
 func get_desk_letter_pos() -> Vector2:
 	if furniture_config.has("meja_detektif"):
 		return ROOM_ORIGIN + Vector2(furniture_config["meja_detektif"].x, furniture_config["meja_detektif"].y)
-	return ROOM_ORIGIN + Vector2(295.0, 95.0)
+	return ROOM_ORIGIN + Vector2(195.0, 72.0)
 
 func get_safe_pos() -> Vector2:
 	if furniture_config.has("brankas"):
 		return ROOM_ORIGIN + Vector2(furniture_config["brankas"].x, furniture_config["brankas"].y)
-	return ROOM_ORIGIN + Vector2(235.0, 65.0)
+	return ROOM_ORIGIN + Vector2(150.0, 52.0)
 
 func get_photo_basin_pos() -> Vector2:
 	if furniture_config.has("meja_lab_foto"):
 		return ROOM_ORIGIN + Vector2(furniture_config["meja_lab_foto"].x, furniture_config["meja_lab_foto"].y)
-	return ROOM_ORIGIN + Vector2(250.0, 360.0)
+	return ROOM_ORIGIN + Vector2(255.0, 245.0)
 
 func get_stairs_pos() -> Vector2:
 	return STAIRS_POS
@@ -568,7 +554,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	# 1. LANTAI DASAR PARQUET KAYU
-	var floor_rect = Rect2(ROOM_ORIGIN.x + 20.0, ROOM_ORIGIN.y + 36.0, ROOM_SIZE.x - 40.0, ROOM_SIZE.y - 56.0)
+	var floor_rect = Rect2(ROOM_ORIGIN.x + 16.0, ROOM_ORIGIN.y + 32.0, ROOM_SIZE.x - 32.0, ROOM_SIZE.y - 48.0)
 	draw_rect(floor_rect, Color(0.20, 0.16, 0.12), true)
 
 	var plank_h: float = 16.0
@@ -578,11 +564,11 @@ func _draw() -> void:
 		curr_y += plank_h
 
 	# 2. LANTAI KERAMIK DAPUR
-	var tile_size: float = 18.0
-	var kx_start = ROOM_ORIGIN.x + 206.0
-	var kx_end = ROOM_ORIGIN.x + 490.0
-	var ky_start = ROOM_ORIGIN.y + 300.0
-	var ky_end = ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0
+	var tile_size: float = 16.0
+	var kx_start = ROOM_ORIGIN.x + 225.0
+	var kx_end = ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0
+	var ky_start = ROOM_ORIGIN.y + 195.0
+	var ky_end = ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0
 
 	var tx = kx_start
 	while tx < kx_end:
@@ -595,11 +581,11 @@ func _draw() -> void:
 			ty += tile_size
 		tx += tile_size
 
-	# 3. KOTAK ANAK TANGGA
-	var st_rect = Rect2(ROOM_ORIGIN.x + 524.0, ROOM_ORIGIN.y + 310.0, 116.0, 90.0)
+	# 3. KOTAK ANAK TANGGA (Menuju loteng/ruang arsip)
+	var st_rect = Rect2(ROOM_ORIGIN.x + 395.0, ROOM_ORIGIN.y + 185.0, 45.0, 75.0)
 	draw_rect(st_rect, Color(0.16, 0.12, 0.09), true)
 
-	var step_count = 7
+	var step_count = 6
 	var step_h = st_rect.size.y / step_count
 	for i in range(step_count):
 		var sy = st_rect.position.y + i * step_h
@@ -608,60 +594,37 @@ func _draw() -> void:
 		draw_line(Vector2(st_rect.position.x, sy), Vector2(st_rect.end.x, sy), Color(0.38, 0.28, 0.20), 1.5)
 		draw_line(Vector2(st_rect.position.x, sy + step_h - 1), Vector2(st_rect.end.x, sy + step_h - 1), Color(0.10, 0.07, 0.05), 1.0)
 
-	var x_center = Vector2(ROOM_ORIGIN.x + 575.0, ROOM_ORIGIN.y + 305.0)
-	draw_line(x_center + Vector2(-6, -6), x_center + Vector2(6, 6), Color(0.9, 0.2, 0.2), 2.0)
-	draw_line(x_center + Vector2(-6, 6), x_center + Vector2(6, -6), Color(0.9, 0.2, 0.2), 2.0)
-	draw_line(Vector2(st_rect.position.x + 4, st_rect.position.y), Vector2(st_rect.position.x + 4, st_rect.end.y), Color(0.48, 0.35, 0.24), 2.5)
+	var x_center = Vector2(ROOM_ORIGIN.x + 417.0, ROOM_ORIGIN.y + 180.0)
+	draw_line(x_center + Vector2(-5, -5), x_center + Vector2(5, 5), Color(0.9, 0.2, 0.2), 2.0)
+	draw_line(x_center + Vector2(-5, 5), x_center + Vector2(5, -5), Color(0.9, 0.2, 0.2), 2.0)
+	draw_line(Vector2(st_rect.position.x + 2, st_rect.position.y), Vector2(st_rect.position.x + 2, st_rect.end.y), Color(0.48, 0.35, 0.24), 2.0)
 
 	# 4. DINDING LUAR BANGUNAN (WALLS)
 	var wall_col = Color(0.12, 0.10, 0.14)
 	var trim_col = Color(0.34, 0.26, 0.20)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, ROOM_SIZE.x, 36.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + 36.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + 36.0), trim_col, 2.5)
+	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, ROOM_SIZE.x, 32.0), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + 32.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + 32.0), trim_col, 2.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 20.0, ROOM_SIZE.y), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x + 20.0, ROOM_ORIGIN.y), Vector2(ROOM_ORIGIN.x + 20.0, ROOM_ORIGIN.y + ROOM_SIZE.y), trim_col, 2.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 20.0, ROOM_ORIGIN.y, 20.0, ROOM_SIZE.y), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 20.0, ROOM_ORIGIN.y), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 20.0, ROOM_ORIGIN.y + ROOM_SIZE.y), trim_col, 2.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x + 16.0, ROOM_ORIGIN.y), Vector2(ROOM_ORIGIN.x + 16.0, ROOM_ORIGIN.y + ROOM_SIZE.y), trim_col, 2.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y, 16.0, ROOM_SIZE.y), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x - 16.0, ROOM_ORIGIN.y + ROOM_SIZE.y), trim_col, 2.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0, 80.0, 20.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0), Vector2(ROOM_ORIGIN.x + 80.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0), trim_col, 2.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 140.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0, ROOM_SIZE.x - 140.0, 20.0), wall_col, true)
-	draw_line(Vector2(ROOM_ORIGIN.x + 140.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 20.0), trim_col, 2.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, 60.0, 16.0), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + 60.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0, ROOM_SIZE.x - 115.0, 16.0), wall_col, true)
+	draw_line(Vector2(ROOM_ORIGIN.x + 115.0, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), Vector2(ROOM_ORIGIN.x + ROOM_SIZE.x, ROOM_ORIGIN.y + ROOM_SIZE.y - 16.0), trim_col, 2.0)
 
 	# 5. DINDING SEKAT RUANGAN
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 36.0, 10.0, 124.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 36.0, 10.0, 124.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 152.0, 134.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 152.0, 134.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 328.0, ROOM_ORIGIN.y + 150.0, 4.0, 14.0), trim_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 85.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 125.0, ROOM_ORIGIN.y + 32.0, 8.0, 85.0), trim_col, false, 1.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x + 396.0, ROOM_ORIGIN.y + 36.0, 10.0, 200.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 396.0, ROOM_ORIGIN.y + 36.0, 10.0, 200.0), trim_col, false, 1.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 140.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 265.0, ROOM_ORIGIN.y + 32.0, 8.0, 140.0), trim_col, false, 1.0)
 
-	draw_rect(Rect2(ROOM_ORIGIN.x + 396.0, ROOM_ORIGIN.y + 226.0, 174.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 396.0, ROOM_ORIGIN.y + 226.0, 174.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 620.0, ROOM_ORIGIN.y + 226.0, 20.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 620.0, ROOM_ORIGIN.y + 226.0, 20.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 568.0, ROOM_ORIGIN.y + 224.0, 4.0, 14.0), trim_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 618.0, ROOM_ORIGIN.y + 224.0, 4.0, 14.0), trim_col, true)
-
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 290.0, 10.0, 110.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 290.0, 10.0, 110.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 290.0, 45.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 196.0, ROOM_ORIGIN.y + 290.0, 45.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 295.0, ROOM_ORIGIN.y + 290.0, 205.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 295.0, ROOM_ORIGIN.y + 290.0, 205.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 490.0, ROOM_ORIGIN.y + 290.0, 10.0, 110.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 490.0, ROOM_ORIGIN.y + 290.0, 10.0, 110.0), trim_col, false, 1.0)
-
-	draw_rect(Rect2(ROOM_ORIGIN.x + 514.0, ROOM_ORIGIN.y + 300.0, 35.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 514.0, ROOM_ORIGIN.y + 300.0, 35.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 605.0, ROOM_ORIGIN.y + 300.0, 35.0, 10.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 605.0, ROOM_ORIGIN.y + 300.0, 35.0, 10.0), trim_col, false, 1.0)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 514.0, ROOM_ORIGIN.y + 300.0, 10.0, 100.0), wall_col, true)
-	draw_rect(Rect2(ROOM_ORIGIN.x + 514.0, ROOM_ORIGIN.y + 300.0, 10.0, 100.0), trim_col, false, 1.0)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 85.0), wall_col, true)
+	draw_rect(Rect2(ROOM_ORIGIN.x + 220.0, ROOM_ORIGIN.y + 195.0, 8.0, 85.0), trim_col, false, 1.0)
 
 	# 6. ELEMEN INTERIOR YANG DIGAMBAR SESUAI POSISI & SKALA DARI CONFIG
 	# a. Partisi Garis Tiang Ruang Tamu

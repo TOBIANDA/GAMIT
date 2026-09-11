@@ -35,9 +35,19 @@ const POLICE_PATROL_WAYPOINTS = [
 	Vector2(411, 880),
 	Vector2(411, 1278),
 	Vector2(950, 1278),
-	Vector2(1581, 1278),
-	Vector2(1581, 780),
-	Vector2(2088, 690)
+	Vector2(1820, 1278),
+	Vector2(1820, 850),
+	Vector2(2020, 850)
+]
+
+const POLICE_RETURN_WAYPOINTS = [
+	Vector2(2020, 850),
+	Vector2(1820, 850),
+	Vector2(1820, 1278),
+	Vector2(950, 1278),
+	Vector2(411, 1278),
+	Vector2(411, 880),
+	Vector2(280, 915)
 ]
 
 var is_patrolling_to_station: bool = false
@@ -347,19 +357,25 @@ func _handle_travel_state(delta: float, dist_to_player: float) -> void:
 
 	if is_departing:
 		var dist_to_goal = global_position.distance_to(target_destination)
-		if dist_to_goal < 35.0:
-			is_departing = false
-			current_state = State.IDLE
-			velocity = Vector2.ZERO
-			is_moving = false
-			return
+		if dist_to_goal < 38.0:
+			current_patrol_idx += 1
+			if current_patrol_idx < POLICE_RETURN_WAYPOINTS.size():
+				target_destination = POLICE_RETURN_WAYPOINTS[current_patrol_idx] + patrol_formation_offset
+				if is_instance_valid(nav_agent):
+					nav_agent.target_position = target_destination
+			else:
+				is_departing = false
+				current_state = State.IDLE
+				velocity = Vector2.ZERO
+				is_moving = false
+				return
 
 		var move_dir = (target_destination - global_position).normalized()
 		move_dir_facing = move_dir
 		is_moving = true
 		step_cycle += delta * 4.5
 		body_bob_y = abs(sin(step_cycle)) * -1.5
-		velocity = move_dir * 65.0
+		velocity = move_dir * 72.0
 		move_and_slide()
 		return
 
@@ -493,12 +509,11 @@ func depart_from_station() -> void:
 	stuck_timer = 0.0
 	last_check_pos = global_position
 
+	target_destination = POLICE_RETURN_WAYPOINTS[0] + patrol_formation_offset
 	if npc_type == NPCType.INSPECTOR_MARCUS:
-		target_destination = Vector2(280, 915) # Kembali ke kantor polisi
 		show_chat_bubble("Marcus: Aku harus segera menyusun berkas di kantor.", 3.0)
 	else:
-		target_destination = Vector2(1104, 780) # Berkeliling pos jaga kota
-		show_chat_bubble("Polisi: Saya akan kembali berpatroli ke pos luar!", 3.0)
+		show_chat_bubble("Polisi: Saya akan kembali mengawal rute kantor polisi!", 3.0)
 
 	if is_instance_valid(nav_agent):
 		nav_agent.target_position = target_destination
