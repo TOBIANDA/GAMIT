@@ -27,6 +27,9 @@ var close_btn: Button
 var standoff_panel: Control
 var mc_chibi_rect: TextureRect
 var grim_chibi_rect: TextureRect
+var altar_rect: TextureRect
+var altar_aura_glow: ColorRect
+var altar_label: Label
 var mc_aura_glow: ColorRect
 var grim_aura_glow: ColorRect
 var mc_label: Label
@@ -34,6 +37,7 @@ var grim_label: Label
 var vs_symbol_label: Label
 var mc_base_y: float = 0.0
 var grim_base_y: float = 0.0
+var altar_base_y: float = 0.0
 var _last_standoff_w: float = -1.0
 
 # Middle content container
@@ -149,9 +153,9 @@ func _build_ui() -> void:
 	sep.add_theme_color_override("color", Color(0.45, 0.3, 0.65, 0.8))
 	vb.add_child(sep)
 
-	# --- B. STANDOFF PANEL (CHIBI MC & CHIBI DEWA KEMATIAN SALING BERHADAPAN) ---
+	# --- B. STANDOFF PANEL (CHIBI MC & CHIBI DEWA KEMATIAN SALING BERHADAPAN DI DEPAN ALTAR) ---
 	standoff_panel = Control.new()
-	standoff_panel.custom_minimum_size = Vector2(0, 165)
+	standoff_panel.custom_minimum_size = Vector2(0, 195)
 	standoff_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vb.add_child(standoff_panel)
 
@@ -180,13 +184,28 @@ func _build_ui() -> void:
 	mc_label.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
 	standoff_panel.add_child(mc_label)
 
-	# 2. Simbol Misterius di Tengah
-	vs_symbol_label = Label.new()
-	vs_symbol_label.text = "✦  KEBENARAN & PENGHAKIMAN AKHIR  ✦"
-	vs_symbol_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vs_symbol_label.add_theme_font_size_override("font_size", 14)
-	vs_symbol_label.add_theme_color_override("font_color", Color(0.75, 0.60, 0.95))
-	standoff_panel.add_child(vs_symbol_label)
+	# 2. Altar Kematian di Tengah (Antara Chibi Benedict & Dewa Kematian)
+	altar_aura_glow = ColorRect.new()
+	altar_aura_glow.color = Color(0.25, 0.65, 0.95, 0.35)
+	altar_aura_glow.size = Vector2(150, 16)
+	standoff_panel.add_child(altar_aura_glow)
+
+	altar_rect = TextureRect.new()
+	altar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	altar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	altar_rect.custom_minimum_size = Vector2(145, 175)
+	altar_rect.size = Vector2(145, 175)
+	var tex_altar = load("res://Environment/altar_kematian.png")
+	altar_rect.texture = tex_altar
+	standoff_panel.add_child(altar_rect)
+
+	altar_label = Label.new()
+	altar_label.text = "✦ Altar Kematian — Batas Takdir ✦"
+	altar_label.size = Vector2(260, 24)
+	altar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	altar_label.add_theme_font_size_override("font_size", 12)
+	altar_label.add_theme_color_override("font_color", Color(0.65, 0.85, 0.95))
+	standoff_panel.add_child(altar_label)
 
 	# 3. Chibi Dewa Kematian (Grim Reaper) di sebelah kanan, menghadap ke kiri
 	grim_aura_glow = ColorRect.new()
@@ -352,25 +371,33 @@ func _update_standoff_positions() -> void:
 	var w = _get_standoff_width()
 	_last_standoff_w = w
 
-	var mc_x = w * 0.30 - 45.0
-	var grim_x = w * 0.70 - 45.0
-	mc_base_y = 12.0
-	grim_base_y = 10.0
+	var mc_x = w * 0.22 - 45.0
+	var altar_x = w * 0.50 - 72.5
+	var grim_x = w * 0.78 - 45.0
+	mc_base_y = 25.0
+	altar_base_y = 0.0
+	grim_base_y = 20.0
 
 	if is_instance_valid(mc_chibi_rect):
 		mc_chibi_rect.position = Vector2(mc_x, mc_base_y)
 	if is_instance_valid(grim_chibi_rect):
 		grim_chibi_rect.position = Vector2(grim_x, grim_base_y)
+	if is_instance_valid(altar_rect):
+		altar_rect.position = Vector2(altar_x, altar_base_y)
 
 	if is_instance_valid(mc_aura_glow):
-		mc_aura_glow.position = Vector2(mc_x - 5.0, mc_base_y + 110.0)
+		mc_aura_glow.position = Vector2(mc_x - 5.0, mc_base_y + 112.0)
 	if is_instance_valid(grim_aura_glow):
-		grim_aura_glow.position = Vector2(grim_x - 5.0, grim_base_y + 110.0)
+		grim_aura_glow.position = Vector2(grim_x - 5.0, grim_base_y + 112.0)
+	if is_instance_valid(altar_aura_glow):
+		altar_aura_glow.position = Vector2(altar_x - 2.5, altar_base_y + 168.0)
 
 	if is_instance_valid(mc_label):
-		mc_label.position = Vector2(mc_x - 45.0, mc_base_y + 130.0)
+		mc_label.position = Vector2(mc_x - 45.0, mc_base_y + 132.0)
 	if is_instance_valid(grim_label):
-		grim_label.position = Vector2(grim_x - 45.0, grim_base_y + 130.0)
+		grim_label.position = Vector2(grim_x - 45.0, grim_base_y + 132.0)
+	if is_instance_valid(altar_label):
+		altar_label.position = Vector2(w * 0.50 - 130.0, altar_base_y + 172.0)
 
 	if is_instance_valid(vs_symbol_label):
 		vs_symbol_label.position = Vector2(w * 0.5 - 170.0, 52.0)
@@ -398,6 +425,8 @@ func _process(delta: float) -> void:
 		mc_chibi_rect.position.y = mc_base_y + mc_bob
 	if is_instance_valid(mc_aura_glow):
 		mc_aura_glow.color.a = 0.25 + 0.10 * sin(anim_time * 2.0)
+	if is_instance_valid(altar_aura_glow):
+		altar_aura_glow.color.a = 0.30 + 0.15 * sin(anim_time * 3.2)
 
 func open_interface() -> void:
 	_ensure_ui()
@@ -419,19 +448,105 @@ func _start_intro_confrontation_dialog() -> void:
 	if is_instance_valid(main_node):
 		dlg = main_node.get_node_or_null("DialogBox")
 
-	if is_instance_valid(dlg) and dlg.has_method("start_monologue"):
-		# Sembunyikan question box saat dialog awal berlangsung
+	if is_instance_valid(dlg) and dlg.has_method("start_dialogue_sequence"):
+		# Sembunyikan question box saat dialog tatap-tatapan berlangsung
 		content_hb.modulate.a = 0.0
 		nlp_panel.modulate.a = 0.0
 
-		var intro_lines: Array[String] = [
-			"Akhirnya... kabut penolakanmu telah tersingkap, wahai arwah pengelana.",
-			"Waktumu di dunia manusia telah terhenti di jam 16:04. Mayat di peti rumah sakit itu adalah jasadmu yang tertinggal.",
-			"Kau bukan lagi detektif yang mencari pembunuh... Kau adalah korban yang enggan melepaskan dunia.",
-			"Sekarang, tataplah kenyataan ini dan jawablah pertanyaanku... agar jiwamu dapat beristirahat dalam damai."
+		var confrontation_dialogue: Array = [
+			{
+				"speaker": "Sang Dewa Kematian",
+				"badge": "[ BATAS KEABADIAN ]",
+				"portrait": "res://karakter/grim.png",
+				"text": "Akhirnya kau tiba di altar ini, wahai jiwa yang tersesat..."
+			},
+			{
+				"speaker": "Detektif Benedict",
+				"badge": "[ KEBINGUNGAN BATIN ]",
+				"portrait": "res://karakter/MC_Kaget.png",
+				"text": "Altar ini... dan sosok berjubah di hadapanku... Siapa kau sebenarnya? Mengapa orang-orang di kota tak ada yang menyahut panggilanku?!"
+			},
+			{
+				"speaker": "Sang Dewa Kematian",
+				"badge": "[ HAKIKAT KEMATIAN ]",
+				"portrait": "res://karakter/grim.png",
+				"text": "Aku adalah Sang Dewa Kematian. Alasan mereka tak menyahutmu... adalah karena ragamu telah terpisah dari dunia orang hidup."
+			},
+			{
+				"speaker": "Detektif Benedict",
+				"badge": "[ PENYELIDIKAN AKHIR ]",
+				"portrait": "res://karakter/MC_Sedih.png",
+				"text": "Ragaku telah tiada...? Berarti jam dinding yang membeku di 16:04... dan jasad bernomor 040 di ruang jenazah itu..."
+			},
+			{
+				"speaker": "Sang Dewa Kematian",
+				"badge": "[ KEBENARAN MUTLAK ]",
+				"portrait": "res://karakter/grim.png",
+				"text": "Benar, Benedict. Korban yang kau selidiki selama ini adalah jasadmu sendiri. Jiwamu terjebak dalam penolakan akan takdir ini."
+			},
+			{
+				"speaker": "Detektif Benedict",
+				"badge": "[ PENERIMAAN TAKDIR ]",
+				"portrait": "res://karakter/MC_Biasa.png",
+				"text": "Kematianku sendiri... Jadi penyelidikan ini adalah jalan bagiku untuk menyadari takdirku. Lalu apa yang harus kulakukan di altar ini?"
+			},
+			{
+				"speaker": "Sang Dewa Kematian",
+				"badge": "[ PENGHAKIMAN AKHIR ]",
+				"portrait": "res://karakter/grim.png",
+				"text": "Tataplah altar ini. Buktikan jiwamu telah ikhlas melepaskan dunia fana. Jawablah pertanyaanku, dan masuklah ke dalam keabadian yang damai."
+			}
 		]
 
-		# Dialog pembuka Dewa Kematian dengan potret Non-Chibi grim.png
+		# Hook signal agar chibi yang sedang berbicara bereaksi/menyorot
+		var on_line_change = func(entry: Dictionary):
+			var spk: String = entry.get("speaker", "")
+			if spk.contains("Dewa Kematian"):
+				if is_instance_valid(grim_aura_glow):
+					grim_aura_glow.color = Color(0.8, 0.35, 1.0, 0.65)
+				if is_instance_valid(mc_aura_glow):
+					mc_aura_glow.color = Color(0.2, 0.5, 0.9, 0.20)
+			else:
+				if is_instance_valid(mc_aura_glow):
+					mc_aura_glow.color = Color(0.3, 0.7, 1.0, 0.65)
+				if is_instance_valid(grim_aura_glow):
+					grim_aura_glow.color = Color(0.6, 0.2, 0.9, 0.20)
+
+		if dlg.has_signal("dialogue_line_started") and not dlg.dialogue_line_started.is_connected(on_line_change):
+			dlg.dialogue_line_started.connect(on_line_change)
+
+		dlg.start_dialogue_sequence(confrontation_dialogue, true)
+
+		var on_done_called = false
+		var on_done = func():
+			if on_done_called:
+				return
+			on_done_called = true
+			if dlg.has_signal("dialogue_line_started") and dlg.dialogue_line_started.is_connected(on_line_change):
+				dlg.dialogue_line_started.disconnect(on_line_change)
+			# Kembalikan pendaran glow normal
+			if is_instance_valid(grim_aura_glow):
+				grim_aura_glow.color = Color(0.60, 0.20, 0.90, 0.40)
+			if is_instance_valid(mc_aura_glow):
+				mc_aura_glow.color = Color(0.2, 0.5, 0.9, 0.35)
+			if is_instance_valid(content_hb) and content_hb.modulate.a < 0.9:
+				var tw_show = create_tween()
+				tw_show.tween_property(content_hb, "modulate:a", 1.0, 0.45)
+				tw_show.parallel().tween_property(nlp_panel, "modulate:a", 1.0, 0.45)
+			_display_current_question()
+
+		dlg.monologue_finished.connect(on_done, CONNECT_ONE_SHOT)
+		if not dlg.dialog_closed.is_connected(on_done):
+			dlg.dialog_closed.connect(on_done, CONNECT_ONE_SHOT)
+	elif is_instance_valid(dlg) and dlg.has_method("start_monologue"):
+		content_hb.modulate.a = 0.0
+		nlp_panel.modulate.a = 0.0
+		var intro_lines: Array[String] = [
+			"Akhirnya... kabut penolakanmu telah tersingkap di hadapan altar ini, wahai arwah pengelana.",
+			"Waktumu di dunia manusia telah terhenti di jam 16:04. Mayat di peti rumah sakit itu adalah jasadmu yang tertinggal.",
+			"Kau bukan lagi detektif yang mencari pembunuh... Kau adalah korban yang enggan melepaskan dunia.",
+			"Sekarang, tataplah altar ini dan jawablah pertanyaanku... agar jiwamu dapat beristirahat dalam damai."
+		]
 		dlg.start_monologue(intro_lines, "✦ Dewa Kematian ✦", "[ PENGHAKIMAN AKHIR ]", "res://karakter/grim.png")
 		var on_done_called = false
 		var on_done = func():
