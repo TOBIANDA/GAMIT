@@ -39,7 +39,7 @@ var clues: Dictionary = {
 	"mother_photo_riddle": {
 		"unlocked": false,
 		"title": "Foto Ibu dan Anak (Misi Opsional)",
-		"desc": "Foto ibu bersama anaknya di meja rumah korban. Di balik foto tertulis: 'Kembalilah ke rumah ibu jika sempat... Kuncinya: waktu yang membeku (1-6-4)'.",
+		"desc": "Foto ibu bersama anaknya di meja rumah. Di balik bingkai foto ada tulisan tangan ibu: 'Jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.'",
 		"phase": 0
 	},
 	"police_eavesdrop": {
@@ -80,8 +80,8 @@ var clues: Dictionary = {
 	},
 	"mother_emotional_locket": {
 		"unlocked": false,
-		"title": "Liontin Kenangan Ibu (True Ending Item)",
-		"desc": "Hadiah kasih sayang abadi dari Ibu Medeline di dalam brankas rumah ibu.",
+		"title": "Liontin Kenangan Ibu",
+		"desc": "Liontin peninggalan Ibu Medeline yang tersimpan di dalam brankas keluarga.",
 		"phase": 0
 	}
 }

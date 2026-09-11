@@ -10,7 +10,6 @@ const CODE = [1, 6, 4]
 var lcd_status_lbl: Label
 var lcd_digits_lbl: Label
 var status_label: Label
-var riddle_label: Label
 var safe_image_rect: TextureRect
 var numpad_container: Control
 var close_btn: Button
@@ -177,7 +176,7 @@ func _try_unlock() -> void:
 		_play_buzzer()
 		_update_lcd_display("✖ KODE SALAH! ✖", Color(1.0, 0.3, 0.3))
 		if is_instance_valid(status_label):
-			status_label.text = "KOMBINASI SALAH! Perhatikan teka-teki ibu di catatan (1-6-4)..."
+			status_label.text = "KOMBINASI SALAH! Periksa kembali petunjuk di sekitar rumah..."
 			status_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 
 		if is_inside_tree() and get_tree():
@@ -255,35 +254,15 @@ func _build_scene_ui() -> void:
 	close_btn.pressed.connect(func(): _close_safe(false))
 	header.add_child(close_btn)
 
-	# 2. Main Content (3 Columns: Riddle Note, Safe Illustration, Interactive Numpad)
+	# 2. Main Content (2 Columns: Safe Illustration, Interactive Numpad)
 	var content_hb = HBoxContainer.new()
 	content_hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_hb.add_theme_constant_override("separation", 20)
+	content_hb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	content_hb.add_theme_constant_override("separation", 40)
 	main_box.add_child(content_hb)
 
-	# Kolom Kiri: Catatan Pesan Ibu Medeline
-	var riddle_panel = PanelContainer.new()
-	riddle_panel.custom_minimum_size = Vector2(330, 0)
-	var r_style = StyleBoxFlat.new()
-	r_style.bg_color = Color(0.09, 0.11, 0.15, 0.95)
-	r_style.border_color = Color(0.85, 0.70, 0.35, 0.8)
-	r_style.set_border_width_all(2)
-	r_style.set_corner_radius_all(8)
-	r_style.content_margin_left = 18
-	r_style.content_margin_right = 18
-	r_style.content_margin_top = 16
-	r_style.content_margin_bottom = 16
-	riddle_panel.add_theme_stylebox_override("panel", r_style)
-	content_hb.add_child(riddle_panel)
-
-	riddle_label = Label.new()
-	riddle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	riddle_label.add_theme_color_override("font_color", Color(0.92, 0.92, 0.96))
-	riddle_label.add_theme_font_size_override("font_size", 13.5)
-	riddle_label.text = "Catatan di Balik Foto Masa Kecil:\n\n'Untuk anakku tersayang Benedict...\n\nTiga angka ini menyimpan kenangan abadi keluarga kita:\n\n1. Angka Pertama:\nAwal waktu dunia ini membeku... (1)\n\n2. Angka Kedua:\nBulan kelahiranmu saat kita merayakannya... (6)\n\n3. Angka Ketiga:\nDetik terakhir pada jam tangan pemberian ibu... (4)\n\nKombinasi Rahasia: 1 - 6 - 4'"
-	riddle_panel.add_child(riddle_label)
-
-	# Kolom Tengah: Ilustrasi Asli Brankas Baja
+	# Kolom Kiri: Ilustrasi Asli Brankas Baja
 	var safe_center = CenterContainer.new()
 	safe_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_hb.add_child(safe_center)
@@ -291,7 +270,7 @@ func _build_scene_ui() -> void:
 	safe_image_rect = TextureRect.new()
 	if is_instance_valid(tex_safe_closed):
 		safe_image_rect.texture = tex_safe_closed
-	safe_image_rect.custom_minimum_size = Vector2(270, 270)
+	safe_image_rect.custom_minimum_size = Vector2(320, 320)
 	safe_image_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	safe_image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	safe_center.add_child(safe_image_rect)
@@ -424,7 +403,7 @@ func _build_scene_ui() -> void:
 	main_box.add_child(reward_panel)
 
 	reward_label = Label.new()
-	reward_label.text = "ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Bukti cinta sejati yang mengikat arwahmu menuju Kedamaian Sejati (True Ending)!"
+	reward_label.text = "ITEM DIDAPATKAN: Liontin Kenangan Ibu Medeline!\nDi dalam brankas tersimpan liontin perak berisi foto ibu dan Benedict kecil. Kenangan keluarga yang sangat berharga."
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reward_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.9))
 	reward_label.add_theme_font_size_override("font_size", 13.5)

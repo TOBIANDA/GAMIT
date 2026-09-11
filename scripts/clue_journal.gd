@@ -211,7 +211,7 @@ func _build_tab3_content(parent: VBoxContainer) -> void:
 	pad.add_child(vb)
 
 	var sq_title = Label.new()
-	sq_title.text = "SIDE QUEST: HADIAH PENINGGALAN IBU MEDELINE"
+	sq_title.text = "CATATAN KHUSUS: RUMAH IBU MEDELINE"
 	sq_title.add_theme_color_override("font_color", Color(0.95, 0.65, 0.9))
 	sq_title.add_theme_font_size_override("font_size", 16)
 	vb.add_child(sq_title)
@@ -220,11 +220,11 @@ func _build_tab3_content(parent: VBoxContainer) -> void:
 	safe_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	safe_hint_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.95))
 	safe_hint_label.add_theme_font_size_override("font_size", 14)
-	safe_hint_label.text = "Pesan di balik foto: 'Benedict anakku... Jika kamu membaca ini, ambillah hadiah yang kutinggalkan di brankas rumah ibu (Gedung Arsip Kiri Bawah). Kuncinya adalah waktu ketika hidup kita membeku... 1 - 6 - 4.'"
+	safe_hint_label.text = "Pesan di balik foto: 'Untuk anakku tersayang, jika dunia terasa dingin dan membingungkan, ingatlah rumah ini selalu menunggumu pulang.' Di dalam rumah ibu tersimpan sebuah brankas keluarga."
 	vb.add_child(safe_hint_label)
 
 	var reward_info = Label.new()
-	reward_info.text = "✦ Buka brankas untuk memperoleh 'Liontin Kenangan Ibu Medeline' sebagai Emotional Item untuk membuka True Ending di hadapan Sang Dewa!"
+	reward_info.text = "✦ Buka brankas untuk memperoleh 'Liontin Kenangan Ibu Medeline'."
 	reward_info.add_theme_color_override("font_color", Color(0.4, 0.9, 0.6))
 	reward_info.add_theme_font_size_override("font_size", 13)
 	vb.add_child(reward_info)
